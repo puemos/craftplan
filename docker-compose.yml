@@ -1,0 +1,32 @@
+services:
+  postgres:
+    container_name: microcraft-postgres
+    image: postgres:16
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=microcraft_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./.postgres:/var/lib/postgresql/data
+  minio:
+    container_name: microcraft-minio
+    image: minio/minio:latest
+    entrypoint: sh
+    command: -c 'mkdir -p /data/microcraft && /usr/bin/minio server /data --console-address ":9001"'
+    hostname: minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ACCESS_KEY: "minio"
+      MINIO_SECRET_KEY: "minio123"
+    volumes:
+      - .minio:/data
+    deploy:
+      restart_policy:
+        condition: on-failure
