@@ -11,23 +11,13 @@
       "type": "uuid"
     },
     {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "customer_name",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"pending\"",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "status",
+      "source": "instructions",
       "type": "text"
     },
     {
@@ -68,15 +58,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "orders_orders_customer_id_fkey",
+        "name": "catalog_recipes_product_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "crm_customers"
+        "table": "catalog_products"
       },
       "size": null,
-      "source": "customer_id",
+      "source": "product_id",
       "type": "uuid"
     }
   ],
@@ -85,7 +75,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "AA7E8ACFC39B50EEC1ED377028E337883A6688298A05ED3728BBF98C2EC7E385",
+  "hash": "0CE3816395041D004C010459C3998EC22D667BAAD0E45DFD7A82BB334FC8E2BC",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -94,5 +84,5 @@
   },
   "repo": "Elixir.Microcraft.Repo",
   "schema": null,
-  "table": "orders_orders"
+  "table": "catalog_recipes"
 }

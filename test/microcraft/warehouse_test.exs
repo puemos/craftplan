@@ -1,6 +1,6 @@
-defmodule Microcraft.WarehouseTest do
+defmodule Microcraft.InventoryTest do
   use Microcraft.DataCase
-  alias Microcraft.Warehouse
+  alias Microcraft.Inventory
 
   require Ash.Query
 
@@ -16,7 +16,7 @@ defmodule Microcraft.WarehouseTest do
 
     test "creates material with valid attributes" do
       assert {:ok, material} =
-               Ash.Changeset.for_create(Warehouse.Material, :create, @valid_attrs)
+               Ash.Changeset.for_create(Inventory.Material, :create, @valid_attrs)
                |> Ash.create()
 
       assert material.name == "Wood"
@@ -29,11 +29,11 @@ defmodule Microcraft.WarehouseTest do
 
     test "prevents duplicate SKUs" do
       assert {:ok, _material} =
-               Ash.Changeset.for_create(Warehouse.Material, :create, @valid_attrs)
+               Ash.Changeset.for_create(Inventory.Material, :create, @valid_attrs)
                |> Ash.create()
 
       assert {:error, _changeset} =
-               Ash.Changeset.for_create(Warehouse.Material, :create, %{
+               Ash.Changeset.for_create(Inventory.Material, :create, %{
                  @valid_attrs
                  | name: "Different Wood"
                })
@@ -43,7 +43,7 @@ defmodule Microcraft.WarehouseTest do
     test "prevents invalid units" do
       assert {:error,
               %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{field: :unit}]}} =
-               Ash.Changeset.for_create(Warehouse.Material, :create, %{
+               Ash.Changeset.for_create(Inventory.Material, :create, %{
                  @valid_attrs
                  | unit: :invalid_unit
                })
@@ -52,14 +52,14 @@ defmodule Microcraft.WarehouseTest do
 
     test "requires valid stock limits" do
       assert {:error, _changeset} =
-               Ash.Changeset.for_create(Warehouse.Material, :create, %{
+               Ash.Changeset.for_create(Inventory.Material, :create, %{
                  @valid_attrs
                  | minimum_stock: Decimal.new(-10)
                })
                |> Ash.create()
 
       assert {:error, _changeset} =
-               Ash.Changeset.for_create(Warehouse.Material, :create, %{
+               Ash.Changeset.for_create(Inventory.Material, :create, %{
                  @valid_attrs
                  | maximum_stock: Decimal.new(-100)
                })
@@ -70,7 +70,7 @@ defmodule Microcraft.WarehouseTest do
   describe "movements and aggregates" do
     setup do
       {:ok, material} =
-        Ash.Changeset.for_create(Warehouse.Material, :create, %{
+        Ash.Changeset.for_create(Inventory.Material, :create, %{
           name: "Wood",
           sku: "WD-001",
           unit: :piece,
@@ -87,7 +87,7 @@ defmodule Microcraft.WarehouseTest do
       # Create movements
       {:ok, _movement1} =
         Ash.Changeset.for_create(
-          Warehouse.Movement,
+          Inventory.Movement,
           :adjust_stock,
           %{
             material_id: material.id,
@@ -99,7 +99,7 @@ defmodule Microcraft.WarehouseTest do
 
       {:ok, _movement2} =
         Ash.Changeset.for_create(
-          Warehouse.Movement,
+          Inventory.Movement,
           :adjust_stock,
           %{
             material_id: material.id,
@@ -111,7 +111,7 @@ defmodule Microcraft.WarehouseTest do
 
       # Load and verify current stock
       material =
-        Warehouse.Material
+        Inventory.Material
         |> Ash.Query.load(:current_stock)
         |> Ash.Query.filter(id == ^material.id)
         |> Ash.read_one!()
@@ -123,7 +123,7 @@ defmodule Microcraft.WarehouseTest do
       # Create an initial movement
       {:ok, _movement1} =
         Ash.Changeset.for_create(
-          Warehouse.Movement,
+          Inventory.Movement,
           :adjust_stock,
           %{
             material_id: material.id,
@@ -135,7 +135,7 @@ defmodule Microcraft.WarehouseTest do
 
       # Reload material and check stock
       material =
-        Warehouse.Material
+        Inventory.Material
         |> Ash.Query.load(:current_stock)
         |> Ash.Query.filter(id == ^material.id)
         |> Ash.read_one!()
@@ -145,7 +145,7 @@ defmodule Microcraft.WarehouseTest do
       # Add another movement
       {:ok, _movement2} =
         Ash.Changeset.for_create(
-          Warehouse.Movement,
+          Inventory.Movement,
           :adjust_stock,
           %{
             material_id: material.id,
@@ -157,7 +157,7 @@ defmodule Microcraft.WarehouseTest do
 
       # Reload material again
       material =
-        Warehouse.Material
+        Inventory.Material
         |> Ash.Query.load(:current_stock)
         |> Ash.Query.filter(id == ^material.id)
         |> Ash.read_one!()

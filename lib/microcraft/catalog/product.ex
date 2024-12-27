@@ -10,7 +10,28 @@ defmodule Microcraft.Catalog.Product do
   end
 
   actions do
-    defaults [:read, :destroy, create: [:name, :status, :price], update: [:name, :status, :price]]
+    defaults [
+      :read,
+      :destroy,
+      create: [:name, :status, :price, :sku],
+      update: [:name, :status, :price, :sku]
+    ]
+
+    read :list do
+      prepare build(sort: :name)
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
+    read :keyset do
+      prepare build(sort: :name)
+      pagination keyset?: true
+    end
   end
 
   attributes do
@@ -36,11 +57,17 @@ defmodule Microcraft.Catalog.Product do
       allow_nil? false
     end
 
+    attribute :sku, :string do
+      allow_nil? false
+    end
+
     timestamps()
   end
 
   relationships do
-    has_one :recipe, Microcraft.Catalog.Recipe
+    has_one :recipe, Microcraft.Catalog.Recipe do
+      allow_nil? true
+    end
   end
 
   calculations do
@@ -48,8 +75,15 @@ defmodule Microcraft.Catalog.Product do
       description "The total cost of the product."
     end
 
-    calculate :profit_margin, :decimal, expr((price - recipe.cost) / recipe.cost) do
+    calculate :profit_margin,
+              :decimal,
+              expr(if(recipe.cost == 0, 0, (price - recipe.cost) / recipe.cost)) do
       description "The total cost of the product."
     end
+  end
+
+  identities do
+    identity :unique_sku, [:sku]
+    identity :unique_name, [:name]
   end
 end

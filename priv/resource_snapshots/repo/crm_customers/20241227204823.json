@@ -17,7 +17,7 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "name",
+      "source": "type",
       "type": "text"
     },
     {
@@ -27,7 +27,7 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "sku",
+      "source": "first_name",
       "type": "text"
     },
     {
@@ -37,18 +37,8 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "unit",
+      "source": "last_name",
       "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "price",
-      "type": "decimal"
     },
     {
       "allow_nil?": true,
@@ -57,8 +47,8 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "minimum_stock",
-      "type": "decimal"
+      "source": "email",
+      "type": "text"
     },
     {
       "allow_nil?": true,
@@ -67,8 +57,28 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "maximum_stock",
-      "type": "decimal"
+      "source": "phone",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "billing_address",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "shipping_address",
+      "type": "map"
     },
     {
       "allow_nil?": false,
@@ -96,33 +106,33 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "CC4B3CE4DF9031BEDF746EB0E1A07756D44326E84069CD308D3B4DF16EC79C09",
+  "hash": "19C56BDB5EAD9ED88C5576B297299E35F907649EFD175C6C1EB3231C302636BE",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "Warehouse_materials_unique_name_index",
+      "index_name": "crm_customers_unique_email_index",
       "keys": [
         {
           "type": "atom",
-          "value": "name"
+          "value": "email"
         }
       ],
-      "name": "unique_name",
+      "name": "unique_email",
       "nils_distinct?": true,
       "where": null
     },
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "Warehouse_materials_unique_sku_index",
+      "index_name": "crm_customers_unique_phone_index",
       "keys": [
         {
           "type": "atom",
-          "value": "sku"
+          "value": "phone"
         }
       ],
-      "name": "unique_sku",
+      "name": "unique_phone",
       "nils_distinct?": true,
       "where": null
     }
@@ -134,5 +144,5 @@
   },
   "repo": "Elixir.Microcraft.Repo",
   "schema": null,
-  "table": "Warehouse_materials"
+  "table": "crm_customers"
 }

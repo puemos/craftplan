@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.LetsGo do
+defmodule Microcraft.Repo.Migrations.Init do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
@@ -65,6 +65,62 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
       add :product_id, :uuid, null: false
     end
 
+    create table(:inventory_movements, primary_key: false) do
+      add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
+      add :quantity, :decimal, null: false
+      add :reason, :text
+      add :occurred_at, :utc_datetime, null: false
+
+      add :inserted_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :updated_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :material_id, :uuid, null: false
+    end
+
+    create table(:inventory_materials, primary_key: false) do
+      add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
+    end
+
+    alter table(:inventory_movements) do
+      modify :material_id,
+             references(:inventory_materials,
+               column: :id,
+               name: "inventory_movements_material_id_fkey",
+               type: :uuid,
+               prefix: "public"
+             )
+    end
+
+    alter table(:inventory_materials) do
+      add :name, :text, null: false
+      add :sku, :text, null: false
+      add :unit, :text, null: false
+      add :price, :decimal, null: false
+      add :minimum_stock, :decimal
+      add :maximum_stock, :decimal
+
+      add :inserted_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :updated_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+    end
+
+    create unique_index(:inventory_materials, [:name],
+             name: "inventory_materials_unique_name_index"
+           )
+
+    create unique_index(:inventory_materials, [:sku],
+             name: "inventory_materials_unique_sku_index"
+           )
+
     create table(:crm_customers, primary_key: false) do
       add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
     end
@@ -81,10 +137,12 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
 
     alter table(:crm_customers) do
       add :type, :text, null: false
-      add :name, :text, null: false
+      add :first_name, :text, null: false
+      add :last_name, :text, null: false
       add :email, :text
       add :phone, :text
-      add :address, :map
+      add :billing_address, :map
+      add :shipping_address, :map
 
       add :inserted_at, :utc_datetime_usec,
         null: false,
@@ -94,6 +152,10 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
         null: false,
         default: fragment("(now() AT TIME ZONE 'utc')")
     end
+
+    create unique_index(:crm_customers, [:email], name: "crm_customers_unique_email_index")
+
+    create unique_index(:crm_customers, [:phone], name: "crm_customers_unique_phone_index")
 
     create table(:catalog_recipes, primary_key: false) do
       add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
@@ -131,7 +193,14 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
           ),
           null: false
 
-      add :material_id, :uuid, null: false
+      add :material_id,
+          references(:inventory_materials,
+            column: :id,
+            name: "catalog_recipe_materials_material_id_fkey",
+            type: :uuid,
+            prefix: "public"
+          ),
+          null: false
     end
 
     create table(:catalog_products, primary_key: false) do
@@ -172,6 +241,7 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
       add :name, :text, null: false
       add :status, :text, null: false, default: "idea"
       add :price, :decimal, null: false
+      add :sku, :text, null: false
 
       add :inserted_at, :utc_datetime_usec,
         null: false,
@@ -181,6 +251,10 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
         null: false,
         default: fragment("(now() AT TIME ZONE 'utc')")
     end
+
+    create unique_index(:catalog_products, [:name], name: "catalog_products_unique_name_index")
+
+    create unique_index(:catalog_products, [:sku], name: "catalog_products_unique_sku_index")
 
     create table(:accounts_users, primary_key: false) do
       add :confirmed_at, :utc_datetime_usec
@@ -212,110 +286,9 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
         null: false,
         default: fragment("(now() AT TIME ZONE 'utc')")
     end
-
-    create table(:Warehouse_movements, primary_key: false) do
-      add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
-      add :quantity, :decimal, null: false
-      add :reason, :text
-      add :occurred_at, :utc_datetime, null: false
-
-      add :inserted_at, :utc_datetime_usec,
-        null: false,
-        default: fragment("(now() AT TIME ZONE 'utc')")
-
-      add :updated_at, :utc_datetime_usec,
-        null: false,
-        default: fragment("(now() AT TIME ZONE 'utc')")
-
-      add :material_id, :uuid, null: false
-    end
-
-    create table(:Warehouse_materials, primary_key: false) do
-      add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
-    end
-
-    alter table(:catalog_recipe_materials) do
-      modify :material_id,
-             references(:Warehouse_materials,
-               column: :id,
-               name: "catalog_recipe_materials_material_id_fkey",
-               type: :uuid,
-               prefix: "public"
-             )
-    end
-
-    alter table(:Warehouse_movements) do
-      modify :material_id,
-             references(:Warehouse_materials,
-               column: :id,
-               name: "Warehouse_movements_material_id_fkey",
-               type: :uuid,
-               prefix: "public"
-             )
-    end
-
-    alter table(:Warehouse_materials) do
-      add :name, :text, null: false
-      add :sku, :text, null: false
-      add :unit, :text, null: false
-      add :price, :decimal, null: false
-      add :minimum_stock, :decimal
-      add :maximum_stock, :decimal
-
-      add :inserted_at, :utc_datetime_usec,
-        null: false,
-        default: fragment("(now() AT TIME ZONE 'utc')")
-
-      add :updated_at, :utc_datetime_usec,
-        null: false,
-        default: fragment("(now() AT TIME ZONE 'utc')")
-    end
-
-    create unique_index(:Warehouse_materials, [:name],
-             name: "Warehouse_materials_unique_name_index"
-           )
-
-    create unique_index(:Warehouse_materials, [:sku],
-             name: "Warehouse_materials_unique_sku_index"
-           )
   end
 
   def down do
-    drop_if_exists unique_index(:Warehouse_materials, [:sku],
-                     name: "Warehouse_materials_unique_sku_index"
-                   )
-
-    drop_if_exists unique_index(:Warehouse_materials, [:name],
-                     name: "Warehouse_materials_unique_name_index"
-                   )
-
-    alter table(:Warehouse_materials) do
-      remove :updated_at
-      remove :inserted_at
-      remove :maximum_stock
-      remove :minimum_stock
-      remove :price
-      remove :unit
-      remove :sku
-      remove :name
-    end
-
-    drop constraint(:Warehouse_movements, "Warehouse_movements_material_id_fkey")
-
-    alter table(:Warehouse_movements) do
-      modify :material_id, :uuid
-    end
-
-    drop constraint(:catalog_recipe_materials, "catalog_recipe_materials_material_id_fkey")
-
-    alter table(:catalog_recipe_materials) do
-      modify :material_id, :uuid
-    end
-
-    drop table(:Warehouse_materials)
-
-    drop table(:Warehouse_movements)
-
     drop table(:accounts_tokens)
 
     drop_if_exists unique_index(:accounts_users, [:email],
@@ -324,9 +297,18 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
 
     drop table(:accounts_users)
 
+    drop_if_exists unique_index(:catalog_products, [:sku],
+                     name: "catalog_products_unique_sku_index"
+                   )
+
+    drop_if_exists unique_index(:catalog_products, [:name],
+                     name: "catalog_products_unique_name_index"
+                   )
+
     alter table(:catalog_products) do
       remove :updated_at
       remove :inserted_at
+      remove :sku
       remove :price
       remove :status
       remove :name
@@ -354,17 +336,29 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
 
     drop constraint(:catalog_recipe_materials, "catalog_recipe_materials_recipe_id_fkey")
 
+    drop constraint(:catalog_recipe_materials, "catalog_recipe_materials_material_id_fkey")
+
     drop table(:catalog_recipe_materials)
 
     drop table(:catalog_recipes)
 
+    drop_if_exists unique_index(:crm_customers, [:phone],
+                     name: "crm_customers_unique_phone_index"
+                   )
+
+    drop_if_exists unique_index(:crm_customers, [:email],
+                     name: "crm_customers_unique_email_index"
+                   )
+
     alter table(:crm_customers) do
       remove :updated_at
       remove :inserted_at
-      remove :address
+      remove :shipping_address
+      remove :billing_address
       remove :phone
       remove :email
-      remove :name
+      remove :last_name
+      remove :first_name
       remove :type
     end
 
@@ -375,6 +369,35 @@ defmodule Microcraft.Repo.Migrations.LetsGo do
     end
 
     drop table(:crm_customers)
+
+    drop_if_exists unique_index(:inventory_materials, [:sku],
+                     name: "inventory_materials_unique_sku_index"
+                   )
+
+    drop_if_exists unique_index(:inventory_materials, [:name],
+                     name: "inventory_materials_unique_name_index"
+                   )
+
+    alter table(:inventory_materials) do
+      remove :updated_at
+      remove :inserted_at
+      remove :maximum_stock
+      remove :minimum_stock
+      remove :price
+      remove :unit
+      remove :sku
+      remove :name
+    end
+
+    drop constraint(:inventory_movements, "inventory_movements_material_id_fkey")
+
+    alter table(:inventory_movements) do
+      modify :material_id, :uuid
+    end
+
+    drop table(:inventory_materials)
+
+    drop table(:inventory_movements)
 
     drop constraint(:orders_items, "orders_items_order_id_fkey")
 

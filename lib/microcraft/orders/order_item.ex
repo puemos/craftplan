@@ -32,4 +32,8 @@ defmodule Microcraft.Orders.OrderItem do
       allow_nil? false
     end
   end
+
+  calculations do
+    calculate :cost, :decimal, expr(quantity * product.price)
+  end
 end

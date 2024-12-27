@@ -11,14 +11,34 @@
       "type": "uuid"
     },
     {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "quantity",
+      "type": "decimal"
+    },
+    {
       "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "instructions",
+      "source": "reason",
       "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "occurred_at",
+      "type": "utc_datetime"
     },
     {
       "allow_nil?": false,
@@ -58,15 +78,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "catalog_recipes_product_id_fkey",
+        "name": "inventory_movements_material_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "catalog_products"
+        "table": "inventory_materials"
       },
       "size": null,
-      "source": "product_id",
+      "source": "material_id",
       "type": "uuid"
     }
   ],
@@ -75,7 +95,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "53C5B1AB45CD1DC3BEFA91990D2DB59B9EC3D5C6D4BA3B0583C2CEBF518AC639",
+  "hash": "18C1788AFC4BC696AC35B6ACF1B89333D1CCD41BB437C3310C4FBA41034F594F",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -84,5 +104,5 @@
   },
   "repo": "Elixir.Microcraft.Repo",
   "schema": null,
-  "table": "catalog_recipes"
+  "table": "inventory_movements"
 }

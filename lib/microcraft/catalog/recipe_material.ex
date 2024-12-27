@@ -14,7 +14,7 @@ defmodule Microcraft.Catalog.RecipeMaterial do
 
     create :create do
       primary? true
-      accept [:quantity, :recipe_id, :material_id]
+      accept [:quantity, :material_id]
     end
   end
 
@@ -30,7 +30,7 @@ defmodule Microcraft.Catalog.RecipeMaterial do
       allow_nil? false
     end
 
-    belongs_to :material, Microcraft.Warehouse.Material do
+    belongs_to :material, Microcraft.Inventory.Material do
       allow_nil? false
     end
   end

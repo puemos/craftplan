@@ -35,4 +35,9 @@ defmodule Microcraft.Orders.Order do
       allow_nil? false
     end
   end
+
+  aggregates do
+    count :total_items, :order_items
+    sum :total_cost, :order_items, :cost
+  end
 end

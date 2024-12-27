@@ -15,9 +15,45 @@ defmodule MicrocraftWeb.CoreComponents do
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
   use Phoenix.Component
-  use Gettext, backend: MicrocraftWeb.Gettext
+  use Gettext, backend: Microcraft.Gettext
 
+  import MicrocraftWeb.HtmlHelpers
+
+  alias Phoenix.HTML.FormField
   alias Phoenix.LiveView.JS
+
+  @doc """
+  Renders a keyboard key element.
+
+  ## Examples
+
+      <.kbd>Ctrl</.kbd>
+      <.kbd>⌘</.kbd>
+
+  ## Attributes
+
+    * `:class` - Additional CSS classes to apply to the `<kbd>` element.
+    * `:rest` - Any additional HTML attributes.
+
+  """
+  attr :class, :string, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def kbd(assigns) do
+    ~H"""
+    <kbd
+      class={[
+        "inline-block whitespace-nowrap rounded border border-stone-400 bg-stone-100 text-stone-700",
+        "text-xs leading-none py-0.5 px-1",
+        @class
+      ]}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </kbd>
+    """
+  end
 
   @doc """
   Renders a modal.
@@ -50,7 +86,11 @@ defmodule MicrocraftWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="bg-stone-50/90 fixed inset-0 transition-opacity"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -66,7 +106,7 @@ defmodule MicrocraftWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="shadow-stone-700/10 ring-stone-700/10 relative hidden rounded bg-white p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -202,7 +242,7 @@ defmodule MicrocraftWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="space-y-8 bg-white">
         {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
           {render_slot(action, f)}
@@ -213,15 +253,60 @@ defmodule MicrocraftWeb.CoreComponents do
   end
 
   @doc """
+  Renders a statistics card with a title, value, and description.
+
+  ## Examples
+
+      <.stat_card
+        title="Total Orders"
+        value="123"
+        description="All time orders"
+      />
+
+      <.stat_card
+        title="Revenue"
+        # value={Number.Currency.number_to_currency(@total_revenue)}
+        description="Last 30 days"
+      />
+
+  ## Attributes
+
+    * `title` - The title of the statistic (required)
+    * `value` - The main value to display (required)
+    * `description` - Additional context or explanation (required)
+
+  The component is designed to be used in grids or flex layouts for dashboard-style interfaces.
+  Values can be formatted numbers, currency amounts, or any other string representation.
+  """
+  attr :title, :string, required: true, doc: "The title of the statistic"
+  attr :value, :any, required: true, doc: "The main value to display"
+  attr :description, :string, required: true, doc: "Additional context for the statistic"
+
+  def stat_card(assigns) do
+    ~H"""
+    <div class="p-6 bg-white rounded-lg shadow">
+      <dt class="text-sm font-medium text-gray-500">{@title}</dt>
+      <dd class="mt-1">
+        <div class="text-3xl font-semibold text-gray-900">{@value}</div>
+        <div class="text-sm text-gray-500">{@description}</div>
+      </dd>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a button.
 
   ## Examples
 
       <.button>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
+      <.button expanding={true}>Full Width & Height Button!</.button>
   """
   attr :type, :string, default: nil
   attr :class, :string, default: nil
+  # For full width/height
+  attr :expanding, :boolean, default: false
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -231,14 +316,150 @@ defmodule MicrocraftWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium",
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-300 disabled:pointer-events-none disabled:opacity-50",
+        "border border-stone-300 bg-stone-200/50 shadow-sm hover:bg-stone-200 hover:text-gray-800",
+        if(@expanding, do: "w-full h-full", else: "h-9 px-4 py-2"),
         @class
       ]}
       {@rest}
     >
       {render_slot(@inner_block)}
     </button>
+    """
+  end
+
+  # Main Tabs Container
+  slot :tab, required: true do
+    attr :label, :string, required: true
+    attr :path, :string, required: true
+    attr :selected?, :boolean, required: true
+  end
+
+  attr :id, :string, required: true
+  attr :class, :string, default: nil
+
+  def tabs(assigns) do
+    ~H"""
+    <div class={["relative", @class]}>
+      <.tabs_nav>
+        <:tab :for={tab <- @tab} label={tab.label} path={tab.path} selected?={tab.selected?} />
+      </.tabs_nav>
+      <.tabs_content>
+        <div :for={tab <- @tab} :if={tab.selected?} class="relative w-full">
+          {render_slot(tab)}
+        </div>
+      </.tabs_content>
+    </div>
+    """
+  end
+
+  # Navigation Component
+  slot :tab, required: true do
+    attr :label, :string, required: true
+    attr :path, :string, required: true
+    attr :selected?, :boolean, required: true
+  end
+
+  def tabs_nav(assigns) do
+    ~H"""
+    <div
+      role="tablist"
+      aria-orientation="horizontal"
+      class="h-9 inline-flex rounded-lg bg-stone-200/50 p-1"
+    >
+      <%= for tab <- @tab do %>
+        <.link
+          patch={tab.path}
+          role="tab"
+          aria-selected={tab.selected?}
+          class={[
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1",
+            "text-sm font-medium ring-offset-white transition-all",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "disabled:pointer-events-none disabled:opacity-50",
+            "border",
+            not tab.selected? && "border-transparent",
+            tab.selected? && "bg-stone-50 border-stone-300 shadow"
+          ]}
+        >
+          {tab.label}
+        </.link>
+      <% end %>
+    </div>
+    """
+  end
+
+  # Content Container Component
+  slot :inner_block, required: true
+
+  def tabs_content(assigns) do
+    ~H"""
+    <div class="relative flex items-center justify-center w-full p-5 mt-2 border rounded-md content border-gray-200/70 bg-white">
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a navigation breadcrumb trail.
+
+  ## Example
+
+      <.breadcrumb>
+        <:crumb label="Home" path="/" />
+        <:crumb label="Projects" path="/projects" />
+        <:crumb label="Current Project" path="/projects/123" current?={true} />
+      </.breadcrumb>
+
+  ## Slots
+
+    * `:crumb` - Required. Multiple crumb items that make up the breadcrumb trail.
+      * `:label` - Required. The text to display for this breadcrumb item.
+      * `:path` - Required. The navigation path for this breadcrumb item.
+      * `:current?` - Optional. Boolean indicating if this is the current page (default: false).
+
+  ## Attributes
+
+    * `:class` - Optional. Additional CSS classes to apply to the nav element.
+    * `:separator` - Optional. The separator between breadcrumb items (default: "/").
+
+
+  """
+  # Slot for individual crumb items
+  slot :crumb, required: true do
+    attr :label, :string, required: true
+    attr :path, :string, required: true
+    attr :current?, :boolean
+  end
+
+  # Main component attributes
+  attr :class, :string, default: nil
+  attr :separator, :string, default: "/"
+
+  def breadcrumb(assigns) do
+    ~H"""
+    <nav class={["flex justify-between", @class]}>
+      <ol class="inline-flex items-center space-x-1 font-normal text-sm">
+        <li :for={{crumb, index} <- Enum.with_index(@crumb)} class="flex items-center">
+          <.link
+            :if={!crumb.current?}
+            navigate={crumb.path}
+            class="py-1 text-neutral-500 hover:text-neutral-900"
+          >
+            {crumb.label}
+          </.link>
+
+          <span :if={crumb.current?} class="py-1 text-neutral-900">
+            {crumb.label}
+          </span>
+
+          <span :if={index < length(@crumb) - 1} class="mx-2 text-neutral-400">
+            {@separator}
+          </span>
+        </li>
+      </ol>
+    </nav>
     """
   end
 
@@ -271,14 +492,15 @@ defmodule MicrocraftWeb.CoreComponents do
   attr :id, :any, default: nil
   attr :name, :any
   attr :label, :string, default: nil
+  attr :inline_label, :string, default: nil
   attr :value, :any
 
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
-               range search select tel text textarea time url week)
+               range search select tel text textarea time url week segmented hidden)
 
-  attr :field, Phoenix.HTML.FormField,
+  attr :field, FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   attr :errors, :list, default: []
@@ -291,7 +513,7 @@ defmodule MicrocraftWeb.CoreComponents do
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
-  def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
+  def input(%{field: %FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 
     assigns
@@ -310,7 +532,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
     ~H"""
     <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
+      <label class="flex items-center gap-4 text-sm leading-6 text-stone-600">
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
           type="checkbox"
@@ -318,11 +540,44 @@ defmodule MicrocraftWeb.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
+          class="rounded border-stone-300 text-stone-900 focus:ring-0"
           {@rest}
         />
         {@label}
       </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
+    """
+  end
+
+  def input(%{type: "segmented"} = assigns) do
+    ~H"""
+    <div class="">
+      <.label :if={@label} for={@id}>{@label}</.label>
+      <div role="radiogroup" class="h-9 inline-flex rounded-lg bg-stone-200/50 p-1 mt-2">
+        <%= for {label, val} <- @options do %>
+          <label class={[
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1",
+            "text-sm font-medium ring-offset-white transition-all",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "disabled:pointer-events-none disabled:opacity-50",
+            "border",
+            @rest[:disalbed] == nil && "cursor-default",
+            @rest[:disalbed] != nil && "cursor-pointer",
+            to_string(val) != to_string(@value) && "border-transparent",
+            to_string(val) == to_string(@value) && "bg-stone-50 border-stone-300 shadow"
+          ]}>
+            <input
+              type="radio"
+              name={@name}
+              value={to_string(val)}
+              checked={to_string(val) == to_string(@value)}
+              class="sr-only"
+            />
+            <span>{label}</span>
+          </label>
+        <% end %>
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
@@ -335,7 +590,7 @@ defmodule MicrocraftWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class="mt-2 block w-full rounded-md border border-gray-300 bg-white focus:border-stone-400 focus:ring-0 sm:text-sm"
         multiple={@multiple}
         {@rest}
       >
@@ -355,12 +610,12 @@ defmodule MicrocraftWeb.CoreComponents do
         id={@id}
         name={@name}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
+          "mt-2 block w-full rounded-lg text-stone-900 focus:ring-0 sm:text-sm min-h-[6rem]",
+          @errors == [] && "border-stone-300 focus:border-stone-400",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
         {@rest}
-      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
@@ -371,18 +626,28 @@ defmodule MicrocraftWeb.CoreComponents do
     ~H"""
     <div>
       <.label for={@id}>{@label}</.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
-        ]}
-        {@rest}
-      />
+      <div class="flex">
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[
+            "mt-2 block w-full text-stone-900 focus:ring-0 sm:text-sm",
+            @inline_label != nil && "rounded-s-lg",
+            @inline_label == nil && "rounded-lg",
+            @errors == [] && "border-stone-300 focus:border-stone-400",
+            @errors != [] && "border-rose-400 focus:border-rose-400"
+          ]}
+          {@rest}
+        />
+        <span
+          :if={@inline_label != nil}
+          class="inline-flex mt-2 blockrounded-lg text-stone-900 focus:ring-0 sm:text-sm items-center px-3 text-sm text-stone-900 bg-stone-200 border rounded-s-0 border-stone-300 border-s-0 rounded-e-md"
+        >
+          {@inline_label}
+        </span>
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
@@ -396,7 +661,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="block text-sm font-semibold leading-6 text-stone-800">
       {render_slot(@inner_block)}
     </label>
     """
@@ -427,17 +692,39 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
+    <header class={["flex items-center justify-between gap-6 mb-4", @class]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+        <h1 class="text-lg font-semibold leading-8 text-stone-800">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
+        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-stone-600">
           {render_slot(@subtitle)}
         </p>
       </div>
       <div class="flex-none">{render_slot(@actions)}</div>
     </header>
+    """
+  end
+
+  @doc """
+  Renders a badge with customizable text and conditionally applied color classes based on a keyword list.
+  """
+  attr :text, :string, required: true, doc: "The text to display inside the badge"
+  attr :colors, :list, default: [], doc: "A keyword list of statuses to CSS classes"
+
+  def badge(assigns) do
+    key = if is_atom(assigns.text), do: assigns.text, else: :default
+    color_class = Keyword.get(assigns.colors, key, "bg-stone-100 text-stone-700")
+
+    assigns = assign(assigns, :color_class, color_class)
+
+    ~H"""
+    <span class={[
+      "px-2 inline-flex text-xs leading-5 font-normal rounded-full capitalize border border-stone-300",
+      @color_class
+    ]}>
+      {format_label(@text)}
+    </span>
     """
   end
 
@@ -447,8 +734,8 @@ defmodule MicrocraftWeb.CoreComponents do
   ## Examples
 
       <.table id="users" rows={@users}>
-        <:col :let={user} label="id">{user.id}</:col>
-        <:col :let={user} label="username">{user.username}</:col>
+        <:col :let={user} label="id"><%= user.id %></:col>
+        <:col :let={user} label="username"><%= user.username %></:col>
       </.table>
   """
   attr :id, :string, required: true
@@ -474,11 +761,25 @@ defmodule MicrocraftWeb.CoreComponents do
 
     ~H"""
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full">
-        <thead class="text-sm text-left leading-6 text-zinc-500">
+      <table class="w-[40rem] mt-11 sm:w-full border-collapse">
+        <thead class="text-sm text-left leading-6 text-stone-500 border-b border-stone-300">
           <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal">{col[:label]}</th>
-            <th :if={@action != []} class="relative p-0 pb-4">
+            <th
+              :for={{col, i} <- Enum.with_index(@col)}
+              class={
+                [
+                  "p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0",
+                  # Add padding-left for all header columns after the first
+                  i > 0 && "pl-4"
+                ]
+              }
+            >
+              {col[:label]}
+            </th>
+            <th
+              :if={@action != []}
+              class="relative p-0 pb-4 pr-4 border-r border-stone-200 last:border-r-0"
+            >
               <span class="sr-only">{gettext("Actions")}</span>
             </th>
           </tr>
@@ -486,27 +787,35 @@ defmodule MicrocraftWeb.CoreComponents do
         <tbody
           id={@id}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+          class="relative divide-y divide-stone-200 text-sm leading-6 text-stone-700"
         >
-          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
+          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-stone-200/40">
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+              class={
+                [
+                  "relative p-0 border-r border-stone-200 border-b last:border-r-0",
+                  # Add padding-left for all columns after the first
+                  i > 0 && "pl-4",
+                  @row_click && "hover:cursor-pointer"
+                ]
+              }
             >
               <div class="block py-4 pr-6">
-                <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
+                <span class={["relative"]}>
                   {render_slot(col, @row_item.(row))}
                 </span>
               </div>
             </td>
-            <td :if={@action != []} class="relative w-14 p-0">
+            <td
+              :if={@action != []}
+              class="relative w-14 p-0 pr-4 border-r border-stone-200 border-b last:border-r-0"
+            >
               <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
                 <span
                   :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+                  class="relative ml-4 font-semibold leading-6 text-stone-900 hover:text-stone-700"
                 >
                   {render_slot(action, @row_item.(row))}
                 </span>
@@ -525,8 +834,8 @@ defmodule MicrocraftWeb.CoreComponents do
   ## Examples
 
       <.list>
-        <:item title="Title">{@post.title}</:item>
-        <:item title="Views">{@post.views}</:item>
+        <:item title="Title"><%= @post.title %></:item>
+        <:item title="Views"><%= @post.views %></:item>
       </.list>
   """
   slot :item, required: true do
@@ -535,11 +844,11 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <div class="mt-14">
-      <dl class="-my-4 divide-y divide-zinc-100">
+    <div class="">
+      <dl class="-my-4 divide-y divide-stone-100">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
-          <dt class="w-1/4 flex-none text-zinc-500">{item.title}</dt>
-          <dd class="text-zinc-700">{render_slot(item)}</dd>
+          <dt class="w-1/4 flex-none text-stone-500">{item.title}</dt>
+          <dd class="text-stone-700">{render_slot(item)}</dd>
         </div>
       </dl>
     </div>
@@ -561,7 +870,7 @@ defmodule MicrocraftWeb.CoreComponents do
     <div class="mt-16">
       <.link
         navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+        class="text-sm font-semibold leading-6 text-stone-900 hover:text-stone-700"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         {render_slot(@inner_block)}
@@ -661,9 +970,9 @@ defmodule MicrocraftWeb.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(MicrocraftWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Microcraft.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(MicrocraftWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Microcraft.Gettext, "errors", msg, opts)
     end
   end
 

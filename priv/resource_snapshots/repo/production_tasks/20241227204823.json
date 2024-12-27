@@ -17,8 +17,18 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "quantity",
-      "type": "decimal"
+      "source": "name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"pending\"",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
     },
     {
       "allow_nil?": true,
@@ -27,18 +37,8 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "reason",
+      "source": "notes",
       "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "occurred_at",
-      "type": "utc_datetime"
     },
     {
       "allow_nil?": false,
@@ -78,15 +78,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "Warehouse_movements_material_id_fkey",
+        "name": "production_tasks_product_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "Warehouse_materials"
+        "table": "catalog_products"
       },
       "size": null,
-      "source": "material_id",
+      "source": "product_id",
       "type": "uuid"
     }
   ],
@@ -95,7 +95,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "2077E0C421051B64CE0E7D32D8C0049C29EA59A5004FD9B2EA4A1695875C2631",
+  "hash": "4F3627FC7A07E76BBDB3D7D3F48C0680D817F309B2F13B8731FDDADCC8803661",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -104,5 +104,5 @@
   },
   "repo": "Elixir.Microcraft.Repo",
   "schema": null,
-  "table": "Warehouse_movements"
+  "table": "production_tasks"
 }

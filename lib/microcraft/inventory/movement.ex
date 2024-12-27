@@ -1,11 +1,11 @@
-defmodule Microcraft.Warehouse.Movement do
+defmodule Microcraft.Inventory.Movement do
   use Ash.Resource,
     otp_app: :microcraft,
-    domain: Microcraft.Warehouse,
+    domain: Microcraft.Inventory,
     data_layer: AshPostgres.DataLayer
 
   postgres do
-    table "Warehouse_movements"
+    table "inventory_movements"
     repo Microcraft.Repo
   end
 
@@ -39,7 +39,7 @@ defmodule Microcraft.Warehouse.Movement do
   end
 
   relationships do
-    belongs_to :material, Microcraft.Warehouse.Material do
+    belongs_to :material, Microcraft.Inventory.Material do
       allow_nil? false
     end
   end

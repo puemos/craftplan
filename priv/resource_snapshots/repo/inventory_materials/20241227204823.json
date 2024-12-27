@@ -22,12 +22,22 @@
     },
     {
       "allow_nil?": false,
-      "default": "\"idea\"",
+      "default": "nil",
       "generated?": false,
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "status",
+      "source": "sku",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "unit",
       "type": "text"
     },
     {
@@ -38,6 +48,26 @@
       "references": null,
       "size": null,
       "source": "price",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "minimum_stock",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "maximum_stock",
       "type": "decimal"
     },
     {
@@ -66,8 +96,37 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "D5337ED79F3914A445F6EDD96E0034BD3838FFC0CA9DD8232952C5F60F47024F",
-  "identities": [],
+  "hash": "CD01E45051923F0C894A6F83728DB68DD91EC1AB9FF23C63D0B239AB975E10B5",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "inventory_materials_unique_name_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "name"
+        }
+      ],
+      "name": "unique_name",
+      "nils_distinct?": true,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "inventory_materials_unique_sku_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "sku"
+        }
+      ],
+      "name": "unique_sku",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -75,5 +134,5 @@
   },
   "repo": "Elixir.Microcraft.Repo",
   "schema": null,
-  "table": "catalog_products"
+  "table": "inventory_materials"
 }

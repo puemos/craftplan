@@ -1,7 +1,7 @@
 defmodule Microcraft.CatalogTest do
   use Microcraft.DataCase
   alias Microcraft.Catalog
-  alias Microcraft.Warehouse
+  alias Microcraft.Inventory
 
   describe "products" do
     test "creates product with valid attributes" do
@@ -28,7 +28,7 @@ defmodule Microcraft.CatalogTest do
         })
 
       {:ok, material1} =
-        Ash.create(Warehouse.Material, %{
+        Ash.create(Inventory.Material, %{
           name: "Wood",
           sku: "WD-001",
           unit: :piece,
@@ -38,7 +38,7 @@ defmodule Microcraft.CatalogTest do
         })
 
       {:ok, material2} =
-        Ash.create(Warehouse.Material, %{
+        Ash.create(Inventory.Material, %{
           name: "Nails",
           sku: "NL-001",
           unit: :piece,

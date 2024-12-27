@@ -58,15 +58,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "orders_items_order_id_fkey",
+        "name": "catalog_recipe_materials_recipe_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "orders_orders"
+        "table": "catalog_recipes"
       },
       "size": null,
-      "source": "order_id",
+      "source": "recipe_id",
       "type": "uuid"
     },
     {
@@ -87,15 +87,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "orders_items_product_id_fkey",
+        "name": "catalog_recipe_materials_material_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "catalog_products"
+        "table": "inventory_materials"
       },
       "size": null,
-      "source": "product_id",
+      "source": "material_id",
       "type": "uuid"
     }
   ],
@@ -104,7 +104,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "2C78FF518F7A3153504EE527720C769A33DEE918C3719B9445BC50B69BD6C193",
+  "hash": "4E674F787A0028E43B0F21C36D4D1DF1FE26AB0E9D0191C1B0998E11419E0DAE",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -113,5 +113,5 @@
   },
   "repo": "Elixir.Microcraft.Repo",
   "schema": null,
-  "table": "orders_items"
+  "table": "catalog_recipe_materials"
 }

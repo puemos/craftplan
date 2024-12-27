@@ -10,11 +10,24 @@ defmodule Microcraft.Catalog.Recipe do
   end
 
   actions do
-    defaults [:read, :destroy, update: :*]
+    defaults [:read, :destroy]
 
     create :create do
       primary? true
       accept [:instructions, :product_id]
+
+      argument :recipe_materials, {:array, :map}
+
+      change manage_relationship(:recipe_materials, type: :direct_control)
+    end
+
+    update :update do
+      require_atomic? false
+      accept [:instructions, :product_id]
+
+      argument :recipe_materials, {:array, :map}
+
+      change manage_relationship(:recipe_materials, type: :direct_control)
     end
   end
 
@@ -35,7 +48,7 @@ defmodule Microcraft.Catalog.Recipe do
 
     has_many :recipe_materials, Microcraft.Catalog.RecipeMaterial
 
-    many_to_many :materials, Microcraft.Warehouse.Material,
+    many_to_many :materials, Microcraft.Inventory.Material,
       through: Microcraft.Catalog.RecipeMaterial
   end
 

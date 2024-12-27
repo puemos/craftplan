@@ -55,7 +55,7 @@ config :microcraft,
     Microcraft.CRM,
     Microcraft.Production,
     Microcraft.Orders,
-    Microcraft.Warehouse,
+    Microcraft.Inventory,
     Microcraft.Catalog,
     Microcraft.Accounts
   ]

@@ -3,6 +3,11 @@ defmodule Microcraft.CRM.Address do
     data_layer: :embedded,
     embed_nil_values?: false
 
+  actions do
+    default_accept :*
+    defaults [:read, :create, :update, :destroy]
+  end
+
   validations do
     validate present([:street, :city, :country], at_least: 1)
   end
@@ -18,6 +23,6 @@ defmodule Microcraft.CRM.Address do
   calculations do
     calculate :full_address,
               :string,
-              concat([:street, ", ", :city, ", ", :state, ", ", :zip, ", ", :country])
+              concat([:street, :city, :state, :zip, :country], ", ")
   end
 end

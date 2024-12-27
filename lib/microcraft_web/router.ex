@@ -22,6 +22,27 @@ defmodule MicrocraftWeb.Router do
     pipe_through :browser
 
     ash_authentication_live_session :authenticated_routes do
+      live "/backoffice/products", ProductLive.Index, :index
+      live "/backoffice/products/new", ProductLive.Index, :new
+      live "/backoffice/products/:id", ProductLive.Show, :show
+      live "/backoffice/products/:id/edit", ProductLive.Show, :edit
+
+      live "/backoffice/inventory", InventoryLive.Index, :index
+      live "/backoffice/inventory/new", InventoryLive.Index, :new
+      live "/backoffice/inventory/:id", InventoryLive.Show, :show
+      live "/backoffice/inventory/:id/edit", InventoryLive.Show, :edit
+      live "/backoffice/inventory/:id/adjust", InventoryLive.Show, :adjust
+
+      live "/backoffice/orders", OrderLive.Index, :index
+      live "/backoffice/orders/new", OrderLive.Index, :new
+      live "/backoffice/orders/:id/edit", OrderLive.Index, :edit
+      live "/backoffice/orders/:id", OrderLive.Show, :show
+
+      live "/backoffice/customers", CustomerLive.Index, :index
+      live "/backoffice/customers/new", CustomerLive.Index, :new
+      live "/backoffice/customers/:id/edit", CustomerLive.Index, :edit
+      live "/backoffice/customers/:id", CustomerLive.Show, :show
+
       # in each liveview, add one of the following at the top of the module:
       #
       # If an authenticated user must be present:

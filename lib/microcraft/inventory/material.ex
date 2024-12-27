@@ -1,11 +1,11 @@
-defmodule Microcraft.Warehouse.Material do
+defmodule Microcraft.Inventory.Material do
   use Ash.Resource,
     otp_app: :microcraft,
     domain: Microcraft.Catalog,
     data_layer: AshPostgres.DataLayer
 
   postgres do
-    table "Warehouse_materials"
+    table "inventory_materials"
     repo Microcraft.Repo
   end
 
@@ -30,6 +30,22 @@ defmodule Microcraft.Warehouse.Material do
         :maximum_stock
       ]
     ]
+
+    read :list do
+      prepare build(sort: :name)
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
+    read :keyset do
+      prepare build(sort: :name)
+      pagination keyset?: true
+    end
   end
 
   attributes do
@@ -76,7 +92,7 @@ defmodule Microcraft.Warehouse.Material do
   end
 
   relationships do
-    has_many :movements, Microcraft.Warehouse.Movement
+    has_many :movements, Microcraft.Inventory.Movement
     has_many :recipe_materials, Microcraft.Catalog.RecipeMaterial
     many_to_many :recipes, Microcraft.Catalog.Recipe, through: Microcraft.Catalog.RecipeMaterial
   end

@@ -89,7 +89,8 @@ defmodule MicrocraftWeb do
       import Phoenix.HTML
       # Core UI components
       import MicrocraftWeb.CoreComponents
-
+      # General Helpers
+      import MicrocraftWeb.HtmlHelpers
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 
