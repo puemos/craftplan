@@ -10,7 +10,17 @@ defmodule Microcraft.Orders.OrderItem do
   end
 
   actions do
-    defaults [:read, :destroy, create: [:order_id, :product_id, :quantity]]
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+      accept [:product_id, :quantity]
+    end
+
+    update :update do
+      primary? true
+      accept [:quantity]
+    end
   end
 
   attributes do

@@ -8,17 +8,11 @@ defmodule MicrocraftWeb.ProductLive.Show do
   def render(assigns) do
     ~H"""
     <.header>
-      {@product.name}
-      <:subtitle>
-        <.breadcrumb>
-          <:crumb label="All Products" path={~p"/backoffice/products"} current?={false} />
-          <:crumb
-            label={@product.name}
-            path={~p"/backoffice/products/#{@product.id}"}
-            current?={true}
-          />
-        </.breadcrumb>
-      </:subtitle>
+      <.breadcrumb>
+        <:crumb label="All Products" path={~p"/backoffice/products"} current?={false} />
+        <:crumb label={@product.name} path={~p"/backoffice/products/#{@product.id}"} current?={true} />
+      </.breadcrumb>
+
       <:actions>
         <.link patch={~p"/backoffice/products/#{@product.id}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit product</.button>
@@ -35,22 +29,13 @@ defmodule MicrocraftWeb.ProductLive.Show do
         >
           <.list>
             <:item title="Status">
-              <div class="-mt-2 cursor-default">
-                <.form for={@status_form} id="product-status-form">
-                  <.input
-                    name={@status_form[:status].name}
-                    value={Atom.to_string(@product.status)}
-                    type="segmented"
-                    disabled={true}
-                    options={[
-                      {"Idea", :idea},
-                      {"Experiment", :experiment},
-                      {"For Sale", :for_sale},
-                      {"Archived", :archived}
-                    ]}
-                  />
-                </.form>
-              </div>
+              <.badge
+                text={Atom.to_string(@product.status)}
+                colors={[
+                  {@product.status,
+                   "#{product_status_color(@product.status)} #{product_status_bg(@product.status)}"}
+                ]}
+              />
             </:item>
             <:item title="Name">{@product.name}</:item>
 
@@ -65,7 +50,10 @@ defmodule MicrocraftWeb.ProductLive.Show do
             </:item>
 
             <:item title="Profit margin">
-              {(@product.profit_margin || Decimal.new(0)) |> Decimal.mult(100) |> Decimal.normalize()}%
+              {Decimal.round(
+                (@product.profit_margin || Decimal.new(0)) |> Decimal.mult(100),
+                4
+              )}%
             </:item>
           </.list>
         </:tab>
@@ -75,18 +63,16 @@ defmodule MicrocraftWeb.ProductLive.Show do
           path={~p"/backoffice/products/#{@product.id}?page=recipe"}
           selected?={@page == "recipe"}
         >
-          <div :if={@product.recipe}>
-            <.live_component
-              module={MicrocraftWeb.ProductLive.FormComponentRecipe}
-              id="material-form"
-              product={@product}
-              recipe={@product.recipe || nil}
-              current_user={@current_user}
-              materials={@materials_available}
-              patch={~p"/backoffice/products/#{@product.id}?page=recipe"}
-              on_cancel={hide_modal("product-material-modal")}
-            />
-          </div>
+          <.live_component
+            module={MicrocraftWeb.ProductLive.FormComponentRecipe}
+            id="material-form"
+            product={@product}
+            recipe={@product.recipe || nil}
+            current_user={@current_user}
+            materials={@materials_available}
+            patch={~p"/backoffice/products/#{@product.id}?page=recipe"}
+            on_cancel={hide_modal("product-material-modal")}
+          />
         </:tab>
       </.tabs>
     </div>
@@ -123,7 +109,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
   def handle_params(%{"id" => id} = params, _, socket) do
     product =
       Microcraft.Catalog.get_product_by_id!(id,
-        load: [:profit_margin, :estimated_cost, recipe: [recipe_materials: [:material]]]
+        load: [:profit_margin, :estimated_cost, recipe: [components: [:material]]]
       )
 
     page = Map.get(params, "page", "details")
@@ -145,7 +131,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
       ) do
     product =
       Microcraft.Catalog.get_product_by_sku!(socket.assigns.product.sku,
-        load: [:profit_margin, :estimated_cost, recipe: [recipe_materials: [:material]]]
+        load: [:profit_margin, :estimated_cost, recipe: [components: [:material]]]
       )
 
     {:noreply,
@@ -161,7 +147,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
       ) do
     product =
       Microcraft.Catalog.get_product_by_sku!(socket.assigns.product.sku,
-        load: [:profit_margin, :estimated_cost, recipe: [recipe_materials: [:material]]]
+        load: [:profit_margin, :estimated_cost, recipe: [components: [:material]]]
       )
 
     {:noreply,

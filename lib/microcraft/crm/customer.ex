@@ -86,7 +86,7 @@ defmodule Microcraft.CRM.Customer do
 
   aggregates do
     count :total_orders, :orders
-    sum :total_orders_value, [:orders, :order_items], :cost
+    sum :total_orders_value, [:orders, :items], :cost
   end
 
   identities do

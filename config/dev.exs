@@ -26,7 +26,8 @@ config :microcraft, MicrocraftWeb.Endpoint,
   secret_key_base: "NlbIq9/9aO9+5xxg8ESxxFI7ay172FlEI5IVJvhLx50ZcZbWLjV1L1ito7aZ0fiM",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:microcraft, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:microcraft, ~w(--watch)]}
+    tailwind: {Tailwind, :install_and_run, [:microcraft, ~w(--watch)]},
+    storybook_tailwind: {Tailwind, :install_and_run, [:storybook, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -58,7 +59,8 @@ config :microcraft, MicrocraftWeb.Endpoint,
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/microcraft_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/microcraft_web/(controllers|live|components)/.*(ex|heex)$",
+      ~r"storybook/.*(exs)$"
     ]
   ]
 

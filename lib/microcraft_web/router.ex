@@ -1,7 +1,7 @@
 defmodule MicrocraftWeb.Router do
   use MicrocraftWeb, :router
-
   use AshAuthentication.Phoenix.Router
+  import PhoenixStorybook.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -21,7 +21,8 @@ defmodule MicrocraftWeb.Router do
   scope "/", MicrocraftWeb do
     pipe_through :browser
 
-    ash_authentication_live_session :authenticated_routes do
+    ash_authentication_live_session :authenticated_routes,
+      on_mount: {MicrocraftWeb.LiveUserAuth, :live_user_required} do
       live "/backoffice/products", ProductLive.Index, :index
       live "/backoffice/products/new", ProductLive.Index, :new
       live "/backoffice/products/:id", ProductLive.Show, :show
@@ -35,7 +36,7 @@ defmodule MicrocraftWeb.Router do
 
       live "/backoffice/orders", OrderLive.Index, :index
       live "/backoffice/orders/new", OrderLive.Index, :new
-      live "/backoffice/orders/:id/edit", OrderLive.Index, :edit
+      live "/backoffice/orders/:id/edit", OrderLive.Show, :edit
       live "/backoffice/orders/:id", OrderLive.Show, :show
 
       live "/backoffice/customers", CustomerLive.Index, :index
@@ -100,6 +101,15 @@ defmodule MicrocraftWeb.Router do
 
       live_dashboard "/dashboard", metrics: MicrocraftWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+
+    scope "/" do
+      storybook_assets()
+    end
+
+    scope "/", Elixir.MicrocraftWeb do
+      pipe_through(:browser)
+      live_storybook("/storybook", backend_module: Elixir.MicrocraftWeb.Storybook)
     end
   end
 end

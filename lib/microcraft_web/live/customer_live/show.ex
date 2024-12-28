@@ -8,17 +8,15 @@ defmodule MicrocraftWeb.CustomerLive.Show do
   def render(assigns) do
     ~H"""
     <.header>
-      {@customer.full_name}
-      <:subtitle>
-        <.breadcrumb>
-          <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={false} />
-          <:crumb
-            label={"#{@customer.full_name}"}
-            path={~p"/backoffice/customers/#{@customer.id}"}
-            current?={true}
-          />
-        </.breadcrumb>
-      </:subtitle>
+      <.breadcrumb>
+        <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={false} />
+        <:crumb
+          label={"#{@customer.full_name}"}
+          path={~p"/backoffice/customers/#{@customer.id}"}
+          current?={true}
+        />
+      </.breadcrumb>
+
       <:actions>
         <.link patch={~p"/backoffice/customers/#{@customer.id}/edit"}>
           <.button>Edit customer</.button>

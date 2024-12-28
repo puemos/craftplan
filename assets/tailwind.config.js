@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = {
+  important: ".microcraft-web",
   content: [
     "./js/**/*.js",
     "../lib/microcraft_web.ex",

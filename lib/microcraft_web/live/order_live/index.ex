@@ -1,20 +1,19 @@
 defmodule MicrocraftWeb.OrderLive.Index do
   @moduledoc false
+  alias Microcraft.CRM
+  alias Microcraft.Catalog
   use MicrocraftWeb, :live_view
 
   alias Microcraft.Orders
-  alias Microcraft.Orders.Order
 
   @impl true
   def render(assigns) do
     ~H"""
     <.header>
-      Manage your orders
-      <:subtitle>
-        <.breadcrumb>
-          <:crumb label="Orders" path={~p"/backoffice/orders"} current?={true} />
-        </.breadcrumb>
-      </:subtitle>
+      <.breadcrumb>
+        <:crumb label="All Orders" path={~p"/backoffice/orders"} current?={true} />
+      </.breadcrumb>
+
       <:actions>
         <.link patch={~p"/backoffice/orders/new"}>
           <.button>New Order</.button>
@@ -25,44 +24,24 @@ defmodule MicrocraftWeb.OrderLive.Index do
     <.table
       id="orders"
       rows={@streams.orders}
-      row_click={fn {_id, order} -> JS.navigate(~p"/backoffice/orders/#{order.reference}") end}
+      row_click={fn {_id, order} -> JS.navigate(~p"/backoffice/orders/#{order.id}") end}
     >
-      <:col :let={{_id, order}} label="Reference">
-        <.kbd>{order.reference}</.kbd>
-      </:col>
-      <:col :let={{_id, order}} label="Customer">
-        {order.customer.name}
+      <:empty>
+        <div class="block py-4 pr-6">
+          <span class={["relative"]}>
+            No orders found
+          </span>
+        </div>
+      </:empty>
+      <%!-- <:col :let={{_id, order}} label="ID">{order.id}</:col> --%>
+      <:col :let={{_id, order}} label="Customer">{order.customer.full_name}</:col>
+      <:col :let={{_id, order}} label="Delivery date">{DateTime.to_string(order.delivery_date)}</:col>
+      <:col :let={{_id, order}} label="Total cost">
+        {Money.from_float!(:USD, Decimal.to_float(order.total_cost))}
       </:col>
       <:col :let={{_id, order}} label="Status">
-        <.badge
-          text={order.status}
-          colors={[
-            {order.status, "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
-          ]}
-        />
+        <.badge text={order.status} />
       </:col>
-      <:col :let={{_id, order}} label="Payment Status">
-        <.badge
-          text={order.payment_status}
-          colors={[
-            {order.payment_status,
-             "#{payment_status_color(order.payment_status)} #{payment_status_bg(order.payment_status)}"}
-          ]}
-        />
-      </:col>
-      <:col :let={{_id, order}} label="Delivery Date">
-        {Calendar.strftime(order.delivery_date, "%Y-%m-%d")}
-      </:col>
-      <:col :let={{_id, order}} label="Total">
-        <%= if order.total_amount do %>
-          <%!-- {Number.Currency.number_to_currency(order.total_amount)} --%>
-        <% else %>
-          -
-        <% end %>
-      </:col>
-      <:action :let={{_id, order}}>
-        <.link patch={~p"/backoffice/orders/#{order.reference}/edit"}>Edit</.link>
-      </:action>
     </.table>
 
     <.modal
@@ -73,11 +52,13 @@ defmodule MicrocraftWeb.OrderLive.Index do
     >
       <.live_component
         module={MicrocraftWeb.OrderLive.FormComponent}
-        id={@order.id || :new}
+        id={(@order && @order.id) || :new}
+        current_user={@current_user}
         title={@page_title}
         action={@live_action}
-        current_user={@current_user}
         order={@order}
+        products={@products}
+        customers={@customers}
         patch={~p"/backoffice/orders"}
       />
     </.modal>
@@ -86,7 +67,25 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :orders, Orders.list_orders())}
+    orders =
+      Orders.list_orders!(
+        actor: socket.assigns[:current_user],
+        stream?: true,
+        load: [:items, :total_cost, customer: [:full_name]]
+      )
+
+    products =
+      Catalog.list_products!(actor: socket.assigns[:current_user])
+
+    customers =
+      CRM.list_customers!(actor: socket.assigns[:current_user], load: [:full_name])
+
+    time_zone = get_connect_params(socket)["timeZone"]
+
+    {:ok,
+     socket
+     |> assign(products: products, customers: customers, time_zone: time_zone)
+     |> stream(:orders, orders)}
   end
 
   @impl true
@@ -97,13 +96,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Order")
-    |> assign(:order, %Order{})
-  end
-
-  defp apply_action(socket, :edit, %{"reference" => reference}) do
-    socket
-    |> assign(:page_title, "Edit Order")
-    |> assign(:order, Orders.get_order_by_reference!(reference))
+    |> assign(:order, nil)
   end
 
   defp apply_action(socket, :index, _params) do
@@ -113,8 +106,23 @@ defmodule MicrocraftWeb.OrderLive.Index do
   end
 
   @impl true
+  def handle_event("delete", %{"id" => id}, socket) do
+    case Orders.get_order_by_id!(id) |> Ash.destroy(actor: socket.assigns.current_user) do
+      :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Order deleted successfully")
+         |> stream_delete(:materials, %{id: id})}
+
+      {:error, _error} ->
+        {:noreply, socket |> put_flash(:error, "Failed to delete order.")}
+    end
+  end
+
+  @impl true
   def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
-    order = Orders.get_order!(order.id)
+    order = Ash.load!(order, [:items, :total_cost, customer: [:full_name]])
+
     {:noreply, stream_insert(socket, :orders, order)}
   end
 end

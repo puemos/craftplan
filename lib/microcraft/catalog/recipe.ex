@@ -16,18 +16,18 @@ defmodule Microcraft.Catalog.Recipe do
       primary? true
       accept [:instructions, :product_id]
 
-      argument :recipe_materials, {:array, :map}
+      argument :components, {:array, :map}
 
-      change manage_relationship(:recipe_materials, type: :direct_control)
+      change manage_relationship(:components, type: :direct_control)
     end
 
     update :update do
       require_atomic? false
       accept [:instructions, :product_id]
 
-      argument :recipe_materials, {:array, :map}
+      argument :components, {:array, :map}
 
-      change manage_relationship(:recipe_materials, type: :direct_control)
+      change manage_relationship(:components, type: :direct_control)
     end
   end
 
@@ -46,18 +46,18 @@ defmodule Microcraft.Catalog.Recipe do
       allow_nil? false
     end
 
-    has_many :recipe_materials, Microcraft.Catalog.RecipeMaterial
+    has_many :components, Microcraft.Catalog.RecipeMaterial
 
     many_to_many :materials, Microcraft.Inventory.Material,
       through: Microcraft.Catalog.RecipeMaterial
   end
 
   aggregates do
-    sum :cost, :recipe_materials, :cost do
+    sum :cost, :components, :cost do
       description "The total cost of all materials in the recipe."
     end
 
-    count :total_materials, :recipe_materials do
+    count :total_materials, :components do
       description "The total number of materials in the recipe."
     end
   end

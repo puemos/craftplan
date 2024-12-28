@@ -2,7 +2,12 @@ defmodule Microcraft.Orders do
   use Ash.Domain
 
   resources do
-    resource Microcraft.Orders.Order
+    resource Microcraft.Orders.Order do
+      define :get_order_by_id, action: :read, get_by: [:id]
+      define :list_orders, action: :read
+      define :list_orders_with_keyset, action: :keyset
+    end
+
     resource Microcraft.Orders.OrderItem
   end
 end

@@ -7,17 +7,15 @@ defmodule MicrocraftWeb.InventoryLive.Show do
   def render(assigns) do
     ~H"""
     <.header>
-      {@material.name}
-      <:subtitle>
-        <.breadcrumb>
-          <:crumb label="All Materials" path={~p"/backoffice/inventory"} current?={false} />
-          <:crumb
-            label={@material.name}
-            path={~p"/backoffice/inventory/#{@material.id}"}
-            current?={true}
-          />
-        </.breadcrumb>
-      </:subtitle>
+      <.breadcrumb>
+        <:crumb label="All Materials" path={~p"/backoffice/inventory"} current?={false} />
+        <:crumb
+          label={@material.name}
+          path={~p"/backoffice/inventory/#{@material.id}"}
+          current?={true}
+        />
+      </.breadcrumb>
+
       <:actions>
         <.link patch={~p"/backoffice/inventory/#{@material.id}/adjust"} phx-click={JS.push_focus()}>
           <.button>Adjust</.button>

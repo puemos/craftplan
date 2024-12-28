@@ -8,12 +8,10 @@ defmodule MicrocraftWeb.ProductLive.Index do
   def render(assigns) do
     ~H"""
     <.header>
-      Manage your products
-      <:subtitle>
-        <.breadcrumb>
-          <:crumb label="All Products" path={~p"/backoffice/products"} current?={true} />
-        </.breadcrumb>
-      </:subtitle>
+      <.breadcrumb>
+        <:crumb label="All Products" path={~p"/backoffice/products"} current?={true} />
+      </.breadcrumb>
+
       <:actions>
         <.link patch={~p"/backoffice/products/new"}>
           <.button>New Product</.button>
@@ -46,7 +44,10 @@ defmodule MicrocraftWeb.ProductLive.Index do
       </:col>
 
       <:col :let={{_, product}} label="Profit margin">
-        {(product.profit_margin || Decimal.new(0)) |> Decimal.mult(100) |> Decimal.normalize()}%
+        {Decimal.round(
+          (product.profit_margin || Decimal.new(0)) |> Decimal.mult(100),
+          4
+        )}%
       </:col>
 
       <:col :let={{_, product}} label="Status">

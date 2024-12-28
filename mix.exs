@@ -46,6 +46,7 @@ defmodule Microcraft.MixProject do
       {:igniter, "~> 0.5", only: [:dev, :test]},
       {:phoenix, "~> 1.7.18"},
       {:phoenix_ecto, "~> 4.5"},
+      {:phoenix_storybook, "~> 0.7.0"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
@@ -66,6 +67,7 @@ defmodule Microcraft.MixProject do
       {:finch, "~> 0.13"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
+      {:tz, "~> 0.28"},
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
@@ -89,6 +91,7 @@ defmodule Microcraft.MixProject do
       "assets.build": ["tailwind microcraft", "esbuild microcraft"],
       "assets.deploy": [
         "tailwind microcraft --minify",
+        "tailwind storybook --minify",
         "esbuild microcraft --minify",
         "phx.digest"
       ]

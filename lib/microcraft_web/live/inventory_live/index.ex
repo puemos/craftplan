@@ -7,12 +7,10 @@ defmodule MicrocraftWeb.InventoryLive.Index do
   def render(assigns) do
     ~H"""
     <.header>
-      Inventory
-      <:subtitle>
-        <.breadcrumb>
-          <:crumb label="All Materials" path={~p"/backoffice/inventory"} current?={true} />
-        </.breadcrumb>
-      </:subtitle>
+      <.breadcrumb>
+        <:crumb label="All Materials" path={~p"/backoffice/inventory"} current?={true} />
+      </.breadcrumb>
+
       <:actions>
         <.link patch={~p"/backoffice/inventory/new"}>
           <.button>New Material</.button>

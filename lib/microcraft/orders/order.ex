@@ -10,13 +10,47 @@ defmodule Microcraft.Orders.Order do
   end
 
   actions do
-    defaults [:read, :destroy, create: [:customer_name, :status], update: [:status]]
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+      accept [:status, :customer_id, :delivery_date]
+
+      argument :items, {:array, :map}
+
+      change manage_relationship(:items, type: :direct_control)
+    end
+
+    update :update do
+      require_atomic? false
+      accept [:status, :customer_id, :delivery_date]
+
+      argument :items, {:array, :map}
+
+      change manage_relationship(:items, type: :direct_control)
+    end
+
+    read :list do
+      prepare build(sort: :name)
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
+    read :keyset do
+      prepare build(sort: :name)
+      pagination keyset?: true
+    end
   end
 
   attributes do
     uuid_primary_key :id
 
-    attribute :customer_name, :string do
+    attribute :delivery_date, :utc_datetime do
       allow_nil? false
     end
 
@@ -29,7 +63,7 @@ defmodule Microcraft.Orders.Order do
   end
 
   relationships do
-    has_many :order_items, Microcraft.Orders.OrderItem
+    has_many :items, Microcraft.Orders.OrderItem
 
     belongs_to :customer, Microcraft.CRM.Customer do
       allow_nil? false
@@ -37,7 +71,7 @@ defmodule Microcraft.Orders.Order do
   end
 
   aggregates do
-    count :total_items, :order_items
-    sum :total_cost, :order_items, :cost
+    count :total_items, :items
+    sum :total_cost, :items, :cost
   end
 end

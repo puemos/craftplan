@@ -25,11 +25,11 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
           <.label>Materials</.label>
           <div
             id="recipe"
-            class="w-full mt-2 grid grid-cols-3 gap-x-4 text-sm leading-6 text-stone-700"
+            class="w-full mt-2 grid grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
           >
             <div
               role="row"
-              class="col-span-3 grid grid-cols-3 text-sm text-left leading-6 text-stone-500 border-b border-stone-300"
+              class="col-span-4 grid grid-cols-4 text-sm text-left leading-6 text-stone-500 border-b border-stone-300"
             >
               <div class="p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0 ">
                 Name
@@ -38,25 +38,28 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                 Quantity
               </div>
               <div class="p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0 pl-4">
+                Total cost
+              </div>
+              <div class="p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0 pl-4">
                 <span class="opacity-0">Actions</span>
               </div>
             </div>
 
-            <div role="row" class="col-span-3 last:block hidden py-4 text-stone-400">
+            <div role="row" class="col-span-4 last:block hidden py-4 text-stone-400">
               <div class="">
                 No materials
               </div>
             </div>
 
-            <.inputs_for :let={recipe_materials_form} field={@form[:recipe_materials]}>
-              <div role="row" class="col-span-3 grid grid-cols-3 group hover:bg-stone-200/40">
+            <.inputs_for :let={components_form} field={@form[:components]}>
+              <div role="row" class="col-span-4 grid grid-cols-4 group hover:bg-stone-200/40">
                 <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 ">
                   <div class="block py-4 pr-6">
                     <span class="relative">
-                      {@materials_map[recipe_materials_form[:material_id].value].name}
+                      {@materials_map[components_form[:material_id].value].name}
                       <.input
-                        field={recipe_materials_form[:material_id]}
-                        value={recipe_materials_form[:material_id].value}
+                        field={components_form[:material_id]}
+                        value={components_form[:material_id].value}
                         type="hidden"
                       />
                     </span>
@@ -69,12 +72,28 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                       <div class="border-dashed border-b border-stone-300">
                         <.input
                           flat={true}
-                          field={recipe_materials_form[:quantity]}
+                          field={components_form[:quantity]}
                           type="number"
                           min="0"
-                          inline_label={get_material_unit(@materials_map, recipe_materials_form)}
+                          inline_label={get_material_unit(@materials_map, components_form)}
                         />
                       </div>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 pl-4">
+                  <div class="block py-4 pr-6">
+                    <span class="relative">
+                      {Money.from_float(
+                        :USD,
+                        Decimal.to_float(
+                          Decimal.mult(
+                            @materials_map[components_form[:material_id].value].price || 0,
+                            components_form[:quantity].value || 0
+                          )
+                        )
+                      )}
                     </span>
                   </div>
                 </div>
@@ -86,7 +105,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                       type="button"
                       phx-click="remove_form"
                       phx-target={@myself}
-                      phx-value-path={recipe_materials_form.name}
+                      phx-value-path={components_form.name}
                     >
                       Remove
                     </.link>
@@ -98,33 +117,30 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
             <div
               :if={not Enum.empty?(@available_materials)}
               role="row"
-              class="col-span-3 grid grid-cols-3 group hover:bg-stone-200/40"
+              class="col-span-4 grid grid-cols-4"
             >
-              <div class="relative p-0 col-span-2 border-r border-stone-200 border-b last:border-r-0 ">
+              <div class="relative p-0 col-span-3 border-r border-stone-200 border-b last:border-r-0 ">
                 <span class="relative">
-                  <div class="block py-4 pr-6">
-                    <div class="border-dashed border-b border-stone-300">
-                      <.input
-                        phx-change="selected-material-change"
-                        name="material_id"
-                        type="select"
-                        flat={true}
-                        value={@selected_material}
-                        options={Enum.map(@available_materials, &{&1.name, &1.id})}
-                      />
-                    </div>
+                  <div class="block py-4 pr-6 -mt-2">
+                    <.input
+                      phx-change="selected-material-change"
+                      name="material_id"
+                      type="select"
+                      value={@selected_material}
+                      options={Enum.map(@available_materials, &{&1.name, &1.id})}
+                    />
                   </div>
                 </span>
               </div>
 
               <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 pl-4">
-                <div class="block py-4 pr-6">
+                <div class="block py-4 mt-2 pr-6">
                   <.link
                     class="font-semibold leading-6 text-stone-900 hover:text-stone-700"
                     type="button"
                     phx-click="add_form"
                     phx-target={@myself}
-                    phx-value-path={@form[:recipe_materials].name}
+                    phx-value-path={@form[:components].name}
                   >
                     Add
                   </.link>
@@ -135,7 +151,12 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
         </div>
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Recipe</.button>
+          <.button
+            disabled={not @form.source.changed? || not @form.source.valid?}
+            phx-disable-with="Saving..."
+          >
+            Save Recipe
+          </.button>
         </:actions>
 
         <.input field={@form[:product_id]} type="hidden" value={@product.id} />
@@ -231,9 +252,9 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
           as: "recipe",
           actor: socket.assigns.current_user,
           forms: [
-            recipe_materials: [
+            components: [
               type: :list,
-              data: recipe.recipe_materials,
+              data: recipe.components,
               resource: Catalog.RecipeMaterial,
               create_action: :create,
               update_action: :update
@@ -245,7 +266,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
           as: "recipe",
           actor: socket.assigns.current_user,
           forms: [
-            recipe_materials: [
+            components: [
               type: :list,
               resource: Catalog.RecipeMaterial,
               create_action: :create,
@@ -258,8 +279,8 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
     assign(socket, :form, to_form(form))
   end
 
-  defp get_material_unit(materials_map, recipe_materials_form) do
-    case Map.get(materials_map, recipe_materials_form[:material_id].value) do
+  defp get_material_unit(materials_map, components_form) do
+    case Map.get(materials_map, components_form[:material_id].value) do
       nil -> ""
       material -> material.unit
     end
@@ -267,7 +288,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
 
   defp recompute_availability(form, all_materials) do
     existing_material_ids =
-      form.source.forms.recipe_materials
+      (form.source.forms[:components] || [])
       |> Enum.map(fn recipe_mat_form ->
         recipe_mat_form.params[:material_id] ||
           (recipe_mat_form.data && recipe_mat_form.data.material_id)

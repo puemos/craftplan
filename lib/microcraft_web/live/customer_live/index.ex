@@ -6,12 +6,10 @@ defmodule MicrocraftWeb.CustomerLive.Index do
   def render(assigns) do
     ~H"""
     <.header>
-      Manage your customers
-      <:subtitle>
-        <.breadcrumb>
-          <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={true} />
-        </.breadcrumb>
-      </:subtitle>
+      <.breadcrumb>
+        <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={true} />
+      </.breadcrumb>
+
       <:actions>
         <.link patch={~p"/backoffice/customers/new"}>
           <.button>New Customer</.button>
@@ -106,7 +104,7 @@ defmodule MicrocraftWeb.CustomerLive.Index do
   end
 
   @impl true
-  def handle_info({:saved, customer}, socket) do
+  def handle_info({{MicrocraftWeb.CustomerLive.FormComponent, :saved, customer}}, socket) do
     {:noreply, stream_insert(socket, :customers, customer)}
   end
 
