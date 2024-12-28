@@ -11,7 +11,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
       {@customer.full_name}
       <:subtitle>
         <.breadcrumb>
-          <:crumb label="Customers" path={~p"/backoffice/customers"} current?={false} />
+          <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={false} />
           <:crumb
             label={"#{@customer.full_name}"}
             path={~p"/backoffice/customers/#{@customer.id}"}

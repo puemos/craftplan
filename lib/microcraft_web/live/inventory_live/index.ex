@@ -10,7 +10,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       Inventory
       <:subtitle>
         <.breadcrumb>
-          <:crumb label="Inventory" path={~p"/backoffice/inventory"} current?={true} />
+          <:crumb label="All Materials" path={~p"/backoffice/inventory"} current?={true} />
         </.breadcrumb>
       </:subtitle>
       <:actions>
@@ -26,6 +26,13 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       row_id={fn {dom_id, _} -> dom_id end}
       row_click={fn {_, material} -> JS.navigate(~p"/backoffice/inventory/#{material.id}") end}
     >
+      <:empty>
+        <div class="block py-4 pr-6">
+          <span class={["relative"]}>
+            No materials found
+          </span>
+        </div>
+      </:empty>
       <:col :let={{_, material}} label="Name">{material.name}</:col>
       <:col :let={{_, material}} label="Current Stock">
         {material.current_stock || 0} {material.unit}

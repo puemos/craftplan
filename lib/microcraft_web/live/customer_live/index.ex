@@ -9,7 +9,7 @@ defmodule MicrocraftWeb.CustomerLive.Index do
       Manage your customers
       <:subtitle>
         <.breadcrumb>
-          <:crumb label="Customers" path={~p"/backoffice/customers"} current?={true} />
+          <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={true} />
         </.breadcrumb>
       </:subtitle>
       <:actions>
@@ -24,6 +24,13 @@ defmodule MicrocraftWeb.CustomerLive.Index do
       rows={@streams.customers}
       row_click={fn {_id, customer} -> JS.navigate(~p"/backoffice/customers/#{customer.id}") end}
     >
+      <:empty>
+        <div class="block py-4 pr-6">
+          <span class={["relative"]}>
+            No customers found
+          </span>
+        </div>
+      </:empty>
       <:col :let={{_id, customer}} label="Name">{customer.full_name}</:col>
       <:col :let={{_id, customer}} label="Email">{customer.email}</:col>
       <:col :let={{_id, customer}} label="Phone">{customer.phone}</:col>

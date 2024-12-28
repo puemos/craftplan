@@ -11,7 +11,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
       Manage your products
       <:subtitle>
         <.breadcrumb>
-          <:crumb label="Products" path={~p"/backoffice/products"} current?={true} />
+          <:crumb label="All Products" path={~p"/backoffice/products"} current?={true} />
         </.breadcrumb>
       </:subtitle>
       <:actions>
@@ -27,10 +27,26 @@ defmodule MicrocraftWeb.ProductLive.Index do
       row_click={fn {_, product} -> JS.navigate(~p"/backoffice/products/#{product.id}") end}
       row_id={fn {dom_id, _} -> dom_id end}
     >
+      <:empty>
+        <div class="block py-4 pr-6">
+          <span class={["relative"]}>
+            No products found
+          </span>
+        </div>
+      </:empty>
       <:col :let={{_, product}} label="Name">{product.name}</:col>
+      <:col :let={{_, product}} label="SKU">{product.sku}</:col>
 
       <:col :let={{_, product}} label="Price">
         {Money.from_float!(:USD, Decimal.to_float(product.price))}
+      </:col>
+
+      <:col :let={{_, product}} label="Estimated cost">
+        {Money.from_float!(:USD, Decimal.to_float(product.estimated_cost || Decimal.new(0)))}
+      </:col>
+
+      <:col :let={{_, product}} label="Profit margin">
+        {(product.profit_margin || Decimal.new(0)) |> Decimal.mult(100) |> Decimal.normalize()}%
       </:col>
 
       <:col :let={{_, product}} label="Status">

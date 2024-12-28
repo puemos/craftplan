@@ -10,7 +10,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
       {@material.name}
       <:subtitle>
         <.breadcrumb>
-          <:crumb label="Inventory" path={~p"/backoffice/inventory"} current?={false} />
+          <:crumb label="All Materials" path={~p"/backoffice/inventory"} current?={false} />
           <:crumb
             label={@material.name}
             path={~p"/backoffice/inventory/#{@material.id}"}
@@ -36,7 +36,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
       >
         <.list>
           <:item title="Name">{@material.name}</:item>
-          <:item title="SKU">{@material.id}</:item>
+          <:item title="SKU">{@material.sku}</:item>
           <:item title="Price">{Money.from_float!(:USD, Decimal.to_float(@material.price))}</:item>
           <:item title="Current Stock">
             {@material.current_stock || 0} {@material.unit}
@@ -56,6 +56,14 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         selected?={@page == "log"}
       >
         <.table id="inventory_movements" rows={@material.movements}>
+          <:empty>
+            <div class="block py-4 pr-6">
+              <span class={["relative"]}>
+                No movements found
+              </span>
+            </div>
+          </:empty>
+
           <:col :let={entry} label="Date">
             {Calendar.strftime(entry.inserted_at, "%Y-%m-%d %H:%M")}
           </:col>

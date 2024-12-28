@@ -22,7 +22,7 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMaterial do
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:sku]} type="text" label="SKU" />
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <.input field={@form[:price]} type="number" label="Price" step="0.01" min="0" />
+          <.input field={@form[:price]} type="number" label="Price" step="0.001" min="0" />
 
           <.input
             field={@form[:unit]}
@@ -33,8 +33,22 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMaterial do
           />
         </div>
 
-        <.input field={@form[:minimum_stock]} type="number" label="Minimum Stock" step="0.01" min="0" />
-        <.input field={@form[:maximum_stock]} type="number" label="Maximum Stock" step="0.01" min="0" />
+        <.input
+          field={@form[:minimum_stock]}
+          type="number"
+          label="Minimum Stock"
+          inline_label={@form[:unit].value || :gram}
+          step="0.001"
+          min="0"
+        />
+        <.input
+          field={@form[:maximum_stock]}
+          inline_label={@form[:unit].value || :gram}
+          type="number"
+          label="Maximum Stock"
+          step="0.001"
+          min="0"
+        />
 
         <:actions>
           <.button phx-disable-with="Saving...">Save Material</.button>

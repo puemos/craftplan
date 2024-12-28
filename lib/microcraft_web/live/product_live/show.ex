@@ -11,7 +11,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
       {@product.name}
       <:subtitle>
         <.breadcrumb>
-          <:crumb label="Products" path={~p"/backoffice/products"} current?={false} />
+          <:crumb label="All Products" path={~p"/backoffice/products"} current?={false} />
           <:crumb
             label={@product.name}
             path={~p"/backoffice/products/#{@product.id}"}
@@ -60,7 +60,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
               {Money.from_float!(:USD, Decimal.to_float(@product.price))}
             </:item>
 
-            <:item title="Estimated Cost">
+            <:item title="Estimated cost">
               {Money.from_float!(:USD, Decimal.to_float(@product.estimated_cost || Decimal.new(0)))}
             </:item>
 
@@ -75,43 +75,17 @@ defmodule MicrocraftWeb.ProductLive.Show do
           path={~p"/backoffice/products/#{@product.id}?page=recipe"}
           selected?={@page == "recipe"}
         >
-          <.button phx-click={show_modal("product-material-modal")}>
-            <span :if={@product.recipe == nil}>Create recipe</span>
-            <span :if={@product.recipe != nil}>Edit recipe</span>
-          </.button>
-          <div :if={@product.recipe} class="mt-8">
-            <.label>Instructions</.label>
-            <p class="text-sm mt-4">
-              {@product.recipe.instructions}
-            </p>
-
-            <div class="mt-8">
-              <.label>Materials</.label>
-
-              <div
-                :if={Enum.empty?(@product.recipe.recipe_materials)}
-                class="last:block hidden py-4 text-stone-400 text-sm"
-              >
-                No materials
-              </div>
-
-              <.table
-                :if={not Enum.empty?(@product.recipe.recipe_materials)}
-                id="recipe"
-                rows={@product.recipe.recipe_materials || []}
-              >
-                <:col :let={pm} label="Material">{pm.material.name}</:col>
-                <:col :let={pm} label="Quantity">
-                  {pm.quantity} {pm.material.unit}
-                </:col>
-                <:col :let={pm} label="Cost">
-                  {Money.from_float!(
-                    :USD,
-                    Decimal.to_float(Decimal.mult(pm.quantity, pm.material.price))
-                  )}
-                </:col>
-              </.table>
-            </div>
+          <div :if={@product.recipe}>
+            <.live_component
+              module={MicrocraftWeb.ProductLive.FormComponentRecipe}
+              id="material-form"
+              product={@product}
+              recipe={@product.recipe || nil}
+              current_user={@current_user}
+              materials={@materials_available}
+              patch={~p"/backoffice/products/#{@product.id}?page=recipe"}
+              on_cancel={hide_modal("product-material-modal")}
+            />
           </div>
         </:tab>
       </.tabs>
@@ -131,19 +105,6 @@ defmodule MicrocraftWeb.ProductLive.Show do
         current_user={@current_user}
         product={@product}
         patch={~p"/backoffice/products/#{@product.id}?page=details"}
-      />
-    </.modal>
-
-    <.modal id="product-material-modal" on_cancel={hide_modal("product-material-modal")}>
-      <.live_component
-        module={MicrocraftWeb.ProductLive.FormComponentRecipe}
-        id="material-form"
-        product={@product}
-        recipe={@product.recipe || nil}
-        current_user={@current_user}
-        materials={@materials_available}
-        patch={~p"/backoffice/products/#{@product.id}?page=recipe"}
-        on_cancel={hide_modal("product-material-modal")}
       />
     </.modal>
     """

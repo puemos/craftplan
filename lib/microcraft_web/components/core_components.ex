@@ -494,6 +494,7 @@ defmodule MicrocraftWeb.CoreComponents do
   attr :label, :string, default: nil
   attr :inline_label, :string, default: nil
   attr :value, :any
+  attr :flat, :boolean, default: false
 
   attr :type, :string,
     default: "text",
@@ -590,7 +591,11 @@ defmodule MicrocraftWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white focus:border-stone-400 focus:ring-0 sm:text-sm"
+        class={[
+          "block w-full focus:ring-0 sm:text-sm",
+          @flat != true && "mt-2 rounded-md border border-gray-300 bg-white focus:border-stone-400",
+          @flat == true && "border-none bg-transparent p-0 !rounded-none"
+        ]}
         multiple={@multiple}
         {@rest}
       >
@@ -610,9 +615,13 @@ defmodule MicrocraftWeb.CoreComponents do
         id={@id}
         name={@name}
         class={[
+          @rest[:class] || "",
           "mt-2 block w-full rounded-lg text-stone-900 focus:ring-0 sm:text-sm min-h-[6rem]",
+          @flat != true && "mt-2 text-stone-900",
+          @flat == true && "border-none bg-transparent p-0 !rounded-none",
           @errors == [] && "border-stone-300 focus:border-stone-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          @errors != [] && "border-rose-400 focus:border-rose-400",
+          @errors != [] && @flat == true && "text-rose-400"
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
@@ -633,22 +642,29 @@ defmodule MicrocraftWeb.CoreComponents do
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            "mt-2 block w-full text-stone-900 focus:ring-0 sm:text-sm",
+            "block w-full focus:ring-0 sm:text-sm",
+            @flat != true && "mt-2 text-stone-900",
+            @flat == true && "border-none bg-transparent p-0 !rounded-none",
             @inline_label != nil && "rounded-s-lg",
             @inline_label == nil && "rounded-lg",
-            @errors == [] && "border-stone-300 focus:border-stone-400",
-            @errors != [] && "border-rose-400 focus:border-rose-400"
+            @errors == [] && @flat != true && "border-stone-300 focus:border-stone-400",
+            @errors != [] && @flat != true && "border-rose-400 focus:border-rose-400",
+            @errors != [] && @flat == true && "text-rose-400"
           ]}
           {@rest}
         />
         <span
           :if={@inline_label != nil}
-          class="inline-flex mt-2 blockrounded-lg text-stone-900 focus:ring-0 sm:text-sm items-center px-3 text-sm text-stone-900 bg-stone-200 border rounded-s-0 border-stone-300 border-s-0 rounded-e-md"
+          class={[
+            @flat != true &&
+              "inline-flex mt-2 blockrounded-lg text-stone-900 focus:ring-0 sm:text-sm items-center px-3 text-sm text-stone-900 bg-stone-200 border rounded-s-0 border-stone-300 border-s-0 rounded-e-md",
+            @flat == true && "ml-2 border-none bg-transparent p-0 block focus:ring-0"
+          ]}
         >
           {@inline_label}
         </span>
       </div>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} :if={@flat != true}>{msg}</.error>
     </div>
     """
   end
@@ -751,6 +767,8 @@ defmodule MicrocraftWeb.CoreComponents do
     attr :label, :string
   end
 
+  slot :empty
+
   slot :action, doc: "the slot for showing user actions in the last table column"
 
   def table(assigns) do
@@ -789,6 +807,11 @@ defmodule MicrocraftWeb.CoreComponents do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           class="relative divide-y divide-stone-200 text-sm leading-6 text-stone-700"
         >
+          <tr :if={@empty != nil} id={"empty-#{@id}"} class="only:block hidden">
+            <td colspan={Enum.count(@col)}>
+              {render_slot(@empty)}
+            </td>
+          </tr>
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-stone-200/40">
             <td
               :for={{col, i} <- Enum.with_index(@col)}

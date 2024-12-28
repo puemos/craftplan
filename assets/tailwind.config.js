@@ -92,5 +92,13 @@ module.exports = {
         { values },
       );
     }),
+
+    plugin(({ addUtilities }) => {
+      addUtilities({
+        ".field-sizing-content": {
+          "field-sizing": "content",
+        },
+      });
+    }),
   ],
 };
