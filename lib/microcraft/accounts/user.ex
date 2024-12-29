@@ -21,6 +21,8 @@ defmodule Microcraft.Accounts.User do
         resettable do
           sender Microcraft.Accounts.User.Senders.SendPasswordResetEmail
         end
+
+        confirmation_required? true
       end
     end
 

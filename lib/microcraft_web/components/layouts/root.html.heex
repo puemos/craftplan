@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix={
-      if assigns[:page_title] in [nil, "", "MicroCraft"], do: "", else: " · MicroCraft"
+      if assigns[:page_title] in [nil, "", "Microcraft"], do: "", else: " · Microcraft"
     }>
-      {assigns[:page_title] || "MicroCraft"}
+      {assigns[:page_title] || "Microcraft"}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
@@ -18,7 +18,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex-shrink-0">
-            <span class="text-lg font-semibold">MicroCraft</span>
+            <span class="text-lg font-semibold">Microcraft</span>
           </div>
 
           <ul class="flex items-center space-x-8">

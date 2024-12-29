@@ -7,17 +7,10 @@ defmodule Microcraft.Accounts.User.Senders.SendPasswordResetEmail do
   use MicrocraftWeb, :verified_routes
 
   @impl true
-  def send(_user, token, _) do
-    # Example of how you might send this email
-    # Microcraft.Accounts.Emails.send_password_reset_email(
-    #   user,
-    #   token
-    # )
-
-    IO.puts("""
-    Click this link to reset your password:
-
-    #{url(~p"/password-reset/#{token}")}
-    """)
+  def send(user, token, _) do
+    Microcraft.Accounts.Emails.deliver_reset_password_instructions(
+      user,
+      token
+    )
   end
 end

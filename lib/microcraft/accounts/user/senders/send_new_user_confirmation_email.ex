@@ -7,17 +7,10 @@ defmodule Microcraft.Accounts.User.Senders.SendNewUserConfirmationEmail do
   use MicrocraftWeb, :verified_routes
 
   @impl true
-  def send(_user, token, _) do
-    # Example of how you might send this email
-    # Microcraft.Accounts.Emails.send_new_user_confirmation_email(
-    #   user,
-    #   token
-    # )
-
-    IO.puts("""
-    Click this link to confirm your email:
-
-    #{url(~p"/auth/user/confirm_new_user?#{[confirm: token]}")}
-    """)
+  def send(user, token, _) do
+    Microcraft.Accounts.Emails.deliver_new_user_confirmation_email(
+      user,
+      token
+    )
   end
 end
