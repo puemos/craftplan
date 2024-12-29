@@ -22,7 +22,7 @@ defmodule MicrocraftWeb.Router do
     pipe_through :browser
 
     ash_authentication_live_session :authenticated_routes,
-      on_mount: {MicrocraftWeb.LiveUserAuth, :live_user_required} do
+      on_mount: {MicrocraftWeb.LiveUserAuth, :live_staff_required} do
       live "/backoffice/products", ProductLive.Index, :index
       live "/backoffice/products/new", ProductLive.Index, :new
       live "/backoffice/products/:id", ProductLive.Show, :show
