@@ -44,7 +44,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
             <:item title="Shipping Address">{@order.customer.shipping_address.full_address}</:item>
 
             <:item title="Total">
-              {Money.from_float!(:USD, Decimal.to_float(@order.total_cost))}
+              {Money.from_float!(@settings.currency, Decimal.to_float(@order.total_cost))}
             </:item>
 
             <%!-- <:item title="Payment Status">

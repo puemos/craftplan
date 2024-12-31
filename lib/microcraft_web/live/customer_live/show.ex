@@ -94,7 +94,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
               </:col>
               <:col :let={order} label="Total">
                 <%= if order.total_amount do %>
-                  {Money.from_float!(:USD, order.total_amount)}
+                  {Money.from_float!(@settings.currency, order.total_amount)}
                 <% else %>
                   -
                 <% end %>
@@ -118,7 +118,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
               <.stat_card
                 title="Total Spent"
-                value={Money.from_float!(:USD, @customer.total_orders_value)}
+                value={Money.from_float!(@settings.currency, @customer.total_orders_value)}
                 description="All time purchases"
               />
             </div>
@@ -139,7 +139,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                     <div class="flex items-center gap-4">
                       <.badge text={order.status} />
                       <span class="font-medium">
-                        {Money.from_float!(:USD, order.total_amount || Decimal.new(0))}
+                        {Money.from_float!(@settings.currency, order.total_amount || Decimal.new(0))}
                       </span>
                     </div>
                   </div>

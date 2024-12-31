@@ -21,8 +21,13 @@ defmodule MicrocraftWeb.Router do
   scope "/", MicrocraftWeb do
     pipe_through :browser
 
-    ash_authentication_live_session :authenticated_routes,
-      on_mount: {MicrocraftWeb.LiveUserAuth, :live_staff_required} do
+    ash_authentication_live_session :admin_routes,
+      on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_admin_required}] do
+      live "/backoffice/settings", SettingsLive.Index, :index
+    end
+
+    ash_authentication_live_session :backoffice_routes,
+      on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_staff_required}] do
       live "/backoffice/products", ProductLive.Index, :index
       live "/backoffice/products/new", ProductLive.Index, :new
       live "/backoffice/products/:id", ProductLive.Show, :show

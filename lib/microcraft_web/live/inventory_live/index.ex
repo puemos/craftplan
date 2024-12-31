@@ -39,7 +39,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         {material.minimum_stock} {material.unit}
       </:col>
       <:col :let={{_, material}} label="Price">
-        {Money.from_float!(:USD, Decimal.to_float(material.price))}
+        {Money.from_float!(@settings.currency, Decimal.to_float(material.price))}
       </:col>
 
       <:action :let={{_, material}}>

@@ -46,7 +46,7 @@ defmodule Microcraft.Catalog.Product do
                   match: ~r/^[\w\s\-\.]+$/
     end
 
-    attribute :status, :product_status do
+    attribute :status, Microcraft.Catalog.Product.Types.Status do
       allow_nil? false
       public? true
       default :idea

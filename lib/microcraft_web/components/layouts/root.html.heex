@@ -55,6 +55,16 @@
                   Customers
                 </.link>
               </li>
+              <%= if @current_user.role == :admin do %>
+                <li>
+                  <.link
+                    href={~p"/backoffice/settings"}
+                    class="text-sm tracking-wide text-stone-600 hover:text-stone-900 transition-colors duration-200"
+                  >
+                    Settings
+                  </.link>
+                </li>
+              <% end %>
               <li class="relative group">
                 <button class="flex items-center text-sm tracking-wide text-stone-600 hover:text-stone-900 transition-colors duration-200">
                   <span>{@current_user.email}</span>

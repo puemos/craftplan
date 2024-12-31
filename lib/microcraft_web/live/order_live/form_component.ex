@@ -87,7 +87,7 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
                   <div class="block py-4 pr-6">
                     <span class="relative">
                       {Money.from_float(
-                        :USD,
+                        @settings.currency,
                         Decimal.to_float(
                           Decimal.mult(
                             @products_map[items_form[:product_id].value].price || 0,

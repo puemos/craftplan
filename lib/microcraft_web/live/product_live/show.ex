@@ -42,11 +42,14 @@ defmodule MicrocraftWeb.ProductLive.Show do
             <:item title="SKU">{@product.sku}</:item>
 
             <:item title="Price">
-              {Money.from_float!(:USD, Decimal.to_float(@product.price))}
+              {Money.from_float!(@settings.currency, Decimal.to_float(@product.price))}
             </:item>
 
             <:item title="Estimated cost">
-              {Money.from_float!(:USD, Decimal.to_float(@product.estimated_cost || Decimal.new(0)))}
+              {Money.from_float!(
+                @settings.currency,
+                Decimal.to_float(@product.estimated_cost || Decimal.new(0))
+              )}
             </:item>
 
             <:item title="Profit margin">

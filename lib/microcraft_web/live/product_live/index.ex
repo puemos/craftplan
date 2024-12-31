@@ -36,11 +36,14 @@ defmodule MicrocraftWeb.ProductLive.Index do
       <:col :let={{_, product}} label="SKU">{product.sku}</:col>
 
       <:col :let={{_, product}} label="Price">
-        {Money.from_float!(:USD, Decimal.to_float(product.price))}
+        {Money.from_float!(@settings.currency, Decimal.to_float(product.price))}
       </:col>
 
       <:col :let={{_, product}} label="Estimated cost">
-        {Money.from_float!(:USD, Decimal.to_float(product.estimated_cost || Decimal.new(0)))}
+        {Money.from_float!(
+          @settings.currency,
+          Decimal.to_float(product.estimated_cost || Decimal.new(0))
+        )}
       </:col>
 
       <:col :let={{_, product}} label="Profit margin">

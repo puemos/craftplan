@@ -17,7 +17,7 @@ config :ash,
   known_types: [AshMoney.Types.Money],
   custom_types: [
     money: AshMoney.Types.Money,
-    product_status: Microcraft.Catalog.Product.Types.Status,
+    currency: Microcraft.Types.Currency,
     unit: Microcraft.Types.Unit
   ]
 
@@ -52,6 +52,7 @@ config :microcraft,
   ecto_repos: [Microcraft.Repo],
   generators: [timestamp_type: :utc_datetime],
   ash_domains: [
+    Microcraft.Settings,
     Microcraft.CRM,
     Microcraft.Production,
     Microcraft.Orders,
