@@ -93,8 +93,10 @@ defmodule Microcraft.Inventory.Material do
 
   relationships do
     has_many :movements, Microcraft.Inventory.Movement
-    has_many :recipe_materials, Microcraft.Catalog.RecipeMaterial
-    many_to_many :recipes, Microcraft.Catalog.Recipe, through: Microcraft.Catalog.RecipeMaterial
+
+    has_many :recipe_materials, Microcraft.Catalog.RecipeMaterial do
+      domain Microcraft.Catalog
+    end
   end
 
   aggregates do

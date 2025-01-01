@@ -59,6 +59,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
         order={@order}
         products={@products}
         customers={@customers}
+        settings={@settings}
         patch={~p"/backoffice/orders"}
       />
     </.modal>
@@ -73,6 +74,8 @@ defmodule MicrocraftWeb.OrderLive.Index do
         stream?: true,
         load: [:items, :total_cost, customer: [:full_name]]
       )
+
+    dbg(orders)
 
     products =
       Catalog.list_products!(actor: socket.assigns[:current_user])

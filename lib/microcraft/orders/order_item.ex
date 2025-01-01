@@ -14,7 +14,7 @@ defmodule Microcraft.Orders.OrderItem do
 
     create :create do
       primary? true
-      accept [:product_id, :quantity]
+      accept [:product_id, :quantity, :unit_price]
     end
 
     update :update do
@@ -25,6 +25,10 @@ defmodule Microcraft.Orders.OrderItem do
 
   attributes do
     uuid_primary_key :id
+
+    attribute :unit_price, :decimal do
+      allow_nil? false
+    end
 
     attribute :quantity, :decimal do
       allow_nil? false
@@ -44,6 +48,6 @@ defmodule Microcraft.Orders.OrderItem do
   end
 
   calculations do
-    calculate :cost, :decimal, expr(quantity * product.price)
+    calculate :cost, :decimal, expr(quantity * unit_price)
   end
 end

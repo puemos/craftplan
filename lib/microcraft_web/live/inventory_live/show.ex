@@ -89,6 +89,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         action={@live_action}
         current_user={@current_user}
         material={@material}
+        settings={@settings}
         patch={~p"/backoffice/inventory/#{@material.id}?page=details"}
       />
     </.modal>
@@ -103,6 +104,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         id={@material.id}
         material={@material}
         current_user={@current_user}
+        settings={@settings}
         patch={~p"/backoffice/inventory/#{@material.id}?page=log"}
       />
     </.modal>

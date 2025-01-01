@@ -47,9 +47,6 @@ defmodule Microcraft.Catalog.Recipe do
     end
 
     has_many :components, Microcraft.Catalog.RecipeMaterial
-
-    many_to_many :materials, Microcraft.Inventory.Material,
-      through: Microcraft.Catalog.RecipeMaterial
   end
 
   aggregates do

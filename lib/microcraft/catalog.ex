@@ -5,7 +5,7 @@ defmodule Microcraft.Catalog do
     resource Microcraft.Catalog.Product do
       define :get_product_by_id, action: :read, get_by: [:id]
       define :get_product_by_sku, action: :read, get_by: [:sku]
-      define :list_products, action: :read
+      define :list_products, action: :list
       define :list_products_with_keyset, action: :keyset
     end
 

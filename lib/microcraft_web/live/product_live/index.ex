@@ -85,6 +85,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
         action={@live_action}
         product={@product}
         current_user={@current_user}
+        settings={@settings}
         patch={~p"/backoffice/products"}
       />
     </.modal>

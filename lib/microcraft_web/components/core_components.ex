@@ -347,7 +347,9 @@ defmodule MicrocraftWeb.CoreComponents do
     ~H"""
     <div class={["relative", @class]}>
       <.tabs_nav>
-        <:tab :for={tab <- @tab} label={tab.label} path={tab.path} selected?={tab.selected?} />
+        <:tab :for={tab <- @tab}>
+          <.tab_link label={tab.label} path={tab.path} selected?={tab.selected?} />
+        </:tab>
       </.tabs_nav>
       <.tabs_content>
         <div :for={tab <- @tab} :if={tab.selected?} class="relative w-full">
@@ -358,12 +360,33 @@ defmodule MicrocraftWeb.CoreComponents do
     """
   end
 
-  # Navigation Component
-  slot :tab, required: true do
-    attr :label, :string, required: true
-    attr :path, :string, required: true
-    attr :selected?, :boolean, required: true
+  attr :label, :string, required: true
+  attr :path, :string, required: true
+  attr :selected?, :boolean, required: true
+
+  def tab_link(assigns) do
+    ~H"""
+    <.link
+      patch={@path}
+      role="tab"
+      aria-selected={@selected?}
+      class={[
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1",
+        "text-sm font-medium ring-offset-white transition-all",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "disabled:pointer-events-none disabled:opacity-50",
+        "border",
+        not @selected? && "border-transparent",
+        @selected? && "bg-stone-50 border-stone-300 shadow"
+      ]}
+    >
+      {@label}
+    </.link>
+    """
   end
+
+  # Navigation Component
+  slot :tab, required: true
 
   def tabs_nav(assigns) do
     ~H"""
@@ -372,24 +395,7 @@ defmodule MicrocraftWeb.CoreComponents do
       aria-orientation="horizontal"
       class="h-9 inline-flex rounded-lg bg-stone-200/50 p-1"
     >
-      <%= for tab <- @tab do %>
-        <.link
-          patch={tab.path}
-          role="tab"
-          aria-selected={tab.selected?}
-          class={[
-            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1",
-            "text-sm font-medium ring-offset-white transition-all",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            "disabled:pointer-events-none disabled:opacity-50",
-            "border",
-            not tab.selected? && "border-transparent",
-            tab.selected? && "bg-stone-50 border-stone-300 shadow"
-          ]}
-        >
-          {tab.label}
-        </.link>
-      <% end %>
+      {render_slot(@tab)}
     </div>
     """
   end

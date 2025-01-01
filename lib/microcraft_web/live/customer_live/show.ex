@@ -63,7 +63,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
               rows={@customer.orders}
               row_click={fn order -> JS.navigate(~p"/backoffice/orders/#{order.id}") end}
             >
-              <:col :let={order} label="Reference">
+              <:col :let={order} label="ID">
                 <.kbd>{order.id}</.kbd>
               </:col>
               <:col :let={order} label="Status">
@@ -71,33 +71,21 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                   text={order.status}
                   colors={[
                     pending: "bg-yellow-100 text-yellow-700",
-                    confirmed: "bg-blue-100 text-blue-700",
-                    in_production: "bg-purple-100 text-purple-700",
-                    ready: "bg-indigo-100 text-indigo-700",
-                    completed: "bg-green-100 text-green-700",
+                    fulfilled: "bg-blue-100 text-blue-700",
+                    shipped: "bg-green-100 text-green-700",
                     cancelled: "bg-red-100 text-red-700"
                   ]}
                 />
               </:col>
-              <:col :let={order} label="Payment Status">
-                <.badge
-                  text={order.payment_status}
-                  colors={[
-                    pending: "bg-yellow-100 text-yellow-700",
-                    paid: "bg-green-100 text-green-700",
-                    refunded: "bg-red-100 text-red-700"
-                  ]}
-                />
-              </:col>
+
               <:col :let={order} label="Delivery Date">
                 {Calendar.strftime(order.delivery_date, "%Y-%m-%d")}
               </:col>
               <:col :let={order} label="Total">
-                <%= if order.total_amount do %>
-                  {Money.from_float!(@settings.currency, order.total_amount)}
-                <% else %>
-                  -
-                <% end %>
+                {Money.from_float!(
+                  @settings.currency,
+                  Decimal.to_float(order.total_cost || Decimal.new(0))
+                )}
               </:col>
             </.table>
           </div>
@@ -118,7 +106,12 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
               <.stat_card
                 title="Total Spent"
-                value={Money.from_float!(@settings.currency, @customer.total_orders_value)}
+                value={
+                  Money.from_float!(
+                    @settings.currency,
+                    Decimal.to_float(@customer.total_orders_value)
+                  )
+                }
                 description="All time purchases"
               />
             </div>
@@ -139,7 +132,10 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                     <div class="flex items-center gap-4">
                       <.badge text={order.status} />
                       <span class="font-medium">
-                        {Money.from_float!(@settings.currency, order.total_amount || Decimal.new(0))}
+                        {Money.from_float!(
+                          @settings.currency,
+                          Decimal.to_float(order.total_cost || Decimal.new(0))
+                        )}
                       </span>
                     </div>
                   </div>
@@ -164,7 +160,14 @@ defmodule MicrocraftWeb.CustomerLive.Show do
       CRM.get_customer_by_id!(
         id,
         actor: socket.assigns.current_user,
-        load: [:full_name, billing_address: [:full_address], shipping_address: [:full_address]]
+        load: [
+          :full_name,
+          :total_orders_value,
+          :total_orders,
+          orders: [:total_cost, :total_items],
+          billing_address: [:full_address],
+          shipping_address: [:full_address]
+        ]
       )
 
     page = Map.get(params, "page", "details")

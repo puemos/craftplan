@@ -6,6 +6,12 @@ defmodule MicrocraftWeb.OrderLive.Show do
 
   alias Microcraft.Orders
 
+  @default_order_load [
+    :total_cost,
+    items: [:cost, :product],
+    customer: [:full_name, shipping_address: [:full_address]]
+  ]
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -60,6 +66,23 @@ defmodule MicrocraftWeb.OrderLive.Show do
             </:item>
           </.list>
         </:tab>
+
+        <:tab
+          label="Items"
+          path={~p"/backoffice/orders/#{@order.id}?page=items"}
+          selected?={@page == "items"}
+        >
+          <.table id="order-items" rows={@order.items}>
+            <:col :let={item} label="Product">{item.product.name}</:col>
+            <:col :let={item} label="Quantity">{item.quantity}</:col>
+            <:col :let={item} label="Unit Price">
+              {Money.from_float!(@settings.currency, Decimal.to_float(item.product.price))}
+            </:col>
+            <:col :let={item} label="Total">
+              {Money.from_float!(@settings.currency, Decimal.to_float(item.cost))}
+            </:col>
+          </.table>
+        </:tab>
       </.tabs>
     </div>
 
@@ -78,7 +101,8 @@ defmodule MicrocraftWeb.OrderLive.Show do
         order={@order}
         products={@products}
         customers={@customers}
-        patch={~p"/backoffice/orders"}
+        settings={@settings}
+        patch={~p"/backoffice/orders/#{@order.id}"}
       />
     </.modal>
     """
@@ -103,9 +127,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
   @impl true
   def handle_params(%{"id" => id} = params, _, socket) do
     order =
-      Orders.get_order_by_id!(id,
-        load: [:total_cost, :items, customer: [:full_name, shipping_address: [:full_address]]]
-      )
+      Orders.get_order_by_id!(id, load: @default_order_load)
 
     page = Map.get(params, "page", "details")
 
@@ -124,9 +146,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
         socket
       ) do
     order =
-      Orders.get_order_by_id!(socket.assigns.order.id,
-        load: [:items]
-      )
+      Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
 
     {:noreply,
      socket
@@ -140,9 +160,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
         socket
       ) do
     order =
-      Orders.get_order_by_id!(socket.assigns.order.id,
-        load: [:total_cost, :items, customer: [:full_name, shipping_address: [:full_address]]]
-      )
+      Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
 
     {:noreply,
      socket

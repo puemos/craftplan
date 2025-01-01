@@ -18,6 +18,13 @@ defmodule MicrocraftWeb.CustomerLive.FormComponent do
         phx-submit="save"
       >
         <div class="space-y-8 bg-white mt-4">
+          <.input
+            field={@form[:type]}
+            type="segmented"
+            options={[{"Individual", :individual}, {"Company", :company}]}
+            value={@form[:type].value || :individual}
+          />
+
           <div class="space-y-4">
             <div class="flex flex-row space-x-4">
               <.input field={@form[:first_name]} type="text" label="First name" />
@@ -25,12 +32,6 @@ defmodule MicrocraftWeb.CustomerLive.FormComponent do
             </div>
             <.input field={@form[:email]} type="email" label="Email" />
             <.input field={@form[:phone]} type="tel" label="Phone" />
-
-            <.input
-              field={@form[:type]}
-              type="segmented"
-              options={[{"Individual", :individual}, {"Company", :company}]}
-            />
           </div>
 
           <div class="flex flex-col space-y-4">

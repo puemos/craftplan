@@ -72,6 +72,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
             product={@product}
             recipe={@product.recipe || nil}
             current_user={@current_user}
+            settings={@settings}
             materials={@materials_available}
             patch={~p"/backoffice/products/#{@product.id}?page=recipe"}
             on_cancel={hide_modal("product-material-modal")}
@@ -93,6 +94,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
         action={@live_action}
         current_user={@current_user}
         product={@product}
+        settings={@settings}
         patch={~p"/backoffice/products/#{@product.id}?page=details"}
       />
     </.modal>

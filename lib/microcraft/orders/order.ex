@@ -31,7 +31,7 @@ defmodule Microcraft.Orders.Order do
     end
 
     read :list do
-      prepare build(sort: :name)
+      prepare build(sort: [delivery_date: :desc])
 
       pagination do
         required? false
@@ -42,7 +42,7 @@ defmodule Microcraft.Orders.Order do
     end
 
     read :keyset do
-      prepare build(sort: :name)
+      prepare build(sort: [delivery_date: :desc])
       pagination keyset?: true
     end
   end
@@ -67,6 +67,7 @@ defmodule Microcraft.Orders.Order do
 
     belongs_to :customer, Microcraft.CRM.Customer do
       allow_nil? false
+      domain Microcraft.CRM
     end
   end
 

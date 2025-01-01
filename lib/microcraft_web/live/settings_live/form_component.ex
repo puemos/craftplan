@@ -48,7 +48,6 @@ defmodule MicrocraftWeb.SettingsLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, form} ->
-        dbg(form)
         {:noreply, assign(socket, form: form)}
     end
   end

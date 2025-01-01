@@ -71,6 +71,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         title={@page_title}
         action={@live_action}
         material={@material}
+        settings={@settings}
         patch={~p"/backoffice/inventory"}
       />
     </.modal>

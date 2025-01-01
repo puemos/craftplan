@@ -69,6 +69,11 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
                         value={items_form[:product_id].value}
                         type="hidden"
                       />
+                      <.input
+                        field={items_form[:unit_price]}
+                        value={@products_map[items_form[:product_id].value].price}
+                        type="hidden"
+                      />
                     </span>
                   </div>
                 </div>
@@ -153,7 +158,10 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
 
         <:actions>
           <.button
-            disabled={not @form.source.changed? || not @form.source.valid?}
+            disabled={
+              not @form.source.changed? || not @form.source.valid? ||
+                Enum.empty?((@form.source.forms && @form.source.forms[:items]) || [])
+            }
             phx-disable-with="Saving..."
           >
             Save Order
@@ -194,11 +202,19 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
 
   @impl true
   def handle_event("save", %{"order" => order_params, "timezone" => timezone}, socket) do
-    <<datetime::binary-size(16), _::binary>> = order_params["delivery_date"]
-    {:ok, datetime} = NaiveDateTime.from_iso8601(datetime <> ":00Z")
-    {:ok, datetime} = DateTime.from_naive(datetime, timezone)
+    datetime = extract_and_parse_datetime(order_params["delivery_date"], timezone)
 
-    order_params = Map.put(order_params, "delivery_date", DateTime.to_iso8601(datetime))
+    order_params =
+      order_params
+      |> Map.put("delivery_date", datetime)
+      |> update_in(["items"], fn items ->
+        Enum.map(items, fn {k, v} ->
+          {k, Map.put(v, "unit_price", socket.assigns.products_map[v["product_id"]].price)}
+        end)
+        |> Map.new()
+      end)
+
+    dbg(order_params)
 
     case Form.submit(socket.assigns.form, params: order_params) do
       {:ok, order} ->
@@ -224,7 +240,7 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
   def handle_event("add_form", %{"path" => path}, socket) do
     form =
       AshPhoenix.Form.add_form(socket.assigns.form, path,
-        params: %{product_id: socket.assigns.selected_product, quantity: 1}
+        params: %{product_id: socket.assigns.selected_product, quantity: 0}
       )
 
     {available_products, selected_product} =
@@ -286,24 +302,47 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
   end
 
   defp recompute_availability(form, all_products) do
+    # Convert existing product IDs to a MapSet for O(1) membership checks
     existing_product_ids =
-      (form.source.forms[:items] || [])
-      |> Enum.map(fn order_item_form ->
-        order_item_form.params[:product_id] ||
-          (order_item_form.data && order_item_form.data.product_id)
-      end)
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
+      form
+      |> get_order_items()
+      |> Stream.map(&extract_product_id/1)
+      |> Stream.reject(&is_nil/1)
+      # MapSet automatically removes duplicates, so we don’t need `Enum.uniq/1`
+      |> MapSet.new()
 
+    # Reject products whose IDs are in existing_product_ids
     available_products =
-      Enum.reject(all_products, fn p -> p.id in existing_product_ids end)
+      for product <- all_products,
+          not MapSet.member?(existing_product_ids, product.id),
+          do: product
 
+    # Safely pick the first product, or nil if none available
     selected_product =
-      case available_products do
-        [first | _] -> first.id
-        [] -> nil
-      end
+      available_products
+      |> List.first()
+      |> then(&(&1 && &1.id))
 
     {available_products, selected_product}
+  end
+
+  defp get_order_items(form) do
+    form.source.forms[:items] || []
+  end
+
+  defp extract_product_id(order_item_form) do
+    order_item_form.params[:product_id] ||
+      (order_item_form.data && order_item_form.data.product_id)
+  end
+
+  defp extract_and_parse_datetime(delivery_date, timezone) do
+    <<datetime::binary-size(16), _::binary>> = delivery_date
+
+    with {:ok, naive_dt} <- NaiveDateTime.from_iso8601(datetime <> ":00Z"),
+         {:ok, dt} <- DateTime.from_naive(naive_dt, timezone) do
+      DateTime.to_iso8601(dt)
+    else
+      _ -> nil
+    end
   end
 end

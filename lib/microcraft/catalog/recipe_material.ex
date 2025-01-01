@@ -32,6 +32,7 @@ defmodule Microcraft.Catalog.RecipeMaterial do
 
     belongs_to :material, Microcraft.Inventory.Material do
       allow_nil? false
+      domain Microcraft.Inventory
     end
   end
 
