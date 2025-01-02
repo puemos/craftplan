@@ -54,7 +54,7 @@ defmodule Microcraft.Accounts.Emails do
   defp deliver(to, subject, body) do
     new()
     # TODO: Replace with your email
-    |> from({"Zach", "zach@ash-hq.org"})
+    |> from({"Microcraft", "noreply@microcraft.app"})
     |> to(to_string(to))
     |> subject(subject)
     |> put_provider_option(:track_links, "None")

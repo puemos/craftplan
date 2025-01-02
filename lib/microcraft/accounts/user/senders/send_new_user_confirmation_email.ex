@@ -10,7 +10,7 @@ defmodule Microcraft.Accounts.User.Senders.SendNewUserConfirmationEmail do
   def send(user, token, _) do
     Microcraft.Accounts.Emails.deliver_new_user_confirmation_email(
       user,
-      token
+      url(~p"/auth/user/confirm_new_user?#{[confirm: token]}")
     )
   end
 end

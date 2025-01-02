@@ -10,7 +10,7 @@ defmodule Microcraft.Accounts.User.Senders.SendPasswordResetEmail do
   def send(user, token, _) do
     Microcraft.Accounts.Emails.deliver_reset_password_instructions(
       user,
-      token
+      url(~p"/password-reset/#{token}")
     )
   end
 end

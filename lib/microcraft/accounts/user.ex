@@ -22,7 +22,7 @@ defmodule Microcraft.Accounts.User do
           sender Microcraft.Accounts.User.Senders.SendPasswordResetEmail
         end
 
-        confirmation_required? true
+        # require_confirmed_with(:confirmed_at)
       end
     end
 
