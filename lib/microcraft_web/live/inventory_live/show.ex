@@ -37,7 +37,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
           <:item title="Name">{@material.name}</:item>
           <:item title="SKU">{@material.sku}</:item>
           <:item title="Price">
-            {Money.from_float!(@settings.currency, Decimal.to_float(@material.price))}
+            {format_money(@settings.currency, @material.price)}
           </:item>
           <:item title="Current Stock">
             {@material.current_stock || 0} {@material.unit}

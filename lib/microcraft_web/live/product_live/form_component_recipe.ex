@@ -87,13 +87,11 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                 <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                   <div class="block py-4 pr-6">
                     <span class="relative">
-                      {Money.from_float(
+                      {format_money(
                         @settings.currency,
-                        Decimal.to_float(
-                          Decimal.mult(
-                            @materials_map[components_form[:material_id].value].price || 0,
-                            components_form[:quantity].value || 0
-                          )
+                        Decimal.mult(
+                          @materials_map[components_form[:material_id].value].price || 0,
+                          components_form[:quantity].value || 0
                         )
                       )}
                     </span>

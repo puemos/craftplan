@@ -1,6 +1,28 @@
 defmodule MicrocraftWeb.HtmlHelpers do
-  # Formatting Helpers
   @moduledoc false
+
+  def format_percentage(value) do
+    format_percentage(value, [])
+  end
+
+  def format_percentage(nil, opts) do
+    format_percentage(Decimal.new(0), opts)
+  end
+
+  def format_percentage(value, opts) do
+    places = Keyword.get(opts, :places, 2)
+
+    value
+    |> Decimal.mult(100)
+    |> Decimal.round(places)
+  end
+
+  def format_money(currency, nil), do: format_money(currency, Decimal.new(0))
+
+  def format_money(currency, %Decimal{} = amount) do
+    Money.from_float!(currency, Decimal.to_float(amount))
+  end
+
   def format_label(term) when is_atom(term) do
     term
     |> Atom.to_string()

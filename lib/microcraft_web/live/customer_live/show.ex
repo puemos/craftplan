@@ -82,10 +82,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                 {Calendar.strftime(order.delivery_date, "%Y-%m-%d")}
               </:col>
               <:col :let={order} label="Total">
-                {Money.from_float!(
-                  @settings.currency,
-                  Decimal.to_float(order.total_cost || Decimal.new(0))
-                )}
+                {format_money(@settings.currency, order.total_cost)}
               </:col>
             </.table>
           </div>
@@ -106,12 +103,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
               <.stat_card
                 title="Total Spent"
-                value={
-                  Money.from_float!(
-                    @settings.currency,
-                    Decimal.to_float(@customer.total_orders_value)
-                  )
-                }
+                value={{format_money(@settings.currency, @customer.total_orders_value)}}
                 description="All time purchases"
               />
             </div>
@@ -132,10 +124,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                     <div class="flex items-center gap-4">
                       <.badge text={order.status} />
                       <span class="font-medium">
-                        {Money.from_float!(
-                          @settings.currency,
-                          Decimal.to_float(order.total_cost || Decimal.new(0))
-                        )}
+                        {format_money(@settings.currency, order.total_cost)}
                       </span>
                     </div>
                   </div>

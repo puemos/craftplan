@@ -37,7 +37,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
       <:col :let={{_id, order}} label="Customer">{order.customer.full_name}</:col>
       <:col :let={{_id, order}} label="Delivery date">{DateTime.to_string(order.delivery_date)}</:col>
       <:col :let={{_id, order}} label="Total cost">
-        {Money.from_float!(@settings.currency, Decimal.to_float(order.total_cost))}
+        {format_money(@settings.currency, order.total_cost)}
       </:col>
       <:col :let={{_id, order}} label="Status">
         <.badge text={order.status} />

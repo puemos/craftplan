@@ -42,28 +42,19 @@ defmodule MicrocraftWeb.ProductLive.Show do
             <:item title="SKU">{@product.sku}</:item>
 
             <:item title="Price">
-              {Money.from_float!(@settings.currency, Decimal.to_float(@product.price))}
+              {format_money(@settings.currency, @product.price)}
             </:item>
 
             <:item title="Materials cost">
-              {Money.from_float!(
-                @settings.currency,
-                Decimal.to_float(@product.materials_cost || Decimal.new(0))
-              )}
+              {format_money(@settings.currency, @product.materials_cost)}
             </:item>
 
             <:item title="Gross profit">
-              {Money.from_float!(
-                @settings.currency,
-                Decimal.to_float(@product.gross_profit || Decimal.new(0))
-              )}
+              {format_money(@settings.currency, @product.gross_profit)}
             </:item>
 
             <:item title="Markup percentage">
-              {Decimal.round(
-                (@product.markup_percentage || Decimal.new(0)) |> Decimal.mult(100),
-                2
-              )}%
+              {format_percentage(@product.markup_percentage)}%
             </:item>
           </.list>
         </:tab>

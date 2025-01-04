@@ -93,13 +93,11 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
                 <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                   <div class="block py-4 pr-6">
                     <span class="relative">
-                      {Money.from_float(
+                      {format_money(
                         @settings.currency,
-                        Decimal.to_float(
-                          Decimal.mult(
-                            @products_map[items_form[:product_id].value].price || 0,
-                            items_form[:quantity].value || 0
-                          )
+                        Decimal.mult(
+                          @products_map[items_form[:product_id].value].price || 0,
+                          items_form[:quantity].value || 0
                         )
                       )}
                     </span>

@@ -50,7 +50,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
             <:item title="Shipping Address">{@order.customer.shipping_address.full_address}</:item>
 
             <:item title="Total">
-              {Money.from_float!(@settings.currency, Decimal.to_float(@order.total_cost))}
+              {format_money(@settings.currency, @order.total_cost)}
             </:item>
 
             <%!-- <:item title="Payment Status">
@@ -76,10 +76,10 @@ defmodule MicrocraftWeb.OrderLive.Show do
             <:col :let={item} label="Product">{item.product.name}</:col>
             <:col :let={item} label="Quantity">{item.quantity}</:col>
             <:col :let={item} label="Unit Price">
-              {Money.from_float!(@settings.currency, Decimal.to_float(item.product.price))}
+              {format_money(@settings.currency, item.product.price)}
             </:col>
             <:col :let={item} label="Total">
-              {Money.from_float!(@settings.currency, Decimal.to_float(item.cost))}
+              {format_money(@settings.currency, item.cost)}
             </:col>
           </.table>
         </:tab>
