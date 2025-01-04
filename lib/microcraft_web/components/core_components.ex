@@ -45,7 +45,7 @@ defmodule MicrocraftWeb.CoreComponents do
     <kbd
       class={[
         "inline-block whitespace-nowrap rounded border border-stone-400 bg-stone-100 text-stone-700",
-        "text-xs leading-none py-0.5 px-1",
+        "px-1 py-0.5 text-xs leading-none",
         @class
       ]}
       {@rest}
@@ -155,8 +155,8 @@ defmodule MicrocraftWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class={[
-        "fixed bottom-4 right-2 mr-2 w-80 sm:w-96 z-50 rounded-md p-4 group ring-1 shadow-xl",
-        @kind == :info && "bg-white text-stone-900 ring-gray-200 fill-stone-900",
+        "group fixed right-2 bottom-4 z-50 mr-2 w-80 rounded-md p-4 shadow-xl ring-1 sm:w-96",
+        @kind == :info && "bg-white fill-stone-900 text-stone-900 ring-gray-200",
         @kind == :error && "bg-white text-stone-900 ring-gray-200"
       ]}
       {@rest}
@@ -166,10 +166,10 @@ defmodule MicrocraftWeb.CoreComponents do
         <.icon :if={@kind == :error} name="hero-exclamation-circle-mini bg-rose-500" class="h-4 w-4" />
         {@title}
       </p>
-      <p class="mt-0.5 text-stone-600 text-xs leading-5">{msg}</p>
+      <p class="mt-0.5 text-xs leading-5 text-stone-600">{msg}</p>
       <button
         type="button"
-        class="opacity-40 group-hover:opacity-100 transition-all group absolute top-1 right-2 p-1"
+        class="group absolute top-1 right-2 p-1 opacity-40 transition-all group-hover:opacity-100"
         aria-label={gettext("close")}
       >
         <.icon name="hero-x-mark-solid" class="h-4 w-4" />
@@ -288,7 +288,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def stat_card(assigns) do
     ~H"""
-    <div class="p-6 bg-white rounded-lg shadow">
+    <div class="rounded-lg bg-white p-6 shadow">
       <dt class="text-sm font-medium text-gray-500">{@title}</dt>
       <dd class="mt-1">
         <div class="text-3xl font-semibold text-gray-900">{@value}</div>
@@ -322,8 +322,8 @@ defmodule MicrocraftWeb.CoreComponents do
       class={[
         "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-300 disabled:pointer-events-none disabled:opacity-50",
-        "border border-stone-300 bg-stone-200/50 shadow-sm hover:bg-stone-200 hover:text-gray-800",
-        if(@expanding, do: "w-full h-full", else: "h-9 px-4 py-2"),
+        "bg-stone-200/50 border border-stone-300 shadow-sm hover:bg-stone-200 hover:text-gray-800",
+        if(@expanding, do: "h-full w-full", else: "h-9 px-4 py-2"),
         @class
       ]}
       {@rest}
@@ -373,11 +373,11 @@ defmodule MicrocraftWeb.CoreComponents do
       class={[
         "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1",
         "text-sm font-medium ring-offset-white transition-all",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
         "disabled:pointer-events-none disabled:opacity-50",
         "border",
         not @selected? && "border-transparent",
-        @selected? && "bg-stone-50 border-stone-300 shadow"
+        @selected? && "border-stone-300 bg-stone-50 shadow"
       ]}
     >
       {@label}
@@ -393,7 +393,7 @@ defmodule MicrocraftWeb.CoreComponents do
     <div
       role="tablist"
       aria-orientation="horizontal"
-      class="h-9 inline-flex rounded-lg bg-stone-200/50 p-1"
+      class="bg-stone-200/50 inline-flex h-9 rounded-lg p-1"
     >
       {render_slot(@tab)}
     </div>
@@ -405,7 +405,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def tabs_content(assigns) do
     ~H"""
-    <div class="relative flex items-center justify-center w-full p-5 mt-2 border rounded-md content border-gray-200/70 bg-white">
+    <div class="content border-gray-200/70 relative mt-2 flex w-full items-center justify-center rounded-md border bg-white p-5">
       {render_slot(@inner_block)}
     </div>
     """
@@ -450,7 +450,7 @@ defmodule MicrocraftWeb.CoreComponents do
   def breadcrumb(assigns) do
     ~H"""
     <nav class={["flex justify-between", @class]}>
-      <ol class="inline-flex items-center space-x-1 font-semibold text-base">
+      <ol class="inline-flex items-center space-x-1 text-base font-semibold">
         <li :for={{crumb, index} <- Enum.with_index(@crumb)} class="flex items-center">
           <.link
             :if={!crumb.current?}
@@ -565,18 +565,18 @@ defmodule MicrocraftWeb.CoreComponents do
     ~H"""
     <div class="">
       <.label :if={@label} for={@id}>{@label}</.label>
-      <div role="radiogroup" class="h-9 inline-flex rounded-lg bg-stone-200/50 p-1 mt-2">
+      <div role="radiogroup" class="bg-stone-200/50 mt-2 inline-flex h-9 rounded-lg p-1">
         <%= for {label, val} <- @options do %>
           <label class={[
             "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1",
             "text-sm font-medium ring-offset-white transition-all",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
             "disabled:pointer-events-none disabled:opacity-50",
             "border",
             @rest[:disalbed] == nil && "cursor-default",
             @rest[:disalbed] != nil && "cursor-pointer",
             to_string(val) != to_string(@value) && "border-transparent",
-            to_string(val) == to_string(@value) && "bg-stone-50 border-stone-300 shadow"
+            to_string(val) == to_string(@value) && "border-stone-300 bg-stone-50 shadow"
           ]}>
             <input
               type="radio"
@@ -604,7 +604,7 @@ defmodule MicrocraftWeb.CoreComponents do
         class={[
           "block w-full focus:ring-0 sm:text-sm",
           @flat != true && "mt-2 rounded-md border border-gray-300 bg-white focus:border-stone-400",
-          @flat == true && "border-none bg-transparent p-0 !rounded-none"
+          @flat == true && "!rounded-none border-none bg-transparent p-0"
         ]}
         multiple={@multiple}
         {@rest}
@@ -626,9 +626,9 @@ defmodule MicrocraftWeb.CoreComponents do
         name={@name}
         class={[
           @rest[:class] || "",
-          "mt-2 block w-full rounded-lg text-stone-900 focus:ring-0 sm:text-sm min-h-[6rem]",
+          "min-h-[6rem] mt-2 block w-full rounded-lg text-stone-900 focus:ring-0 sm:text-sm",
           @flat != true && "mt-2 text-stone-900",
-          @flat == true && "border-none bg-transparent p-0 !rounded-none",
+          @flat == true && "!rounded-none border-none bg-transparent p-0",
           @errors == [] && "border-stone-300 focus:border-stone-400",
           @errors != [] && "border-rose-400 focus:border-rose-400",
           @errors != [] && @flat == true && "text-rose-400"
@@ -654,7 +654,7 @@ defmodule MicrocraftWeb.CoreComponents do
           class={[
             "block w-full focus:ring-0 sm:text-sm",
             @flat != true && "mt-2 text-stone-900",
-            @flat == true && "border-none bg-transparent p-0 !rounded-none",
+            @flat == true && "!rounded-none border-none bg-transparent p-0",
             @inline_label != nil && "rounded-s-lg",
             @inline_label == nil && "rounded-lg",
             @errors == [] && @flat != true && "border-stone-300 focus:border-stone-400",
@@ -667,8 +667,8 @@ defmodule MicrocraftWeb.CoreComponents do
           :if={@inline_label != nil}
           class={[
             @flat != true &&
-              "inline-flex mt-2 blockrounded-lg text-stone-900 focus:ring-0 sm:text-sm items-center px-3 text-sm text-stone-900 bg-stone-200 border rounded-s-0 border-stone-300 border-s-0 rounded-e-md",
-            @flat == true && "ml-2 border-none bg-transparent p-0 block focus:ring-0"
+              "blockrounded-lg rounded-s-0 border-s-0 rounded-e-md mt-2 inline-flex items-center border border-stone-300 bg-stone-200 px-3 text-sm text-stone-900 text-stone-900 focus:ring-0 sm:text-sm",
+            @flat == true && "ml-2 block border-none bg-transparent p-0 focus:ring-0"
           ]}
         >
           {@inline_label}
@@ -718,7 +718,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={["flex items-center justify-between gap-6 mb-4", @class]}>
+    <header class={["mb-4 flex items-center justify-between gap-6", @class]}>
       <div>
         <h1 class="text-lg font-semibold leading-8 text-stone-800">
           {render_slot(@inner_block)}
@@ -746,7 +746,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
     ~H"""
     <span class={[
-      "px-2 inline-flex text-xs leading-5 font-normal rounded-full capitalize border border-stone-300",
+      "inline-flex rounded-full border border-stone-300 px-2 text-xs font-normal capitalize leading-5",
       @color_class
     ]}>
       {format_label(@text)}
@@ -789,24 +789,21 @@ defmodule MicrocraftWeb.CoreComponents do
 
     ~H"""
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full border-collapse">
-        <thead class="text-sm text-left leading-6 text-stone-500 border-b border-stone-300">
+      <table class="w-[40rem] mt-11 border-collapse sm:w-full">
+        <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
           <tr>
             <th
               :for={{col, i} <- Enum.with_index(@col)}
-              class={
-                [
-                  "p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0",
-                  # Add padding-left for all header columns after the first
-                  i > 0 && "pl-4"
-                ]
-              }
+              class={[
+                "border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0",
+                i > 0 && "pl-4"
+              ]}
             >
               {col[:label]}
             </th>
             <th
               :if={@action != []}
-              class="relative p-0 pb-4 pr-4 border-r border-stone-200 last:border-r-0"
+              class="relative border-r border-stone-200 p-0 pr-4 pb-4 last:border-r-0"
             >
               <span class="sr-only">{gettext("Actions")}</span>
             </th>
@@ -817,7 +814,7 @@ defmodule MicrocraftWeb.CoreComponents do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           class="relative divide-y divide-stone-200 text-sm leading-6 text-stone-700"
         >
-          <tr :if={@empty != nil} id={"empty-#{@id}"} class="only:block hidden">
+          <tr :if={@empty != nil} id={"empty-#{@id}"} class="hidden only:block">
             <td colspan={Enum.count(@col)}>
               {render_slot(@empty)}
             </td>
@@ -826,14 +823,11 @@ defmodule MicrocraftWeb.CoreComponents do
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={
-                [
-                  "relative p-0 border-r border-stone-200 border-b last:border-r-0",
-                  # Add padding-left for all columns after the first
-                  i > 0 && "pl-4",
-                  @row_click && "hover:cursor-pointer"
-                ]
-              }
+              class={[
+                "relative border-r border-b border-stone-200 p-0 last:border-r-0",
+                i > 0 && "pl-4",
+                @row_click && "hover:cursor-pointer"
+              ]}
             >
               <div class="block py-4 pr-6">
                 <span class={["relative"]}>
@@ -843,7 +837,7 @@ defmodule MicrocraftWeb.CoreComponents do
             </td>
             <td
               :if={@action != []}
-              class="relative w-14 p-0 pr-4 border-r border-stone-200 border-b last:border-r-0"
+              class="relative w-14 border-r border-b border-stone-200 p-0 pr-4 last:border-r-0"
             >
               <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
                 <span

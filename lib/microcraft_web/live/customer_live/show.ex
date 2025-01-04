@@ -51,7 +51,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
           selected?={@page == "orders"}
         >
           <div class="mt-6 space-y-4">
-            <div class="flex justify-between items-center">
+            <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold">Orders History</h3>
               <.link navigate={~p"/backoffice/orders/new?customer_id=#{@customer.id}"}>
                 <.button>New Order</.button>
@@ -120,7 +120,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
               <h3 class="text-lg font-semibold">Recent Activity</h3>
               <div class="space-y-2">
                 <%= for order <- @customer.orders do %>
-                  <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow">
+                  <div class="flex items-center justify-between rounded-lg bg-white p-4 shadow">
                     <div class="space-y-1">
                       <div class="text-sm text-gray-500">
                         {Calendar.strftime(order.inserted_at, "%Y-%m-%d %H:%M")}

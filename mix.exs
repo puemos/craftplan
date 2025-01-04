@@ -70,6 +70,7 @@ defmodule Microcraft.MixProject do
       {:tz, "~> 0.28"},
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
+      {:tailwind_formatter, "~> 0.4.2", only: [:dev, :test], runtime: false},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"}
     ]

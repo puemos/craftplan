@@ -25,35 +25,35 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
           <.label>Materials</.label>
           <div
             id="recipe"
-            class="w-full mt-2 grid grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
+            class="mt-2 grid w-full grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
           >
             <div
               role="row"
-              class="col-span-4 grid grid-cols-4 text-sm text-left leading-6 text-stone-500 border-b border-stone-300"
+              class="col-span-4 grid grid-cols-4 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
             >
-              <div class="p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0 ">
+              <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 ">
                 Name
               </div>
-              <div class="p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0 pl-4">
+              <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                 Quantity
               </div>
-              <div class="p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0 pl-4">
+              <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                 Total cost
               </div>
-              <div class="p-0 pb-4 pr-6 font-normal border-r border-stone-200 last:border-r-0 pl-4">
+              <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                 <span class="opacity-0">Actions</span>
               </div>
             </div>
 
-            <div role="row" class="col-span-4 last:block hidden py-4 text-stone-400">
+            <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
               <div class="">
                 No materials
               </div>
             </div>
 
             <.inputs_for :let={components_form} field={@form[:components]}>
-              <div role="row" class="col-span-4 grid grid-cols-4 group hover:bg-stone-200/40">
-                <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 ">
+              <div role="row" class="group col-span-4 grid grid-cols-4 hover:bg-stone-200/40">
+                <div class="relative border-r border-b border-stone-200 p-0 last:border-r-0 ">
                   <div class="block py-4 pr-6">
                     <span class="relative">
                       {@materials_map[components_form[:material_id].value].name}
@@ -66,10 +66,10 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                   </div>
                 </div>
 
-                <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 pl-4">
+                <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                   <div class="block py-4 pr-6">
                     <span class="relative -mt-2">
-                      <div class="border-dashed border-b border-stone-300">
+                      <div class="border-b border-dashed border-stone-300">
                         <.input
                           flat={true}
                           field={components_form[:quantity]}
@@ -82,7 +82,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                   </div>
                 </div>
 
-                <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 pl-4">
+                <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                   <div class="block py-4 pr-6">
                     <span class="relative">
                       {Money.from_float(
@@ -98,7 +98,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                   </div>
                 </div>
 
-                <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 pl-4">
+                <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                   <div class="block py-4 pr-6">
                     <.link
                       class="font-semibold leading-6 text-stone-900 hover:text-stone-700"
@@ -119,9 +119,9 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
               role="row"
               class="col-span-4 grid grid-cols-4"
             >
-              <div class="relative p-0 col-span-3 border-r border-stone-200 border-b last:border-r-0 ">
+              <div class="relative col-span-3 border-r border-b border-stone-200 p-0 last:border-r-0 ">
                 <span class="relative">
-                  <div class="block py-4 pr-6 -mt-2">
+                  <div class="-mt-2 block py-4 pr-6">
                     <.input
                       phx-change="selected-material-change"
                       name="material_id"
@@ -133,8 +133,8 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                 </span>
               </div>
 
-              <div class="relative p-0 border-r border-stone-200 border-b last:border-r-0 pl-4">
-                <div class="block py-4 mt-2 pr-6">
+              <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                <div class="mt-2 block py-4 pr-6">
                   <.link
                     class="font-semibold leading-6 text-stone-900 hover:text-stone-700"
                     type="button"

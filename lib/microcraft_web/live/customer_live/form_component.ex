@@ -17,7 +17,7 @@ defmodule MicrocraftWeb.CustomerLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <div class="space-y-8 bg-white mt-4">
+        <div class="mt-4 space-y-8 bg-white">
           <.input
             field={@form[:type]}
             type="segmented"
