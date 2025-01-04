@@ -1,5 +1,7 @@
 defmodule Storybook.CoreComponents.Flash do
+  @moduledoc false
   use PhoenixStorybook.Story, :component
+
   alias MicrocraftWeb.CoreComponents
 
   def function, do: &CoreComponents.flash/1

@@ -1,7 +1,8 @@
 defmodule MicrocraftWeb.InventoryLive.Index do
   @moduledoc false
-  alias Microcraft.Inventory
   use MicrocraftWeb, :live_view
+
+  alias Microcraft.Inventory
 
   @impl true
   def render(assigns) do
@@ -32,11 +33,9 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         </div>
       </:empty>
       <:col :let={{_, material}} label="Name">{material.name}</:col>
+      <:col :let={{_, material}} label="SKU">{material.sku}</:col>
       <:col :let={{_, material}} label="Current Stock">
         {material.current_stock || 0} {material.unit}
-      </:col>
-      <:col :let={{_, material}} label="Min. Stock">
-        {material.minimum_stock} {material.unit}
       </:col>
       <:col :let={{_, material}} label="Price">
         {Money.from_float!(@settings.currency, Decimal.to_float(material.price))}
@@ -46,14 +45,15 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         <div class="sr-only">
           <.link navigate={~p"/backoffice/inventory/#{material.id}"}>Show</.link>
         </div>
-        <.link patch={~p"/backoffice/inventory/#{material.id}/edit"}>Edit</.link>
       </:action>
       <:action :let={{_, material}}>
         <.link
           phx-click={JS.push("delete", value: %{id: material.id}) |> hide("##{material.id}")}
           data-confirm="Are you sure?"
         >
-          Delete
+          <.button size={:sm} variant={:danger}>
+            Delete
+          </.button>
         </.link>
       </:action>
     </.table>
@@ -87,7 +87,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         load: [:current_stock]
       )
 
-    {:ok, socket |> stream(:materials, materials)}
+    {:ok, stream(socket, :materials, materials)}
   end
 
   @impl true
@@ -121,7 +121,9 @@ defmodule MicrocraftWeb.InventoryLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Inventory.get_material_by_id!(id) |> Ash.destroy(actor: socket.assigns.current_user) do
+    case id
+         |> Inventory.get_material_by_id!()
+         |> Ash.destroy(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket
@@ -129,7 +131,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
          |> stream_delete(:materials, %{id: id})}
 
       {:error, _error} ->
-        {:noreply, socket |> put_flash(:error, "Failed to delete material.")}
+        {:noreply, put_flash(socket, :error, "Failed to delete material.")}
     end
   end
 

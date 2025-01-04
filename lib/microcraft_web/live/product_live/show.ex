@@ -45,17 +45,24 @@ defmodule MicrocraftWeb.ProductLive.Show do
               {Money.from_float!(@settings.currency, Decimal.to_float(@product.price))}
             </:item>
 
-            <:item title="Estimated cost">
+            <:item title="Materials cost">
               {Money.from_float!(
                 @settings.currency,
-                Decimal.to_float(@product.estimated_cost || Decimal.new(0))
+                Decimal.to_float(@product.materials_cost || Decimal.new(0))
               )}
             </:item>
 
-            <:item title="Profit margin">
+            <:item title="Gross profit">
+              {Money.from_float!(
+                @settings.currency,
+                Decimal.to_float(@product.gross_profit || Decimal.new(0))
+              )}
+            </:item>
+
+            <:item title="Markup percentage">
               {Decimal.round(
-                (@product.profit_margin || Decimal.new(0)) |> Decimal.mult(100),
-                4
+                (@product.markup_percentage || Decimal.new(0)) |> Decimal.mult(100),
+                2
               )}%
             </:item>
           </.list>
@@ -114,7 +121,12 @@ defmodule MicrocraftWeb.ProductLive.Show do
   def handle_params(%{"id" => id} = params, _, socket) do
     product =
       Microcraft.Catalog.get_product_by_id!(id,
-        load: [:profit_margin, :estimated_cost, recipe: [components: [:material]]]
+        load: [
+          :markup_percentage,
+          :gross_profit,
+          :materials_cost,
+          recipe: [components: [:material]]
+        ]
       )
 
     page = Map.get(params, "page", "details")
@@ -130,13 +142,15 @@ defmodule MicrocraftWeb.ProductLive.Show do
   end
 
   @impl true
-  def handle_info(
-        {MicrocraftWeb.ProductLive.FormComponentRecipe, {:saved, _}},
-        socket
-      ) do
+  def handle_info({MicrocraftWeb.ProductLive.FormComponentRecipe, {:saved, _}}, socket) do
     product =
       Microcraft.Catalog.get_product_by_sku!(socket.assigns.product.sku,
-        load: [:profit_margin, :estimated_cost, recipe: [components: [:material]]]
+        load: [
+          :markup_percentage,
+          :materials_cost,
+          :gross_profit,
+          recipe: [components: [:material]]
+        ]
       )
 
     {:noreply,
@@ -146,13 +160,15 @@ defmodule MicrocraftWeb.ProductLive.Show do
      |> push_event("close-modal", %{id: "product-material-modal"})}
   end
 
-  def handle_info(
-        {MicrocraftWeb.ProductLive.FormComponent, {:saved, _}},
-        socket
-      ) do
+  def handle_info({MicrocraftWeb.ProductLive.FormComponent, {:saved, _}}, socket) do
     product =
       Microcraft.Catalog.get_product_by_sku!(socket.assigns.product.sku,
-        load: [:profit_margin, :estimated_cost, recipe: [components: [:material]]]
+        load: [
+          :markup_percentage,
+          :materials_cost,
+          :gross_profit,
+          recipe: [components: [:material]]
+        ]
       )
 
     {:noreply,

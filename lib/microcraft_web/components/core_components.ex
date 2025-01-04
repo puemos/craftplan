@@ -306,11 +306,16 @@ defmodule MicrocraftWeb.CoreComponents do
       <.button>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
       <.button expanding={true}>Full Width & Height Button!</.button>
+      <.button size={:sm}>Small Button</button>
+      <.button size={:lg}>Large Button</button>
+      <.button variant={:danger}>Danger Button</button>
   """
   attr :type, :string, default: nil
   attr :class, :string, default: nil
   # For full width/height
   attr :expanding, :boolean, default: false
+  attr :size, :atom, default: :base, values: [:sm, :base, :lg]
+  attr :variant, :atom, default: :default, values: [:default, :danger]
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -320,10 +325,10 @@ defmodule MicrocraftWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-300 disabled:pointer-events-none disabled:opacity-50",
-        "bg-stone-200/50 border border-stone-300 shadow-sm hover:bg-stone-200 hover:text-gray-800",
-        if(@expanding, do: "h-full w-full", else: "h-9 px-4 py-2"),
+        button_base_classes(),
+        button_focus_classes(),
+        button_variant_classes(@variant),
+        if(@expanding, do: "h-full w-full", else: button_size_classes(@size)),
         @class
       ]}
       {@rest}
@@ -332,6 +337,25 @@ defmodule MicrocraftWeb.CoreComponents do
     </button>
     """
   end
+
+  defp button_variant_classes(:default),
+    do: "bg-stone-200/50 border border-stone-300 shadow-sm hover:bg-stone-200 hover:text-gray-800"
+
+  defp button_variant_classes(:danger),
+    do:
+      "bg-rose-500 text-white hover:bg-rose-600 border border-rose-500 hover:border-rose-600 shadow-sm"
+
+  defp button_size_classes(:sm), do: "h-7 px-3 py-1 text-xs"
+  defp button_size_classes(:base), do: "h-9 px-4 py-2"
+  defp button_size_classes(:lg), do: "h-11 px-5 py-3 text-base"
+
+  defp button_base_classes,
+    do:
+      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium"
+
+  defp button_focus_classes,
+    do:
+      "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-300 disabled:pointer-events-none disabled:opacity-50"
 
   # Main Tabs Container
   slot :tab, required: true do

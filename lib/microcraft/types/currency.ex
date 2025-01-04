@@ -1,4 +1,5 @@
 defmodule Microcraft.Types.Currency do
+  @moduledoc false
   use Ash.Type.Enum,
     values: [
       :USD,

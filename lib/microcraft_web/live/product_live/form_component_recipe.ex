@@ -1,5 +1,7 @@
 defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
+  @moduledoc false
   use MicrocraftWeb, :live_component
+
   alias AshPhoenix.Form
   alias Microcraft.Catalog
 
@@ -172,9 +174,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
     socket = assign_form(socket)
 
     materials_map =
-      assigns.materials
-      |> Enum.map(fn m -> {m.id, m} end)
-      |> Map.new()
+      Map.new(assigns.materials, fn m -> {m.id, m} end)
 
     {available_materials, selected_material} =
       recompute_availability(socket.assigns.form, assigns.materials)

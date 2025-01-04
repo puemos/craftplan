@@ -1,9 +1,9 @@
 defmodule MicrocraftWeb.OrderLive.Index do
   @moduledoc false
-  alias Microcraft.CRM
-  alias Microcraft.Catalog
   use MicrocraftWeb, :live_view
 
+  alias Microcraft.Catalog
+  alias Microcraft.CRM
   alias Microcraft.Orders
 
   @impl true
@@ -110,7 +110,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Orders.get_order_by_id!(id) |> Ash.destroy(actor: socket.assigns.current_user) do
+    case id |> Orders.get_order_by_id!() |> Ash.destroy(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket
@@ -118,7 +118,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
          |> stream_delete(:materials, %{id: id})}
 
       {:error, _error} ->
-        {:noreply, socket |> put_flash(:error, "Failed to delete order.")}
+        {:noreply, put_flash(socket, :error, "Failed to delete order.")}
     end
   end
 

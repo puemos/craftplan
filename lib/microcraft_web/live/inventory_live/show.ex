@@ -1,7 +1,8 @@
 defmodule MicrocraftWeb.InventoryLive.Show do
   @moduledoc false
-  alias Microcraft.Inventory
   use MicrocraftWeb, :live_view
+
+  alias Microcraft.Inventory
 
   @impl true
   def render(assigns) do

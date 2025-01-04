@@ -1,5 +1,6 @@
 defmodule Microcraft.CatalogTest do
   use Microcraft.DataCase
+
   alias Microcraft.Catalog
   alias Microcraft.Inventory
 
@@ -80,9 +81,7 @@ defmodule Microcraft.CatalogTest do
                  quantity: 12
                })
 
-      loaded_recipe =
-        recipe
-        |> Ash.load!(recipe_materials: [:material])
+      loaded_recipe = Ash.load!(recipe, recipe_materials: [:material])
 
       assert length(loaded_recipe.recipe_materials) == 2
     end
@@ -106,15 +105,13 @@ defmodule Microcraft.CatalogTest do
           quantity: 12
         })
 
-      {:ok, recipe_with_cost} =
-        recipe
-        |> Ash.load(:cost)
+      {:ok, recipe_with_cost} = Ash.load(recipe, :cost)
 
       # 4 * $5.00 (wood) + 12 * $1.00 (nails) = $32.00
       assert recipe_with_cost.cost == Decimal.new(3200)
     end
 
-    test "calculates product profit margin", %{
+    test "calculates product Markup percentage", %{
       product: product,
       recipe: recipe,
       material1: material1,
@@ -137,13 +134,13 @@ defmodule Microcraft.CatalogTest do
       {:ok, product_with_margin} =
         product
         |> Ash.load!(:recipe)
-        |> Ash.load(:profit_margin)
+        |> Ash.load(:markup_percentage)
 
       # Sale price: $25.00
       # Cost: $32.00
       # Margin: ($25.00 - $32.00) / $32.00 = -0.21875 (negative margin)
       assert Decimal.equal?(
-               product_with_margin.profit_margin,
+               product_with_margin.markup_percentage,
                Decimal.from_float(-0.21875)
              )
     end

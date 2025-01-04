@@ -1,4 +1,5 @@
 defmodule MicrocraftWeb.SettingsLive.FormComponent do
+  @moduledoc false
   use MicrocraftWeb, :live_component
 
   @impl true

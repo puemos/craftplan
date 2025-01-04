@@ -1,4 +1,5 @@
 defmodule Microcraft.Accounts.Token do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :microcraft,
     domain: Microcraft.Accounts,

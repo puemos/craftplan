@@ -1,5 +1,7 @@
 defmodule Storybook.CoreComponents.Table do
+  @moduledoc false
   use PhoenixStorybook.Story, :component
+
   alias MicrocraftWeb.CoreComponents
 
   def function, do: &CoreComponents.table/1
@@ -37,5 +39,6 @@ defmodule Storybook.CoreComponents.Table do
 end
 
 defmodule Storybook.CoreComponents.Table.User do
+  @moduledoc false
   defstruct [:id, :username]
 end

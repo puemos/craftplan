@@ -1,4 +1,5 @@
 defmodule Microcraft.Catalog do
+  @moduledoc false
   use Ash.Domain
 
   resources do

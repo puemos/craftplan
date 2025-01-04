@@ -1,5 +1,7 @@
 defmodule Storybook.CoreComponents.Input do
+  @moduledoc false
   use PhoenixStorybook.Story, :component
+
   alias MicrocraftWeb.CoreComponents
 
   def function, do: &CoreComponents.input/1

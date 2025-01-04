@@ -1,4 +1,5 @@
 defmodule Microcraft.Catalog.RecipeMaterial do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :microcraft,
     domain: Microcraft.Catalog,

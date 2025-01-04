@@ -1,7 +1,10 @@
 defmodule MicrocraftWeb.Router do
   use MicrocraftWeb, :router
   use AshAuthentication.Phoenix.Router
+
   import PhoenixStorybook.Router
+
+  alias AshAuthentication.Phoenix.Overrides.Default
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -76,14 +79,14 @@ defmodule MicrocraftWeb.Router do
                   on_mount: [{MicrocraftWeb.LiveUserAuth, :live_no_user}],
                   overrides: [
                     MicrocraftWeb.AuthOverrides,
-                    AshAuthentication.Phoenix.Overrides.Default
+                    Default
                   ]
 
     # Remove this if you do not want to use the reset password feature
     reset_route auth_routes_prefix: "/auth",
                 overrides: [
                   MicrocraftWeb.AuthOverrides,
-                  AshAuthentication.Phoenix.Overrides.Default
+                  Default
                 ]
   end
 

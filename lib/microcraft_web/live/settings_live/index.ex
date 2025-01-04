@@ -1,7 +1,8 @@
 defmodule MicrocraftWeb.SettingsLive.Index do
   @moduledoc false
-  alias Microcraft.Settings
   use MicrocraftWeb, :live_view
+
+  alias Microcraft.Settings
 
   @impl true
   def render(assigns) do
@@ -42,8 +43,7 @@ defmodule MicrocraftWeb.SettingsLive.Index do
   end
 
   defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Settings")
+    assign(socket, :page_title, "Settings")
   end
 
   @impl true

@@ -1,4 +1,5 @@
 defmodule Microcraft.Cldr do
+  @moduledoc false
   use Cldr,
     otp_app: :microcraft,
     locales: ["en"],

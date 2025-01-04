@@ -45,6 +45,7 @@ defmodule Microcraft.MixProject do
       {:ash, "~> 3.0"},
       {:igniter, "~> 0.5", only: [:dev, :test]},
       {:phoenix, "~> 1.7.18"},
+      {:spark, "~> 2.2.36"},
       {:phoenix_ecto, "~> 4.5"},
       {:phoenix_storybook, "~> 0.7.0"},
       {:ecto_sql, "~> 3.10"},
@@ -70,6 +71,7 @@ defmodule Microcraft.MixProject do
       {:tz, "~> 0.28"},
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
+      {:styler, "~> 1.2", only: [:dev, :test], runtime: false},
       {:tailwind_formatter, "~> 0.4.2", only: [:dev, :test], runtime: false},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"}

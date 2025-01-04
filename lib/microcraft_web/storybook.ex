@@ -1,4 +1,5 @@
 defmodule MicrocraftWeb.Storybook do
+  @moduledoc false
   use PhoenixStorybook,
     otp_app: :microcraft_web,
     content_path: Path.expand("../../storybook", __DIR__),

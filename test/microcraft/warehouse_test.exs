@@ -1,5 +1,6 @@
 defmodule Microcraft.InventoryTest do
   use Microcraft.DataCase
+
   alias Microcraft.Inventory
 
   require Ash.Query
@@ -16,7 +17,8 @@ defmodule Microcraft.InventoryTest do
 
     test "creates material with valid attributes" do
       assert {:ok, material} =
-               Ash.Changeset.for_create(Inventory.Material, :create, @valid_attrs)
+               Inventory.Material
+               |> Ash.Changeset.for_create(:create, @valid_attrs)
                |> Ash.create()
 
       assert material.name == "Wood"
@@ -29,11 +31,13 @@ defmodule Microcraft.InventoryTest do
 
     test "prevents duplicate SKUs" do
       assert {:ok, _material} =
-               Ash.Changeset.for_create(Inventory.Material, :create, @valid_attrs)
+               Inventory.Material
+               |> Ash.Changeset.for_create(:create, @valid_attrs)
                |> Ash.create()
 
       assert {:error, _changeset} =
-               Ash.Changeset.for_create(Inventory.Material, :create, %{
+               Inventory.Material
+               |> Ash.Changeset.for_create(:create, %{
                  @valid_attrs
                  | name: "Different Wood"
                })
@@ -43,7 +47,8 @@ defmodule Microcraft.InventoryTest do
     test "prevents invalid units" do
       assert {:error,
               %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{field: :unit}]}} =
-               Ash.Changeset.for_create(Inventory.Material, :create, %{
+               Inventory.Material
+               |> Ash.Changeset.for_create(:create, %{
                  @valid_attrs
                  | unit: :invalid_unit
                })
@@ -52,14 +57,16 @@ defmodule Microcraft.InventoryTest do
 
     test "requires valid stock limits" do
       assert {:error, _changeset} =
-               Ash.Changeset.for_create(Inventory.Material, :create, %{
+               Inventory.Material
+               |> Ash.Changeset.for_create(:create, %{
                  @valid_attrs
                  | minimum_stock: Decimal.new(-10)
                })
                |> Ash.create()
 
       assert {:error, _changeset} =
-               Ash.Changeset.for_create(Inventory.Material, :create, %{
+               Inventory.Material
+               |> Ash.Changeset.for_create(:create, %{
                  @valid_attrs
                  | maximum_stock: Decimal.new(-100)
                })
@@ -70,7 +77,8 @@ defmodule Microcraft.InventoryTest do
   describe "movements and aggregates" do
     setup do
       {:ok, material} =
-        Ash.Changeset.for_create(Inventory.Material, :create, %{
+        Inventory.Material
+        |> Ash.Changeset.for_create(:create, %{
           name: "Wood",
           sku: "WD-001",
           unit: :piece,
@@ -86,8 +94,8 @@ defmodule Microcraft.InventoryTest do
     test "calculates current stock aggregate", %{material: material} do
       # Create movements
       {:ok, _movement1} =
-        Ash.Changeset.for_create(
-          Inventory.Movement,
+        Inventory.Movement
+        |> Ash.Changeset.for_create(
           :adjust_stock,
           %{
             material_id: material.id,
@@ -98,8 +106,8 @@ defmodule Microcraft.InventoryTest do
         |> Ash.create()
 
       {:ok, _movement2} =
-        Ash.Changeset.for_create(
-          Inventory.Movement,
+        Inventory.Movement
+        |> Ash.Changeset.for_create(
           :adjust_stock,
           %{
             material_id: material.id,
@@ -122,8 +130,8 @@ defmodule Microcraft.InventoryTest do
     test "ensures current stock updates after new movements", %{material: material} do
       # Create an initial movement
       {:ok, _movement1} =
-        Ash.Changeset.for_create(
-          Inventory.Movement,
+        Inventory.Movement
+        |> Ash.Changeset.for_create(
           :adjust_stock,
           %{
             material_id: material.id,
@@ -144,8 +152,8 @@ defmodule Microcraft.InventoryTest do
 
       # Add another movement
       {:ok, _movement2} =
-        Ash.Changeset.for_create(
-          Inventory.Movement,
+        Inventory.Movement
+        |> Ash.Changeset.for_create(
           :adjust_stock,
           %{
             material_id: material.id,

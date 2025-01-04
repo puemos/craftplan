@@ -39,17 +39,24 @@ defmodule MicrocraftWeb.ProductLive.Index do
         {Money.from_float!(@settings.currency, Decimal.to_float(product.price))}
       </:col>
 
-      <:col :let={{_, product}} label="Estimated cost">
+      <:col :let={{_, product}} label="Materials cost">
         {Money.from_float!(
           @settings.currency,
-          Decimal.to_float(product.estimated_cost || Decimal.new(0))
+          Decimal.to_float(product.materials_cost || Decimal.new(0))
         )}
       </:col>
 
-      <:col :let={{_, product}} label="Profit margin">
+      <:col :let={{_, product}} label="Gross profit">
+        {Money.from_float!(
+          @settings.currency,
+          Decimal.to_float(product.gross_profit || Decimal.new(0))
+        )}
+      </:col>
+
+      <:col :let={{_, product}} label="Markup percentage">
         {Decimal.round(
-          (product.profit_margin || Decimal.new(0)) |> Decimal.mult(100),
-          4
+          (product.markup_percentage || Decimal.new(0)) |> Decimal.mult(100),
+          2
         )}%
       </:col>
 
@@ -67,7 +74,9 @@ defmodule MicrocraftWeb.ProductLive.Index do
           phx-click={JS.push("delete", value: %{id: product.id}) |> hide("#product-#{product.id}")}
           data-confirm="Are you sure?"
         >
-          Delete
+          <.button size={:sm} variant={:danger}>
+            Delete
+          </.button>
         </.link>
       </:action>
     </.table>
@@ -98,10 +107,10 @@ defmodule MicrocraftWeb.ProductLive.Index do
       Catalog.list_products!(
         actor: socket.assigns[:current_user],
         stream?: true,
-        load: [:estimated_cost, :profit_margin]
+        load: [:materials_cost, :markup_percentage, :gross_profit]
       )
 
-    {:ok, socket |> stream(:products, products)}
+    {:ok, stream(socket, :products, products)}
   end
 
   @impl true
@@ -123,7 +132,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Catalog.get_product_by_id!(id) |> Ash.destroy(actor: socket.assigns.current_user) do
+    case id |> Catalog.get_product_by_id!() |> Ash.destroy(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket
@@ -131,7 +140,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
          |> stream_delete(:materials, %{id: id})}
 
       {:error, _error} ->
-        {:noreply, socket |> put_flash(:error, "Failed to delete product.")}
+        {:noreply, put_flash(socket, :error, "Failed to delete product.")}
     end
   end
 

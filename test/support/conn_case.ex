@@ -19,15 +19,15 @@ defmodule MicrocraftWeb.ConnCase do
 
   using do
     quote do
+      use MicrocraftWeb, :verified_routes
+
+      import MicrocraftWeb.ConnCase
+      import Phoenix.ConnTest
+      import Plug.Conn
       # The default endpoint for testing
       @endpoint MicrocraftWeb.Endpoint
 
-      use MicrocraftWeb, :verified_routes
-
       # Import conveniences for testing with connections
-      import Plug.Conn
-      import Phoenix.ConnTest
-      import MicrocraftWeb.ConnCase
     end
   end
 

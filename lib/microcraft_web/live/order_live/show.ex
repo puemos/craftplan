@@ -1,9 +1,9 @@
 defmodule MicrocraftWeb.OrderLive.Show do
   @moduledoc false
-  alias Microcraft.CRM
-  alias Microcraft.Catalog
   use MicrocraftWeb, :live_view
 
+  alias Microcraft.Catalog
+  alias Microcraft.CRM
   alias Microcraft.Orders
 
   @default_order_load [
@@ -141,10 +141,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
   end
 
   @impl true
-  def handle_info(
-        {MicrocraftWeb.OrderLive.FormComponentItems, {:saved, _}},
-        socket
-      ) do
+  def handle_info({MicrocraftWeb.OrderLive.FormComponentItems, {:saved, _}}, socket) do
     order =
       Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
 
@@ -155,10 +152,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
      |> push_event("close-modal", %{id: "order-item-modal"})}
   end
 
-  def handle_info(
-        {MicrocraftWeb.OrderLive.FormComponent, {:saved, _}},
-        socket
-      ) do
+  def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, _}}, socket) do
     order =
       Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
 

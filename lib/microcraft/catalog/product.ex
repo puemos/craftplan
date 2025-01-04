@@ -1,4 +1,5 @@
 defmodule Microcraft.Catalog.Product do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :microcraft,
     domain: Microcraft.Catalog,
@@ -71,14 +72,20 @@ defmodule Microcraft.Catalog.Product do
   end
 
   calculations do
-    calculate :estimated_cost, :decimal, expr(recipe.cost) do
+    calculate :materials_cost, :decimal, expr(recipe.cost) do
       description "The total cost of the product."
     end
 
-    calculate :profit_margin,
+    calculate :markup_percentage,
               :decimal,
               expr(if(recipe.cost == 0, 0, (price - recipe.cost) / recipe.cost)) do
-      description "The total cost of the product."
+      description "The ratio of profit to cost, expressed as a decimal percentage"
+    end
+
+    calculate :gross_profit,
+              :decimal,
+              expr(price - recipe.cost) do
+      description "The profit amount calculated as selling price minus material cost"
     end
   end
 

@@ -1,4 +1,5 @@
 defmodule Microcraft.Orders.OrderItem do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :microcraft,
     domain: Microcraft.Orders,

@@ -1,4 +1,5 @@
 defmodule Microcraft.Production.Task do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :microcraft,
     domain: Microcraft.Production,

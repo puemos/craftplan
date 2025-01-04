@@ -1,4 +1,5 @@
 defmodule Microcraft.Production do
+  @moduledoc false
   use Ash.Domain
 
   resources do

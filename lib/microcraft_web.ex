@@ -23,10 +23,11 @@ defmodule MicrocraftWeb do
     quote do
       use Phoenix.Router, helpers: false
 
-      # Import common connection and controller functions to use in pipelines
-      import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
+
+      # Import common connection and controller functions to use in pipelines
+      import Plug.Conn
     end
   end
 
@@ -85,12 +86,13 @@ defmodule MicrocraftWeb do
       # Translation
       use Gettext, backend: MicrocraftWeb.Gettext
 
+      import MicrocraftWeb.CoreComponents
+      import MicrocraftWeb.HtmlHelpers
+
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
-      import MicrocraftWeb.CoreComponents
       # General Helpers
-      import MicrocraftWeb.HtmlHelpers
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 

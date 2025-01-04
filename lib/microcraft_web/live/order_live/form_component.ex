@@ -1,5 +1,7 @@
 defmodule MicrocraftWeb.OrderLive.FormComponent do
+  @moduledoc false
   use MicrocraftWeb, :live_component
+
   alias AshPhoenix.Form
   alias Microcraft.Orders
 
@@ -179,9 +181,7 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
     socket = assign_form(socket)
 
     products_map =
-      assigns.products
-      |> Enum.map(fn p -> {p.id, p} end)
-      |> Map.new()
+      Map.new(assigns.products, fn p -> {p.id, p} end)
 
     {available_products, selected_product} =
       recompute_availability(socket.assigns.form, assigns.products)
@@ -208,10 +208,9 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
       order_params
       |> Map.put("delivery_date", datetime)
       |> update_in(["items"], fn items ->
-        Enum.map(items, fn {k, v} ->
+        Map.new(items, fn {k, v} ->
           {k, Map.put(v, "unit_price", socket.assigns.products_map[v["product_id"]].price)}
         end)
-        |> Map.new()
       end)
 
     dbg(order_params)

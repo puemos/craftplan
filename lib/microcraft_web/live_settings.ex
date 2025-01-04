@@ -3,8 +3,9 @@ defmodule MicrocraftWeb.LiveSettings do
   Helpers for authenticating users in LiveViews.
   """
 
-  import Phoenix.Component
   use MicrocraftWeb, :verified_routes
+
+  import Phoenix.Component
 
   def on_mount(:default, _params, _session, socket) do
     if socket.assigns[:settings] do

@@ -35,10 +35,6 @@ defmodule MicrocraftWeb.CustomerLive.Index do
       <:col :let={{_id, customer}} label="Type">
         <.badge text={customer.type} />
       </:col>
-
-      <:action :let={{_id, customer}}>
-        <.link patch={~p"/backoffice/customers/#{customer.id}/edit"}>Edit</.link>
-      </:action>
     </.table>
 
     <.modal
@@ -119,7 +115,7 @@ defmodule MicrocraftWeb.CustomerLive.Index do
          |> stream_delete(:materials, id)}
 
       {:error, _error} ->
-        {:noreply, socket |> put_flash(:error, "Failed to delete material.")}
+        {:noreply, put_flash(socket, :error, "Failed to delete material.")}
     end
   end
 end

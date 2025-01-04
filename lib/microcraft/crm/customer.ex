@@ -1,10 +1,13 @@
 defmodule Microcraft.CRM.Customer do
-  require Ash.Resource.Preparation.Builtins
-
+  @moduledoc false
   use Ash.Resource,
     otp_app: :microcraft,
     domain: Microcraft.CRM,
     data_layer: AshPostgres.DataLayer
+
+  alias Microcraft.CRM.Address
+
+  require Ash.Resource.Preparation.Builtins
 
   postgres do
     table "crm_customers"
@@ -65,11 +68,11 @@ defmodule Microcraft.CRM.Customer do
       constraints max_length: 15
     end
 
-    attribute :billing_address, Microcraft.CRM.Address do
+    attribute :billing_address, Address do
       public? true
     end
 
-    attribute :shipping_address, Microcraft.CRM.Address do
+    attribute :shipping_address, Address do
       public? true
     end
 

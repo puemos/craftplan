@@ -1,7 +1,9 @@
 defmodule MicrocraftWeb.InventoryLive.FormComponentMovement do
-  alias Microcraft.Inventory
+  @moduledoc false
   use MicrocraftWeb, :live_component
+
   alias AshPhoenix.Form
+  alias Microcraft.Inventory
 
   @impl true
   def render(assigns) do

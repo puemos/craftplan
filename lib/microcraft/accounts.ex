@@ -1,4 +1,5 @@
 defmodule Microcraft.Accounts do
+  @moduledoc false
   use Ash.Domain
 
   resources do
