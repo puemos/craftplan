@@ -33,7 +33,11 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         </div>
       </:empty>
       <:col :let={{_, material}} label="Name">{material.name}</:col>
-      <:col :let={{_, material}} label="SKU">{material.sku}</:col>
+      <:col :let={{_, material}} label="SKU">
+        <.kbd>
+          {material.sku}
+        </.kbd>
+      </:col>
       <:col :let={{_, material}} label="Current Stock">
         {material.current_stock || 0} {material.unit}
       </:col>

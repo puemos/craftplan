@@ -75,8 +75,6 @@ defmodule MicrocraftWeb.OrderLive.Index do
         load: [:items, :total_cost, customer: [:full_name]]
       )
 
-    dbg(orders)
-
     products =
       Catalog.list_products!(actor: socket.assigns[:current_user])
 

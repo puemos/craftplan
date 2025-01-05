@@ -35,9 +35,19 @@ defmodule MicrocraftWeb.InventoryLive.Show do
       >
         <.list>
           <:item title="Name">{@material.name}</:item>
-          <:item title="SKU">{@material.sku}</:item>
+          <:item title="SKU">
+            <.kbd>
+              {@material.sku}
+            </.kbd>
+          </:item>
           <:item title="Price">
             {format_money(@settings.currency, @material.price)}
+          </:item>
+          <:item title="Allergens">
+            <div class="flex-inline items-center space-x-1">
+              <.badge :for={allergen <- Enum.map(@material.allergens, & &1.name)} text={allergen} />
+              <span :if={Enum.empty?(@material.allergens)}>None</span>
+            </div>
           </:item>
           <:item title="Current Stock">
             {@material.current_stock || 0} {@material.unit}
@@ -52,9 +62,25 @@ defmodule MicrocraftWeb.InventoryLive.Show do
       </:tab>
 
       <:tab
-        label="Log"
-        path={~p"/backoffice/inventory/#{@material.id}?page=log"}
-        selected?={@page == "log"}
+        label="Allergens"
+        path={~p"/backoffice/inventory/#{@material.id}?page=allergens"}
+        selected?={@page == "allergens"}
+      >
+        <.live_component
+          module={MicrocraftWeb.InventoryLive.FormComponentAllergens}
+          id="material-allergens-form"
+          material={@material}
+          current_user={@current_user}
+          settings={@settings}
+          patch={~p"/backoffice/inventory/#{@material.id}?page=allergens"}
+          allergens={@allergens_available}
+        />
+      </:tab>
+
+      <:tab
+        label="Stock"
+        path={~p"/backoffice/inventory/#{@material.id}?page=stock"}
+        selected?={@page == "stock"}
       >
         <.table id="inventory_movements" rows={@material.movements}>
           <:empty>
@@ -106,7 +132,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         material={@material}
         current_user={@current_user}
         settings={@settings}
-        patch={~p"/backoffice/inventory/#{@material.id}?page=log"}
+        patch={~p"/backoffice/inventory/#{@material.id}?page=stock"}
       />
     </.modal>
     """
@@ -114,7 +140,10 @@ defmodule MicrocraftWeb.InventoryLive.Show do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok,
+     socket
+     |> assign(:page, "details")
+     |> assign(:allergens_available, list_all_allergens())}
   end
 
   @impl true
@@ -122,7 +151,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     material =
       Inventory.get_material_by_id!(id,
         actor: socket.assigns[:current_user],
-        load: [:current_stock, :movements]
+        load: [:current_stock, :movements, :allergens, :material_allergens]
       )
 
     page = Map.get(params, "page", "details")
@@ -132,6 +161,10 @@ defmodule MicrocraftWeb.InventoryLive.Show do
      |> assign(:page_title, page_title(socket.assigns.live_action))
      |> assign(:material, material)
      |> assign(:page, page)}
+  end
+
+  defp list_all_allergens do
+    Microcraft.Inventory.list_allergens!()
   end
 
   defp page_title(:show), do: "Show Material"

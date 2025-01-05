@@ -2,8 +2,10 @@ defmodule Microcraft.Inventory.Material do
   @moduledoc false
   use Ash.Resource,
     otp_app: :microcraft,
-    domain: Microcraft.Catalog,
+    domain: Microcraft.Inventory,
     data_layer: AshPostgres.DataLayer
+
+  alias Microcraft.Inventory.MaterialAllergen
 
   postgres do
     table "inventory_materials"
@@ -31,6 +33,14 @@ defmodule Microcraft.Inventory.Material do
         :maximum_stock
       ]
     ]
+
+    update :update_allergens do
+      require_atomic? false
+
+      argument :material_allergens, {:array, :map}
+
+      change manage_relationship(:material_allergens, type: :direct_control)
+    end
 
     read :list do
       prepare build(sort: :name)
@@ -94,10 +104,9 @@ defmodule Microcraft.Inventory.Material do
 
   relationships do
     has_many :movements, Microcraft.Inventory.Movement
+    has_many :material_allergens, MaterialAllergen
 
-    has_many :recipe_materials, Microcraft.Catalog.RecipeMaterial do
-      domain Microcraft.Catalog
-    end
+    many_to_many :allergens, Microcraft.Inventory.Allergen, through: MaterialAllergen
   end
 
   aggregates do
@@ -105,7 +114,7 @@ defmodule Microcraft.Inventory.Material do
   end
 
   identities do
-    identity :unique_name, [:name]
-    identity :unique_sku, [:sku]
+    identity :name, [:name]
+    identity :sku, [:sku]
   end
 end

@@ -45,8 +45,7 @@ defmodule Microcraft.InventoryTest do
     end
 
     test "prevents invalid units" do
-      assert {:error,
-              %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{field: :unit}]}} =
+      assert {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{field: :unit}]}} =
                Inventory.Material
                |> Ash.Changeset.for_create(:create, %{
                  @valid_attrs

@@ -33,8 +33,20 @@ defmodule MicrocraftWeb.ProductLive.Index do
         </div>
       </:empty>
       <:col :let={{_, product}} label="Name">{product.name}</:col>
-      <:col :let={{_, product}} label="SKU">{product.sku}</:col>
-
+      <:col :let={{_, product}} label="SKU">
+        <.kbd>
+          {product.sku}
+        </.kbd>
+      </:col>
+      <:col :let={{_, product}} label="Status">
+        <.badge
+          text={product.status}
+          colors={[
+            {product.status,
+             "#{product_status_color(product.status)} #{product_status_bg(product.status)}"}
+          ]}
+        />
+      </:col>
       <:col :let={{_, product}} label="Price">
         {format_money(@settings.currency, product.price)}
       </:col>
@@ -47,19 +59,6 @@ defmodule MicrocraftWeb.ProductLive.Index do
         {format_money(@settings.currency, product.gross_profit)}
       </:col>
 
-      <:col :let={{_, product}} label="Markup percentage">
-        {format_percentage(product.markup_percentage)}%
-      </:col>
-
-      <:col :let={{_, product}} label="Status">
-        <.badge
-          text={product.status}
-          colors={[
-            {product.status,
-             "#{product_status_color(product.status)} #{product_status_bg(product.status)}"}
-          ]}
-        />
-      </:col>
       <:action :let={{_, product}}>
         <.link
           phx-click={JS.push("delete", value: %{id: product.id}) |> hide("#product-#{product.id}")}

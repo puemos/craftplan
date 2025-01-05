@@ -34,8 +34,7 @@ defmodule MicrocraftWeb.SettingsLive.FormComponent do
 
   @impl true
   def handle_event("validate", %{"settings" => setting_params}, socket) do
-    {:noreply,
-     assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, setting_params))}
+    {:noreply, assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, setting_params))}
   end
 
   def handle_event("save", %{"settings" => setting_params}, socket) do

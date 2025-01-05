@@ -39,10 +39,21 @@ defmodule MicrocraftWeb.ProductLive.Show do
             </:item>
             <:item title="Name">{@product.name}</:item>
 
-            <:item title="SKU">{@product.sku}</:item>
+            <:item title="SKU">
+              <.kbd>
+                {@product.sku}
+              </.kbd>
+            </:item>
 
             <:item title="Price">
               {format_money(@settings.currency, @product.price)}
+            </:item>
+
+            <:item title="Allergens">
+              <div class="flex-inline items-center space-x-1">
+                <.badge :for={allergen <- Enum.map(@product.allergens, & &1.name)} text={allergen} />
+                <span :if={Enum.empty?(@product.allergens)}>None</span>
+              </div>
             </:item>
 
             <:item title="Materials cost">
@@ -116,6 +127,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
           :markup_percentage,
           :gross_profit,
           :materials_cost,
+          :allergens,
           recipe: [components: [:material]]
         ]
       )
@@ -169,11 +181,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
   end
 
   @impl true
-  def handle_event(
-        "product-status-change",
-        %{"_target" => ["status"], "status" => status},
-        socket
-      ) do
+  def handle_event("product-status-change", %{"_target" => ["status"], "status" => status}, socket) do
     case Ash.update(socket.assigns.product, %{status: status}) do
       {:ok, product} ->
         {:noreply,

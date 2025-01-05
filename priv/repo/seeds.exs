@@ -1,11 +1,26 @@
-# Script for populating the database. You can run it as:
-#
-#     mix run priv/repo/seeds.exs
-#
-# Inside the script, you can read and write to any of your
-# repositories directly:
-#
-#     Microcraft.Repo.insert!(%Microcraft.SomeSchema{})
-#
-# We recommend using the bang functions (`insert!`, `update!`
-# and so on) as they will fail if something goes wrong.
+# Allergens
+
+try do
+  Ash.Seed.seed!(
+    Microcraft.Inventory.Allergen,
+    [
+      %{name: "Gluten"},
+      %{name: "Fish"},
+      %{name: "Milk"},
+      %{name: "Mustard"},
+      %{name: "Lupin"},
+      %{name: "Crustaceans"},
+      %{name: "Peanuts"},
+      %{name: "Tree Nuts"},
+      %{name: "Sesame"},
+      %{name: "Mollusks"},
+      %{name: "Eggs"},
+      %{name: "Soy"},
+      %{name: "Celery"},
+      %{name: "Sulphur Dioxide"}
+    ],
+    identity: :name
+  )
+rescue
+  _ -> :ok
+end

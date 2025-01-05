@@ -9,10 +9,6 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMovement do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        <:subtitle>Use this form to manage movement records in your database.</:subtitle>
-      </.header>
-
       <.simple_form
         for={@form}
         id="movement-movment-form"
@@ -24,7 +20,7 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMovement do
         <.input field={@form[:material_id]} type="hidden" value={@material.id} />
 
         <:actions>
-          <.button phx-disable-with="Saving...">Record movement</.button>
+          <.button phx-disable-with="Saving...">Save</.button>
         </:actions>
       </.simple_form>
     </div>

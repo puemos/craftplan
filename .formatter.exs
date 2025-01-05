@@ -9,7 +9,7 @@
     :phoenix
   ],
   subdirectories: ["priv/*/migrations"],
-  plugins: [Styler, Spark.Formatter, TailwindFormatter, Phoenix.LiveView.HTMLFormatter],
+  plugins: [Spark.Formatter, TailwindFormatter, Phoenix.LiveView.HTMLFormatter, Styler],
   inputs: [
     "*.{heex,ex,exs}",
     "{config,lib,test}/**/*.{heex,ex,exs}",

@@ -211,8 +211,6 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
         end)
       end)
 
-    dbg(order_params)
-
     case Form.submit(socket.assigns.form, params: order_params) do
       {:ok, order} ->
         send(self(), {__MODULE__, {:saved, order}})
@@ -223,7 +221,6 @@ defmodule MicrocraftWeb.OrderLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, form} ->
-        dbg(form)
         {:noreply, assign(socket, :form, form)}
     end
   end

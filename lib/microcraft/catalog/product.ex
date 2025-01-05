@@ -87,10 +87,12 @@ defmodule Microcraft.Catalog.Product do
               expr(price - recipe.cost) do
       description "The profit amount calculated as selling price minus material cost"
     end
+
+    calculate :allergens, :vector, Microcraft.Catalog.Product.Calculations.Allergens
   end
 
   identities do
-    identity :unique_sku, [:sku]
-    identity :unique_name, [:name]
+    identity :sku, [:sku]
+    identity :name, [:name]
   end
 end

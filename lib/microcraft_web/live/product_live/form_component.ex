@@ -26,7 +26,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponent do
 
         <.input
           field={@form[:status]}
-          type="segmented"
+          type="radiogroup"
           label="Status"
           options={[
             {"Idea", :idea},
@@ -52,8 +52,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponent do
 
   @impl true
   def handle_event("validate", %{"product" => product_params}, socket) do
-    {:noreply,
-     assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, product_params))}
+    {:noreply, assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, product_params))}
   end
 
   def handle_event("save", %{"product" => product_params}, socket) do

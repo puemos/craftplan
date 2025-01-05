@@ -13,5 +13,12 @@ defmodule Microcraft.Inventory do
     resource Microcraft.Inventory.Movement do
       define :adjust_stock, action: :adjust_stock
     end
+
+    resource Microcraft.Inventory.Allergen do
+      define :list_allergens, action: :list
+      define :list_allergens_with_keyset, action: :keyset
+    end
+
+    resource Microcraft.Inventory.MaterialAllergen
   end
 end

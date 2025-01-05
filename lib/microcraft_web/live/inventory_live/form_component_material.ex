@@ -28,7 +28,7 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMaterial do
 
           <.input
             field={@form[:unit]}
-            type="segmented"
+            type="radiogroup"
             label="Measured in"
             value={@form[:unit].value || :gram}
             options={[{"Gram", :gram}, {"Milliliter", :milliliter}, {"Piece", :piece}]}

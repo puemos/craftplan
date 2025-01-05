@@ -341,17 +341,14 @@ defmodule MicrocraftWeb.CoreComponents do
   defp button_variant_classes(:default),
     do: "bg-stone-200/50 border border-stone-300 shadow-sm hover:bg-stone-200 hover:text-gray-800"
 
-  defp button_variant_classes(:danger),
-    do:
-      "bg-rose-500 text-white hover:bg-rose-600 border border-rose-500 hover:border-rose-600 shadow-sm"
+  defp button_variant_classes(:danger), do: "bg-rose-50 text-rose-500 hover:bg-rose-100 border border-rose-300 shadow-sm"
 
   defp button_size_classes(:sm), do: "h-7 px-3 py-1 text-xs"
   defp button_size_classes(:base), do: "h-9 px-4 py-2"
   defp button_size_classes(:lg), do: "h-11 px-5 py-3 text-base"
 
   defp button_base_classes,
-    do:
-      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium"
+    do: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium"
 
   defp button_focus_classes,
     do:
@@ -532,11 +529,10 @@ defmodule MicrocraftWeb.CoreComponents do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox color date datetime-local email file month number password
-               range search select tel text textarea time url week segmented hidden)
+    values: ~w(checkbox checkgroup color date datetime-local email file month number password
+               range search select tel text textarea time url week radiogroup hidden)
 
-  attr :field, FormField,
-    doc: "a form field struct retrieved from the form, for example: @form[:email]"
+  attr :field, FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   attr :errors, :list, default: []
   attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
@@ -544,8 +540,7 @@ defmodule MicrocraftWeb.CoreComponents do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
 
-  attr :rest, :global,
-    include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
+  attr :rest, :global, include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
   def input(%{field: %FormField{} = field} = assigns) do
@@ -585,33 +580,84 @@ defmodule MicrocraftWeb.CoreComponents do
     """
   end
 
-  def input(%{type: "segmented"} = assigns) do
+  def input(%{type: "checkgroup", options: options} = assigns) when is_list(options) do
+    assigns =
+      assign_new(assigns, :list_value, fn ->
+        if is_list(assigns[:value]), do: assigns[:value], else: []
+      end)
+
     ~H"""
-    <div class="">
+    <fieldset phx-feedback-for={@name} required={@rest[:required]} class="h-full text-sm">
+      <.label :if={@label} for={@id}>
+        {@label}
+      </.label>
+
+      <div class={[
+        "mt-1 w-full cursor-default overflow-y-auto rounded-md text-left focus:outline-none focus:ring-1 sm:text-sm",
+        @errors == [] && "border-stone-300 focus:border-stone-400",
+        @errors != [] && "border-rose-400 focus:border-rose-400"
+      ]}>
+        <div class="grid grid-cols-1 items-baseline gap-1 text-sm sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div :for={{label, value} <- @options} class="flex items-center">
+            <label
+              for={"#{@name}-#{value}"}
+              class={[
+                "w-full rounded-md border border-stone-300 p-2 font-medium text-stone-700 transition-all hover:bg-stone-200 hover:text-gray-800",
+                if(value in @list_value, do: "bg-stone-200/50")
+              ]}
+            >
+              <input
+                type="checkbox"
+                id={"#{@name}-#{value}"}
+                name={@name}
+                value={value}
+                checked={value in @list_value}
+                class="mr-2 h-4 w-4 rounded border-blue-300 text-blue-500 focus:ring-0"
+              />
+              {label}
+            </label>
+          </div>
+          <input type="hidden" name={@name} value="" />
+        </div>
+      </div>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </fieldset>
+    """
+  end
+
+  def input(%{type: "radiogroup"} = assigns) do
+    ~H"""
+    <div>
       <.label :if={@label} for={@id}>{@label}</.label>
-      <div role="radiogroup" class="bg-stone-200/50 mt-2 inline-flex h-9 rounded-lg p-1">
-        <%= for {label, val} <- @options do %>
-          <label class={[
-            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1",
-            "text-sm font-medium ring-offset-white transition-all",
-            "focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-            "disabled:pointer-events-none disabled:opacity-50",
-            "border",
-            @rest[:disalbed] == nil && "cursor-default",
-            @rest[:disalbed] != nil && "cursor-pointer",
-            to_string(val) != to_string(@value) && "border-transparent",
-            to_string(val) == to_string(@value) && "border-stone-300 bg-stone-50 shadow"
-          ]}>
-            <input
-              type="radio"
-              name={@name}
-              value={to_string(val)}
-              checked={to_string(val) == to_string(@value)}
-              class="sr-only"
-            />
-            <span>{label}</span>
-          </label>
-        <% end %>
+      <div class={[
+        "mt-1 w-full overflow-y-auto rounded-md text-left focus:outline-none focus:ring-1 sm:text-sm",
+        @errors == [] && "border-stone-300 focus:border-stone-400",
+        @errors != [] && "border-rose-400 focus:border-rose-400"
+      ]}>
+        <div
+          role="radiogroup"
+          class="grid grid-cols-1 items-baseline gap-1 text-sm sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+        >
+          <div :for={{label, val} <- @options} class="flex items-center">
+            <label
+              for={"#{@name}-#{val}"}
+              class={[
+                "w-full cursor-pointer rounded-md border border-stone-300 p-2 font-medium text-stone-700 transition-all hover:bg-stone-200 hover:text-gray-800",
+                if(to_string(val) == to_string(@value), do: "bg-stone-200/50")
+              ]}
+            >
+              <input
+                type="radio"
+                id={"#{@name}-#{val}"}
+                name={@name}
+                value={to_string(val)}
+                checked={to_string(val) == to_string(@value)}
+                class="mr-1 mb-0.5 h-4 w-4 border-blue-300 text-blue-400 focus:ring-0"
+              />
+              {label}
+            </label>
+          </div>
+        </div>
       </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -960,8 +1006,7 @@ defmodule MicrocraftWeb.CoreComponents do
   attr :id, :any, default: "timezone"
   attr :name, :any, default: "timezone"
 
-  attr :field, Phoenix.HTML.FormField,
-    doc: "a form field struct retrieved from the form, for example: @form[:email]"
+  attr :field, Phoenix.HTML.FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   def timezone(assigns) do
     assigns =
@@ -981,8 +1026,7 @@ defmodule MicrocraftWeb.CoreComponents do
       to: selector,
       time: 300,
       transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+        {"transition-all transform ease-out duration-300", "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
          "opacity-100 translate-y-0 sm:scale-100"}
     )
   end
@@ -992,8 +1036,7 @@ defmodule MicrocraftWeb.CoreComponents do
       to: selector,
       time: 200,
       transition:
-        {"transition-all transform ease-in duration-200",
-         "opacity-100 translate-y-0 sm:scale-100",
+        {"transition-all transform ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
     )
   end

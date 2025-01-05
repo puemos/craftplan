@@ -12,6 +12,5 @@ defmodule Microcraft.Catalog do
 
     resource Microcraft.Catalog.Recipe
     resource Microcraft.Catalog.RecipeMaterial
-    resource Microcraft.Inventory.Material
   end
 end

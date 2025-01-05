@@ -21,7 +21,7 @@ defmodule MicrocraftWeb.CustomerLive.FormComponent do
         <div class="mt-4 space-y-8 bg-white">
           <.input
             field={@form[:type]}
-            type="segmented"
+            type="radiogroup"
             options={[{"Individual", :individual}, {"Company", :company}]}
             value={@form[:type].value || :individual}
           />
@@ -82,8 +82,7 @@ defmodule MicrocraftWeb.CustomerLive.FormComponent do
 
   @impl true
   def handle_event("validate", %{"customer" => customer_params}, socket) do
-    {:noreply,
-     assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, customer_params))}
+    {:noreply, assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, customer_params))}
   end
 
   def handle_event("save", %{"customer" => customer_params}, socket) do
