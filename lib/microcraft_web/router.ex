@@ -26,31 +26,31 @@ defmodule MicrocraftWeb.Router do
 
     ash_authentication_live_session :admin_routes,
       on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_admin_required}] do
-      live "/backoffice/settings", SettingsLive.Index, :index
+      live "/manage/settings", SettingsLive.Index, :index
     end
 
-    ash_authentication_live_session :backoffice_routes,
+    ash_authentication_live_session :manage_routes,
       on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_staff_required}] do
-      live "/backoffice/products", ProductLive.Index, :index
-      live "/backoffice/products/new", ProductLive.Index, :new
-      live "/backoffice/products/:id", ProductLive.Show, :show
-      live "/backoffice/products/:id/edit", ProductLive.Show, :edit
+      live "/manage/products", ProductLive.Index, :index
+      live "/manage/products/new", ProductLive.Index, :new
+      live "/manage/products/:id", ProductLive.Show, :show
+      live "/manage/products/:id/edit", ProductLive.Show, :edit
 
-      live "/backoffice/inventory", InventoryLive.Index, :index
-      live "/backoffice/inventory/new", InventoryLive.Index, :new
-      live "/backoffice/inventory/:id", InventoryLive.Show, :show
-      live "/backoffice/inventory/:id/edit", InventoryLive.Show, :edit
-      live "/backoffice/inventory/:id/adjust", InventoryLive.Show, :adjust
+      live "/manage/inventory", InventoryLive.Index, :index
+      live "/manage/inventory/new", InventoryLive.Index, :new
+      live "/manage/inventory/:id", InventoryLive.Show, :show
+      live "/manage/inventory/:id/edit", InventoryLive.Show, :edit
+      live "/manage/inventory/:id/adjust", InventoryLive.Show, :adjust
 
-      live "/backoffice/orders", OrderLive.Index, :index
-      live "/backoffice/orders/new", OrderLive.Index, :new
-      live "/backoffice/orders/:id/edit", OrderLive.Show, :edit
-      live "/backoffice/orders/:id", OrderLive.Show, :show
+      live "/manage/orders", OrderLive.Index, :index
+      live "/manage/orders/new", OrderLive.Index, :new
+      live "/manage/orders/:id/edit", OrderLive.Show, :edit
+      live "/manage/orders/:id", OrderLive.Show, :show
 
-      live "/backoffice/customers", CustomerLive.Index, :index
-      live "/backoffice/customers/new", CustomerLive.Index, :new
-      live "/backoffice/customers/:id/edit", CustomerLive.Index, :edit
-      live "/backoffice/customers/:id", CustomerLive.Show, :show
+      live "/manage/customers", CustomerLive.Index, :index
+      live "/manage/customers/new", CustomerLive.Index, :new
+      live "/manage/customers/:id/edit", CustomerLive.Index, :edit
+      live "/manage/customers/:id", CustomerLive.Show, :show
 
       # in each liveview, add one of the following at the top of the module:
       #

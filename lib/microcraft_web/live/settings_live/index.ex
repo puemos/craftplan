@@ -9,7 +9,7 @@ defmodule MicrocraftWeb.SettingsLive.Index do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="Settings" path={~p"/backoffice/settings"} current?={true} />
+        <:crumb label="Settings" path={~p"/manage/settings"} current?={true} />
       </.breadcrumb>
     </.header>
 
@@ -21,7 +21,7 @@ defmodule MicrocraftWeb.SettingsLive.Index do
         title={@page_title}
         action={@live_action}
         settings={@settings}
-        patch={~p"/backoffice/settings"}
+        patch={~p"/manage/settings"}
       />
     </div>
     """

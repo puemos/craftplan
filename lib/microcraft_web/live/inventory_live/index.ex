@@ -9,11 +9,11 @@ defmodule MicrocraftWeb.InventoryLive.Index do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="All Materials" path={~p"/backoffice/inventory"} current?={true} />
+        <:crumb label="All Materials" path={~p"/manage/inventory"} current?={true} />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/backoffice/inventory/new"}>
+        <.link patch={~p"/manage/inventory/new"}>
           <.button>New Material</.button>
         </.link>
       </:actions>
@@ -23,7 +23,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       id="materials"
       rows={@streams.materials}
       row_id={fn {dom_id, _} -> dom_id end}
-      row_click={fn {_, material} -> JS.navigate(~p"/backoffice/inventory/#{material.id}") end}
+      row_click={fn {_, material} -> JS.navigate(~p"/manage/inventory/#{material.id}") end}
     >
       <:empty>
         <div class="block py-4 pr-6">
@@ -47,7 +47,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
 
       <:action :let={{_, material}}>
         <div class="sr-only">
-          <.link navigate={~p"/backoffice/inventory/#{material.id}"}>Show</.link>
+          <.link navigate={~p"/manage/inventory/#{material.id}"}>Show</.link>
         </div>
       </:action>
       <:action :let={{_, material}}>
@@ -66,7 +66,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       :if={@live_action in [:new, :edit]}
       id="material-modal"
       show
-      on_cancel={JS.patch(~p"/backoffice/inventory")}
+      on_cancel={JS.patch(~p"/manage/inventory")}
     >
       <.live_component
         module={MicrocraftWeb.InventoryLive.FormComponentMaterial}
@@ -76,7 +76,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         action={@live_action}
         material={@material}
         settings={@settings}
-        patch={~p"/backoffice/inventory"}
+        patch={~p"/manage/inventory"}
       />
     </.modal>
     """

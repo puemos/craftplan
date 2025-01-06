@@ -18,14 +18,16 @@
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
           <div class="flex-shrink-0">
-            <span class="text-lg font-semibold">Microcraft</span>
+            <.link navigate={~p'/'}>
+              <span class="text-lg font-semibold">Microcraft</span>
+            </.link>
           </div>
 
           <ul class="flex items-center space-x-8">
             <%= if @current_user do %>
               <li>
                 <.link
-                  href={~p"/backoffice/products"}
+                  href={~p"/manage/products"}
                   class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
                 >
                   Products
@@ -33,7 +35,7 @@
               </li>
               <li>
                 <.link
-                  href={~p"/backoffice/inventory"}
+                  href={~p"/manage/inventory"}
                   class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
                 >
                   Inventory
@@ -41,7 +43,7 @@
               </li>
               <li>
                 <.link
-                  href={~p"/backoffice/orders"}
+                  href={~p"/manage/orders"}
                   class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
                 >
                   Orders
@@ -49,7 +51,7 @@
               </li>
               <li>
                 <.link
-                  href={~p"/backoffice/customers"}
+                  href={~p"/manage/customers"}
                   class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
                 >
                   Customers
@@ -58,7 +60,7 @@
               <%= if @current_user.role == :admin do %>
                 <li>
                   <.link
-                    href={~p"/backoffice/settings"}
+                    href={~p"/manage/settings"}
                     class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
                   >
                     Settings

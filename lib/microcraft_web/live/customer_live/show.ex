@@ -9,16 +9,16 @@ defmodule MicrocraftWeb.CustomerLive.Show do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={false} />
+        <:crumb label="All Customers" path={~p"/manage/customers"} current?={false} />
         <:crumb
           label={"#{@customer.full_name}"}
-          path={~p"/backoffice/customers/#{@customer.id}"}
+          path={~p"/manage/customers/#{@customer.id}"}
           current?={true}
         />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/backoffice/customers/#{@customer.id}/edit"}>
+        <.link patch={~p"/manage/customers/#{@customer.id}/edit"}>
           <.button>Edit customer</.button>
         </.link>
       </:actions>
@@ -28,7 +28,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
       <.tabs id="customer-tabs">
         <:tab
           label="Details"
-          path={~p"/backoffice/customers/#{@customer.id}?page=details"}
+          path={~p"/manage/customers/#{@customer.id}?page=details"}
           selected?={@page == "details"}
         >
           <div class="mt-8 space-y-8">
@@ -47,13 +47,13 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
         <:tab
           label="Orders"
-          path={~p"/backoffice/customers/#{@customer.id}?page=orders"}
+          path={~p"/manage/customers/#{@customer.id}?page=orders"}
           selected?={@page == "orders"}
         >
           <div class="mt-6 space-y-4">
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold">Orders History</h3>
-              <.link navigate={~p"/backoffice/orders/new?customer_id=#{@customer.id}"}>
+              <.link navigate={~p"/manage/orders/new?customer_id=#{@customer.id}"}>
                 <.button>New Order</.button>
               </.link>
             </div>
@@ -61,7 +61,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
             <.table
               id="customer_orders"
               rows={@customer.orders}
-              row_click={fn order -> JS.navigate(~p"/backoffice/orders/#{order.id}") end}
+              row_click={fn order -> JS.navigate(~p"/manage/orders/#{order.id}") end}
             >
               <:col :let={order} label="ID">
                 <.kbd>{order.id}</.kbd>
@@ -90,7 +90,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
         <:tab
           label="Statistics"
-          path={~p"/backoffice/customers/#{@customer.id}?page=statistics"}
+          path={~p"/manage/customers/#{@customer.id}?page=statistics"}
           selected?={@page == "statistics"}
         >
           <div class="mt-6 space-y-8">

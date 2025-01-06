@@ -7,11 +7,11 @@ defmodule MicrocraftWeb.CustomerLive.Index do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="All Customers" path={~p"/backoffice/customers"} current?={true} />
+        <:crumb label="All Customers" path={~p"/manage/customers"} current?={true} />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/backoffice/customers/new"}>
+        <.link patch={~p"/manage/customers/new"}>
           <.button>New Customer</.button>
         </.link>
       </:actions>
@@ -20,7 +20,7 @@ defmodule MicrocraftWeb.CustomerLive.Index do
     <.table
       id="customers"
       rows={@streams.customers}
-      row_click={fn {_id, customer} -> JS.navigate(~p"/backoffice/customers/#{customer.id}") end}
+      row_click={fn {_id, customer} -> JS.navigate(~p"/manage/customers/#{customer.id}") end}
     >
       <:empty>
         <div class="block py-4 pr-6">
@@ -41,7 +41,7 @@ defmodule MicrocraftWeb.CustomerLive.Index do
       :if={@live_action in [:new, :edit]}
       id="customer-modal"
       show
-      on_cancel={JS.patch(~p"/backoffice/customers")}
+      on_cancel={JS.patch(~p"/manage/customers")}
     >
       <.live_component
         module={MicrocraftWeb.CustomerLive.FormComponent}
@@ -51,7 +51,7 @@ defmodule MicrocraftWeb.CustomerLive.Index do
         action={@live_action}
         customer={@customer}
         settings={@settings}
-        patch={~p"/backoffice/customers"}
+        patch={~p"/manage/customers"}
       />
     </.modal>
     """

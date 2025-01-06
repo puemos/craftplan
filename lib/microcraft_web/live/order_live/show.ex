@@ -17,12 +17,12 @@ defmodule MicrocraftWeb.OrderLive.Show do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="All Orders" path={~p"/backoffice/orders"} current?={false} />
-        <:crumb label={@order.id} path={~p"/backoffice/orders/#{@order.id}"} current?={true} />
+        <:crumb label="All Orders" path={~p"/manage/orders"} current?={false} />
+        <:crumb label={@order.id} path={~p"/manage/orders/#{@order.id}"} current?={true} />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/backoffice/orders/#{@order.id}/edit"} phx-click={JS.push_focus()}>
+        <.link patch={~p"/manage/orders/#{@order.id}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit order</.button>
         </.link>
       </:actions>
@@ -32,7 +32,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
       <.tabs id="order-tabs">
         <:tab
           label="Details"
-          path={~p"/backoffice/orders/#{@order.id}?page=details"}
+          path={~p"/manage/orders/#{@order.id}?page=details"}
           selected?={@page == "details"}
         >
           <.list>
@@ -69,7 +69,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
 
         <:tab
           label="Items"
-          path={~p"/backoffice/orders/#{@order.id}?page=items"}
+          path={~p"/manage/orders/#{@order.id}?page=items"}
           selected?={@page == "items"}
         >
           <.table id="order-items" rows={@order.items}>
@@ -90,7 +90,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
       :if={@live_action == :edit}
       id="order-modal"
       show
-      on_cancel={JS.patch(~p"/backoffice/orders/#{@order.id}")}
+      on_cancel={JS.patch(~p"/manage/orders/#{@order.id}")}
     >
       <.live_component
         module={MicrocraftWeb.OrderLive.FormComponent}
@@ -102,7 +102,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
         products={@products}
         customers={@customers}
         settings={@settings}
-        patch={~p"/backoffice/orders/#{@order.id}"}
+        patch={~p"/manage/orders/#{@order.id}"}
       />
     </.modal>
     """

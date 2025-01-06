@@ -11,11 +11,11 @@ defmodule MicrocraftWeb.OrderLive.Index do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="All Orders" path={~p"/backoffice/orders"} current?={true} />
+        <:crumb label="All Orders" path={~p"/manage/orders"} current?={true} />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/backoffice/orders/new"}>
+        <.link patch={~p"/manage/orders/new"}>
           <.button>New Order</.button>
         </.link>
       </:actions>
@@ -24,7 +24,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
     <.table
       id="orders"
       rows={@streams.orders}
-      row_click={fn {_id, order} -> JS.navigate(~p"/backoffice/orders/#{order.id}") end}
+      row_click={fn {_id, order} -> JS.navigate(~p"/manage/orders/#{order.id}") end}
     >
       <:empty>
         <div class="block py-4 pr-6">
@@ -48,7 +48,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
       :if={@live_action in [:new, :edit]}
       id="order-modal"
       show
-      on_cancel={JS.patch(~p"/backoffice/orders")}
+      on_cancel={JS.patch(~p"/manage/orders")}
     >
       <.live_component
         module={MicrocraftWeb.OrderLive.FormComponent}
@@ -60,7 +60,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
         products={@products}
         customers={@customers}
         settings={@settings}
-        patch={~p"/backoffice/orders"}
+        patch={~p"/manage/orders"}
       />
     </.modal>
     """

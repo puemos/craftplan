@@ -9,11 +9,11 @@ defmodule MicrocraftWeb.ProductLive.Index do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="All Products" path={~p"/backoffice/products"} current?={true} />
+        <:crumb label="All Products" path={~p"/manage/products"} current?={true} />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/backoffice/products/new"}>
+        <.link patch={~p"/manage/products/new"}>
           <.button>New Product</.button>
         </.link>
       </:actions>
@@ -22,7 +22,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
     <.table
       id="products"
       rows={@streams.products}
-      row_click={fn {_, product} -> JS.navigate(~p"/backoffice/products/#{product.id}") end}
+      row_click={fn {_, product} -> JS.navigate(~p"/manage/products/#{product.id}") end}
       row_id={fn {dom_id, _} -> dom_id end}
     >
       <:empty>
@@ -75,7 +75,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
       :if={@live_action in [:new, :edit]}
       id="product-modal"
       show
-      on_cancel={JS.patch(~p"/backoffice/products")}
+      on_cancel={JS.patch(~p"/manage/products")}
     >
       <.live_component
         module={MicrocraftWeb.ProductLive.FormComponent}
@@ -85,7 +85,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
         product={@product}
         current_user={@current_user}
         settings={@settings}
-        patch={~p"/backoffice/products"}
+        patch={~p"/manage/products"}
       />
     </.modal>
     """
