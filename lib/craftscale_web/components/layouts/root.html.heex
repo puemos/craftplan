@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix={
-      if assigns[:page_title] in [nil, "", "CraftScale"], do: "", else: " · CraftScale"
+      if assigns[:page_title] in [nil, "", "Craft&Scale"], do: "", else: " · Craft&Scale"
     }>
-      {assigns[:page_title] || "CraftScale"}
+      {assigns[:page_title] || "Craft&Scale"}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
@@ -19,7 +19,7 @@
         <div class="flex h-16 items-center justify-between">
           <div class="flex-shrink-0">
             <.link navigate={~p'/'}>
-              <span class="text-lg font-semibold">CraftScale</span>
+              <span class="text-lg font-semibold">Craft&Scale</span>
             </.link>
           </div>
 
