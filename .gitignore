@@ -39,3 +39,4 @@ npm-debug.log
 .postgres
 .elixir_ls
 .mix_complete.cache
+*.DS_Store
