@@ -2,7 +2,7 @@ defmodule Storybook.CoreComponents.Table do
   @moduledoc false
   use PhoenixStorybook.Story, :component
 
-  alias MicrocraftWeb.CoreComponents
+  alias CraftScaleWeb.CoreComponents
 
   def function, do: &CoreComponents.table/1
   def aliases, do: [Storybook.CoreComponents.Table.User]

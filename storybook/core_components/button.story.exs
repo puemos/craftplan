@@ -2,7 +2,7 @@ defmodule Storybook.CoreComponents.Button do
   @moduledoc false
   use PhoenixStorybook.Story, :component
 
-  def function, do: &MicrocraftWeb.CoreComponents.button/1
+  def function, do: &CraftScaleWeb.CoreComponents.button/1
 
   def variations do
     [

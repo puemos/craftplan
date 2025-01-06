@@ -2,7 +2,7 @@
 
 try do
   Ash.Seed.seed!(
-    Microcraft.Inventory.Allergen,
+    CraftScale.Inventory.Allergen,
     [
       %{name: "Gluten"},
       %{name: "Fish"},

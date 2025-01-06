@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.ChangeIdentities do
+defmodule CraftScale.Repo.Migrations.ChangeIdentities do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.UpdateOrders do
+defmodule CraftScale.Repo.Migrations.UpdateOrders do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

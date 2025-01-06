@@ -1,4 +1,4 @@
-# Microcraft
+# CraftScale
 
 A self-hosted ERP system for micro businesses.
 

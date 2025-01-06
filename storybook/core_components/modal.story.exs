@@ -2,7 +2,7 @@ defmodule Storybook.CoreComponents.Modal do
   @moduledoc false
   use PhoenixStorybook.Story, :component
 
-  alias MicrocraftWeb.CoreComponents
+  alias CraftScaleWeb.CoreComponents
 
   def function, do: &CoreComponents.modal/1
   def imports, do: [{CoreComponents, [button: 1, hide_modal: 1, show_modal: 1]}]

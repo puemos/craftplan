@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" class="[scrollbar-gutter:stable]">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title suffix={
+      if assigns[:page_title] in [nil, "", "CraftScale"], do: "", else: " · CraftScale"
+    }>
+      {assigns[:page_title] || "CraftScale"}
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+  </head>
+  <body class="craftscale-web bg-stone-50 text-stone-800">
+    <nav class="fixed top-0 z-50 w-full border-b border-stone-200 bg-stone-50">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex-shrink-0">
+            <.link navigate={~p'/'}>
+              <span class="text-lg font-semibold">CraftScale</span>
+            </.link>
+          </div>
+
+          <ul class="flex items-center space-x-8">
+            <%= if @current_user.role in [:admin, :staff] do %>
+              <li>
+                <.link
+                  href={~p"/manage/products"}
+                  class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                >
+                  Products
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/manage/inventory"}
+                  class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                >
+                  Inventory
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/manage/orders"}
+                  class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                >
+                  Orders
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/manage/customers"}
+                  class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                >
+                  Customers
+                </.link>
+              </li>
+              <%= if @current_user.role == :admin do %>
+                <li>
+                  <.link
+                    href={~p"/manage/settings"}
+                    class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                  >
+                    Settings
+                  </.link>
+                </li>
+              <% end %>
+            <% end %>
+            <%= if @current_user do %>
+              <li class="group relative">
+                <button class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900">
+                  <span>{@current_user.email}</span>
+                  <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                <div class="invisible absolute right-0 mt-2 w-48 rounded-md border border-stone-100 bg-white py-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                  <.link
+                    href={~p"/sign-out"}
+                    class="block px-4 py-2 text-sm text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                  >
+                    Log out
+                  </.link>
+                </div>
+              </li>
+            <% else %>
+              <li>
+                <.link
+                  href={~p"/register"}
+                  class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                >
+                  Register
+                </.link>
+              </li>
+              <li>
+                <.link href={~p"/sign-in"}>
+                  <.button>
+                    Log in
+                  </.button>
+                </.link>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="pt-16">
+      {@inner_content}
+    </main>
+  </body>
+</html>

@@ -6,11 +6,11 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = {
-  important: ".microcraft-web",
+  important: ".craftscale-web",
   content: [
     "./js/**/*.js",
-    "../lib/microcraft_web.ex",
-    "../lib/microcraft_web/**/*.*ex",
+    "../lib/craftscale_web.ex",
+    "../lib/craftscale_web/**/*.*ex",
     "../deps/ash_authentication_phoenix/**/*.*ex",
   ],
   theme: {

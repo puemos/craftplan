@@ -2,7 +2,7 @@ defmodule Storybook.CoreComponents.List do
   @moduledoc false
   use PhoenixStorybook.Story, :component
 
-  def function, do: &MicrocraftWeb.CoreComponents.list/1
+  def function, do: &CraftScaleWeb.CoreComponents.list/1
 
   def variations do
     [

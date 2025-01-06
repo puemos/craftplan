@@ -17,28 +17,9 @@ config :ash,
   known_types: [Money],
   custom_types: [
     money: Money,
-    currency: Microcraft.Types.Currency,
-    unit: Microcraft.Types.Unit
+    currency: CraftScale.Types.Currency,
+    unit: CraftScale.Types.Unit
   ]
-
-config :elixir, :time_zone_database, Tz.TimeZoneDatabase
-
-# Configure esbuild (the version is required)
-config :esbuild,
-  version: "0.17.11",
-  microcraft: [
-    args:
-      ~w(js/app.js js/storybook.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]
-
-config :ex_cldr, default_backend: Microcraft.Cldr
-
-# Configures Elixir's Logger
-config :logger, :console,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
 
 # Configures the mailer
 #
@@ -47,31 +28,50 @@ config :logger, :console,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :microcraft, Microcraft.Mailer, adapter: Swoosh.Adapters.Local
+config :craftscale, CraftScale.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configures the endpoint
-config :microcraft, MicrocraftWeb.Endpoint,
+config :craftscale, CraftScaleWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: MicrocraftWeb.ErrorHTML, json: MicrocraftWeb.ErrorJSON],
+    formats: [html: CraftScaleWeb.ErrorHTML, json: CraftScaleWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Microcraft.PubSub,
+  pubsub_server: CraftScale.PubSub,
   live_view: [signing_salt: "vNk6HzXn"]
 
-config :microcraft,
-  ecto_repos: [Microcraft.Repo],
+config :craftscale,
+  ecto_repos: [CraftScale.Repo],
   generators: [timestamp_type: :utc_datetime],
   ash_domains: [
-    Microcraft.Settings,
-    Microcraft.CRM,
-    Microcraft.Production,
-    Microcraft.Orders,
-    Microcraft.Inventory,
-    Microcraft.Catalog,
-    Microcraft.Accounts
+    CraftScale.Settings,
+    CraftScale.CRM,
+    CraftScale.Production,
+    CraftScale.Orders,
+    CraftScale.Inventory,
+    CraftScale.Catalog,
+    CraftScale.Accounts
   ]
+
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+
+# Configure esbuild (the version is required)
+config :esbuild,
+  version: "0.17.11",
+  craftscale: [
+    args:
+      ~w(js/app.js js/storybook.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
+
+config :ex_cldr, default_backend: CraftScale.Cldr
+
+# Configures Elixir's Logger
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
@@ -106,7 +106,7 @@ config :spark,
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "3.4.3",
-  microcraft: [
+  craftscale: [
     args: ~w(
       --config=tailwind.config.js
       --input=css/app.css

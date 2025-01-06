@@ -1,10 +1,7 @@
 import Config
 
-# Do not include metadata nor timestamps in development logs
-config :logger, :console, format: "[$level] $message\n"
-
 # Configure your database
-config :microcraft, Microcraft.Repo,
+config :craftscale, CraftScale.Repo,
   # For development, we disable any cache and enable
   # debugging and code reloading.
   #
@@ -14,12 +11,12 @@ config :microcraft, Microcraft.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "microcraft_dev",
+  database: "craftscale_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-config :microcraft, MicrocraftWeb.Endpoint,
+config :craftscale, CraftScaleWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4000],
@@ -28,13 +25,13 @@ config :microcraft, MicrocraftWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "NlbIq9/9aO9+5xxg8ESxxFI7ay172FlEI5IVJvhLx50ZcZbWLjV1L1ito7aZ0fiM",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:microcraft, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:microcraft, ~w(--watch)]},
+    esbuild: {Esbuild, :install_and_run, [:craftscale, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:craftscale, ~w(--watch)]},
     storybook_tailwind: {Tailwind, :install_and_run, [:storybook, ~w(--watch)]}
   ]
 
 # Watch static and templates for browser reloading.
-config :microcraft, MicrocraftWeb.Endpoint,
+config :craftscale, CraftScaleWeb.Endpoint,
   live_reload: [
     # ## SSL Support
     #
@@ -48,7 +45,7 @@ config :microcraft, MicrocraftWeb.Endpoint,
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/microcraft_web/(controllers|live|components)/.*(ex|heex)$",
+      ~r"lib/craftscale_web/(controllers|live|components)/.*(ex|heex)$",
       ~r"storybook/.*(exs)$"
     ]
   ]
@@ -58,27 +55,29 @@ config :microcraft, MicrocraftWeb.Endpoint,
 # The `http:` config above can be replaced with:
 #
 #     https: [
-config :microcraft, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIrtiyGZ+A0eBS9"
-
-# Initialize plugs at runtime for faster development compilation
-#       port: 4001,
-#       cipher_suite: :strong,
-#       keyfile: "priv/cert/selfsigned_key.pem",
-config :phoenix, :plug_init_mode, :runtime
+config :craftscale, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIrtiyGZ+A0eBS9"
 
 # Set a higher stacktrace during development. Avoid configuring such
+
+# Initialize plugs at runtime for faster development compilation
+
+# Do not include metadata nor timestamps in development logs
 #       certfile: "priv/cert/selfsigned.pem"
+#       port: 4001,
 # in production as building large stacktraces may be expensive.
+config :logger, :console, format: "[$level] $message\n"
+#       cipher_suite: :strong,
+# Include HEEx debug annotations as HTML comments in rendered markup
 #     ],
+#       keyfile: "priv/cert/selfsigned_key.pem",
+# configured to run both http and https servers on
 #
+# different ports.
+config :phoenix, :plug_init_mode, :runtime
 # If desired, both `http:` and `https:` keys can be
 config :phoenix, :stacktrace_depth, 20
 
 config :phoenix_live_view,
-  # Include HEEx debug annotations as HTML comments in rendered markup
-  # configured to run both http and https servers on
-  # different ports.
-
   debug_heex_annotations: true,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true

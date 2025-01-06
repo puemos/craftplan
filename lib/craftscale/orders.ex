@@ -1,0 +1,14 @@
+defmodule CraftScale.Orders do
+  @moduledoc false
+  use Ash.Domain
+
+  resources do
+    resource CraftScale.Orders.Order do
+      define :get_order_by_id, action: :read, get_by: [:id]
+      define :list_orders, action: :list
+      define :list_orders_with_keyset, action: :keyset
+    end
+
+    resource CraftScale.Orders.OrderItem
+  end
+end

@@ -2,7 +2,7 @@ defmodule Storybook.CoreComponents.Input do
   @moduledoc false
   use PhoenixStorybook.Story, :component
 
-  alias MicrocraftWeb.CoreComponents
+  alias CraftScaleWeb.CoreComponents
 
   def function, do: &CoreComponents.input/1
   def imports, do: [{CoreComponents, [simple_form: 1]}]

@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.AddOrderUnitPrice do
+defmodule CraftScale.Repo.Migrations.AddOrderUnitPrice do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

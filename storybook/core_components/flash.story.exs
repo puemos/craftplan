@@ -2,7 +2,7 @@ defmodule Storybook.CoreComponents.Flash do
   @moduledoc false
   use PhoenixStorybook.Story, :component
 
-  alias MicrocraftWeb.CoreComponents
+  alias CraftScaleWeb.CoreComponents
 
   def function, do: &CoreComponents.flash/1
   def imports, do: [{CoreComponents, [button: 1, show: 1]}]
