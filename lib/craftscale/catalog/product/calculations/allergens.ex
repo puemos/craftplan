@@ -21,10 +21,16 @@ defmodule CraftScale.Catalog.Product.Calculations.Allergens do
   @impl true
   def calculate(records, _opts, _arguments) do
     Enum.map(records, fn record ->
-      record.recipe.components
-      |> Enum.flat_map(& &1.material.allergens)
-      |> Enum.uniq()
-      |> Enum.sort()
+      case record.recipe do
+        nil ->
+          []
+
+        recipe ->
+          recipe.components
+          |> Enum.flat_map(& &1.material.allergens)
+          |> Enum.uniq()
+          |> Enum.sort()
+      end
     end)
   end
 end

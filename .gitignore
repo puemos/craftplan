@@ -38,3 +38,4 @@ npm-debug.log
 .minio
 .postgres
 .elixir_ls
+.mix_complete.cache

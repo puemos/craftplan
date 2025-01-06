@@ -15,7 +15,7 @@ defmodule CraftScaleWeb.InventoryLive.Show do
 
       <:actions>
         <.link patch={~p"/manage/inventory/#{@material.id}/adjust"} phx-click={JS.push_focus()}>
-          <.button>Adjust</.button>
+          <.button>Adjust Stock</.button>
         </.link>
         <.link patch={~p"/manage/inventory/#{@material.id}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit</.button>
@@ -46,13 +46,13 @@ defmodule CraftScaleWeb.InventoryLive.Show do
             </div>
           </:item>
           <:item title="Current Stock">
-            {@material.current_stock || 0} {@material.unit}
+            {format_amount(@material.unit, @material.current_stock)}
           </:item>
           <:item title="Minimum Stock">
-            {@material.minimum_stock} {@material.unit}
+            {format_amount(@material.unit, @material.minimum_stock)}
           </:item>
           <:item title="Maximum Stock">
-            {@material.maximum_stock} {@material.unit}
+            {format_amount(@material.unit, @material.maximum_stock)}
           </:item>
         </.list>
       </:tab>
@@ -78,24 +78,26 @@ defmodule CraftScaleWeb.InventoryLive.Show do
         path={~p"/manage/inventory/#{@material.id}?page=stock"}
         selected?={@page == "stock"}
       >
-        <.table id="inventory_movements" rows={@material.movements}>
-          <:empty>
-            <div class="block py-4 pr-6">
-              <span class={["relative"]}>
-                No movements found
-              </span>
-            </div>
-          </:empty>
+        <div class="-mt-11">
+          <.table id="inventory_movements" rows={@material.movements}>
+            <:empty>
+              <div class="block py-4 pr-6">
+                <span class={["relative"]}>
+                  No movements found
+                </span>
+              </div>
+            </:empty>
 
-          <:col :let={entry} label="Date">
-            {Calendar.strftime(entry.inserted_at, "%Y-%m-%d %H:%M")}
-          </:col>
+            <:col :let={entry} label="Date">
+              {Calendar.strftime(entry.inserted_at, "%Y-%m-%d %H:%M")}
+            </:col>
 
-          <:col :let={entry} label="Quantity">
-            {entry.quantity} {@material.unit}
-          </:col>
-          <:col :let={entry} label="Reason">{entry.reason}</:col>
-        </.table>
+            <:col :let={entry} label="Quantity">
+              {format_amount(@material.unit, entry.quantity)}
+            </:col>
+            <:col :let={entry} label="Reason">{entry.reason}</:col>
+          </.table>
+        </div>
       </:tab>
     </.tabs>
 

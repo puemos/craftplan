@@ -282,17 +282,17 @@ defmodule CraftScaleWeb.CoreComponents do
   The component is designed to be used in grids or flex layouts for dashboard-style interfaces.
   Values can be formatted numbers, currency amounts, or any other string representation.
   """
-  attr :title, :string, required: true, doc: "The title of the statistic"
-  attr :value, :any, required: true, doc: "The main value to display"
-  attr :description, :string, required: true, doc: "Additional context for the statistic"
+  attr :title, :string, default: nil, doc: "The title of the statistic"
+  attr :value, :any, default: nil, doc: "The main value to display"
+  attr :description, :string, default: nil, doc: "Additional context for the statistic"
 
   def stat_card(assigns) do
     ~H"""
-    <div class="rounded-lg bg-white p-6 shadow">
-      <dt class="text-sm font-medium text-gray-500">{@title}</dt>
+    <div class="bg-stone-200/30 rounded-lg border border-stone-200 p-2">
+      <dt :if={@title} class="text-sm font-medium text-stone-500">{@title}</dt>
       <dd class="mt-1">
-        <div class="text-3xl font-semibold text-gray-900">{@value}</div>
-        <div class="text-sm text-gray-500">{@description}</div>
+        <div class="text-xl text-stone-900">{@value}</div>
+        <div :if={@description} class="text-sm text-stone-500">{@description}</div>
       </dd>
     </div>
     """

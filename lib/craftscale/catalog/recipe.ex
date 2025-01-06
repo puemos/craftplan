@@ -15,7 +15,7 @@ defmodule CraftScale.Catalog.Recipe do
 
     create :create do
       primary? true
-      accept [:instructions, :product_id]
+      accept [:notes, :product_id]
 
       argument :components, {:array, :map}
 
@@ -24,7 +24,7 @@ defmodule CraftScale.Catalog.Recipe do
 
     update :update do
       require_atomic? false
-      accept [:instructions, :product_id]
+      accept [:notes, :product_id]
 
       argument :components, {:array, :map}
 
@@ -35,7 +35,7 @@ defmodule CraftScale.Catalog.Recipe do
   attributes do
     uuid_primary_key :id
 
-    attribute :instructions, :string do
+    attribute :notes, :string do
       public? true
     end
 

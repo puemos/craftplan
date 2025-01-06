@@ -127,7 +127,7 @@ defmodule CraftScaleWeb.ProductLive.Index do
         {:noreply,
          socket
          |> put_flash(:info, "Product deleted successfully")
-         |> stream_delete(:materials, %{id: id})}
+         |> stream_delete(:products, %{id: id})}
 
       {:error, _error} ->
         {:noreply, put_flash(socket, :error, "Failed to delete product.")}
@@ -136,6 +136,8 @@ defmodule CraftScaleWeb.ProductLive.Index do
 
   @impl true
   def handle_info({CraftScaleWeb.ProductLive.FormComponent, {:saved, product}}, socket) do
+    product = Ash.load!(product, [:materials_cost, :markup_percentage, :gross_profit])
+
     {:noreply, stream_insert(socket, :products, product)}
   end
 end

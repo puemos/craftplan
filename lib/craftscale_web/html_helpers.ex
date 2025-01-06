@@ -1,6 +1,8 @@
 defmodule CraftScaleWeb.HtmlHelpers do
   @moduledoc false
 
+  alias CraftScale.Types.Unit
+
   def format_percentage(value) do
     format_percentage(value, [])
   end
@@ -20,7 +22,21 @@ defmodule CraftScaleWeb.HtmlHelpers do
   def format_money(currency, nil), do: format_money(currency, Decimal.new(0))
 
   def format_money(currency, %Decimal{} = amount) do
-    Money.from_float!(currency, Decimal.to_float(amount))
+    Money.from_float!(currency, Decimal.to_float(amount), fractional_digits: 4)
+  end
+
+  def format_amount(unit, nil), do: format_amount(unit, Decimal.new(0))
+
+  def format_amount(unit, %Decimal{} = amount) do
+    format_amount(unit, Decimal.to_float(amount))
+  end
+
+  def format_amount(unit, %Money{} = amount) when is_atom(unit) do
+    "#{amount}/#{Unit.abbreviation(unit)}"
+  end
+
+  def format_amount(unit, amount) when is_number(amount) do
+    Unit.abbreviation(unit, amount)
   end
 
   def format_label(term) when is_atom(term) do

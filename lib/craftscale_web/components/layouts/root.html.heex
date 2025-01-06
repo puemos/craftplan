@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix={
-      if assigns[:page_title] in [nil, "", "Craft&Scale"], do: "", else: " · Craft&Scale"
+      if assigns[:page_title] in [nil, "", "CraftScale"], do: "", else: " · CraftScale"
     }>
-      {assigns[:page_title] || "Craft&Scale"}
+      {assigns[:page_title] || "CraftScale"}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <link rel="icon" type="image/svg" sizes="32x32" href={~p'/images/emoji_u2602.svg'} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
   </head>
@@ -19,12 +20,15 @@
         <div class="flex h-16 items-center justify-between">
           <div class="flex-shrink-0">
             <.link navigate={~p'/'}>
-              <span class="text-lg font-semibold">Craft&Scale</span>
+              <div class="flex items-center space-x-1">
+                <img src={~p'/images/emoji_u2602.svg'} class="h-6 w-6" />
+                <span class="text-lg font-semibold">CraftScale</span>
+              </div>
             </.link>
           </div>
 
           <ul class="flex items-center space-x-8">
-            <%= if @current_user.role in [:admin, :staff] do %>
+            <%= if @current_user && (@current_user.role in [:admin, :staff]) do %>
               <li>
                 <.link
                   href={~p"/manage/products"}

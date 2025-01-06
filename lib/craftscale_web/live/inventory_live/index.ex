@@ -39,10 +39,10 @@ defmodule CraftScaleWeb.InventoryLive.Index do
         </.kbd>
       </:col>
       <:col :let={{_, material}} label="Current Stock">
-        {material.current_stock || 0} {material.unit}
+        {format_amount(material.unit, material.current_stock)}
       </:col>
       <:col :let={{_, material}} label="Price">
-        {format_money(@settings.currency, material.price)}
+        {format_money(@settings.currency, material.price)} per {material.unit}
       </:col>
 
       <:action :let={{_, material}}>

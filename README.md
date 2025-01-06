@@ -1,4 +1,4 @@
-# Craft&Scale
+# CraftScale
 
 <p align="center">
   Modern software built for managing artisanal micro-scale craft businesses.
@@ -6,7 +6,7 @@
 
 ## Overview
 
-Craft&Scale is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
+CraftScale is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
 
 ## Features
 

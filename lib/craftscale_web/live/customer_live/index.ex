@@ -112,7 +112,7 @@ defmodule CraftScaleWeb.CustomerLive.Index do
         {:noreply,
          socket
          |> put_flash(:info, "Customer deleted successfully")
-         |> stream_delete(:materials, id)}
+         |> stream_delete(:customers, id)}
 
       {:error, _error} ->
         {:noreply, put_flash(socket, :error, "Failed to delete material.")}

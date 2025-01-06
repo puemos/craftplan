@@ -113,7 +113,7 @@ defmodule CraftScaleWeb.OrderLive.Index do
         {:noreply,
          socket
          |> put_flash(:info, "Order deleted successfully")
-         |> stream_delete(:materials, %{id: id})}
+         |> stream_delete(:orders, %{id: id})}
 
       {:error, _error} ->
         {:noreply, put_flash(socket, :error, "Failed to delete order.")}

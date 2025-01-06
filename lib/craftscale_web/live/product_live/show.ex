@@ -45,15 +45,15 @@ defmodule CraftScaleWeb.ProductLive.Show do
               </.kbd>
             </:item>
 
-            <:item title="Price">
-              {format_money(@settings.currency, @product.price)}
-            </:item>
-
             <:item title="Allergens">
               <div class="flex-inline items-center space-x-1">
                 <.badge :for={allergen <- Enum.map(@product.allergens, & &1.name)} text={allergen} />
                 <span :if={Enum.empty?(@product.allergens)}>None</span>
               </div>
+            </:item>
+
+            <:item title="Price">
+              {format_money(@settings.currency, @product.price)}
             </:item>
 
             <:item title="Materials cost">

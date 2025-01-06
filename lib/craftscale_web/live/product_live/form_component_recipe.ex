@@ -16,13 +16,6 @@ defmodule CraftScaleWeb.ProductLive.FormComponentRecipe do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input
-          class="field-sizing-content"
-          field={@form[:instructions]}
-          type="textarea"
-          label="Instructions"
-        />
-
         <div>
           <.label>Materials</.label>
           <div
@@ -149,6 +142,8 @@ defmodule CraftScaleWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
         </div>
+
+        <.input class="field-sizing-content" field={@form[:notes]} type="textarea" label="Notes" />
 
         <:actions>
           <.button
