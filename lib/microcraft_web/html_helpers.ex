@@ -68,9 +68,10 @@ defmodule MicrocraftWeb.HtmlHelpers do
   def format_time(_datetime, nil), do: ""
 
   def format_time(datetime, timezone) do
-    datetime
-    |> DateTime.shift_zone!(timezone)
-    |> Calendar.strftime("%Y-%m-%d %I:%M %p")
+    case DateTime.shift_zone(datetime, timezone) do
+      {:ok, shifted} -> Calendar.strftime(shifted, "%Y-%m-%d %I:%M %p")
+      {:error, _} -> ""
+    end
   end
 
   # Status Color Helpers

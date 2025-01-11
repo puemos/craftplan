@@ -33,8 +33,12 @@ defmodule MicrocraftWeb.OrderLive.Index do
           </span>
         </div>
       </:empty>
-      <%!-- <:col :let={{_id, order}} label="ID">{order.id}</:col> --%>
       <:col :let={{_id, order}} label="Customer">{order.customer.full_name}</:col>
+      <:col :let={{_id, order}} label="Reference">
+        <.kbd>
+          {order.reference}
+        </.kbd>
+      </:col>
       <:col :let={{_id, order}} label="Delivery date">
         {format_time(order.delivery_date, @time_zone)}
       </:col>

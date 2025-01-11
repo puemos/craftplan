@@ -51,6 +51,24 @@ defmodule Microcraft.Orders.Order do
   attributes do
     uuid_primary_key :id
 
+    attribute :reference, :string do
+      writable? false
+
+      default fn ->
+        year = DateTime.utc_now().year |> Integer.to_string() |> String.pad_leading(4, "0")
+        month = DateTime.utc_now().month |> Integer.to_string() |> String.pad_leading(2, "0")
+        day = DateTime.utc_now().day |> Integer.to_string() |> String.pad_leading(2, "0")
+        random = for _ <- 1..6, into: "", do: <<Enum.random(?A..?Z)>>
+        "OR_#{year}_#{month}_#{day}_#{random}"
+      end
+
+      allow_nil? false
+      generated? true
+
+      constraints match: ~r/^OR_\d{4}_\d{2}_\d{2}_[A-Z]{6}$/,
+                  allow_empty?: false
+    end
+
     attribute :delivery_date, :utc_datetime do
       allow_nil? false
     end
@@ -75,5 +93,9 @@ defmodule Microcraft.Orders.Order do
   aggregates do
     count :total_items, :items
     sum :total_cost, :items, :cost
+  end
+
+  identities do
+    identity :reference, [:reference]
   end
 end
