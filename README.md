@@ -1,8 +1,10 @@
-# Microcraft
-
-<p align="center">
-  Modern software built for managing artisanal micro-scale craft businesses.
-</p>
+<div align="center">
+  <h1>Microcraft</h1>
+  <img src="priv/static/images/favicon.svg" width="100" />
+  <p>
+    Modern software built for managing artisanal micro-scale craft businesses.
+  </p>
+</div>
 
 ## Overview
 

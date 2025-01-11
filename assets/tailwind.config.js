@@ -2,6 +2,7 @@
 // https://tailwindcss.com/docs/configuration
 
 const plugin = require("tailwindcss/plugin");
+const defaultTheme = require("tailwindcss/defaultTheme");
 const fs = require("fs");
 const path = require("path");
 
@@ -17,6 +18,9 @@ module.exports = {
     extend: {
       colors: {
         brand: "#FD4F00",
+      },
+      fontFamily: {
+        logo: ['"Playwrite US Trad"', ...defaultTheme.fontFamily.sans],
       },
     },
   },

@@ -10,9 +10,16 @@
       {assigns[:page_title] || "Microcraft"}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <link rel="icon" type="image/svg" sizes="32x32" href={~p'/images/emoji_u2602.svg'} />
+    <link rel="icon" type="image/svg" sizes="32x32" href={~p'/images/favicon.svg'} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playwrite+US+Trad&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body class="microcraft-web bg-stone-50 text-stone-800">
     <nav class="fixed top-0 z-50 w-full border-b border-stone-200 bg-stone-50">
@@ -20,9 +27,9 @@
         <div class="flex h-16 items-center justify-between">
           <div class="flex-shrink-0">
             <.link navigate={~p'/'}>
-              <div class="flex items-center space-x-1">
-                <img src={~p'/images/emoji_u2602.svg'} class="h-6 w-6" />
-                <span class="text-lg font-semibold">Microcraft</span>
+              <div class="flex items-center">
+                <img src={~p'/images/bread.svg'} class="mr-1 h-7 w-7" />
+                <span class="font-logo text-lg font-semibold">Microcraft</span>
               </div>
             </.link>
           </div>
