@@ -35,12 +35,19 @@ defmodule MicrocraftWeb.OrderLive.Index do
       </:empty>
       <%!-- <:col :let={{_id, order}} label="ID">{order.id}</:col> --%>
       <:col :let={{_id, order}} label="Customer">{order.customer.full_name}</:col>
-      <:col :let={{_id, order}} label="Delivery date">{DateTime.to_string(order.delivery_date)}</:col>
+      <:col :let={{_id, order}} label="Delivery date">
+        {format_time(order.delivery_date, @time_zone)}
+      </:col>
       <:col :let={{_id, order}} label="Total cost">
         {format_money(@settings.currency, order.total_cost)}
       </:col>
       <:col :let={{_id, order}} label="Status">
-        <.badge text={order.status} />
+        <.badge
+          text={order.status}
+          colors={[
+            {order.status, "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
+          ]}
+        />
       </:col>
     </.table>
 
@@ -68,6 +75,8 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    dbg(socket.assigns.time_zone)
+
     orders =
       Orders.list_orders!(
         actor: socket.assigns[:current_user],
@@ -81,11 +90,9 @@ defmodule MicrocraftWeb.OrderLive.Index do
     customers =
       CRM.list_customers!(actor: socket.assigns[:current_user], load: [:full_name])
 
-    time_zone = get_connect_params(socket)["timeZone"]
-
     {:ok,
      socket
-     |> assign(products: products, customers: customers, time_zone: time_zone)
+     |> assign(products: products, customers: customers)
      |> stream(:orders, orders)}
   end
 

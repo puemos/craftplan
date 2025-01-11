@@ -50,7 +50,7 @@ defmodule Microcraft.Catalog.Product do
     attribute :status, Microcraft.Catalog.Product.Types.Status do
       allow_nil? false
       public? true
-      default :idea
+      default :draft
     end
 
     attribute :price, :decimal do

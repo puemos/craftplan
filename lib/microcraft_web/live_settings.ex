@@ -8,6 +8,8 @@ defmodule MicrocraftWeb.LiveSettings do
   import Phoenix.Component
 
   def on_mount(:default, _params, _session, socket) do
+    time_zone = Phoenix.LiveView.get_connect_params(socket)["timezone"]
+
     if socket.assigns[:settings] do
       {:cont, socket}
     else
@@ -20,7 +22,11 @@ defmodule MicrocraftWeb.LiveSettings do
             Microcraft.Settings.init!()
         end
 
-      socket = assign(socket, :settings, settings)
+      socket =
+        socket
+        |> assign(:settings, settings)
+        |> assign(:time_zone, time_zone)
+
       {:cont, socket}
     end
   end

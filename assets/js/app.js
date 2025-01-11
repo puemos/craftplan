@@ -27,10 +27,10 @@ let csrfToken = document
   .getAttribute("content");
 
 let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+console.log(timeZone);
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: { _csrf_token: csrfToken, timeZone: timeZone },
+  params: { _csrf_token: csrfToken, timezone: timeZone },
   hooks: {
     TimezoneInput: {
       mounted() {

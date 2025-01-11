@@ -1,4 +1,12 @@
 defmodule Microcraft.Catalog.Product.Types.Status do
   @moduledoc false
-  use Ash.Type.Enum, values: [:idea, :experiment, :for_sale, :archived]
+  use Ash.Type.Enum,
+    values: [
+      :draft,
+      :testing,
+      :active,
+      :paused,
+      :discontinued,
+      :archived
+    ]
 end

@@ -70,16 +70,14 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                 <.badge
                   text={order.status}
                   colors={[
-                    pending: "bg-yellow-100 text-yellow-700",
-                    fulfilled: "bg-blue-100 text-blue-700",
-                    shipped: "bg-green-100 text-green-700",
-                    cancelled: "bg-red-100 text-red-700"
+                    {order.status,
+                     "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
                   ]}
                 />
               </:col>
 
               <:col :let={order} label="Delivery Date">
-                {Calendar.strftime(order.delivery_date, "%Y-%m-%d")}
+                {format_time(order.inserted_at, @time_zone)}
               </:col>
               <:col :let={order} label="Total">
                 {format_money(@settings.currency, order.total_cost)}

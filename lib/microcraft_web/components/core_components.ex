@@ -602,7 +602,7 @@ defmodule MicrocraftWeb.CoreComponents do
             <label
               for={"#{@name}-#{value}"}
               class={[
-                "w-full rounded-md border border-stone-300 p-2 font-medium text-stone-700 transition-all hover:bg-stone-200 hover:text-gray-800",
+                "w-full cursor-pointer rounded-md border border-stone-300 p-2 font-medium text-stone-700 transition-all has-[:checked]:bg-blue-200/50 has-[:checked]:border-blue-300 hover:bg-stone-200 hover:text-gray-800",
                 if(value in @list_value, do: "bg-stone-200/50")
               ]}
             >
@@ -612,7 +612,7 @@ defmodule MicrocraftWeb.CoreComponents do
                 name={@name}
                 value={value}
                 checked={value in @list_value}
-                class="mr-2 h-4 w-4 rounded border-blue-300 text-blue-500 focus:ring-0"
+                class="mr-2 h-4 w-4 rounded border-stone-300 text-blue-500 checked:border-blue-300 focus:ring-0"
               />
               {label}
             </label>

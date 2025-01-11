@@ -89,7 +89,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
             </:empty>
 
             <:col :let={entry} label="Date">
-              {Calendar.strftime(entry.inserted_at, "%Y-%m-%d %H:%M")}
+              {format_time(entry.inserted_at, @time_zone)}
             </:col>
 
             <:col :let={entry} label="Quantity">

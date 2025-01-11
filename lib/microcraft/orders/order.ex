@@ -57,7 +57,7 @@ defmodule Microcraft.Orders.Order do
 
     attribute :status, Microcraft.Orders.Order.Types.Status do
       allow_nil? false
-      default :pending
+      default :created
     end
 
     timestamps()

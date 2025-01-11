@@ -17,6 +17,7 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMovement do
         phx-submit="save"
       >
         <.input field={@form[:quantity]} type="number" label="Quantity" inline_label={@material.unit} />
+        <.input field={@form[:reason]} type="textarea" label="Reason" />
         <.input field={@form[:material_id]} type="hidden" value={@material.id} />
 
         <:actions>

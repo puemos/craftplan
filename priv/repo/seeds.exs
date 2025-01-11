@@ -149,7 +149,7 @@ if Mix.env() == :dev do
     Ash.Seed.seed!(Catalog.Product, %{
       name: name,
       sku: sku,
-      status: :for_sale,
+      status: :active,
       price: Decimal.new(price)
     })
   end
@@ -302,38 +302,38 @@ if Mix.env() == :dev do
   end
 
   # Create multiple orders for John
-  order1 = create_order.(customers.john, 7, :pending)
+  order1 = create_order.(customers.john, 7, :created)
   create_order_item.(order1, products.almond_cookies, "2")
   create_order_item.(order1, products.choc_cake, "1")
 
-  order2 = create_order.(customers.john, 14, :fulfilled)
+  order2 = create_order.(customers.john, 14, :completed)
   create_order_item.(order2, products.bread, "2")
   create_order_item.(order2, products.croissants, "6")
 
-  order3 = create_order.(customers.john, -7, :shipped)
+  order3 = create_order.(customers.john, 7, :delivered)
   create_order_item.(order3, products.muffins, "4")
 
   # Create multiple orders for Jane
-  order4 = create_order.(customers.jane, 3, :pending)
+  order4 = create_order.(customers.jane, 3, :payment_pending)
   create_order_item.(order4, products.bread, "3")
   create_order_item.(order4, products.muffins, "6")
 
-  order5 = create_order.(customers.jane, -3, :cancelled)
+  order5 = create_order.(customers.jane, 3, :cancelled)
   create_order_item.(order5, products.choc_cake, "1")
 
-  order6 = create_order.(customers.jane, 10, :fulfilled)
+  order6 = create_order.(customers.jane, 10, :completed)
   create_order_item.(order6, products.almond_cookies, "5")
 
   # Create multiple orders for Bob
-  order7 = create_order.(customers.bob, 5, :pending)
+  order7 = create_order.(customers.bob, 5, :processing)
   create_order_item.(order7, products.croissants, "4")
   create_order_item.(order7, products.choc_cake, "2")
 
-  order8 = create_order.(customers.bob, -5, :fulfilled)
+  order8 = create_order.(customers.bob, 5, :completed)
   create_order_item.(order8, products.bread, "2")
   create_order_item.(order8, products.muffins, "6")
 
-  order9 = create_order.(customers.bob, 8, :fulfilled)
+  order9 = create_order.(customers.bob, 8, :in_transit)
   create_order_item.(order9, products.almond_cookies, "3")
   create_order_item.(order9, products.croissants, "4")
 

@@ -38,7 +38,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
           <.list>
             <:item title="Status">
               <.badge
-                text={Atom.to_string(@order.status)}
+                text={@order.status}
                 colors={[
                   {@order.status,
                    "#{order_status_color(@order.status)} #{order_status_bg(@order.status)}"}
@@ -53,16 +53,12 @@ defmodule MicrocraftWeb.OrderLive.Show do
               {format_money(@settings.currency, @order.total_cost)}
             </:item>
 
-            <%!-- <:item title="Payment Status">
-              {@order.payment_status}
-            </:item> --%>
-
             <:item title="Delivery Date">
-              {@order.delivery_date}
+              {format_time(@order.delivery_date, @time_zone)}
             </:item>
 
             <:item title="Created At">
-              {@order.inserted_at}
+              {format_time(@order.inserted_at, @time_zone)}
             </:item>
           </.list>
         </:tab>
