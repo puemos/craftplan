@@ -2,7 +2,7 @@
   <img src="priv/static/images/favicon.svg" width="100" />
   <h1>Microcraft</h1>
   <p>
-    Modern software built for managing artisanal micro-scale craft businesses.
+    Modern tool — built for managing artisanal micro-scale craft businesses.
   </p>
 </div>
 <br>
