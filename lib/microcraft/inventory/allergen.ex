@@ -1,13 +1,13 @@
-defmodule CraftScale.Inventory.Allergen do
+defmodule Microcraft.Inventory.Allergen do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Inventory,
+    otp_app: :microcraft,
+    domain: Microcraft.Inventory,
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "inventory_allergens"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do

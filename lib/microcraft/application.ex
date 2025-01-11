@@ -1,4 +1,4 @@
-defmodule CraftScale.Application do
+defmodule Microcraft.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -8,22 +8,22 @@ defmodule CraftScale.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      CraftScaleWeb.Telemetry,
-      CraftScale.Repo,
-      {DNSCluster, query: Application.get_env(:craftscale, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: CraftScale.PubSub},
+      MicrocraftWeb.Telemetry,
+      Microcraft.Repo,
+      {DNSCluster, query: Application.get_env(:microcraft, :dns_cluster_query) || :ignore},
+      {Phoenix.PubSub, name: Microcraft.PubSub},
       # Start the Finch HTTP client for sending emails
-      {Finch, name: CraftScale.Finch},
-      # Start a worker by calling: CraftScale.Worker.start_link(arg)
-      # {CraftScale.Worker, arg},
+      {Finch, name: Microcraft.Finch},
+      # Start a worker by calling: Microcraft.Worker.start_link(arg)
+      # {Microcraft.Worker, arg},
       # Start to serve requests, typically the last entry
-      CraftScaleWeb.Endpoint,
-      {AshAuthentication.Supervisor, [otp_app: :craftscale]}
+      MicrocraftWeb.Endpoint,
+      {AshAuthentication.Supervisor, [otp_app: :microcraft]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: CraftScale.Supervisor]
+    opts = [strategy: :one_for_one, name: Microcraft.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
@@ -31,7 +31,7 @@ defmodule CraftScale.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    CraftScaleWeb.Endpoint.config_change(changed, removed)
+    MicrocraftWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end

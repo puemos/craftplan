@@ -1,9 +1,9 @@
-defmodule CraftScaleWeb.ProductLive.FormComponentRecipe do
+defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
   @moduledoc false
-  use CraftScaleWeb, :live_component
+  use MicrocraftWeb, :live_component
 
   alias AshPhoenix.Form
-  alias CraftScale.Catalog
+  alias Microcraft.Catalog
 
   @impl true
   def render(assigns) do

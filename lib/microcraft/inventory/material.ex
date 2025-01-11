@@ -1,15 +1,15 @@
-defmodule CraftScale.Inventory.Material do
+defmodule Microcraft.Inventory.Material do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Inventory,
+    otp_app: :microcraft,
+    domain: Microcraft.Inventory,
     data_layer: AshPostgres.DataLayer
 
-  alias CraftScale.Inventory.MaterialAllergen
+  alias Microcraft.Inventory.MaterialAllergen
 
   postgres do
     table "inventory_materials"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -103,10 +103,10 @@ defmodule CraftScale.Inventory.Material do
   end
 
   relationships do
-    has_many :movements, CraftScale.Inventory.Movement
+    has_many :movements, Microcraft.Inventory.Movement
     has_many :material_allergens, MaterialAllergen
 
-    many_to_many :allergens, CraftScale.Inventory.Allergen, through: MaterialAllergen
+    many_to_many :allergens, Microcraft.Inventory.Allergen, through: MaterialAllergen
   end
 
   aggregates do

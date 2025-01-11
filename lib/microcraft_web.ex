@@ -1,12 +1,12 @@
-defmodule CraftScaleWeb do
+defmodule MicrocraftWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, components, channels, and so on.
 
   This can be used in your application as:
 
-      use CraftScaleWeb, :controller
-      use CraftScaleWeb, :html
+      use MicrocraftWeb, :controller
+      use MicrocraftWeb, :html
 
   The definitions below will be executed for every controller,
   component, etc, so keep them short and clean, focused
@@ -41,9 +41,9 @@ defmodule CraftScaleWeb do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: CraftScaleWeb.Layouts]
+        layouts: [html: MicrocraftWeb.Layouts]
 
-      use Gettext, backend: CraftScaleWeb.Gettext
+      use Gettext, backend: MicrocraftWeb.Gettext
 
       import Plug.Conn
 
@@ -54,7 +54,7 @@ defmodule CraftScaleWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {CraftScaleWeb.Layouts, :app}
+        layout: {MicrocraftWeb.Layouts, :app}
 
       unquote(html_helpers())
     end
@@ -84,10 +84,10 @@ defmodule CraftScaleWeb do
   defp html_helpers do
     quote do
       # Translation
-      use Gettext, backend: CraftScaleWeb.Gettext
+      use Gettext, backend: MicrocraftWeb.Gettext
 
-      import CraftScaleWeb.CoreComponents
-      import CraftScaleWeb.HtmlHelpers
+      import MicrocraftWeb.CoreComponents
+      import MicrocraftWeb.HtmlHelpers
 
       # HTML escaping functionality
       import Phoenix.HTML
@@ -104,9 +104,9 @@ defmodule CraftScaleWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: CraftScaleWeb.Endpoint,
-        router: CraftScaleWeb.Router,
-        statics: CraftScaleWeb.static_paths()
+        endpoint: MicrocraftWeb.Endpoint,
+        router: MicrocraftWeb.Router,
+        statics: MicrocraftWeb.static_paths()
     end
   end
 

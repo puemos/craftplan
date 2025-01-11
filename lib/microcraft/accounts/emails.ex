@@ -1,4 +1,4 @@
-defmodule CraftScale.Accounts.Emails do
+defmodule Microcraft.Accounts.Emails do
   @moduledoc """
   Delivers emails.
   """
@@ -54,11 +54,11 @@ defmodule CraftScale.Accounts.Emails do
   defp deliver(to, subject, body) do
     new()
     # TODO: Replace with your email
-    |> from({"CraftScale", "noreply@craftscale.app"})
+    |> from({"Microcraft", "noreply@microcraft.app"})
     |> to(to_string(to))
     |> subject(subject)
     |> put_provider_option(:track_links, "None")
     |> html_body(body)
-    |> CraftScale.Mailer.deliver!()
+    |> Microcraft.Mailer.deliver!()
   end
 end

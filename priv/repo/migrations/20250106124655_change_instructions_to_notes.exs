@@ -1,4 +1,4 @@
-defmodule CraftScale.Repo.Migrations.ChangeInstructionsToNotes do
+defmodule Microcraft.Repo.Migrations.ChangeInstructionsToNotes do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

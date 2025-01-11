@@ -103,7 +103,7 @@
     "global": null,
     "strategy": null
   },
-  "repo": "Elixir.CraftScale.Repo",
+  "repo": "Elixir.Microcraft.Repo",
   "schema": null,
   "table": "accounts_tokens"
 }

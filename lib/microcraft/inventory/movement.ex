@@ -1,13 +1,13 @@
-defmodule CraftScale.Inventory.Movement do
+defmodule Microcraft.Inventory.Movement do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Inventory,
+    otp_app: :microcraft,
+    domain: Microcraft.Inventory,
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "inventory_movements"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -40,7 +40,7 @@ defmodule CraftScale.Inventory.Movement do
   end
 
   relationships do
-    belongs_to :material, CraftScale.Inventory.Material do
+    belongs_to :material, Microcraft.Inventory.Material do
       allow_nil? false
     end
   end

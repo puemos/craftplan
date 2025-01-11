@@ -1,7 +1,7 @@
-defmodule CraftScale.Cldr do
+defmodule Microcraft.Cldr do
   @moduledoc false
   use Cldr,
-    otp_app: :craftscale,
+    otp_app: :microcraft,
     locales: ["en"],
     default_locale: "en",
     json_library: Jason,

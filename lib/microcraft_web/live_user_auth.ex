@@ -1,9 +1,9 @@
-defmodule CraftScaleWeb.LiveUserAuth do
+defmodule MicrocraftWeb.LiveUserAuth do
   @moduledoc """
   Helpers for authenticating users in LiveViews.
   """
 
-  use CraftScaleWeb, :verified_routes
+  use MicrocraftWeb, :verified_routes
 
   import Phoenix.Component
 

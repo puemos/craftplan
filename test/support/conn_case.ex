@@ -1,4 +1,4 @@
-defmodule CraftScaleWeb.ConnCase do
+defmodule MicrocraftWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,7 +11,7 @@ defmodule CraftScaleWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use CraftScaleWeb.ConnCase, async: true`, although
+  by setting `use MicrocraftWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -19,20 +19,20 @@ defmodule CraftScaleWeb.ConnCase do
 
   using do
     quote do
-      use CraftScaleWeb, :verified_routes
+      use MicrocraftWeb, :verified_routes
 
-      import CraftScaleWeb.ConnCase
+      import MicrocraftWeb.ConnCase
       import Phoenix.ConnTest
       import Plug.Conn
       # The default endpoint for testing
-      @endpoint CraftScaleWeb.Endpoint
+      @endpoint MicrocraftWeb.Endpoint
 
       # Import conveniences for testing with connections
     end
   end
 
   setup tags do
-    CraftScale.DataCase.setup_sandbox(tags)
+    Microcraft.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

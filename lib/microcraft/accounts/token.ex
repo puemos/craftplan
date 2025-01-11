@@ -1,15 +1,15 @@
-defmodule CraftScale.Accounts.Token do
+defmodule Microcraft.Accounts.Token do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Accounts,
+    otp_app: :microcraft,
+    domain: Microcraft.Accounts,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshAuthentication.TokenResource]
 
   postgres do
     table "accounts_tokens"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do

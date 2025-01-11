@@ -2,7 +2,7 @@ defmodule Storybook.Examples.CoreComponents do
   @moduledoc false
   use PhoenixStorybook.Story, :example
 
-  import CraftScaleWeb.CoreComponents
+  import MicrocraftWeb.CoreComponents
 
   alias Phoenix.LiveView.JS
 

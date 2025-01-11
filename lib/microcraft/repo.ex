@@ -1,6 +1,6 @@
-defmodule CraftScale.Repo do
+defmodule Microcraft.Repo do
   use AshPostgres.Repo,
-    otp_app: :craftscale
+    otp_app: :microcraft
 
   def installed_extensions do
     # Add extensions here, and the migration generator will install them.

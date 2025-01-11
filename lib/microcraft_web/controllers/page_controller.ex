@@ -1,5 +1,5 @@
-defmodule CraftScaleWeb.PageController do
-  use CraftScaleWeb, :controller
+defmodule MicrocraftWeb.PageController do
+  use MicrocraftWeb, :controller
 
   def home(conn, _params) do
     # The home page is often custom made,

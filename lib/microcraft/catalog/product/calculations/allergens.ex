@@ -1,4 +1,4 @@
-defmodule CraftScale.Catalog.Product.Calculations.Allergens do
+defmodule Microcraft.Catalog.Product.Calculations.Allergens do
   @moduledoc false
   use Ash.Resource.Calculation
 

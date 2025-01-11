@@ -1,13 +1,13 @@
-defmodule CraftScale.Catalog.RecipeMaterial do
+defmodule Microcraft.Catalog.RecipeMaterial do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Catalog,
+    otp_app: :microcraft,
+    domain: Microcraft.Catalog,
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "catalog_recipe_materials"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -27,13 +27,13 @@ defmodule CraftScale.Catalog.RecipeMaterial do
   end
 
   relationships do
-    belongs_to :recipe, CraftScale.Catalog.Recipe do
+    belongs_to :recipe, Microcraft.Catalog.Recipe do
       allow_nil? false
     end
 
-    belongs_to :material, CraftScale.Inventory.Material do
+    belongs_to :material, Microcraft.Inventory.Material do
       allow_nil? false
-      domain CraftScale.Inventory
+      domain Microcraft.Inventory
     end
   end
 

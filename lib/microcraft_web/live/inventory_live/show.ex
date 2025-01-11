@@ -1,8 +1,8 @@
-defmodule CraftScaleWeb.InventoryLive.Show do
+defmodule MicrocraftWeb.InventoryLive.Show do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.Inventory
+  alias Microcraft.Inventory
 
   @impl true
   def render(assigns) do
@@ -63,7 +63,7 @@ defmodule CraftScaleWeb.InventoryLive.Show do
         selected?={@page == "allergens"}
       >
         <.live_component
-          module={CraftScaleWeb.InventoryLive.FormComponentAllergens}
+          module={MicrocraftWeb.InventoryLive.FormComponentAllergens}
           id="material-allergens-form"
           material={@material}
           current_user={@current_user}
@@ -108,7 +108,7 @@ defmodule CraftScaleWeb.InventoryLive.Show do
       on_cancel={JS.patch(~p"/manage/inventory/#{@material.id}")}
     >
       <.live_component
-        module={CraftScaleWeb.InventoryLive.FormComponentMaterial}
+        module={MicrocraftWeb.InventoryLive.FormComponentMaterial}
         id={@material.id}
         title={@page_title}
         action={@live_action}
@@ -125,7 +125,7 @@ defmodule CraftScaleWeb.InventoryLive.Show do
       on_cancel={JS.patch(~p"/manage/inventory/#{@material.id}")}
     >
       <.live_component
-        module={CraftScaleWeb.InventoryLive.FormComponentMovement}
+        module={MicrocraftWeb.InventoryLive.FormComponentMovement}
         id={@material.id}
         material={@material}
         current_user={@current_user}
@@ -162,7 +162,7 @@ defmodule CraftScaleWeb.InventoryLive.Show do
   end
 
   defp list_all_allergens do
-    CraftScale.Inventory.list_allergens!()
+    Microcraft.Inventory.list_allergens!()
   end
 
   defp page_title(:show), do: "Show Material"

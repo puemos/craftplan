@@ -1,13 +1,13 @@
-defmodule CraftScale.Catalog.Product do
+defmodule Microcraft.Catalog.Product do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Catalog,
+    otp_app: :microcraft,
+    domain: Microcraft.Catalog,
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "catalog_products"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -47,7 +47,7 @@ defmodule CraftScale.Catalog.Product do
                   match: ~r/^[\w\s\-\.]+$/
     end
 
-    attribute :status, CraftScale.Catalog.Product.Types.Status do
+    attribute :status, Microcraft.Catalog.Product.Types.Status do
       allow_nil? false
       public? true
       default :idea
@@ -66,7 +66,7 @@ defmodule CraftScale.Catalog.Product do
   end
 
   relationships do
-    has_one :recipe, CraftScale.Catalog.Recipe do
+    has_one :recipe, Microcraft.Catalog.Recipe do
       allow_nil? true
     end
   end
@@ -88,7 +88,7 @@ defmodule CraftScale.Catalog.Product do
       description "The profit amount calculated as selling price minus material cost"
     end
 
-    calculate :allergens, :vector, CraftScale.Catalog.Product.Calculations.Allergens
+    calculate :allergens, :vector, Microcraft.Catalog.Product.Calculations.Allergens
   end
 
   identities do

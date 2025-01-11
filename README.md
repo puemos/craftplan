@@ -1,4 +1,4 @@
-# CraftScale
+# Microcraft
 
 <p align="center">
   Modern software built for managing artisanal micro-scale craft businesses.
@@ -6,7 +6,7 @@
 
 ## Overview
 
-CraftScale is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
+Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
 
 ## Features
 
@@ -64,8 +64,8 @@ CraftScale is an open-source ERP system designed specifically for small-scale ar
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/craftscale.git
-   cd craftscale
+   git clone https://github.com/puemos/microcraft.git
+   cd microcraft
    ```
 
 2. Install dependencies

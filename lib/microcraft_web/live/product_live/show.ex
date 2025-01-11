@@ -1,8 +1,8 @@
-defmodule CraftScaleWeb.ProductLive.Show do
+defmodule MicrocraftWeb.ProductLive.Show do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.Inventory
+  alias Microcraft.Inventory
 
   @impl true
   def render(assigns) do
@@ -76,7 +76,7 @@ defmodule CraftScaleWeb.ProductLive.Show do
           selected?={@page == "recipe"}
         >
           <.live_component
-            module={CraftScaleWeb.ProductLive.FormComponentRecipe}
+            module={MicrocraftWeb.ProductLive.FormComponentRecipe}
             id="material-form"
             product={@product}
             recipe={@product.recipe || nil}
@@ -97,7 +97,7 @@ defmodule CraftScaleWeb.ProductLive.Show do
       on_cancel={JS.patch(~p"/manage/products/#{@product.id}")}
     >
       <.live_component
-        module={CraftScaleWeb.ProductLive.FormComponent}
+        module={MicrocraftWeb.ProductLive.FormComponent}
         id={@product.id}
         title={@page_title}
         action={@live_action}
@@ -122,7 +122,7 @@ defmodule CraftScaleWeb.ProductLive.Show do
   @impl true
   def handle_params(%{"id" => id} = params, _, socket) do
     product =
-      CraftScale.Catalog.get_product_by_id!(id,
+      Microcraft.Catalog.get_product_by_id!(id,
         load: [
           :markup_percentage,
           :gross_profit,
@@ -145,9 +145,9 @@ defmodule CraftScaleWeb.ProductLive.Show do
   end
 
   @impl true
-  def handle_info({CraftScaleWeb.ProductLive.FormComponentRecipe, {:saved, _}}, socket) do
+  def handle_info({MicrocraftWeb.ProductLive.FormComponentRecipe, {:saved, _}}, socket) do
     product =
-      CraftScale.Catalog.get_product_by_sku!(socket.assigns.product.sku,
+      Microcraft.Catalog.get_product_by_sku!(socket.assigns.product.sku,
         load: [
           :markup_percentage,
           :materials_cost,
@@ -163,9 +163,9 @@ defmodule CraftScaleWeb.ProductLive.Show do
      |> push_event("close-modal", %{id: "product-material-modal"})}
   end
 
-  def handle_info({CraftScaleWeb.ProductLive.FormComponent, {:saved, _}}, socket) do
+  def handle_info({MicrocraftWeb.ProductLive.FormComponent, {:saved, _}}, socket) do
     product =
-      CraftScale.Catalog.get_product_by_sku!(socket.assigns.product.sku,
+      Microcraft.Catalog.get_product_by_sku!(socket.assigns.product.sku,
         load: [
           :markup_percentage,
           :materials_cost,

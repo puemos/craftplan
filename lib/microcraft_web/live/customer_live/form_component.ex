@@ -1,6 +1,6 @@
-defmodule CraftScaleWeb.CustomerLive.FormComponent do
+defmodule MicrocraftWeb.CustomerLive.FormComponent do
   @moduledoc false
-  use CraftScaleWeb, :live_component
+  use MicrocraftWeb, :live_component
 
   @impl true
   def render(assigns) do
@@ -122,7 +122,7 @@ defmodule CraftScaleWeb.CustomerLive.FormComponent do
           ]
         )
       else
-        AshPhoenix.Form.for_create(CraftScale.CRM.Customer, :create,
+        AshPhoenix.Form.for_create(Microcraft.CRM.Customer, :create,
           as: "customer",
           actor: socket.assigns.current_user,
           forms: [

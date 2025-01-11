@@ -4,7 +4,7 @@ make_allergens = fn ->
     make_allergen = fn name ->
       [allergen] =
         Ash.Seed.seed!(
-          CraftScale.Inventory.Allergen,
+          Microcraft.Inventory.Allergen,
           [%{name: name}],
           identity: :name
         )
@@ -34,28 +34,28 @@ make_allergens = fn ->
 end
 
 if Mix.env() == :dev do
-  alias CraftScale.Accounts
-  alias CraftScale.Catalog
-  alias CraftScale.CRM
-  alias CraftScale.Inventory
-  alias CraftScale.Orders
-  alias CraftScale.Repo
-  alias CraftScale.Settings
+  alias Microcraft.Accounts
+  alias Microcraft.Catalog
+  alias Microcraft.CRM
+  alias Microcraft.Inventory
+  alias Microcraft.Orders
+  alias Microcraft.Repo
+  alias Microcraft.Settings
 
   # Clear existing data
-  Repo.delete_all(CraftScale.Orders.OrderItem)
-  Repo.delete_all(CraftScale.Orders.Order)
-  Repo.delete_all(CraftScale.Production.Task)
-  Repo.delete_all(CraftScale.Catalog.RecipeMaterial)
-  Repo.delete_all(CraftScale.Catalog.Recipe)
-  Repo.delete_all(CraftScale.Catalog.Product)
-  Repo.delete_all(CraftScale.Inventory.Movement)
-  Repo.delete_all(CraftScale.Inventory.MaterialAllergen)
-  Repo.delete_all(CraftScale.Inventory.Material)
-  Repo.delete_all(CraftScale.Inventory.Allergen)
-  Repo.delete_all(CraftScale.CRM.Customer)
-  Repo.delete_all(CraftScale.Accounts.User)
-  Repo.delete_all(CraftScale.Settings.Settings)
+  Repo.delete_all(Microcraft.Orders.OrderItem)
+  Repo.delete_all(Microcraft.Orders.Order)
+  Repo.delete_all(Microcraft.Production.Task)
+  Repo.delete_all(Microcraft.Catalog.RecipeMaterial)
+  Repo.delete_all(Microcraft.Catalog.Recipe)
+  Repo.delete_all(Microcraft.Catalog.Product)
+  Repo.delete_all(Microcraft.Inventory.Movement)
+  Repo.delete_all(Microcraft.Inventory.MaterialAllergen)
+  Repo.delete_all(Microcraft.Inventory.Material)
+  Repo.delete_all(Microcraft.Inventory.Allergen)
+  Repo.delete_all(Microcraft.CRM.Customer)
+  Repo.delete_all(Microcraft.Accounts.User)
+  Repo.delete_all(Microcraft.Settings.Settings)
 
   # Create users
   create_user = fn email, role ->

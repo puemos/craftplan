@@ -1,4 +1,4 @@
-defmodule CraftScaleWeb.CoreComponents do
+defmodule MicrocraftWeb.CoreComponents do
   @moduledoc """
   Provides core UI components.
 
@@ -15,9 +15,9 @@ defmodule CraftScaleWeb.CoreComponents do
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
   use Phoenix.Component
-  use Gettext, backend: CraftScale.Gettext
+  use Gettext, backend: Microcraft.Gettext
 
-  import CraftScaleWeb.HtmlHelpers
+  import MicrocraftWeb.HtmlHelpers
 
   alias Phoenix.HTML.FormField
   alias Phoenix.LiveView.JS
@@ -1081,9 +1081,9 @@ defmodule CraftScaleWeb.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(CraftScale.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Microcraft.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(CraftScale.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Microcraft.Gettext, "errors", msg, opts)
     end
   end
 

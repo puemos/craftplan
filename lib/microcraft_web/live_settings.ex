@@ -1,9 +1,9 @@
-defmodule CraftScaleWeb.LiveSettings do
+defmodule MicrocraftWeb.LiveSettings do
   @moduledoc """
   Helpers for authenticating users in LiveViews.
   """
 
-  use CraftScaleWeb, :verified_routes
+  use MicrocraftWeb, :verified_routes
 
   import Phoenix.Component
 
@@ -12,12 +12,12 @@ defmodule CraftScaleWeb.LiveSettings do
       {:cont, socket}
     else
       settings =
-        case CraftScale.Settings.get() do
+        case Microcraft.Settings.get() do
           {:ok, settings} ->
             settings
 
           {:error, _error} ->
-            CraftScale.Settings.init!()
+            Microcraft.Settings.init!()
         end
 
       socket = assign(socket, :settings, settings)

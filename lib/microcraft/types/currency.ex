@@ -1,4 +1,4 @@
-defmodule CraftScale.Types.Currency do
+defmodule Microcraft.Types.Currency do
   @moduledoc false
   use Ash.Type.Enum,
     values: [

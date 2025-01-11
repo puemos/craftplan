@@ -2,7 +2,7 @@ defmodule Storybook.CoreComponents.Header do
   @moduledoc false
   use PhoenixStorybook.Story, :component
 
-  alias CraftScaleWeb.CoreComponents
+  alias MicrocraftWeb.CoreComponents
 
   def function, do: &CoreComponents.header/1
   def imports, do: [{CoreComponents, button: 1}]

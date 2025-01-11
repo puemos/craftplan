@@ -1,7 +1,7 @@
-defmodule CraftScaleWeb.HtmlHelpers do
+defmodule MicrocraftWeb.HtmlHelpers do
   @moduledoc false
 
-  alias CraftScale.Types.Unit
+  alias Microcraft.Types.Unit
 
   def format_percentage(value) do
     format_percentage(value, [])

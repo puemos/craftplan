@@ -1,12 +1,12 @@
-defmodule CraftScaleWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :craftscale
+defmodule MicrocraftWeb.Endpoint do
+  use Phoenix.Endpoint, otp_app: :microcraft
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_craftscale_key",
+    key: "_microcraft_key",
     signing_salt: "qsdH+y3l",
     same_site: "Lax"
   ]
@@ -21,9 +21,9 @@ defmodule CraftScaleWeb.Endpoint do
   # when deploying your static files in production.
   plug Plug.Static,
     at: "/",
-    from: :craftscale,
+    from: :microcraft,
     gzip: false,
-    only: CraftScaleWeb.static_paths()
+    only: MicrocraftWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
@@ -31,7 +31,7 @@ defmodule CraftScaleWeb.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
-    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :craftscale
+    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :microcraft
   end
 
   plug Phoenix.LiveDashboard.RequestLogger,
@@ -49,5 +49,5 @@ defmodule CraftScaleWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug CraftScaleWeb.Router
+  plug MicrocraftWeb.Router
 end

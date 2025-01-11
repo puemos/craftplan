@@ -1,17 +1,17 @@
-defmodule CraftScale.CRM.Customer do
+defmodule Microcraft.CRM.Customer do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.CRM,
+    otp_app: :microcraft,
+    domain: Microcraft.CRM,
     data_layer: AshPostgres.DataLayer
 
-  alias CraftScale.CRM.Address
+  alias Microcraft.CRM.Address
 
   require Ash.Resource.Preparation.Builtins
 
   postgres do
     table "crm_customers"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -80,7 +80,7 @@ defmodule CraftScale.CRM.Customer do
   end
 
   relationships do
-    has_many :orders, CraftScale.Orders.Order
+    has_many :orders, Microcraft.Orders.Order
   end
 
   calculations do

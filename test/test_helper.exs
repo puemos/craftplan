@@ -1,2 +1,2 @@
 ExUnit.start()
-Ecto.Adapters.SQL.Sandbox.mode(CraftScale.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Microcraft.Repo, :manual)

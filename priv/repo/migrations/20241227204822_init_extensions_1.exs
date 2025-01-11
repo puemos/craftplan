@@ -1,4 +1,4 @@
-defmodule CraftScale.Repo.Migrations.InitExtensions1 do
+defmodule Microcraft.Repo.Migrations.InitExtensions1 do
   @moduledoc """
   Installs any extensions that are mentioned in the repo's `installed_extensions/0` callback
 

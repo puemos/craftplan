@@ -1,8 +1,8 @@
-defmodule CraftScaleWeb.SettingsLive.Index do
+defmodule MicrocraftWeb.SettingsLive.Index do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.Settings
+  alias Microcraft.Settings
 
   @impl true
   def render(assigns) do
@@ -15,7 +15,7 @@ defmodule CraftScaleWeb.SettingsLive.Index do
 
     <div class="max-w-lg">
       <.live_component
-        module={CraftScaleWeb.SettingsLive.FormComponent}
+        module={MicrocraftWeb.SettingsLive.FormComponent}
         id="settings-form"
         current_user={@current_user}
         title={@page_title}
@@ -47,7 +47,7 @@ defmodule CraftScaleWeb.SettingsLive.Index do
   end
 
   @impl true
-  def handle_info({CraftScaleWeb.SettingsLive.FormComponent, {:saved, settings}}, socket) do
+  def handle_info({MicrocraftWeb.SettingsLive.FormComponent, {:saved, settings}}, socket) do
     {:noreply, assign(socket, :settings, settings)}
   end
 end

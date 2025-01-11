@@ -1,4 +1,4 @@
-defmodule CraftScaleWeb.OrderLive.Helpers do
+defmodule MicrocraftWeb.OrderLive.Helpers do
   @moduledoc false
   def available_status_transitions(current_status) do
     case current_status do

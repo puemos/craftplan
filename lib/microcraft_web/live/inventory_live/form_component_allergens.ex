@@ -1,6 +1,6 @@
-defmodule CraftScaleWeb.InventoryLive.FormComponentAllergens do
+defmodule MicrocraftWeb.InventoryLive.FormComponentAllergens do
   @moduledoc false
-  use CraftScaleWeb, :live_component
+  use MicrocraftWeb, :live_component
 
   alias AshPhoenix.Form
 

@@ -1,10 +1,10 @@
-defmodule CraftScaleWeb.OrderLive.Index do
+defmodule MicrocraftWeb.OrderLive.Index do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.Catalog
-  alias CraftScale.CRM
-  alias CraftScale.Orders
+  alias Microcraft.Catalog
+  alias Microcraft.CRM
+  alias Microcraft.Orders
 
   @impl true
   def render(assigns) do
@@ -51,7 +51,7 @@ defmodule CraftScaleWeb.OrderLive.Index do
       on_cancel={JS.patch(~p"/manage/orders")}
     >
       <.live_component
-        module={CraftScaleWeb.OrderLive.FormComponent}
+        module={MicrocraftWeb.OrderLive.FormComponent}
         id={(@order && @order.id) || :new}
         current_user={@current_user}
         title={@page_title}
@@ -121,7 +121,7 @@ defmodule CraftScaleWeb.OrderLive.Index do
   end
 
   @impl true
-  def handle_info({CraftScaleWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
+  def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
     order = Ash.load!(order, [:items, :total_cost, customer: [:full_name]])
 
     {:noreply, stream_insert(socket, :orders, order)}

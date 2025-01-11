@@ -1,8 +1,8 @@
-defmodule CraftScaleWeb.InventoryLive.Index do
+defmodule MicrocraftWeb.InventoryLive.Index do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.Inventory
+  alias Microcraft.Inventory
 
   @impl true
   def render(assigns) do
@@ -69,7 +69,7 @@ defmodule CraftScaleWeb.InventoryLive.Index do
       on_cancel={JS.patch(~p"/manage/inventory")}
     >
       <.live_component
-        module={CraftScaleWeb.InventoryLive.FormComponentMaterial}
+        module={MicrocraftWeb.InventoryLive.FormComponentMaterial}
         id={(@material && @material.id) || :new}
         current_user={@current_user}
         title={@page_title}

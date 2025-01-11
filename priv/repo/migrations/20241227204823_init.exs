@@ -1,4 +1,4 @@
-defmodule CraftScale.Repo.Migrations.Init do
+defmodule Microcraft.Repo.Migrations.Init do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

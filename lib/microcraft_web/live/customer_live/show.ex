@@ -1,8 +1,8 @@
-defmodule CraftScaleWeb.CustomerLive.Show do
+defmodule MicrocraftWeb.CustomerLive.Show do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.CRM
+  alias Microcraft.CRM
 
   @impl true
   def render(assigns) do

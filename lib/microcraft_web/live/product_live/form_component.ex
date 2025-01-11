@@ -1,8 +1,8 @@
-defmodule CraftScaleWeb.ProductLive.FormComponent do
+defmodule MicrocraftWeb.ProductLive.FormComponent do
   @moduledoc false
-  use CraftScaleWeb, :live_component
+  use MicrocraftWeb, :live_component
 
-  alias CraftScale.Inventory
+  alias Microcraft.Inventory
 
   @impl true
   def render(assigns) do
@@ -80,7 +80,7 @@ defmodule CraftScaleWeb.ProductLive.FormComponent do
           actor: socket.assigns.current_user
         )
       else
-        AshPhoenix.Form.for_create(CraftScale.Catalog.Product, :create,
+        AshPhoenix.Form.for_create(Microcraft.Catalog.Product, :create,
           as: "product",
           actor: socket.assigns.current_user
         )

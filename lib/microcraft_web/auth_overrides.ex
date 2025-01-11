@@ -1,4 +1,4 @@
-defmodule CraftScaleWeb.AuthOverrides do
+defmodule MicrocraftWeb.AuthOverrides do
   @moduledoc false
   use AshAuthentication.Phoenix.Overrides
 

@@ -1,5 +1,5 @@
-defmodule CraftScaleWeb.Router do
-  use CraftScaleWeb, :router
+defmodule MicrocraftWeb.Router do
+  use MicrocraftWeb, :router
   use AshAuthentication.Phoenix.Router
 
   import PhoenixStorybook.Router
@@ -10,7 +10,7 @@ defmodule CraftScaleWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, html: {CraftScaleWeb.Layouts, :root}
+    plug :put_root_layout, html: {MicrocraftWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
@@ -21,16 +21,16 @@ defmodule CraftScaleWeb.Router do
     plug :load_from_bearer
   end
 
-  scope "/", CraftScaleWeb do
+  scope "/", MicrocraftWeb do
     pipe_through :browser
 
     ash_authentication_live_session :admin_routes,
-      on_mount: [CraftScaleWeb.LiveSettings, {CraftScaleWeb.LiveUserAuth, :live_admin_required}] do
+      on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_admin_required}] do
       live "/manage/settings", SettingsLive.Index, :index
     end
 
     ash_authentication_live_session :manage_routes,
-      on_mount: [CraftScaleWeb.LiveSettings, {CraftScaleWeb.LiveUserAuth, :live_staff_required}] do
+      on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_staff_required}] do
       live "/manage/products", ProductLive.Index, :index
       live "/manage/products/new", ProductLive.Index, :new
       live "/manage/products/:id", ProductLive.Show, :show
@@ -55,48 +55,48 @@ defmodule CraftScaleWeb.Router do
       # in each liveview, add one of the following at the top of the module:
       #
       # If an authenticated user must be present:
-      # on_mount {CraftScaleWeb.LiveUserAuth, :live_user_required}
+      # on_mount {MicrocraftWeb.LiveUserAuth, :live_user_required}
       #
       # If an authenticated user *may* be present:
-      # on_mount {CraftScaleWeb.LiveUserAuth, :live_user_optional}
+      # on_mount {MicrocraftWeb.LiveUserAuth, :live_user_optional}
       #
       # If an authenticated user must *not* be present:
-      # on_mount {CraftScaleWeb.LiveUserAuth, :live_no_user}
+      # on_mount {MicrocraftWeb.LiveUserAuth, :live_no_user}
     end
   end
 
-  scope "/", CraftScaleWeb do
+  scope "/", MicrocraftWeb do
     pipe_through :browser
 
     get "/", PageController, :home
-    auth_routes AuthController, CraftScale.Accounts.User, path: "/auth"
+    auth_routes AuthController, Microcraft.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
     # Remove these if you'd like to use your own authentication views
     sign_in_route register_path: "/register",
                   reset_path: "/reset",
                   auth_routes_prefix: "/auth",
-                  on_mount: [{CraftScaleWeb.LiveUserAuth, :live_no_user}],
+                  on_mount: [{MicrocraftWeb.LiveUserAuth, :live_no_user}],
                   overrides: [
-                    CraftScaleWeb.AuthOverrides,
+                    MicrocraftWeb.AuthOverrides,
                     Default
                   ]
 
     # Remove this if you do not want to use the reset password feature
     reset_route auth_routes_prefix: "/auth",
                 overrides: [
-                  CraftScaleWeb.AuthOverrides,
+                  MicrocraftWeb.AuthOverrides,
                   Default
                 ]
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", CraftScaleWeb do
+  # scope "/api", MicrocraftWeb do
   #   pipe_through :api
   # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
-  if Application.compile_env(:craftscale, :dev_routes) do
+  if Application.compile_env(:microcraft, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
     # If your application does not have an admins-only section yet,
@@ -107,7 +107,7 @@ defmodule CraftScaleWeb.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: CraftScaleWeb.Telemetry
+      live_dashboard "/dashboard", metrics: MicrocraftWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
 
@@ -115,9 +115,9 @@ defmodule CraftScaleWeb.Router do
       storybook_assets()
     end
 
-    scope "/", Elixir.CraftScaleWeb do
+    scope "/", Elixir.MicrocraftWeb do
       pipe_through(:browser)
-      live_storybook("/storybook", backend_module: Elixir.CraftScaleWeb.Storybook)
+      live_storybook("/storybook", backend_module: Elixir.MicrocraftWeb.Storybook)
     end
   end
 end

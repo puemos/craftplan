@@ -1,13 +1,13 @@
-defmodule CraftScale.Settings.Settings do
+defmodule Microcraft.Settings.Settings do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Settings,
+    otp_app: :microcraft,
+    domain: Microcraft.Settings,
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "settings"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -27,7 +27,7 @@ defmodule CraftScale.Settings.Settings do
   attributes do
     uuid_primary_key :id
 
-    attribute :currency, CraftScale.Types.Currency do
+    attribute :currency, Microcraft.Types.Currency do
       public? true
       allow_nil? false
       default :USD

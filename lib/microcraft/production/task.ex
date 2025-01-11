@@ -1,13 +1,13 @@
-defmodule CraftScale.Production.Task do
+defmodule Microcraft.Production.Task do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Production,
+    otp_app: :microcraft,
+    domain: Microcraft.Production,
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "production_tasks"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -22,7 +22,7 @@ defmodule CraftScale.Production.Task do
       constraints min_length: 2
     end
 
-    attribute :status, CraftScale.Production.Task.Types.Status do
+    attribute :status, Microcraft.Production.Task.Types.Status do
       allow_nil? false
       default :pending
     end
@@ -35,7 +35,7 @@ defmodule CraftScale.Production.Task do
   end
 
   relationships do
-    belongs_to :product, CraftScale.Catalog.Product do
+    belongs_to :product, Microcraft.Catalog.Product do
       allow_nil? false
     end
   end

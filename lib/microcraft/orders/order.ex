@@ -1,13 +1,13 @@
-defmodule CraftScale.Orders.Order do
+defmodule Microcraft.Orders.Order do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Orders,
+    otp_app: :microcraft,
+    domain: Microcraft.Orders,
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "orders_orders"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -55,7 +55,7 @@ defmodule CraftScale.Orders.Order do
       allow_nil? false
     end
 
-    attribute :status, CraftScale.Orders.Order.Types.Status do
+    attribute :status, Microcraft.Orders.Order.Types.Status do
       allow_nil? false
       default :pending
     end
@@ -64,11 +64,11 @@ defmodule CraftScale.Orders.Order do
   end
 
   relationships do
-    has_many :items, CraftScale.Orders.OrderItem
+    has_many :items, Microcraft.Orders.OrderItem
 
-    belongs_to :customer, CraftScale.CRM.Customer do
+    belongs_to :customer, Microcraft.CRM.Customer do
       allow_nil? false
-      domain CraftScale.CRM
+      domain Microcraft.CRM
     end
   end
 

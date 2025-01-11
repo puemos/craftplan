@@ -1,10 +1,10 @@
-defmodule CraftScaleWeb.OrderLive.Show do
+defmodule MicrocraftWeb.OrderLive.Show do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.Catalog
-  alias CraftScale.CRM
-  alias CraftScale.Orders
+  alias Microcraft.Catalog
+  alias Microcraft.CRM
+  alias Microcraft.Orders
 
   @default_order_load [
     :total_cost,
@@ -93,7 +93,7 @@ defmodule CraftScaleWeb.OrderLive.Show do
       on_cancel={JS.patch(~p"/manage/orders/#{@order.id}")}
     >
       <.live_component
-        module={CraftScaleWeb.OrderLive.FormComponent}
+        module={MicrocraftWeb.OrderLive.FormComponent}
         id={(@order && @order.id) || :new}
         current_user={@current_user}
         title={@page_title}
@@ -141,7 +141,7 @@ defmodule CraftScaleWeb.OrderLive.Show do
   end
 
   @impl true
-  def handle_info({CraftScaleWeb.OrderLive.FormComponentItems, {:saved, _}}, socket) do
+  def handle_info({MicrocraftWeb.OrderLive.FormComponentItems, {:saved, _}}, socket) do
     order =
       Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
 
@@ -152,7 +152,7 @@ defmodule CraftScaleWeb.OrderLive.Show do
      |> push_event("close-modal", %{id: "order-item-modal"})}
   end
 
-  def handle_info({CraftScaleWeb.OrderLive.FormComponent, {:saved, _}}, socket) do
+  def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, _}}, socket) do
     order =
       Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
 

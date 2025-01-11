@@ -1,4 +1,4 @@
-defmodule CraftScale.CRM.Address do
+defmodule Microcraft.CRM.Address do
   @moduledoc false
   use Ash.Resource,
     data_layer: :embedded,

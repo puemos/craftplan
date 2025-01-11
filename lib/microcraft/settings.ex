@@ -1,9 +1,9 @@
-defmodule CraftScale.Settings do
+defmodule Microcraft.Settings do
   @moduledoc false
   use Ash.Domain
 
   resources do
-    resource CraftScale.Settings.Settings do
+    resource Microcraft.Settings.Settings do
       define :init, action: :init
       define :set, action: :update
       define :get, action: :get

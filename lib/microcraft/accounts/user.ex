@@ -1,8 +1,8 @@
-defmodule CraftScale.Accounts.User do
+defmodule Microcraft.Accounts.User do
   @moduledoc false
   use Ash.Resource,
-    otp_app: :craftscale,
-    domain: CraftScale.Accounts,
+    otp_app: :microcraft,
+    domain: Microcraft.Accounts,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshAuthentication]
@@ -13,8 +13,8 @@ defmodule CraftScale.Accounts.User do
   authentication do
     tokens do
       enabled? true
-      token_resource CraftScale.Accounts.Token
-      signing_secret CraftScale.Secrets
+      token_resource Microcraft.Accounts.Token
+      signing_secret Microcraft.Secrets
       store_all_tokens? true
     end
 
@@ -23,7 +23,7 @@ defmodule CraftScale.Accounts.User do
         identity_field :email
 
         resettable do
-          sender CraftScale.Accounts.User.Senders.SendPasswordResetEmail
+          sender Microcraft.Accounts.User.Senders.SendPasswordResetEmail
         end
 
         # require_confirmed_with(:confirmed_at)
@@ -36,14 +36,14 @@ defmodule CraftScale.Accounts.User do
         confirm_on_create? true
         confirm_on_update? false
         auto_confirm_actions [:sign_in_with_magic_link, :reset_password_with_password]
-        sender CraftScale.Accounts.User.Senders.SendNewUserConfirmationEmail
+        sender Microcraft.Accounts.User.Senders.SendNewUserConfirmationEmail
       end
     end
   end
 
   postgres do
     table "accounts_users"
-    repo CraftScale.Repo
+    repo Microcraft.Repo
   end
 
   actions do
@@ -229,7 +229,7 @@ defmodule CraftScale.Accounts.User do
       sensitive? true
     end
 
-    attribute :role, CraftScale.Accounts.User.Types.Role do
+    attribute :role, Microcraft.Accounts.User.Types.Role do
       allow_nil? false
       public? true
       default :customer

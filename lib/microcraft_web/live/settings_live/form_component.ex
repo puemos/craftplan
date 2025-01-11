@@ -1,6 +1,6 @@
-defmodule CraftScaleWeb.SettingsLive.FormComponent do
+defmodule MicrocraftWeb.SettingsLive.FormComponent do
   @moduledoc false
-  use CraftScaleWeb, :live_component
+  use MicrocraftWeb, :live_component
 
   @impl true
   def render(assigns) do
@@ -66,7 +66,7 @@ defmodule CraftScaleWeb.SettingsLive.FormComponent do
 
   defp currency_options do
     [{"US Dollar", :USD}, {"Euro", :EUR}] ++
-      (CraftScale.Types.Currency.values()
+      (Microcraft.Types.Currency.values()
        |> Enum.reject(fn code -> code in [:USD, :EUR] end)
        |> Enum.map(fn code ->
          case Money.Currency.currency_for_code(code) do

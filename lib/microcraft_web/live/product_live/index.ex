@@ -1,8 +1,8 @@
-defmodule CraftScaleWeb.ProductLive.Index do
+defmodule MicrocraftWeb.ProductLive.Index do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
-  alias CraftScale.Catalog
+  alias Microcraft.Catalog
 
   @impl true
   def render(assigns) do
@@ -78,7 +78,7 @@ defmodule CraftScaleWeb.ProductLive.Index do
       on_cancel={JS.patch(~p"/manage/products")}
     >
       <.live_component
-        module={CraftScaleWeb.ProductLive.FormComponent}
+        module={MicrocraftWeb.ProductLive.FormComponent}
         id={(@product && @product.id) || :new}
         title={@page_title}
         action={@live_action}
@@ -135,7 +135,7 @@ defmodule CraftScaleWeb.ProductLive.Index do
   end
 
   @impl true
-  def handle_info({CraftScaleWeb.ProductLive.FormComponent, {:saved, product}}, socket) do
+  def handle_info({MicrocraftWeb.ProductLive.FormComponent, {:saved, product}}, socket) do
     product = Ash.load!(product, [:materials_cost, :markup_percentage, :gross_profit])
 
     {:noreply, stream_insert(socket, :products, product)}

@@ -1,6 +1,6 @@
-defmodule CraftScaleWeb.CustomerLive.Index do
+defmodule MicrocraftWeb.CustomerLive.Index do
   @moduledoc false
-  use CraftScaleWeb, :live_view
+  use MicrocraftWeb, :live_view
 
   @impl true
   def render(assigns) do
@@ -44,7 +44,7 @@ defmodule CraftScaleWeb.CustomerLive.Index do
       on_cancel={JS.patch(~p"/manage/customers")}
     >
       <.live_component
-        module={CraftScaleWeb.CustomerLive.FormComponent}
+        module={MicrocraftWeb.CustomerLive.FormComponent}
         id={(@customer && @customer.id) || :new}
         current_user={@current_user}
         title={@page_title}
@@ -63,7 +63,7 @@ defmodule CraftScaleWeb.CustomerLive.Index do
      socket
      |> stream(
        :customers,
-       Ash.read!(CraftScale.CRM.Customer,
+       Ash.read!(Microcraft.CRM.Customer,
          actor: socket.assigns[:current_user],
          load: [:billing_address, :shipping_address, :full_name]
        )
@@ -81,7 +81,7 @@ defmodule CraftScaleWeb.CustomerLive.Index do
     |> assign(:page_title, "Edit Customer")
     |> assign(
       :customer,
-      CraftScale.CRM.get_customer_by_id!(id,
+      Microcraft.CRM.get_customer_by_id!(id,
         actor: socket.assigns.current_user,
         load: [:billing_address, :shipping_address]
       )
@@ -101,7 +101,7 @@ defmodule CraftScaleWeb.CustomerLive.Index do
   end
 
   @impl true
-  def handle_info({{CraftScaleWeb.CustomerLive.FormComponent, :saved, customer}}, socket) do
+  def handle_info({{MicrocraftWeb.CustomerLive.FormComponent, :saved, customer}}, socket) do
     {:noreply, stream_insert(socket, :customers, customer)}
   end
 

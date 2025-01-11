@@ -1,5 +1,5 @@
-defmodule CraftScaleWeb.PageControllerTest do
-  use CraftScaleWeb.ConnCase
+defmodule MicrocraftWeb.PageControllerTest do
+  use MicrocraftWeb.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")

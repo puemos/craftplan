@@ -1,5 +1,5 @@
-defmodule CraftScaleWeb.AuthController do
-  use CraftScaleWeb, :controller
+defmodule MicrocraftWeb.AuthController do
+  use MicrocraftWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
   def success(conn, activity, user, _token) do
