@@ -1,11 +1,13 @@
 <div align="center">
-  <h1>Microcraft</h1>
   <img src="priv/static/images/favicon.svg" width="100" />
+  <h1>Microcraft</h1>
   <p>
     Modern software built for managing artisanal micro-scale craft businesses.
   </p>
 </div>
-
+<br>
+<br>
+<br>
 ## Overview
 
 Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
