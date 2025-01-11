@@ -89,7 +89,9 @@ defmodule CraftScale.CRM.Customer do
 
   aggregates do
     count :total_orders, :orders
-    sum :total_orders_value, [:orders, :items], :cost
+
+    sum :total_orders_value, [:orders, :items], :cost do
+    end
   end
 
   identities do

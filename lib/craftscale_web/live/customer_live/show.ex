@@ -95,16 +95,11 @@ defmodule CraftScaleWeb.CustomerLive.Show do
         >
           <div class="mt-6 space-y-8">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <.stat_card
-                title="Total Orders"
-                value={@customer.total_orders}
-                description="All time orders"
-              />
+              <.stat_card title="Total Orders" value={@customer.total_orders} />
 
               <.stat_card
                 title="Total Spent"
-                value={{format_money(@settings.currency, @customer.total_orders_value)}}
-                description="All time purchases"
+                value={format_money(@settings.currency, @customer.total_orders_value)}
               />
             </div>
 

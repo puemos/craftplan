@@ -288,7 +288,7 @@ defmodule CraftScaleWeb.CoreComponents do
 
   def stat_card(assigns) do
     ~H"""
-    <div class="bg-stone-200/30 rounded-lg border border-stone-200 p-2">
+    <div class="rounded-lg border border-stone-200 p-2">
       <dt :if={@title} class="text-sm font-medium text-stone-500">{@title}</dt>
       <dd class="mt-1">
         <div class="text-xl text-stone-900">{@value}</div>

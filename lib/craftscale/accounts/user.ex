@@ -114,6 +114,10 @@ defmodule CraftScale.Accounts.User do
         allow_nil? false
       end
 
+      argument :role, :atom do
+        default :customer
+      end
+
       argument :password, :string do
         description "The proposed password for the user, in plain text."
         allow_nil? false
@@ -129,6 +133,8 @@ defmodule CraftScale.Accounts.User do
 
       # Sets the email from the argument
       change set_attribute(:email, arg(:email))
+
+      change set_attribute(:role, arg(:role))
 
       # Hashes the provided password
       change HashPasswordChange
