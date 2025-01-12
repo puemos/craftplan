@@ -32,7 +32,65 @@ defmodule Microcraft.Orders.Order do
     end
 
     read :list do
-      prepare build(sort: [delivery_date: :desc])
+      prepare build(sort: [delivery_date: :asc], load: [:customer])
+
+      argument :status, {:array, :atom} do
+        allow_nil? true
+        default nil
+
+        constraints items: [
+                      one_of: [
+                        :unconfirmed,
+                        :confirmed,
+                        :in_process,
+                        :ready,
+                        :delivered,
+                        :completed,
+                        :cancelled
+                      ]
+                    ]
+      end
+
+      argument :payment_status, {:array, :atom} do
+        allow_nil? true
+        default nil
+
+        constraints items: [
+                      one_of: [
+                        :pending,
+                        :paid,
+                        :to_be_refunded,
+                        :refunded
+                      ]
+                    ]
+      end
+
+      argument :delivery_date_start, :utc_datetime do
+        allow_nil? true
+        default nil
+      end
+
+      argument :delivery_date_end, :utc_datetime do
+        allow_nil? true
+        default nil
+      end
+
+      argument :customer_name, :string do
+        allow_nil? true
+        default nil
+      end
+
+      filter expr(is_nil(^arg(:status)) or status in ^arg(:status))
+      filter expr(is_nil(^arg(:payment_status)) or payment_status in ^arg(:payment_status))
+
+      filter expr(is_nil(^arg(:delivery_date_start)) or delivery_date >= ^arg(:delivery_date_start))
+
+      filter expr(is_nil(^arg(:delivery_date_end)) or delivery_date <= ^arg(:delivery_date_end))
+
+      filter expr(
+               is_nil(^arg(:customer_name)) or
+                 fragment("? ILIKE ?", customer.full_name, "%" <> ^arg(:customer_name) <> "%")
+             )
 
       pagination do
         required? false
@@ -43,7 +101,7 @@ defmodule Microcraft.Orders.Order do
     end
 
     read :keyset do
-      prepare build(sort: [delivery_date: :desc])
+      prepare build(sort: [delivery_date: :asc])
       pagination keyset?: true
     end
   end
@@ -73,9 +131,31 @@ defmodule Microcraft.Orders.Order do
       allow_nil? false
     end
 
-    attribute :status, Microcraft.Orders.Order.Types.Status do
+    attribute :status, :atom do
       allow_nil? false
-      default :created
+      default :unconfirmed
+
+      constraints one_of: [
+                    :unconfirmed,
+                    :confirmed,
+                    :in_process,
+                    :ready,
+                    :delivered,
+                    :completed,
+                    :cancelled
+                  ]
+    end
+
+    attribute :payment_status, :atom do
+      allow_nil? false
+      default :pending
+
+      constraints one_of: [
+                    :pending,
+                    :paid,
+                    :to_be_refunded,
+                    :refunded
+                  ]
     end
 
     timestamps()

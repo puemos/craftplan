@@ -29,9 +29,11 @@ defmodule MicrocraftWeb.ProductLive.FormComponent do
           type="radiogroup"
           label="Status"
           options={[
-            {"Idea", :idea},
-            {"Experiment", :experiment},
-            {"For Sale", :for_sale},
+            {"Draft", :draft},
+            {"Testing", :testing},
+            {"Active", :active},
+            {"Paused", :paused},
+            {"Discontinued", :discontinued},
             {"Archived", :archived}
           ]}
         />

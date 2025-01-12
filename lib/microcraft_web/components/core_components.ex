@@ -529,7 +529,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox checkgroup color date datetime-local email file month number password
+    values: ~w(checkbox checkdrop checkgroup color date datetime-local email file month number password
                range search select tel text textarea time url week radiogroup hidden)
 
   attr :field, FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -622,6 +622,98 @@ defmodule MicrocraftWeb.CoreComponents do
       </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </fieldset>
+    """
+  end
+
+  def input(%{type: "checkdrop", options: options} = assigns) when is_list(options) do
+    assigns =
+      assign_new(assigns, :list_value, fn ->
+        if is_list(assigns[:value]), do: assigns[:value], else: []
+      end)
+
+    ~H"""
+    <div
+      phx-click-away={JS.hide(to: "##{@id}-dropdown")}
+      class="relative"
+      title={selected_labels(@options, @list_value, @rest[:placeholder])}
+    >
+      <fieldset
+        phx-feedback-for={@name}
+        required={@rest[:required]}
+        class="relative"
+        style="min-inline-size: auto"
+      >
+        <.label :if={@label} for={@id}>
+          {@label}
+        </.label>
+
+        <button
+          type="button"
+          phx-click={
+            JS.toggle(to: "##{@id}-dropdown")
+            |> JS.toggle_class("rotate-180", to: "##{@id}-chevron")
+          }
+          class={[
+            "relative mt-2 w-full cursor-default rounded-md py-1.5 pr-10 pl-3 text-left text-sm leading-6",
+            "border focus:outline-none focus:ring-1 focus:ring-stone-400",
+            @errors == [] && "border-stone-300",
+            @errors != [] && "border-rose-400"
+          ]}
+        >
+          <span class={[
+            "block w-full overflow-hidden text-ellipsis whitespace-nowrap",
+            if(Enum.empty?(@list_value), do: "text-gray-500")
+          ]}>
+            {selected_labels(@options, @list_value, @rest[:placeholder])}
+          </span>
+
+          <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+            <svg
+              class="h-5 w-5 transform text-gray-400 transition-transform duration-200"
+              id={"#{@id}-chevron"}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </span>
+        </button>
+
+        <div
+          id={"#{@id}-dropdown"}
+          class={[
+            "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1",
+            "text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm",
+            "hidden transform transition-all duration-200 ease-out"
+          ]}
+        >
+          <div class="w-full space-y-1 p-2">
+            <label
+              :for={{label, value} <- @options}
+              class="relative flex w-full cursor-pointer select-none items-center rounded-md px-3 py-2 transition-colors duration-150 hover:bg-stone-100"
+            >
+              <input
+                type="checkbox"
+                id={"#{@name}-#{value}"}
+                name={@name}
+                value={value}
+                checked={value in @list_value}
+                class="h-4 w-4 flex-shrink-0 rounded border-stone-300 text-blue-600 focus:ring-blue-600"
+              />
+              <span class="ml-3 block truncate text-sm font-medium text-gray-700">
+                {label}
+              </span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
     """
   end
 
@@ -810,13 +902,13 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def badge(assigns) do
     key = if is_atom(assigns.text), do: assigns.text, else: :default
-    color_class = Keyword.get(assigns.colors, key, "bg-stone-100 text-stone-700")
+    color_class = Keyword.get(assigns.colors, key, "bg-stone-100 text-stone-700 border-stone-300")
 
     assigns = assign(assigns, :color_class, color_class)
 
     ~H"""
     <span class={[
-      "inline-flex rounded-full border border-stone-300 px-2 text-xs font-normal capitalize leading-5",
+      "inline-flex rounded-full border px-2 text-xs font-normal capitalize leading-5",
       @color_class
     ]}>
       {format_label(@text)}
@@ -858,8 +950,8 @@ defmodule MicrocraftWeb.CoreComponents do
       end
 
     ~H"""
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 border-collapse sm:w-full">
+    <div class="table-fixed overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+      <table class="w-[40rem] mt-11 table-fixed border-collapse sm:w-full ">
         <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
           <tr>
             <th
@@ -1064,6 +1156,16 @@ defmodule MicrocraftWeb.CoreComponents do
     |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
+  end
+
+  defp selected_labels(options, selected_values, placeholder) do
+    options
+    |> Enum.filter(fn {_label, value} -> value in selected_values end)
+    |> Enum.map(fn {label, _value} -> label end)
+    |> case do
+      [] -> placeholder || "Select options..."
+      selected -> Enum.join(selected, ", ")
+    end
   end
 
   @doc """

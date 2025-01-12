@@ -14,11 +14,17 @@ defmodule MicrocraftWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug :put_session_timezone
   end
 
   pipeline :api do
     plug :accepts, ["json"]
     plug :load_from_bearer
+  end
+
+  def put_session_timezone(conn, _opts) do
+    timezone = conn.cookies["timezone"]
+    put_session(conn, "timezone", timezone)
   end
 
   scope "/", MicrocraftWeb do
@@ -33,24 +39,24 @@ defmodule MicrocraftWeb.Router do
       on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_staff_required}] do
       live "/manage/products", ProductLive.Index, :index
       live "/manage/products/new", ProductLive.Index, :new
-      live "/manage/products/:id", ProductLive.Show, :show
-      live "/manage/products/:id/edit", ProductLive.Show, :edit
+      live "/manage/products/:sku", ProductLive.Show, :show
+      live "/manage/products/:sku/edit", ProductLive.Show, :edit
 
       live "/manage/inventory", InventoryLive.Index, :index
       live "/manage/inventory/new", InventoryLive.Index, :new
-      live "/manage/inventory/:id", InventoryLive.Show, :show
-      live "/manage/inventory/:id/edit", InventoryLive.Show, :edit
-      live "/manage/inventory/:id/adjust", InventoryLive.Show, :adjust
+      live "/manage/inventory/:sku", InventoryLive.Show, :show
+      live "/manage/inventory/:sku/edit", InventoryLive.Show, :edit
+      live "/manage/inventory/:sku/adjust", InventoryLive.Show, :adjust
 
       live "/manage/orders", OrderLive.Index, :index
       live "/manage/orders/new", OrderLive.Index, :new
-      live "/manage/orders/:id/edit", OrderLive.Show, :edit
-      live "/manage/orders/:id", OrderLive.Show, :show
+      live "/manage/orders/:reference/edit", OrderLive.Show, :edit
+      live "/manage/orders/:reference", OrderLive.Show, :show
 
       live "/manage/customers", CustomerLive.Index, :index
       live "/manage/customers/new", CustomerLive.Index, :new
-      live "/manage/customers/:id/edit", CustomerLive.Index, :edit
-      live "/manage/customers/:id", CustomerLive.Show, :show
+      live "/manage/customers/:reference/edit", CustomerLive.Index, :edit
+      live "/manage/customers/:reference", CustomerLive.Show, :show
 
       # in each liveview, add one of the following at the top of the module:
       #

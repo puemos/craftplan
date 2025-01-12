@@ -16,7 +16,9 @@ defmodule Microcraft.Repo.Migrations.AddOrderReferenceId do
   end
 
   def down do
-    drop_if_exists unique_index(:orders_orders, [:reference], name: "orders_orders_reference_index")
+    drop_if_exists unique_index(:orders_orders, [:reference],
+                     name: "orders_orders_reference_index"
+                   )
 
     alter table(:orders_orders) do
       modify :reference, :text

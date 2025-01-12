@@ -18,11 +18,15 @@ defmodule MicrocraftWeb.OrderLive.Show do
     <.header>
       <.breadcrumb>
         <:crumb label="All Orders" path={~p"/manage/orders"} current?={false} />
-        <:crumb label={@order.id} path={~p"/manage/orders/#{@order.id}"} current?={true} />
+        <:crumb
+          label={format_reference(@order.reference)}
+          path={~p"/manage/orders/#{@order.reference}"}
+          current?={true}
+        />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/manage/orders/#{@order.id}/edit"} phx-click={JS.push_focus()}>
+        <.link patch={~p"/manage/orders/#{@order.reference}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit order</.button>
         </.link>
       </:actions>
@@ -32,10 +36,16 @@ defmodule MicrocraftWeb.OrderLive.Show do
       <.tabs id="order-tabs">
         <:tab
           label="Details"
-          path={~p"/manage/orders/#{@order.id}?page=details"}
+          path={~p"/manage/orders/#{@order.reference}?page=details"}
           selected?={@page == "details"}
         >
           <.list>
+            <:item title="Reference">
+              <.kbd>
+                {format_reference(@order.reference)}
+              </.kbd>
+            </:item>
+
             <:item title="Status">
               <.badge
                 text={@order.status}
@@ -65,7 +75,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
 
         <:tab
           label="Items"
-          path={~p"/manage/orders/#{@order.id}?page=items"}
+          path={~p"/manage/orders/#{@order.reference}?page=items"}
           selected?={@page == "items"}
         >
           <.table id="order-items" rows={@order.items}>
@@ -86,7 +96,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
       :if={@live_action == :edit}
       id="order-modal"
       show
-      on_cancel={JS.patch(~p"/manage/orders/#{@order.id}")}
+      on_cancel={JS.patch(~p"/manage/orders/#{@order.reference}")}
     >
       <.live_component
         module={MicrocraftWeb.OrderLive.FormComponent}
@@ -98,7 +108,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
         products={@products}
         customers={@customers}
         settings={@settings}
-        patch={~p"/manage/orders/#{@order.id}"}
+        patch={~p"/manage/orders/#{@order.reference}"}
       />
     </.modal>
     """
@@ -121,9 +131,9 @@ defmodule MicrocraftWeb.OrderLive.Show do
   end
 
   @impl true
-  def handle_params(%{"id" => id} = params, _, socket) do
+  def handle_params(%{"reference" => reference} = params, _, socket) do
     order =
-      Orders.get_order_by_id!(id, load: @default_order_load)
+      Orders.get_order_by_reference!(reference, load: @default_order_load)
 
     page = Map.get(params, "page", "details")
 

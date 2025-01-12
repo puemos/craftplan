@@ -23,7 +23,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       id="materials"
       rows={@streams.materials}
       row_id={fn {dom_id, _} -> dom_id end}
-      row_click={fn {_, material} -> JS.navigate(~p"/manage/inventory/#{material.id}") end}
+      row_click={fn {_, material} -> JS.navigate(~p"/manage/inventory/#{material.sku}") end}
     >
       <:empty>
         <div class="block py-4 pr-6">
@@ -47,12 +47,12 @@ defmodule MicrocraftWeb.InventoryLive.Index do
 
       <:action :let={{_, material}}>
         <div class="sr-only">
-          <.link navigate={~p"/manage/inventory/#{material.id}"}>Show</.link>
+          <.link navigate={~p"/manage/inventory/#{material.sku}"}>Show</.link>
         </div>
       </:action>
       <:action :let={{_, material}}>
         <.link
-          phx-click={JS.push("delete", value: %{id: material.id}) |> hide("##{material.id}")}
+          phx-click={JS.push("delete", value: %{id: material.id}) |> hide("##{material.sku}")}
           data-confirm="Are you sure?"
         >
           <.button size={:sm} variant={:danger}>

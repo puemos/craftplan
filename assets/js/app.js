@@ -27,7 +27,9 @@ let csrfToken = document
   .getAttribute("content");
 
 let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-console.log(timeZone);
+
+document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken, timezone: timeZone },

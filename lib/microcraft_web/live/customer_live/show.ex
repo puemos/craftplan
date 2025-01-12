@@ -12,13 +12,13 @@ defmodule MicrocraftWeb.CustomerLive.Show do
         <:crumb label="All Customers" path={~p"/manage/customers"} current?={false} />
         <:crumb
           label={"#{@customer.full_name}"}
-          path={~p"/manage/customers/#{@customer.id}"}
+          path={~p"/manage/customers/#{@customer.reference}"}
           current?={true}
         />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/manage/customers/#{@customer.id}/edit"}>
+        <.link patch={~p"/manage/customers/#{@customer.reference}/edit"}>
           <.button>Edit customer</.button>
         </.link>
       </:actions>
@@ -28,7 +28,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
       <.tabs id="customer-tabs">
         <:tab
           label="Details"
-          path={~p"/manage/customers/#{@customer.id}?page=details"}
+          path={~p"/manage/customers/#{@customer.reference}?page=details"}
           selected?={@page == "details"}
         >
           <div class="mt-8 space-y-8">
@@ -47,13 +47,13 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
         <:tab
           label="Orders"
-          path={~p"/manage/customers/#{@customer.id}?page=orders"}
+          path={~p"/manage/customers/#{@customer.reference}?page=orders"}
           selected?={@page == "orders"}
         >
           <div class="mt-6 space-y-4">
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold">Orders History</h3>
-              <.link navigate={~p"/manage/orders/new?customer_id=#{@customer.id}"}>
+              <.link navigate={~p"/manage/orders/new?customer_id=#{@customer.reference}"}>
                 <.button>New Order</.button>
               </.link>
             </div>
@@ -61,10 +61,10 @@ defmodule MicrocraftWeb.CustomerLive.Show do
             <.table
               id="customer_orders"
               rows={@customer.orders}
-              row_click={fn order -> JS.navigate(~p"/manage/orders/#{order.id}") end}
+              row_click={fn order -> JS.navigate(~p"/manage/orders/#{order.reference}") end}
             >
-              <:col :let={order} label="ID">
-                <.kbd>{order.id}</.kbd>
+              <:col :let={order} label="Reference">
+                <.kbd>{order.reference}</.kbd>
               </:col>
               <:col :let={order} label="Status">
                 <.badge
@@ -75,9 +75,11 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                   ]}
                 />
               </:col>
-
-              <:col :let={order} label="Delivery Date">
+              <:col :let={order} label="Created at">
                 {format_time(order.inserted_at, @time_zone)}
+              </:col>
+              <:col :let={order} label="Delivery Date">
+                {format_time(order.delivery_date, @time_zone)}
               </:col>
               <:col :let={order} label="Total">
                 {format_money(@settings.currency, order.total_cost)}
@@ -88,7 +90,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
         <:tab
           label="Statistics"
-          path={~p"/manage/customers/#{@customer.id}?page=statistics"}
+          path={~p"/manage/customers/#{@customer.reference}?page=statistics"}
           selected?={@page == "statistics"}
         >
           <div class="mt-6 space-y-8">
@@ -99,30 +101,6 @@ defmodule MicrocraftWeb.CustomerLive.Show do
                 title="Total Spent"
                 value={format_money(@settings.currency, @customer.total_orders_value)}
               />
-            </div>
-
-            <div class="space-y-4">
-              <h3 class="text-lg font-semibold">Recent Activity</h3>
-              <div class="space-y-2">
-                <%= for order <- @customer.orders do %>
-                  <div class="flex items-center justify-between rounded-lg bg-white p-4 shadow">
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">
-                        {Calendar.strftime(order.inserted_at, "%Y-%m-%d %H:%M")}
-                      </div>
-                      <div class="font-medium">
-                        Order {order.id}
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                      <.badge text={order.status} />
-                      <span class="font-medium">
-                        {format_money(@settings.currency, order.total_cost)}
-                      </span>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
             </div>
           </div>
         </:tab>
@@ -137,10 +115,10 @@ defmodule MicrocraftWeb.CustomerLive.Show do
   end
 
   @impl true
-  def handle_params(%{"id" => id} = params, _, socket) do
+  def handle_params(%{"reference" => reference} = params, _, socket) do
     customer =
-      CRM.get_customer_by_id!(
-        id,
+      CRM.get_customer_by_reference!(
+        reference,
         actor: socket.assigns.current_user,
         load: [
           :full_name,

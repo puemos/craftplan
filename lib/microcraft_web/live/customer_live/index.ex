@@ -20,7 +20,7 @@ defmodule MicrocraftWeb.CustomerLive.Index do
     <.table
       id="customers"
       rows={@streams.customers}
-      row_click={fn {_id, customer} -> JS.navigate(~p"/manage/customers/#{customer.id}") end}
+      row_click={fn {_id, customer} -> JS.navigate(~p"/manage/customers/#{customer.reference}") end}
     >
       <:empty>
         <div class="block py-4 pr-6">
@@ -30,6 +30,11 @@ defmodule MicrocraftWeb.CustomerLive.Index do
         </div>
       </:empty>
       <:col :let={{_id, customer}} label="Name">{customer.full_name}</:col>
+      <:col :let={{_id, customer}} label="Reference">
+        <.kbd>
+          {format_reference(customer.reference)}
+        </.kbd>
+      </:col>
       <:col :let={{_id, customer}} label="Email">{customer.email}</:col>
       <:col :let={{_id, customer}} label="Phone">{customer.phone}</:col>
       <:col :let={{_id, customer}} label="Type">

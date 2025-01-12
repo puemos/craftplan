@@ -22,7 +22,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
     <.table
       id="products"
       rows={@streams.products}
-      row_click={fn {_, product} -> JS.navigate(~p"/manage/products/#{product.id}") end}
+      row_click={fn {_, product} -> JS.navigate(~p"/manage/products/#{product.sku}") end}
       row_id={fn {dom_id, _} -> dom_id end}
     >
       <:empty>

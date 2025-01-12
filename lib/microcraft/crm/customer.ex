@@ -38,6 +38,26 @@ defmodule Microcraft.CRM.Customer do
   attributes do
     uuid_primary_key :id
 
+    attribute :reference, :string do
+      writable? false
+
+      default fn ->
+        random_str =
+          12
+          |> :crypto.strong_rand_bytes()
+          |> Base.encode32(padding: false, case: :upper)
+          |> String.slice(0..11)
+
+        "CUS_#{random_str}"
+      end
+
+      allow_nil? false
+      generated? true
+
+      constraints match: ~r/^CUS_[A-Z0-9]{12}$/,
+                  allow_empty?: false
+    end
+
     attribute :type, :atom do
       allow_nil? false
       public? true
@@ -95,7 +115,8 @@ defmodule Microcraft.CRM.Customer do
   end
 
   identities do
-    identity :unique_phone, [:phone]
-    identity :unique_email, [:email]
+    identity :phone, [:phone]
+    identity :email, [:email]
+    identity :reference, [:reference]
   end
 end

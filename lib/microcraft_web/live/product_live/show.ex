@@ -10,11 +10,11 @@ defmodule MicrocraftWeb.ProductLive.Show do
     <.header>
       <.breadcrumb>
         <:crumb label="All Products" path={~p"/manage/products"} current?={false} />
-        <:crumb label={@product.name} path={~p"/manage/products/#{@product.id}"} current?={true} />
+        <:crumb label={@product.name} path={~p"/manage/products/#{@product.sku}"} current?={true} />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/manage/products/#{@product.id}/edit"} phx-click={JS.push_focus()}>
+        <.link patch={~p"/manage/products/#{@product.sku}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit product</.button>
         </.link>
       </:actions>
@@ -24,13 +24,13 @@ defmodule MicrocraftWeb.ProductLive.Show do
       <.tabs id="product-tabs">
         <:tab
           label="Details"
-          path={~p"/manage/products/#{@product.id}?page=details"}
+          path={~p"/manage/products/#{@product.sku}?page=details"}
           selected?={@page == "details"}
         >
           <.list>
             <:item title="Status">
               <.badge
-                text={Atom.to_string(@product.status)}
+                text={@product.status}
                 colors={[
                   {@product.status,
                    "#{product_status_color(@product.status)} #{product_status_bg(@product.status)}"}
@@ -72,7 +72,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
 
         <:tab
           label="Recipe"
-          path={~p"/manage/products/#{@product.id}?page=recipe"}
+          path={~p"/manage/products/#{@product.sku}?page=recipe"}
           selected?={@page == "recipe"}
         >
           <.live_component
@@ -83,7 +83,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
             current_user={@current_user}
             settings={@settings}
             materials={@materials_available}
-            patch={~p"/manage/products/#{@product.id}?page=recipe"}
+            patch={~p"/manage/products/#{@product.sku}?page=recipe"}
             on_cancel={hide_modal("product-material-modal")}
           />
         </:tab>
@@ -94,7 +94,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
       :if={@live_action == :edit}
       id="product-modal"
       show
-      on_cancel={JS.patch(~p"/manage/products/#{@product.id}")}
+      on_cancel={JS.patch(~p"/manage/products/#{@product.sku}")}
     >
       <.live_component
         module={MicrocraftWeb.ProductLive.FormComponent}
@@ -104,7 +104,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
         current_user={@current_user}
         product={@product}
         settings={@settings}
-        patch={~p"/manage/products/#{@product.id}?page=details"}
+        patch={~p"/manage/products/#{@product.sku}?page=details"}
       />
     </.modal>
     """
@@ -120,9 +120,9 @@ defmodule MicrocraftWeb.ProductLive.Show do
   end
 
   @impl true
-  def handle_params(%{"id" => id} = params, _, socket) do
+  def handle_params(%{"sku" => sku} = params, _, socket) do
     product =
-      Microcraft.Catalog.get_product_by_id!(id,
+      Microcraft.Catalog.get_product_by_sku!(sku,
         load: [
           :markup_percentage,
           :gross_profit,

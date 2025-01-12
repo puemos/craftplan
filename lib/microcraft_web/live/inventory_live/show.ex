@@ -10,14 +10,14 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     <.header>
       <.breadcrumb>
         <:crumb label="All Materials" path={~p"/manage/inventory"} current?={false} />
-        <:crumb label={@material.name} path={~p"/manage/inventory/#{@material.id}"} current?={true} />
+        <:crumb label={@material.name} path={~p"/manage/inventory/#{@material.sku}"} current?={true} />
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/manage/inventory/#{@material.id}/adjust"} phx-click={JS.push_focus()}>
+        <.link patch={~p"/manage/inventory/#{@material.sku}/adjust"} phx-click={JS.push_focus()}>
           <.button>Adjust Stock</.button>
         </.link>
-        <.link patch={~p"/manage/inventory/#{@material.id}/edit"} phx-click={JS.push_focus()}>
+        <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit</.button>
         </.link>
       </:actions>
@@ -26,7 +26,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     <.tabs id="material-tabs">
       <:tab
         label="Details"
-        path={~p"/manage/inventory/#{@material.id}?page=details"}
+        path={~p"/manage/inventory/#{@material.sku}?page=details"}
         selected?={@page == "details"}
       >
         <.list>
@@ -59,7 +59,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
 
       <:tab
         label="Allergens"
-        path={~p"/manage/inventory/#{@material.id}?page=allergens"}
+        path={~p"/manage/inventory/#{@material.sku}?page=allergens"}
         selected?={@page == "allergens"}
       >
         <.live_component
@@ -68,14 +68,14 @@ defmodule MicrocraftWeb.InventoryLive.Show do
           material={@material}
           current_user={@current_user}
           settings={@settings}
-          patch={~p"/manage/inventory/#{@material.id}?page=allergens"}
+          patch={~p"/manage/inventory/#{@material.sku}?page=allergens"}
           allergens={@allergens_available}
         />
       </:tab>
 
       <:tab
         label="Stock"
-        path={~p"/manage/inventory/#{@material.id}?page=stock"}
+        path={~p"/manage/inventory/#{@material.sku}?page=stock"}
         selected?={@page == "stock"}
       >
         <div class="-mt-11">
@@ -105,7 +105,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
       :if={@live_action == :edit}
       id="material-modal"
       show
-      on_cancel={JS.patch(~p"/manage/inventory/#{@material.id}")}
+      on_cancel={JS.patch(~p"/manage/inventory/#{@material.sku}")}
     >
       <.live_component
         module={MicrocraftWeb.InventoryLive.FormComponentMaterial}
@@ -115,14 +115,14 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         current_user={@current_user}
         material={@material}
         settings={@settings}
-        patch={~p"/manage/inventory/#{@material.id}?page=details"}
+        patch={~p"/manage/inventory/#{@material.sku}?page=details"}
       />
     </.modal>
     <.modal
       :if={@live_action == :adjust}
       id="material-movement-modal"
       show
-      on_cancel={JS.patch(~p"/manage/inventory/#{@material.id}")}
+      on_cancel={JS.patch(~p"/manage/inventory/#{@material.sku}")}
     >
       <.live_component
         module={MicrocraftWeb.InventoryLive.FormComponentMovement}
@@ -130,7 +130,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         material={@material}
         current_user={@current_user}
         settings={@settings}
-        patch={~p"/manage/inventory/#{@material.id}?page=stock"}
+        patch={~p"/manage/inventory/#{@material.sku}?page=stock"}
       />
     </.modal>
     """
@@ -145,9 +145,9 @@ defmodule MicrocraftWeb.InventoryLive.Show do
   end
 
   @impl true
-  def handle_params(%{"id" => id} = params, _, socket) do
+  def handle_params(%{"sku" => sku} = params, _, socket) do
     material =
-      Inventory.get_material_by_id!(id,
+      Inventory.get_material_by_sku!(sku,
         actor: socket.assigns[:current_user],
         load: [:current_stock, :movements, :allergens, :material_allergens]
       )
