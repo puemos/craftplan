@@ -17,39 +17,55 @@ Microcraft is an open-source ERP system designed specifically for small-scale ar
 ## Features
 
 ### 📋 Catalog Management
-- Product lifecycle management (from idea to production)
-- Recipe/Bill of Materials management
-- Cost and margin analysis
-- Allergen tracking
-- Variant management
+- [x] Product lifecycle management (from idea to production)
+- [x] Cost and margin analysis
+- [x] Allergen tracking
+- [x] Multi-currency support
+- [ ] Recipe/Bill of Materials management
+- [ ] Variant management
 
 ### 📦 Inventory Control
-- Raw material stock tracking
-- Minimum/maximum stock levels
-- Movement history
-- Unit conversion
-- Cost tracking
+- [x] Raw material stock tracking
+- [x] Minimum/maximum stock levels
+- [x] Cost tracking
+- [x] Stock levels movement history
+- [ ] Unit conversion
+- [ ] Advanced inventory forecasting
 
 ### 🛍️ Sales & Order Management
-- Order processing workflow
-- Customer-specific pricing
-- Delivery scheduling
-- Order status tracking
-- Basic invoicing
+- [x] Order processing workflow
+- [x] Order status tracking
+- [ ] Discounts and promotions
+- [ ] Customer-specific pricing
+- [ ] Delivery scheduling
+- [ ] Basic invoicing
+- [ ] Integration with whatsapp business
+- [ ] Integration with e-commerce platforms
 
 ### 👥 Customer Relationship Management
-- Customer database
-- Order history
-- Shipping & billing address management
-- Customer segmentation
-- Communication history
+- [x] Customer database
+- [x] Order history
+- [x] Shipping & billing address management
+- [ ] Loyatly programs
+- [ ] Customer segmentation
 
 ### 📊 Business Intelligence
-- Cost analysis
-- Margin calculations
-- Sales trends
-- Inventory turnover
-- Production efficiency metrics
+- [x] Cost analysis
+- [x] Margin calculations
+- [ ] Sales trends
+- [ ] Inventory turnover
+- [ ] Production efficiency metrics
+
+### 🗓️ Production Planning
+- [ ] Production scheduling
+- [ ] Quality control tracking
+- [ ] Notifications
+
+### 🗓️ Storefront
+- [ ] Online ordering
+- [ ] Mobile view
+- [ ] Blog
+- [ ] Billing
 
 ## Technology Stack
 
@@ -105,13 +121,3 @@ If you need help with setup or have questions:
 - Open an issue
 - Join our community [Discord/Slack]
 - Check out our [documentation]
-
-## Roadmap
-
-- [ ] Multi-currency support
-- [ ] Advanced inventory forecasting
-- [ ] Production scheduling
-- [ ] Quality control tracking
-- [ ] Integration with e-commerce platforms
-- [ ] Mobile application
-- [ ] API for third-party integrations
