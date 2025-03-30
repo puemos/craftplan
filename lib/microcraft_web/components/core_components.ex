@@ -1098,7 +1098,7 @@ defmodule MicrocraftWeb.CoreComponents do
   attr :id, :any, default: "timezone"
   attr :name, :any, default: "timezone"
 
-  attr :field, Phoenix.HTML.FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
+  attr :field, FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   def timezone(assigns) do
     assigns =
