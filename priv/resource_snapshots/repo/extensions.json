@@ -1,8 +1,8 @@
 {
-  "ash_functions_version": 4,
+  "ash_functions_version": 5,
   "installed": [
     "ash-functions",
-    "ash_money_v4",
+    "ash_money_v5",
     "citext"
   ]
 }

@@ -6,6 +6,7 @@ defmodule Microcraft.Inventory.Material do
     data_layer: AshPostgres.DataLayer
 
   alias Microcraft.Inventory.MaterialAllergen
+  alias Microcraft.Inventory.MaterialNutritionalFact
 
   postgres do
     table "inventory_materials"
@@ -40,6 +41,14 @@ defmodule Microcraft.Inventory.Material do
       argument :material_allergens, {:array, :map}
 
       change manage_relationship(:material_allergens, type: :direct_control)
+    end
+
+    update :update_nutritional_facts do
+      require_atomic? false
+
+      argument :material_nutritional_facts, {:array, :map}
+
+      change manage_relationship(:material_nutritional_facts, type: :direct_control)
     end
 
     read :list do
@@ -105,8 +114,11 @@ defmodule Microcraft.Inventory.Material do
   relationships do
     has_many :movements, Microcraft.Inventory.Movement
     has_many :material_allergens, MaterialAllergen
+    has_many :material_nutritional_facts, MaterialNutritionalFact
 
     many_to_many :allergens, Microcraft.Inventory.Allergen, through: MaterialAllergen
+
+    many_to_many :nutritional_facts, Microcraft.Inventory.NutritionalFact, through: MaterialNutritionalFact
   end
 
   aggregates do

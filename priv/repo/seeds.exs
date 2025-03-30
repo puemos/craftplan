@@ -43,6 +43,37 @@ seed_allergens = fn ->
   }
 end
 
+# Add a function to seed nutritional facts
+seed_nutritional_facts = fn ->
+  seed_single_nutritional_fact = fn name ->
+    [nutritional_fact] =
+      Ash.Seed.seed!(
+        Inventory.NutritionalFact,
+        [%{name: name}],
+        identity: :name
+      )
+
+    nutritional_fact
+  end
+
+  %{
+    calories: seed_single_nutritional_fact.("Calories"),
+    fat: seed_single_nutritional_fact.("Fat"),
+    saturated_fat: seed_single_nutritional_fact.("Saturated Fat"),
+    carbohydrates: seed_single_nutritional_fact.("Carbohydrates"),
+    sugar: seed_single_nutritional_fact.("Sugar"),
+    fiber: seed_single_nutritional_fact.("Fiber"),
+    protein: seed_single_nutritional_fact.("Protein"),
+    salt: seed_single_nutritional_fact.("Salt"),
+    sodium: seed_single_nutritional_fact.("Sodium"),
+    calcium: seed_single_nutritional_fact.("Calcium"),
+    iron: seed_single_nutritional_fact.("Iron"),
+    vitamin_a: seed_single_nutritional_fact.("Vitamin A"),
+    vitamin_c: seed_single_nutritional_fact.("Vitamin C"),
+    vitamin_d: seed_single_nutritional_fact.("Vitamin D")
+  }
+end
+
 if Mix.env() == :dev do
   # ------------------------------------------------------------------------------
   # 2. Clear existing data (cleanup for repeated seeds in dev)
@@ -54,6 +85,8 @@ if Mix.env() == :dev do
   Repo.delete_all(Catalog.Recipe)
   Repo.delete_all(Catalog.Product)
   Repo.delete_all(Inventory.Movement)
+  Repo.delete_all(Inventory.MaterialNutritionalFact)
+  Repo.delete_all(Inventory.NutritionalFact)
   Repo.delete_all(Inventory.MaterialAllergen)
   Repo.delete_all(Inventory.Material)
   Repo.delete_all(Inventory.Allergen)
@@ -99,6 +132,16 @@ if Mix.env() == :dev do
     Ash.Seed.seed!(Inventory.MaterialAllergen, %{
       material_id: material.id,
       allergen_id: allergen.id
+    })
+  end
+
+  # Add a function to link materials to nutritional facts with amounts and units
+  link_material_nutritional_fact = fn material, nutritional_fact, amount, unit ->
+    Ash.Seed.seed!(Inventory.MaterialNutritionalFact, %{
+      material_id: material.id,
+      nutritional_fact_id: nutritional_fact.id,
+      amount: Decimal.new(amount),
+      unit: unit
     })
   end
 
@@ -176,7 +219,10 @@ if Mix.env() == :dev do
   # -- 3.3 Allergen data
   allergens = seed_allergens.()
 
-  # -- 3.4 Materials
+  # -- 3.4 Nutritional facts data
+  nutritional_facts = seed_nutritional_facts.()
+
+  # -- 3.5 Materials
   materials = %{
     flour: seed_material.("All Purpose Flour", "FLOUR-001", :gram, "0.002", "5000", "20000"),
     whole_wheat: seed_material.("Whole Wheat Flour", "FLOUR-002", :gram, "0.003", "3000", "15000"),
@@ -198,7 +244,7 @@ if Mix.env() == :dev do
     salt: seed_material.("Sea Salt", "SALT-001", :gram, "0.001", "1000", "5000")
   }
 
-  # -- 3.5 Link materials to relevant allergens
+  # -- 3.6 Link materials to relevant allergens
   link_material_allergen.(materials.flour, allergens.gluten)
   link_material_allergen.(materials.whole_wheat, allergens.gluten)
   link_material_allergen.(materials.rye_flour, allergens.gluten)
@@ -210,12 +256,65 @@ if Mix.env() == :dev do
   link_material_allergen.(materials.butter, allergens.milk)
   link_material_allergen.(materials.cream_cheese, allergens.milk)
 
-  # -- 3.6 Add some initial stock
+  # -- 3.7 Link materials to nutritional facts
+  # Flour
+  link_material_nutritional_fact.(materials.flour, nutritional_facts.calories, "350", :gram)
+  link_material_nutritional_fact.(materials.flour, nutritional_facts.carbohydrates, "73", :gram)
+  link_material_nutritional_fact.(materials.flour, nutritional_facts.protein, "10", :gram)
+  link_material_nutritional_fact.(materials.flour, nutritional_facts.fat, "1", :gram)
+
+  # Whole Wheat Flour
+  link_material_nutritional_fact.(materials.whole_wheat, nutritional_facts.calories, "340", :gram)
+
+  link_material_nutritional_fact.(
+    materials.whole_wheat,
+    nutritional_facts.carbohydrates,
+    "72",
+    :gram
+  )
+
+  link_material_nutritional_fact.(materials.whole_wheat, nutritional_facts.protein, "13", :gram)
+  link_material_nutritional_fact.(materials.whole_wheat, nutritional_facts.fiber, "11", :gram)
+
+  # Almonds
+  link_material_nutritional_fact.(materials.almonds, nutritional_facts.calories, "580", :gram)
+  link_material_nutritional_fact.(materials.almonds, nutritional_facts.fat, "50", :gram)
+  link_material_nutritional_fact.(materials.almonds, nutritional_facts.protein, "21", :gram)
+
+  # Eggs
+  link_material_nutritional_fact.(materials.eggs, nutritional_facts.calories, "155", :piece)
+  link_material_nutritional_fact.(materials.eggs, nutritional_facts.protein, "13", :gram)
+  link_material_nutritional_fact.(materials.eggs, nutritional_facts.fat, "11", :gram)
+
+  # Milk
+  link_material_nutritional_fact.(materials.milk, nutritional_facts.calories, "42", :milliliter)
+  link_material_nutritional_fact.(materials.milk, nutritional_facts.protein, "3.4", :gram)
+  link_material_nutritional_fact.(materials.milk, nutritional_facts.calcium, "125", :milliliter)
+
+  # Butter
+  link_material_nutritional_fact.(materials.butter, nutritional_facts.calories, "717", :gram)
+  link_material_nutritional_fact.(materials.butter, nutritional_facts.fat, "81", :gram)
+  link_material_nutritional_fact.(materials.butter, nutritional_facts.saturated_fat, "51", :gram)
+
+  # Chocolate
+  link_material_nutritional_fact.(materials.chocolate, nutritional_facts.calories, "546", :gram)
+  link_material_nutritional_fact.(materials.chocolate, nutritional_facts.fat, "31", :gram)
+
+  link_material_nutritional_fact.(
+    materials.chocolate,
+    nutritional_facts.carbohydrates,
+    "61",
+    :gram
+  )
+
+  link_material_nutritional_fact.(materials.chocolate, nutritional_facts.iron, "8", :gram)
+
+  # -- 3.8 Add some initial stock
   Enum.each(materials, fn {_key, material} ->
     add_initial_stock.(material, "5000")
   end)
 
-  # -- 3.7 Seed products
+  # -- 3.9 Seed products
   products = %{
     almond_cookies: seed_product.("Almond Cookies", "COOK-001", "3.99"),
     choc_cake: seed_product.("Chocolate Cake", "CAKE-001", "15.99"),
@@ -229,7 +328,7 @@ if Mix.env() == :dev do
     cheese_danish: seed_product.("Cheese Danish", "PAST-002", "2.99")
   }
 
-  # -- 3.8 Seed recipes
+  # -- 3.10 Seed recipes
   recipes = %{
     almond_cookies:
       seed_recipe.(
@@ -283,7 +382,7 @@ if Mix.env() == :dev do
       )
   }
 
-  # -- 3.9 Link recipes to their materials
+  # -- 3.11 Link recipes to their materials
   # Almond Cookies
   link_recipe_material.(recipes.almond_cookies, materials.flour, "50")
   link_recipe_material.(recipes.almond_cookies, materials.almonds, "25")
@@ -351,7 +450,7 @@ if Mix.env() == :dev do
   link_recipe_material.(recipes.cheese_danish, materials.butter, "50")
   link_recipe_material.(recipes.cheese_danish, materials.eggs, "1")
 
-  # -- 3.10 Seed customers
+  # -- 3.12 Seed customers
   customers = %{
     john:
       seed_customer.(
@@ -562,12 +661,5 @@ if Mix.env() == :dev do
 
   IO.puts("Done!")
 else
-  # Minimal seeding in non-dev environments
-  Ash.Seed.seed!(Settings.Settings, %{})
-
-  try do
-    seed_allergens.()
-  rescue
-    _ -> nil
-  end
+  IO.puts("Seeds are only allowed in the dev environment.")
 end

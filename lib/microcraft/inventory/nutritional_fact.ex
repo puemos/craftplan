@@ -1,21 +1,47 @@
 defmodule Microcraft.Inventory.NutritionalFact do
   @moduledoc false
   use Ash.Resource,
-    data_layer: :embedded,
-    embed_nil_values?: false
+    otp_app: :microcraft,
+    domain: Microcraft.Inventory,
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "inventory_nutritional_facts"
+    repo Microcraft.Repo
+  end
 
   actions do
-    default_accept :*
-    defaults [:read, :create, :update, :destroy]
+    defaults [:read, :destroy, create: [:name], update: [:name]]
+
+    read :list do
+      prepare build(sort: :name)
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
+    read :keyset do
+      prepare build(sort: :name)
+      pagination keyset?: true
+    end
   end
 
   attributes do
-    attribute :name, :string, public?: true
-    attribute :amount, :decimal, public?: true
+    uuid_primary_key :id
 
-    attribute :unit, :unit do
+    attribute :name, :string do
       public? true
       allow_nil? false
     end
+
+    timestamps()
+  end
+
+  identities do
+    identity :name, [:name]
   end
 end

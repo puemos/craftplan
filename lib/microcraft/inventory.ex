@@ -8,6 +8,7 @@ defmodule Microcraft.Inventory do
       define :get_material_by_sku, action: :read, get_by: [:sku]
       define :list_materials, action: :list
       define :list_materials_with_keyset, action: :keyset
+      define :update_nutritional_facts, action: :update_nutritional_facts
     end
 
     resource Microcraft.Inventory.Movement do
@@ -20,5 +21,14 @@ defmodule Microcraft.Inventory do
     end
 
     resource Microcraft.Inventory.MaterialAllergen
+
+    resource Microcraft.Inventory.NutritionalFact do
+      define :get_nutritional_fact_by_id, action: :read, get_by: [:id]
+      define :get_nutritional_fact_by_name, action: :read, get_by: [:name]
+      define :list_nutritional_facts, action: :list
+      define :list_nutritional_facts_with_keyset, action: :keyset
+    end
+
+    resource Microcraft.Inventory.MaterialNutritionalFact
   end
 end

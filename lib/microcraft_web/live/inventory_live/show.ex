@@ -45,6 +45,15 @@ defmodule MicrocraftWeb.InventoryLive.Show do
               <span :if={Enum.empty?(@material.allergens)}>None</span>
             </div>
           </:item>
+          <:item title="Nutritional Facts">
+            <div class="flex-inline items-center space-x-1">
+              <.badge
+                :for={fact <- @material.material_nutritional_facts}
+                text={"#{fact.nutritional_fact.name}: #{fact.amount} #{fact.unit}"}
+              />
+              <span :if={Enum.empty?(@material.material_nutritional_facts)}>None</span>
+            </div>
+          </:item>
           <:item title="Current Stock">
             {format_amount(@material.unit, @material.current_stock)}
           </:item>
@@ -70,6 +79,22 @@ defmodule MicrocraftWeb.InventoryLive.Show do
           settings={@settings}
           patch={~p"/manage/inventory/#{@material.sku}?page=allergens"}
           allergens={@allergens_available}
+        />
+      </:tab>
+
+      <:tab
+        label="Nutritional Facts"
+        path={~p"/manage/inventory/#{@material.sku}?page=nutritional_facts"}
+        selected?={@page == "nutritional_facts"}
+      >
+        <.live_component
+          module={MicrocraftWeb.InventoryLive.FormComponentNutritionalFacts}
+          id="material-nutritional-facts-form"
+          material={@material}
+          current_user={@current_user}
+          settings={@settings}
+          patch={~p"/manage/inventory/#{@material.sku}?page=nutritional_facts"}
+          nutritional_facts={@nutritional_facts_available}
         />
       </:tab>
 
@@ -141,7 +166,8 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     {:ok,
      socket
      |> assign(:page, "details")
-     |> assign(:allergens_available, list_all_allergens())}
+     |> assign(:allergens_available, list_all_allergens())
+     |> assign(:nutritional_facts_available, list_all_nutritional_facts())}
   end
 
   @impl true
@@ -149,7 +175,14 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     material =
       Inventory.get_material_by_sku!(sku,
         actor: socket.assigns[:current_user],
-        load: [:current_stock, :movements, :allergens, :material_allergens]
+        load: [
+          :current_stock,
+          :movements,
+          :allergens,
+          :material_allergens,
+          :nutritional_facts,
+          material_nutritional_facts: [:nutritional_fact]
+        ]
       )
 
     page = Map.get(params, "page", "details")
@@ -163,6 +196,28 @@ defmodule MicrocraftWeb.InventoryLive.Show do
 
   defp list_all_allergens do
     Microcraft.Inventory.list_allergens!()
+  end
+
+  defp list_all_nutritional_facts do
+    Microcraft.Inventory.list_nutritional_facts!()
+  end
+
+  @impl true
+  def handle_info({:saved_nutritional_facts, material_id}, socket) do
+    material =
+      Inventory.get_material_by_id!(material_id,
+        actor: socket.assigns[:current_user],
+        load: [
+          :current_stock,
+          :movements,
+          :allergens,
+          :material_allergens,
+          :nutritional_facts,
+          material_nutritional_facts: [:nutritional_fact]
+        ]
+      )
+
+    {:noreply, assign(socket, :material, material)}
   end
 
   defp page_title(:show), do: "Show Material"
