@@ -31,7 +31,7 @@ Microcraft is an open-source ERP system designed specifically for small-scale ar
 - [x] Cost tracking
 - [x] Stock levels movement history
 - [x] Allergen
-- [ ] Nutritional facts
+- [x] Nutritional facts
 - [ ] Unit conversion
 - [ ] Advanced inventory forecasting
 
