@@ -21,7 +21,7 @@ Microcraft is an open-source ERP system designed specifically for small-scale ar
 - [x] Cost and margin analysis
 - [x] Allergen tracking
 - [x] Multi-currency support
-- [ ] Nutritional facts
+- [x] Nutritional facts
 - [ ] Recipe/Bill of Materials management
 - [ ] Variant management
 
@@ -122,5 +122,4 @@ This project is licensed under the AGPLv3 License - see the [LICENSE](LICENSE) f
 
 If you need help with setup or have questions:
 - Open an issue
-- Join our community [Discord/Slack]
 - Check out our [documentation]
