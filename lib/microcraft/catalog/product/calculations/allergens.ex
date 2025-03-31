@@ -28,8 +28,8 @@ defmodule Microcraft.Catalog.Product.Calculations.Allergens do
         recipe ->
           recipe.components
           |> Enum.flat_map(& &1.material.allergens)
-          |> Enum.uniq()
-          |> Enum.sort()
+          |> Enum.uniq_by(& &1.name)
+          |> Enum.sort_by(& &1.name)
       end
     end)
   end

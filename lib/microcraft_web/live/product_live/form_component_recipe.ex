@@ -58,7 +58,14 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                   <div class="relative border-r border-b border-stone-200 p-0 last:border-r-0 ">
                     <div class="block py-4 pr-6">
                       <span class="relative">
-                        {@materials_map[components_form[:material_id].value].name}
+                        <.link
+                          navigate={
+                            ~p"/manage/inventory/#{@materials_map[components_form[:material_id].value].sku}"
+                          }
+                          class="transition-all duration-200 ease-in-out hover:text-blue-800 hover:underline"
+                        >
+                          {@materials_map[components_form[:material_id].value].name}
+                        </.link>
                         <.input
                           field={components_form[:material_id]}
                           value={components_form[:material_id].value}

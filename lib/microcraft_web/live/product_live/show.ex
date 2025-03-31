@@ -71,17 +71,6 @@ defmodule MicrocraftWeb.ProductLive.Show do
         </:tab>
 
         <:tab
-          label="Nutrition"
-          path={~p"/manage/products/#{@product.sku}?page=nutrition"}
-          selected?={@page == "nutrition"}
-        >
-          <.table id="nutritional-facts" rows={@product.nutritional_facts}>
-            <:col :let={fact} label="Nutrient">{fact.name}</:col>
-            <:col :let={fact} label="Amount">{fact.amount} {fact.unit}</:col>
-          </.table>
-        </:tab>
-
-        <:tab
           label="Recipe"
           path={~p"/manage/products/#{@product.sku}?page=recipe"}
           selected?={@page == "recipe"}
@@ -97,6 +86,23 @@ defmodule MicrocraftWeb.ProductLive.Show do
             patch={~p"/manage/products/#{@product.sku}?page=recipe"}
             on_cancel={hide_modal("product-material-modal")}
           />
+        </:tab>
+
+        <:tab
+          label="Nutrition"
+          path={~p"/manage/products/#{@product.sku}?page=nutrition"}
+          selected?={@page == "nutrition"}
+        >
+          <div>
+            <h3 class="my-4 text-lg font-medium">Nutritional Facts</h3>
+            <p class="mb-4 text-sm text-stone-500">
+              The nutritional information is automatically calculated from your recipe components.
+            </p>
+          </div>
+          <.table id="nutritional-facts" rows={@product.nutritional_facts}>
+            <:col :let={fact} label="Nutrient">{fact.name}</:col>
+            <:col :let={fact} label="Amount">{fact.amount} {fact.unit}</:col>
+          </.table>
         </:tab>
       </.tabs>
     </div>
