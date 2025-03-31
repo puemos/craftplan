@@ -71,6 +71,17 @@ defmodule MicrocraftWeb.ProductLive.Show do
         </:tab>
 
         <:tab
+          label="Nutrition"
+          path={~p"/manage/products/#{@product.sku}?page=nutrition"}
+          selected?={@page == "nutrition"}
+        >
+          <.table id="nutritional-facts" rows={@product.nutritional_facts}>
+            <:col :let={fact} label="Nutrient">{fact.name}</:col>
+            <:col :let={fact} label="Amount">{fact.amount} {fact.unit}</:col>
+          </.table>
+        </:tab>
+
+        <:tab
           label="Recipe"
           path={~p"/manage/products/#{@product.sku}?page=recipe"}
           selected?={@page == "recipe"}
@@ -128,6 +139,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
           :gross_profit,
           :materials_cost,
           :allergens,
+          :nutritional_facts,
           recipe: [components: [:material]]
         ]
       )
@@ -152,6 +164,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
           :markup_percentage,
           :materials_cost,
           :gross_profit,
+          :nutritional_facts,
           recipe: [components: [:material]]
         ]
       )
@@ -170,6 +183,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
           :markup_percentage,
           :materials_cost,
           :gross_profit,
+          :nutritional_facts,
           recipe: [components: [:material]]
         ]
       )

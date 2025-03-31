@@ -89,6 +89,10 @@ defmodule Microcraft.Catalog.Product do
     end
 
     calculate :allergens, :vector, Microcraft.Catalog.Product.Calculations.Allergens
+
+    calculate :nutritional_facts,
+              :vector,
+              Microcraft.Catalog.Product.Calculations.NutritionalFacts
   end
 
   identities do

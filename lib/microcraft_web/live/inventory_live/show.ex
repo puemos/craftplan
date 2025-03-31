@@ -45,7 +45,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
               <span :if={Enum.empty?(@material.allergens)}>None</span>
             </div>
           </:item>
-          <:item title="Nutritional Facts">
+          <:item title="Nutrition">
             <div class="flex-inline items-center space-x-1">
               <.badge
                 :for={fact <- @material.material_nutritional_facts}
@@ -83,7 +83,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
       </:tab>
 
       <:tab
-        label="Nutritional Facts"
+        label="Nutrition"
         path={~p"/manage/inventory/#{@material.sku}?page=nutritional_facts"}
         selected?={@page == "nutritional_facts"}
       >

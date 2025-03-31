@@ -788,7 +788,7 @@ defmodule MicrocraftWeb.CoreComponents do
         name={@name}
         class={[
           @rest[:class] || "",
-          "min-h-[6rem] mt-2 block w-full rounded-lg text-stone-900 focus:ring-0 sm:text-sm",
+          "min-h-[6rem] mt-2 block w-full rounded-md text-stone-900 focus:ring-0 sm:text-sm",
           @flat != true && "mt-2 text-stone-900",
           @flat == true && "!rounded-none border-none bg-transparent p-0",
           @errors == [] && "border-stone-300 focus:border-stone-400",
@@ -817,8 +817,8 @@ defmodule MicrocraftWeb.CoreComponents do
             "block w-full focus:ring-0 sm:text-sm",
             @flat != true && "mt-2 text-stone-900",
             @flat == true && "!rounded-none border-none bg-transparent p-0",
-            @inline_label != nil && "rounded-s-lg",
-            @inline_label == nil && "rounded-lg",
+            @inline_label != nil && "rounded-s-md",
+            @inline_label == nil && "rounded-md",
             @errors == [] && @flat != true && "border-stone-300 focus:border-stone-400",
             @errors != [] && @flat != true && "border-rose-400 focus:border-rose-400",
             @errors != [] && @flat == true && "text-rose-400"
