@@ -56,7 +56,14 @@ defmodule MicrocraftWeb.OrderLive.Show do
               />
             </:item>
 
-            <:item title="Customer">{@order.customer.full_name}</:item>
+            <:item title="Customer">
+              <.link
+                class="hover:text-blue-800 hover:underline"
+                navigate={~p"/manage/customers/#{@order.customer.reference}"}
+              >
+                {@order.customer.full_name}
+              </.link>
+            </:item>
             <:item title="Shipping Address">{@order.customer.shipping_address.full_address}</:item>
 
             <:item title="Total">
@@ -79,7 +86,14 @@ defmodule MicrocraftWeb.OrderLive.Show do
           selected?={@page == "items"}
         >
           <.table id="order-items" rows={@order.items}>
-            <:col :let={item} label="Product">{item.product.name}</:col>
+            <:col :let={item} label="Product">
+              <.link
+                class="hover:text-blue-800 hover:underline"
+                navigate={~p"/manage/products/#{item.product.sku}"}
+              >
+                {item.product.name}
+              </.link>
+            </:col>
             <:col :let={item} label="Quantity">{item.quantity}</:col>
             <:col :let={item} label="Unit Price">
               {format_money(@settings.currency, item.product.price)}

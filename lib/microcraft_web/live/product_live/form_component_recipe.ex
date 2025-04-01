@@ -62,7 +62,7 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
                           navigate={
                             ~p"/manage/inventory/#{@materials_map[components_form[:material_id].value].sku}"
                           }
-                          class="transition-all duration-200 ease-in-out hover:text-blue-800 hover:underline"
+                          class="hover:text-blue-800 hover:underline"
                         >
                           {@materials_map[components_form[:material_id].value].name}
                         </.link>

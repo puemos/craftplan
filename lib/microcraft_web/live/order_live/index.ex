@@ -104,7 +104,12 @@ defmodule MicrocraftWeb.OrderLive.Index do
       </:empty>
 
       <:col :let={{_id, order}} label="Customer">
-        {order.customer.full_name}
+        <.link
+          class="hover:text-blue-800 hover:underline"
+          navigate={~p"/manage/customers/#{order.customer.reference}"}
+        >
+          {order.customer.full_name}
+        </.link>
       </:col>
 
       <:col :let={{_id, order}} label="Reference">
