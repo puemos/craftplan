@@ -1,5 +1,185 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import "@event-calendar/core/index.css";
 
 /* This file is for your main application CSS */
+
+/* Event Calendar Theme Variables */
+.ec {
+    /* Base theme and colors */
+    --ec-h: 0;
+    --ec-s: 0%;
+    --ec-l-300: 91%;
+    --ec-l-500: 83.5%;
+    --ec-l-600: 78.4%;
+    --ec-l-700: 71.4%;
+    --ec-hs: var(--ec-h), var(--ec-s);
+    --ec-color-300: hsl(var(--ec-hs), var(--ec-l-300));
+    --ec-color-500: hsl(var(--ec-hs), var(--ec-l-500));
+    --ec-color-600: hsl(var(--ec-hs), var(--ec-l-600));
+    --ec-color-700: hsl(var(--ec-hs), var(--ec-l-700));
+
+    /* General properties */
+    --ec-border-color: var(--ec-color-500);
+    --ec-accent-color: var(--ec-color-600);
+    --ec-bg-fallback-color: #fff;
+
+    /* Event colors */
+    --ec-event-bg-color: #3b82f6;
+    --ec-event-text-color: #000;
+    --ec-bg-event-color: var(--ec-color-500);
+    --ec-bg-event-opacity: 0.3;
+
+    /* Button styles */
+    --ec-button-bg-color: var(--ec-bg-color, var(--ec-bg-fallback-color));
+    --ec-button-border-color: var(--ec-color-600);
+    --ec-button-text-color: var(--ec-text-color);
+    --ec-button-active-bg-color: var(--ec-color-300);
+    --ec-button-active-border-color: var(--ec-color-700);
+    --ec-button-active-text-color: var(--ec-button-text-color);
+
+    /* Day styles */
+    --ec-today-bg-color: rgba(219, 234, 254, 0.5);
+    --ec-list-day-bg-color: var(--ec-bg-color, var(--ec-bg-fallback-color));
+    --ec-highlight-color: rgba(188, 232, 241, 0.3);
+
+    /* Now indicator */
+    --ec-now-indicator-color: #ea4335;
+
+    font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Dark theme support */
+.ec-dark,
+.dark .ec {
+    color-scheme: dark;
+    --ec-h: 215;
+    --ec-s: 15%;
+    --ec-l-300: 25.5%;
+    --ec-l-500: 42.4%;
+    --ec-l-600: 49.8%;
+    --ec-l-700: 57.3%;
+    --ec-bg-fallback-color: #22272e;
+    --ec-today-bg-color: rgba(30, 58, 138, 0.2);
+}
+
+/* Make sure calendar buttons use consistent styles */
+.ec .ec-button {
+    @apply rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm shadow-sm hover:bg-stone-50;
+}
+
+/* Style calendar header to match app theme */
+.ec .ec-header {
+    @apply bg-white border-b border-stone-200;
+}
+
+/* Style calendar title */
+.ec .ec-toolbar-title {
+    @apply text-lg font-semibold text-stone-800;
+}
+
+/* Make calendar cells more consistent with app theme */
+.ec .ec-day-grid .ec-day-head,
+.ec .ec-time-grid .ec-day {
+    @apply border-stone-200;
+}
+
+/* Hover effects for interactive elements */
+.ec .ec-day-grid-container .ec-day-bg {
+    @apply transition-colors duration-150;
+}
+
+/* Style events to look better */
+.ec .ec-day-grid .ec-event,
+.ec .ec-time-grid .ec-event {
+    @apply rounded-md shadow-sm border-l-4;
+}
+
+/* Better styling for event content */
+.ec-event-content {
+    @apply p-1 overflow-hidden;
+}
+
+.ec-event-time {
+    @apply text-xs opacity-80 font-medium;
+}
+
+.ec-event-title {
+    @apply text-sm font-medium truncate;
+}
+
+/* Style list view */
+.ec .ec-list {
+    @apply border rounded-md bg-white;
+}
+
+.ec .ec-list-day {
+    @apply bg-stone-50;
+}
+
+.ec .ec-list-day-text {
+    @apply font-semibold text-stone-800;
+}
+
+.ec .ec-list-day-side-text {
+    @apply text-stone-500;
+}
+
+.ec .ec-list-event {
+    @apply hover:bg-stone-50 transition-colors duration-150;
+}
+
+.ec .ec-list-event-dot {
+    @apply rounded-full;
+}
+
+.ec .ec-list-event-title {
+    @apply font-medium text-stone-800;
+}
+
+.ec .ec-list-event-time {
+    @apply text-stone-600;
+}
+
+/* Style today highlight */
+.ec .ec-today {
+    @apply bg-white border border-stone-300 shadow-sm hover:bg-stone-200 hover:text-gray-800 capitalize;
+}
+
+.ec .ec-today:disabled,
+.ec .ec-today[disabled] {
+    @apply bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed hover:bg-stone-100 hover:text-stone-400 opacity-75 shadow-none;
+}
+
+/* Style the time marker in time grid */
+.ec .ec-time-grid .ec-time-marker {
+    @apply border-rose-400 border-t-2 z-10;
+}
+
+/* Time grid styles */
+.ec-time-grid .ec-body .ec-event {
+    @apply rounded-md shadow;
+}
+
+.ec-time-grid .ec-body .ec-event-title {
+    @apply sticky top-0 font-medium;
+}
+
+.ec-time-grid .ec-line:not(:first-child):after {
+    @apply border-stone-200;
+}
+
+/* Day grid styles */
+.ec-day-grid .ec-day-head {
+    @apply flex justify-between;
+}
+
+/* Timeline styles */
+.ec-timeline .ec-sidebar {
+    @apply border border-stone-200;
+}
+
+.ec-timeline .ec-day-head {
+    @apply border-l border-stone-200;
+}

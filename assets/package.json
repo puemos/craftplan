@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@event-calendar/core": "^3.12.0",
+    "@event-calendar/day-grid": "^3.12.0",
+    "@event-calendar/time-grid": "^3.12.0"
+  },
+  "devDependencies": {
+    "@event-calendar/list": "^3.12.0"
+  }
+}
