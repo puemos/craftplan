@@ -106,7 +106,7 @@ defmodule MicrocraftWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-stone-700/10 ring-stone-700/10 relative hidden rounded bg-white p-14 shadow-lg ring-1 transition"
+              class="shadow-stone-700/10 ring-stone-700/20 relative hidden rounded bg-white p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -309,13 +309,14 @@ defmodule MicrocraftWeb.CoreComponents do
       <.button size={:sm}>Small Button</button>
       <.button size={:lg}>Large Button</button>
       <.button variant={:danger}>Danger Button</button>
+      <.button variant={:outline}>Outline Button</button>
   """
   attr :type, :string, default: nil
   attr :class, :string, default: nil
   # For full width/height
   attr :expanding, :boolean, default: false
   attr :size, :atom, default: :base, values: [:sm, :base, :lg]
-  attr :variant, :atom, default: :default, values: [:default, :danger]
+  attr :variant, :atom, default: :default, values: [:default, :danger, :outline]
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -342,6 +343,9 @@ defmodule MicrocraftWeb.CoreComponents do
     do: "bg-stone-200/50 border border-stone-300 shadow-sm hover:bg-stone-200 hover:text-gray-800"
 
   defp button_variant_classes(:danger), do: "bg-rose-50 text-rose-500 hover:bg-rose-100 border border-rose-300 shadow-sm"
+
+  defp button_variant_classes(:outline),
+    do: "bg-transparent text-stone-700 border border-stone-300 shadow-sm hover:bg-stone-100"
 
   defp button_size_classes(:sm), do: "h-7 px-3 py-1 text-xs"
   defp button_size_classes(:base), do: "h-9 px-4 py-2"

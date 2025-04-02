@@ -16,6 +16,7 @@ defmodule Microcraft.Inventory do
     end
 
     resource Microcraft.Inventory.Allergen do
+      define :get_allergen_by_id, action: :read, get_by: [:id]
       define :list_allergens, action: :list
       define :list_allergens_with_keyset, action: :keyset
     end
