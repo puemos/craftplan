@@ -42,27 +42,30 @@ defmodule MicrocraftWeb.SettingsLive.AllergensComponent do
         </.table>
       </div>
 
-      <%= if @show_modal do %>
-        <.modal id="add-allergen-modal" show on_cancel={JS.push("hide_modal", target: @myself)}>
-          <.header>
-            Add New Allergen
-            <:subtitle>Enter the name of the allergen you want to add</:subtitle>
-          </.header>
+      <.modal
+        :if={@show_modal}
+        id="add-allergen-modal"
+        show
+        on_cancel={JS.push("hide_modal", target: @myself)}
+      >
+        <.header>
+          Add New Allergen
+          <:subtitle>Enter the name of the allergen you want to add</:subtitle>
+        </.header>
 
-          <.simple_form
-            for={@form}
-            id="allergen-form"
-            phx-target={@myself}
-            phx-change="validate"
-            phx-submit="save"
-          >
-            <.input field={@form[:name]} type="text" label="Allergen name" />
-            <:actions>
-              <.button phx-disable-with="Saving...">Save Allergen</.button>
-            </:actions>
-          </.simple_form>
-        </.modal>
-      <% end %>
+        <.simple_form
+          for={@form}
+          id="allergen-form"
+          phx-target={@myself}
+          phx-change="validate"
+          phx-submit="save"
+        >
+          <.input field={@form[:name]} type="text" label="Allergen name" />
+          <:actions>
+            <.button phx-disable-with="Saving...">Save Allergen</.button>
+          </:actions>
+        </.simple_form>
+      </.modal>
     </div>
     """
   end

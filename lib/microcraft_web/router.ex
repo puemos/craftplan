@@ -33,6 +33,9 @@ defmodule MicrocraftWeb.Router do
     ash_authentication_live_session :admin_routes,
       on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_admin_required}] do
       live "/manage/settings", SettingsLive.Index, :index
+      live "/manage/settings/general", SettingsLive.Index, :general
+      live "/manage/settings/allergens", SettingsLive.Index, :allergens
+      live "/manage/settings/nutritional_facts", SettingsLive.Index, :nutritional_facts
     end
 
     ash_authentication_live_session :manage_routes,
@@ -40,23 +43,35 @@ defmodule MicrocraftWeb.Router do
       live "/manage/products", ProductLive.Index, :index
       live "/manage/products/new", ProductLive.Index, :new
       live "/manage/products/:sku", ProductLive.Show, :show
+      live "/manage/products/:sku/details", ProductLive.Show, :details
+      live "/manage/products/:sku/recipe", ProductLive.Show, :recipe
+      live "/manage/products/:sku/nutrition", ProductLive.Show, :nutrition
       live "/manage/products/:sku/edit", ProductLive.Show, :edit
 
       live "/manage/inventory", InventoryLive.Index, :index
       live "/manage/inventory/new", InventoryLive.Index, :new
       live "/manage/inventory/:sku", InventoryLive.Show, :show
+      live "/manage/inventory/:sku/details", InventoryLive.Show, :details
+      live "/manage/inventory/:sku/allergens", InventoryLive.Show, :allergens
+      live "/manage/inventory/:sku/nutritional_facts", InventoryLive.Show, :nutritional_facts
+      live "/manage/inventory/:sku/stock", InventoryLive.Show, :stock
       live "/manage/inventory/:sku/edit", InventoryLive.Show, :edit
       live "/manage/inventory/:sku/adjust", InventoryLive.Show, :adjust
 
       live "/manage/orders", OrderLive.Index, :index
       live "/manage/orders/new", OrderLive.Index, :new
-      live "/manage/orders/:reference/edit", OrderLive.Show, :edit
       live "/manage/orders/:reference", OrderLive.Show, :show
+      live "/manage/orders/:reference/details", OrderLive.Show, :details
+      live "/manage/orders/:reference/items", OrderLive.Show, :items
+      live "/manage/orders/:reference/edit", OrderLive.Show, :edit
 
       live "/manage/customers", CustomerLive.Index, :index
       live "/manage/customers/new", CustomerLive.Index, :new
-      live "/manage/customers/:reference/edit", CustomerLive.Index, :edit
       live "/manage/customers/:reference", CustomerLive.Show, :show
+      live "/manage/customers/:reference/details", CustomerLive.Show, :details
+      live "/manage/customers/:reference/orders", CustomerLive.Show, :orders
+      live "/manage/customers/:reference/statistics", CustomerLive.Show, :statistics
+      live "/manage/customers/:reference/edit", CustomerLive.Index, :edit
 
       # in each liveview, add one of the following at the top of the module:
       #

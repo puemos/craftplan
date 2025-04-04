@@ -42,31 +42,30 @@ defmodule MicrocraftWeb.SettingsLive.NutritionalFactsComponent do
         </.table>
       </div>
 
-      <%= if @show_modal do %>
-        <.modal
-          id="add-nutritional-fact-modal"
-          show
-          on_cancel={JS.push("hide_modal", target: @myself)}
-        >
-          <.header>
-            Add Nutritional Fact
-            <:subtitle>Enter the name of the nutritional fact you want to add</:subtitle>
-          </.header>
+      <.modal
+        :if={@show_modal}
+        id="add-nutritional-fact-modal"
+        show
+        on_cancel={JS.push("hide_modal", target: @myself)}
+      >
+        <.header>
+          Add Nutritional Fact
+          <:subtitle>Enter the name of the nutritional fact you want to add</:subtitle>
+        </.header>
 
-          <.simple_form
-            for={@form}
-            id="nutritional-fact-form"
-            phx-target={@myself}
-            phx-change="validate"
-            phx-submit="save"
-          >
-            <.input field={@form[:name]} type="text" label="Nutritional fact name" />
-            <:actions>
-              <.button phx-disable-with="Saving...">Add Nutritional Fact</.button>
-            </:actions>
-          </.simple_form>
-        </.modal>
-      <% end %>
+        <.simple_form
+          for={@form}
+          id="nutritional-fact-form"
+          phx-target={@myself}
+          phx-change="validate"
+          phx-submit="save"
+        >
+          <.input field={@form[:name]} type="text" label="Nutritional fact name" />
+          <:actions>
+            <.button phx-disable-with="Saving...">Add Nutritional Fact</.button>
+          </:actions>
+        </.simple_form>
+      </.modal>
     </div>
     """
   end

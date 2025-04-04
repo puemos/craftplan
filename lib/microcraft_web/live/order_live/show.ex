@@ -36,8 +36,8 @@ defmodule MicrocraftWeb.OrderLive.Show do
       <.tabs id="order-tabs">
         <:tab
           label="Details"
-          path={~p"/manage/orders/#{@order.reference}?page=details"}
-          selected?={@page == "details"}
+          path={~p"/manage/orders/#{@order.reference}/details"}
+          selected?={@live_action == :details || @live_action == :show}
         >
           <.list>
             <:item title="Reference">
@@ -82,8 +82,8 @@ defmodule MicrocraftWeb.OrderLive.Show do
 
         <:tab
           label="Items"
-          path={~p"/manage/orders/#{@order.reference}?page=items"}
-          selected?={@page == "items"}
+          path={~p"/manage/orders/#{@order.reference}/items"}
+          selected?={@live_action == :items}
         >
           <.table id="order-items" rows={@order.items}>
             <:col :let={item} label="Product">
@@ -138,24 +138,20 @@ defmodule MicrocraftWeb.OrderLive.Show do
 
     {:ok,
      assign(socket,
-       page: "details",
        products: products,
        customers: customers
      )}
   end
 
   @impl true
-  def handle_params(%{"reference" => reference} = params, _, socket) do
+  def handle_params(%{"reference" => reference}, _, socket) do
     order =
       Orders.get_order_by_reference!(reference, load: @default_order_load)
-
-    page = Map.get(params, "page", "details")
 
     socket =
       socket
       |> assign(:page_title, page_title(socket.assigns.live_action))
       |> assign(:order, order)
-      |> assign(:page, page)
 
     {:noreply, socket}
   end
@@ -172,6 +168,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
      |> push_event("close-modal", %{id: "order-item-modal"})}
   end
 
+  @impl true
   def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, _}}, socket) do
     order =
       Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
@@ -184,4 +181,6 @@ defmodule MicrocraftWeb.OrderLive.Show do
 
   defp page_title(:show), do: "Show Order"
   defp page_title(:edit), do: "Edit Order"
+  defp page_title(:details), do: "Order Details"
+  defp page_title(:items), do: "Order Items"
 end

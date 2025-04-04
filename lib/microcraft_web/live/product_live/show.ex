@@ -24,8 +24,8 @@ defmodule MicrocraftWeb.ProductLive.Show do
       <.tabs id="product-tabs">
         <:tab
           label="Details"
-          path={~p"/manage/products/#{@product.sku}?page=details"}
-          selected?={@page == "details"}
+          path={~p"/manage/products/#{@product.sku}/details"}
+          selected?={@live_action == :details || @live_action == :show}
         >
           <.list>
             <:item title="Status">
@@ -72,8 +72,8 @@ defmodule MicrocraftWeb.ProductLive.Show do
 
         <:tab
           label="Recipe"
-          path={~p"/manage/products/#{@product.sku}?page=recipe"}
-          selected?={@page == "recipe"}
+          path={~p"/manage/products/#{@product.sku}/recipe"}
+          selected?={@live_action == :recipe}
         >
           <.live_component
             module={MicrocraftWeb.ProductLive.FormComponentRecipe}
@@ -83,15 +83,15 @@ defmodule MicrocraftWeb.ProductLive.Show do
             current_user={@current_user}
             settings={@settings}
             materials={@materials_available}
-            patch={~p"/manage/products/#{@product.sku}?page=recipe"}
+            patch={~p"/manage/products/#{@product.sku}/recipe"}
             on_cancel={hide_modal("product-material-modal")}
           />
         </:tab>
 
         <:tab
           label="Nutrition"
-          path={~p"/manage/products/#{@product.sku}?page=nutrition"}
-          selected?={@page == "nutrition"}
+          path={~p"/manage/products/#{@product.sku}/nutrition"}
+          selected?={@live_action == :nutrition}
         >
           <div>
             <h3 class="my-4 text-lg font-medium">Nutritional Facts</h3>
@@ -121,7 +121,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
         current_user={@current_user}
         product={@product}
         settings={@settings}
-        patch={~p"/manage/products/#{@product.sku}?page=details"}
+        patch={~p"/manage/products/#{@product.sku}/details"}
       />
     </.modal>
     """
@@ -131,13 +131,12 @@ defmodule MicrocraftWeb.ProductLive.Show do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
-       page: "details",
        materials_available: list_available_materials()
      )}
   end
 
   @impl true
-  def handle_params(%{"sku" => sku} = params, _, socket) do
+  def handle_params(%{"sku" => sku}, _, socket) do
     product =
       Microcraft.Catalog.get_product_by_sku!(sku,
         load: [
@@ -150,14 +149,11 @@ defmodule MicrocraftWeb.ProductLive.Show do
         ]
       )
 
-    page = Map.get(params, "page", "details")
-
     socket =
       socket
       |> assign(:page_title, page_title(socket.assigns.live_action))
       |> assign(:product, product)
       |> assign(:status_form, to_form(%{"status" => product.status}))
-      |> assign(:page, page)
 
     {:noreply, socket}
   end

@@ -11,4 +11,10 @@ defmodule MicrocraftWeb.OrderLive.Helpers do
       _ -> []
     end
   end
+
+  def emoji_for_payment(:pending), do: "⌛"
+  def emoji_for_payment(:paid), do: "💰"
+  def emoji_for_payment(:to_be_refunded), do: "↩️"
+  def emoji_for_payment(:refunded), do: "✅"
+  def emoji_for_payment(_), do: "❓"
 end

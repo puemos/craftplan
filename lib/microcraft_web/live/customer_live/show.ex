@@ -28,8 +28,8 @@ defmodule MicrocraftWeb.CustomerLive.Show do
       <.tabs id="customer-tabs">
         <:tab
           label="Details"
-          path={~p"/manage/customers/#{@customer.reference}?page=details"}
-          selected?={@page == "details"}
+          path={~p"/manage/customers/#{@customer.reference}/details"}
+          selected?={@live_action == :details || @live_action == :show}
         >
           <div class="mt-8 space-y-8">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -47,8 +47,8 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
         <:tab
           label="Orders"
-          path={~p"/manage/customers/#{@customer.reference}?page=orders"}
-          selected?={@page == "orders"}
+          path={~p"/manage/customers/#{@customer.reference}/orders"}
+          selected?={@live_action == :orders}
         >
           <div class="mt-6 space-y-4">
             <div class="flex items-center justify-between">
@@ -90,8 +90,8 @@ defmodule MicrocraftWeb.CustomerLive.Show do
 
         <:tab
           label="Statistics"
-          path={~p"/manage/customers/#{@customer.reference}?page=statistics"}
-          selected?={@page == "statistics"}
+          path={~p"/manage/customers/#{@customer.reference}/statistics"}
+          selected?={@live_action == :statistics}
         >
           <div class="mt-6 space-y-8">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -115,7 +115,7 @@ defmodule MicrocraftWeb.CustomerLive.Show do
   end
 
   @impl true
-  def handle_params(%{"reference" => reference} = params, _, socket) do
+  def handle_params(%{"reference" => reference}, _, socket) do
     customer =
       CRM.get_customer_by_reference!(
         reference,
@@ -130,12 +130,14 @@ defmodule MicrocraftWeb.CustomerLive.Show do
         ]
       )
 
-    page = Map.get(params, "page", "details")
-
     {:noreply,
      socket
-     |> assign(:page_title, "Customer Details")
-     |> assign(:customer, customer)
-     |> assign(:page, page)}
+     |> assign(:page_title, page_title(socket.assigns.live_action))
+     |> assign(:customer, customer)}
   end
+
+  defp page_title(:show), do: "Customer Details"
+  defp page_title(:details), do: "Customer Details"
+  defp page_title(:orders), do: "Customer Orders"
+  defp page_title(:statistics), do: "Customer Statistics"
 end

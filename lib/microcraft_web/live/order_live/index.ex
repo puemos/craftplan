@@ -1,10 +1,23 @@
 defmodule MicrocraftWeb.OrderLive.Index do
-  @moduledoc false
+  @moduledoc """
+  LiveView for managing orders with table and calendar views.
+  Provides filtering, creation, and viewing of orders.
+  """
   use MicrocraftWeb, :live_view
+
+  import MicrocraftWeb.OrderLive.Helpers
 
   alias Microcraft.Catalog
   alias Microcraft.CRM
   alias Microcraft.Orders
+
+  @type filter_options :: %{
+          status: list(String.t()) | nil,
+          payment_status: list(String.t()) | nil,
+          delivery_date_start: DateTime.t() | nil,
+          delivery_date_end: DateTime.t() | nil,
+          customer_name: String.t() | nil
+        }
 
   @default_filters %{
     "status" => [],
@@ -14,8 +27,13 @@ defmodule MicrocraftWeb.OrderLive.Index do
     "customer_name" => ""
   }
 
+  # Calendar event duration in seconds
+  @calendar_event_duration 3600
+
   @impl true
   def render(assigns) do
+    assigns = assign_new(assigns, :calendar_event_duration, fn -> @calendar_event_duration end)
+
     ~H"""
     <.header>
       <.breadcrumb>
@@ -158,28 +176,38 @@ defmodule MicrocraftWeb.OrderLive.Index do
         >
           <div class="p-4">
             <div class="mb-4 flex justify-end space-x-2">
-              <div class="calendar-view-switcher">
-                <.button
+              <div class="bg-stone-200/50 calendar-view-switcher inline-flex h-9 rounded-lg p-1">
+                <button
                   phx-click="switch_calendar_view"
                   phx-value-view="dayGridMonth"
-                  size={:sm}
-                  variant={if @calendar_view == "dayGridMonth", do: :default, else: :outline}
+                  class={[
+                    "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium",
+                    if(@calendar_view == "dayGridMonth",
+                      do: "border border-stone-300 bg-stone-50 shadow",
+                      else: "border border-transparent"
+                    )
+                  ]}
                 >
                   Month
-                </.button>
-                <.button
+                </button>
+                <button
                   phx-click="switch_calendar_view"
                   phx-value-view="listMonth"
-                  size={:sm}
-                  variant={if @calendar_view == "listMonth", do: :default, else: :outline}
+                  class={[
+                    "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium",
+                    if(@calendar_view == "listMonth",
+                      do: "border border-stone-300 bg-stone-50 shadow",
+                      else: "border border-transparent"
+                    )
+                  ]}
                 >
                   List
-                </.button>
+                </button>
               </div>
             </div>
             <div
               id="orders-calendar"
-              class="h-[600px] w-full"
+              class="w-full"
               phx-update="ignore"
               phx-hook="OrderCalendar"
               data-events={Jason.encode!(@calendar_events)}
@@ -211,56 +239,69 @@ defmodule MicrocraftWeb.OrderLive.Index do
       />
     </.modal>
 
-    <.modal :if={@event_details} id="event-details-modal" show>
+    <.modal
+      :if={@selected_order_reference != nil}
+      id="event-details-modal"
+      show
+      on_cancel={JS.push("close_event_modal")}
+    >
       <.header>
-        <h2 class="text-lg font-semibold">{@event_details.title}</h2>
+        <h2 class="text-lg font-medium leading-6">
+          <%= if order = get_selected_order(@orders, @selected_order_reference) do %>
+            {order.customer.full_name} - {format_reference(order.reference)}
+          <% end %>
+        </h2>
       </.header>
-      <div class="py-4">
-        <div class="mb-4 grid grid-cols-2 gap-4">
-          <div>
-            <p class="text-sm font-medium text-gray-500">Start Time</p>
-            <p>{format_time(@event_details.start, @time_zone)}</p>
-          </div>
-          <div>
-            <p class="text-sm font-medium text-gray-500">End Time</p>
-            <p>{format_time(@event_details.end, @time_zone)}</p>
-          </div>
-          <div :if={@event_order} class="col-span-2">
-            <p class="text-sm font-medium text-gray-500">Customer</p>
-            <p :if={@event_order.customer}>{@event_order.customer.full_name}</p>
-          </div>
-          <div :if={@event_order} class="col-span-2">
-            <p class="text-sm font-medium text-gray-500">Status</p>
-            <.badge
-              :if={@event_order}
-              text={@event_order.status}
-              colors={[
-                {@event_order.status,
-                 "#{order_status_color(@event_order.status)} #{order_status_bg(@event_order.status)}"}
-              ]}
-            />
-          </div>
-          <div :if={@event_order} class="col-span-2">
-            <p class="text-sm font-medium text-gray-500">Payment Status</p>
-            <.badge
-              :if={@event_order}
-              text={"#{emoji_for_payment(@event_order.payment_status)} #{@event_order.payment_status}"}
-            />
-          </div>
-          <div :if={@event_order} class="col-span-2">
-            <p class="text-sm font-medium text-gray-500">Total</p>
-            <p :if={@event_order}>{format_money(@settings.currency, @event_order.total_cost)}</p>
-          </div>
+
+      <div class="py-6">
+        <div class="">
+          <%= if order = get_selected_order(@orders, @selected_order_reference) do %>
+            <.list>
+              <:item title="Start Time">
+                {format_time(order.delivery_date, @time_zone)}
+              </:item>
+
+              <:item title="End Time">
+                {format_time(
+                  DateTime.add(order.delivery_date, @calendar_event_duration, :second),
+                  @time_zone
+                )}
+              </:item>
+
+              <:item title="Customer">
+                {order.customer.full_name}
+              </:item>
+
+              <:item title="Status">
+                <.badge
+                  text={order.status}
+                  colors={[
+                    {order.status,
+                     "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
+                  ]}
+                />
+              </:item>
+
+              <:item title="Payment Status">
+                <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
+              </:item>
+
+              <:item title="Total">
+                {format_money(@settings.currency, order.total_cost)}
+              </:item>
+            </.list>
+          <% end %>
         </div>
       </div>
-      <:actions>
-        <.button :if={@event_details.url} navigate={@event_details.url} class="mr-2">
+
+      <div class="flex justify-end space-x-3">
+        <.button class="mr-2" phx-click={JS.navigate(~p"/manage/orders/#{@selected_order_reference}")}>
           View Order Details
         </.button>
-        <.button variant={:outline} phx-click={JS.exec("data-cancel", to: "#event-details-modal")}>
+        <.button variant={:outline} phx-click="close_event_modal">
           Close
         </.button>
-      </:actions>
+      </div>
     </.modal>
     """
   end
@@ -271,46 +312,10 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
     filter_opts = parse_filters(@default_filters)
 
-    # Get orders without stream option to use for calendar
-    orders_for_calendar =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    # Get orders with stream option for the table
-    streamed_orders =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        stream?: true,
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    products =
-      Catalog.list_products!(actor: socket.assigns[:current_user])
-
-    customers =
-      CRM.list_customers!(actor: socket.assigns[:current_user], load: [:full_name])
-
-    socket =
-      socket
-      |> assign(:products, products)
-      |> assign(:customers, customers)
-      # Default view is table
-      |> assign(:view_mode, "table")
-      # Default calendar view is week
-      |> assign(:calendar_view, "dayGridMonth")
-      # Initialize empty calendar events
-      |> assign(:calendar_events, [])
-      # Store orders for calendar
-      |> assign(:orders, orders_for_calendar)
-      |> assign(:event_details, nil)
-      |> assign(:event_order, nil)
-      |> stream(:orders, streamed_orders)
-
-    {:ok, socket}
+    {:ok,
+     socket
+     |> load_initial_data(filter_opts)
+     |> assign_initial_view_state()}
   end
 
   @impl true
@@ -321,43 +326,19 @@ defmodule MicrocraftWeb.OrderLive.Index do
     filter_opts = parse_filters(socket.assigns.filters)
 
     # Get orders for both views with the current filters
-    orders_for_calendar =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
 
     # Only update the stream if the view mode changed to ensure consistency
     socket =
       if socket.assigns.view_mode == view_mode do
         socket
       else
-        streamed_orders =
-          Orders.list_orders!(
-            filter_opts,
-            actor: socket.assigns[:current_user],
-            stream?: true,
-            load: [:items, :total_cost, customer: [:full_name]]
-          )
-
+        streamed_orders = load_streamed_orders(socket, filter_opts)
         stream(socket, :orders, streamed_orders, reset: true)
       end
 
     # Create calendar events from orders
-    calendar_events =
-      Enum.map(orders_for_calendar, fn order ->
-        # Convert order to calendar event format
-        %{
-          id: order.reference,
-          title: "#{order.customer.full_name} - #{format_reference(order.reference)}",
-          start: DateTime.to_iso8601(order.delivery_date),
-          # 1 hour duration
-          end: order.delivery_date |> DateTime.add(3600, :second) |> DateTime.to_iso8601(),
-          color: get_status_color_hex(order.status),
-          textColor: "#000"
-        }
-      end)
+    calendar_events = create_calendar_events(orders_for_calendar)
 
     socket =
       socket
@@ -366,6 +347,191 @@ defmodule MicrocraftWeb.OrderLive.Index do
       |> assign(:calendar_events, calendar_events)
 
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  @impl true
+  def handle_event("reset_filters", _params, socket) do
+    # Reset to default filters
+    socket = assign(socket, :filters, @default_filters)
+    filter_opts = parse_filters(@default_filters)
+
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    streamed_orders = load_streamed_orders(socket, filter_opts)
+    calendar_events = create_calendar_events(orders_for_calendar)
+
+    socket =
+      socket
+      |> assign(:orders, orders_for_calendar)
+      |> assign(:calendar_events, calendar_events)
+      |> stream(:orders, streamed_orders, reset: true)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("show_event_modal", %{"eventId" => order_reference}, socket) do
+    {:noreply, assign(socket, :selected_order_reference, order_reference)}
+  end
+
+  @impl true
+  def handle_event("close_event_modal", _params, socket) do
+    {:noreply, assign(socket, :selected_order_reference, nil)}
+  end
+
+  @impl true
+  def handle_event("switch_calendar_view", %{"view" => view}, socket) do
+    {:noreply,
+     socket
+     |> assign(:calendar_view, view)
+     |> push_event("update-calendar-view", %{view: view})}
+  end
+
+  @impl true
+  def handle_event("apply_filters", %{"filters" => raw_filters}, socket) do
+    new_filters = Map.merge(socket.assigns.filters, raw_filters)
+    filter_opts = parse_filters(new_filters)
+
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    streamed_orders = load_streamed_orders(socket, filter_opts)
+    calendar_events = create_calendar_events(orders_for_calendar)
+
+    {:noreply,
+     socket
+     |> assign(:filters, new_filters)
+     |> assign(:orders, orders_for_calendar)
+     |> assign(:calendar_events, calendar_events)
+     |> stream(:orders, streamed_orders, reset: true)}
+  end
+
+  @impl true
+  def handle_event("delete", %{"id" => id}, socket) do
+    order = Orders.get_order_by_id!(id)
+
+    case Ash.destroy(order, actor: socket.assigns[:current_user]) do
+      :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Order deleted successfully")
+         |> stream_delete(:orders, %{id: id})}
+
+      {:error, _error} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete order.")}
+    end
+  end
+
+  @impl true
+  def handle_event("change-view", %{"view" => view}, socket) do
+    {:noreply, push_patch(socket, to: ~p"/manage/orders?view=#{view}")}
+  end
+
+  @impl true
+  def handle_event(
+        "update_date_filters",
+        %{"start_date" => start_date, "end_date" => end_date, "view_type" => _view_type},
+        socket
+      ) do
+    # Update filters with new date ranges
+    new_filters =
+      socket.assigns.filters
+      |> Map.put("delivery_date_start", start_date)
+      |> Map.put("delivery_date_end", end_date)
+
+    filter_opts = parse_filters(new_filters)
+
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    streamed_orders = load_streamed_orders(socket, filter_opts)
+    calendar_events = create_calendar_events(orders_for_calendar)
+
+    {:noreply,
+     socket
+     |> assign(:filters, new_filters)
+     |> assign(:orders, orders_for_calendar)
+     |> assign(:calendar_events, calendar_events)
+     |> stream(:orders, streamed_orders, reset: true)
+     |> push_event("update-calendar", %{events: calendar_events})}
+  end
+
+  @impl true
+  def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
+    order = Ash.load!(order, [:items, :total_cost, customer: [:full_name]])
+    orders = [order | socket.assigns.orders || []]
+    calendar_events = create_calendar_events(orders)
+
+    {:noreply,
+     socket
+     |> stream_insert(:orders, order)
+     |> assign(:orders, orders)
+     |> assign(:calendar_events, calendar_events)}
+  end
+
+  # Private helper functions
+
+  defp load_initial_data(socket, filter_opts) do
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    streamed_orders = load_streamed_orders(socket, filter_opts)
+    products = Catalog.list_products!(actor: socket.assigns[:current_user])
+    customers = CRM.list_customers!(actor: socket.assigns[:current_user], load: [:full_name])
+
+    socket
+    |> assign(:products, products)
+    |> assign(:customers, customers)
+    |> assign(:orders, orders_for_calendar)
+    |> stream(:orders, streamed_orders)
+  end
+
+  defp assign_initial_view_state(socket) do
+    socket
+    |> assign(:view_mode, "table")
+    |> assign(:calendar_view, "dayGridMonth")
+    |> assign(:calendar_events, [])
+    |> assign(:selected_order_reference, nil)
+  end
+
+  defp load_orders_for_calendar(socket, filter_opts) do
+    Orders.list_orders!(
+      filter_opts,
+      actor: socket.assigns[:current_user],
+      load: [:items, :total_cost, customer: [:full_name]]
+    )
+  end
+
+  defp load_streamed_orders(socket, filter_opts) do
+    Orders.list_orders!(
+      filter_opts,
+      actor: socket.assigns[:current_user],
+      stream?: true,
+      load: [:items, :total_cost, customer: [:full_name]]
+    )
+  end
+
+  defp create_calendar_events(orders) do
+    Enum.map(orders, fn order ->
+      %{
+        id: order.reference,
+        title: "#{order.customer.full_name} - #{format_reference(order.reference)}",
+        start: DateTime.to_iso8601(order.delivery_date),
+        end:
+          order.delivery_date
+          |> DateTime.add(@calendar_event_duration, :second)
+          |> DateTime.to_iso8601(),
+        color: get_status_color_hex(order.status),
+        textColor: "#000",
+        url: nil,
+        # Additional separated information for further customization
+        extendedProps: %{
+          customer: %{
+            name: order.customer.full_name,
+            reference: order.customer.reference
+          },
+          order: %{
+            reference: order.reference,
+            status: order.status,
+            payment_status: order.payment_status,
+            total_cost: order.total_cost
+          }
+        }
+      }
+    end)
   end
 
   defp apply_action(socket, :new, _params) do
@@ -380,250 +546,13 @@ defmodule MicrocraftWeb.OrderLive.Index do
     |> assign(:order, nil)
   end
 
-  @impl true
-  def handle_event("reset_filters", _params, socket) do
-    # Reset to default filters
-    socket = assign(socket, :filters, @default_filters)
-
-    filter_opts = parse_filters(@default_filters)
-
-    # Get orders with reset filters
-    orders_for_calendar =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    streamed_orders =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        stream?: true,
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    # Update calendar events with reset filters
-    calendar_events =
-      Enum.map(orders_for_calendar, fn order ->
-        %{
-          id: order.reference,
-          title: "#{order.customer.full_name} - #{format_reference(order.reference)}",
-          start: DateTime.to_iso8601(order.delivery_date),
-          end: order.delivery_date |> DateTime.add(3600, :second) |> DateTime.to_iso8601(),
-          url: "/manage/orders/#{order.reference}",
-          color: get_status_color_hex(order.status)
-        }
-      end)
-
-    socket =
-      socket
-      |> assign(:orders, orders_for_calendar)
-      |> assign(:calendar_events, calendar_events)
-      |> stream(:orders, streamed_orders, reset: true)
-
-    {:noreply, socket}
+  defp get_selected_order(orders, reference) when is_binary(reference) do
+    Enum.find(orders, fn order -> order.reference == reference end)
   end
 
-  @impl true
-  def handle_event("show_event_modal", event_data, socket) do
-    # Find the order associated with this event
-    event_order =
-      Enum.find(socket.assigns.orders, fn order ->
-        order.reference == event_data["eventId"]
-      end)
+  defp get_selected_order(_orders, _reference), do: nil
 
-    # Convert string dates to DateTime objects
-    start_time =
-      case DateTime.from_iso8601(event_data["start"]) do
-        {:ok, datetime, _} -> datetime
-        _ -> nil
-      end
-
-    end_time =
-      case DateTime.from_iso8601(event_data["end"]) do
-        {:ok, datetime, _} -> datetime
-        _ -> nil
-      end
-
-    # Structure the event details for the modal
-    event_details = %{
-      id: event_data["eventId"],
-      title: event_data["title"],
-      start: start_time,
-      end: end_time,
-      url: event_data["url"],
-      all_day: event_data["allDay"]
-    }
-
-    {:noreply, assign(socket, event_details: event_details, event_order: event_order)}
-  end
-
-  @impl true
-  def handle_event("switch_calendar_view", %{"view" => view}, socket) do
-    socket =
-      socket
-      |> assign(:calendar_view, view)
-      |> push_event("update-calendar-view", %{view: view})
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("apply_filters", %{"filters" => raw_filters}, socket) do
-    new_filters = Map.merge(socket.assigns.filters, raw_filters)
-
-    filter_opts = parse_filters(new_filters)
-
-    # Get orders for both calendar and table
-    orders_for_calendar =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    streamed_orders =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        stream?: true,
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    socket =
-      socket
-      |> assign(:filters, new_filters)
-      |> assign(:orders, orders_for_calendar)
-      |> stream(:orders, streamed_orders, reset: true)
-
-    # Update calendar events after filtering
-    calendar_events =
-      Enum.map(orders_for_calendar, fn order ->
-        %{
-          id: order.reference,
-          title: "#{order.customer.full_name} - #{format_reference(order.reference)}",
-          start: DateTime.to_iso8601(order.delivery_date),
-          end: order.delivery_date |> DateTime.add(3600, :second) |> DateTime.to_iso8601(),
-          url: "/manage/orders/#{order.reference}",
-          color: get_status_color_hex(order.status)
-        }
-      end)
-
-    socket = assign(socket, :calendar_events, calendar_events)
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    case id
-         |> Orders.get_order_by_id!()
-         |> Ash.destroy(actor: socket.assigns[:current_user]) do
-      :ok ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Order deleted successfully")
-         |> stream_delete(:orders, %{id: id})}
-
-      {:error, _error} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete order.")}
-    end
-  end
-
-  @impl true
-  def handle_event("change-view", %{"view" => view}, socket) do
-    # Update URL to include the view parameter
-    {:noreply, push_patch(socket, to: ~p"/manage/orders?view=#{view}")}
-  end
-
-  @impl true
-  def handle_event(
-        "update_date_filters",
-        %{"start_date" => start_date, "end_date" => end_date, "view_type" => _view_type},
-        socket
-      ) do
-    # Update the date filters based on calendar navigation
-    # For monthly view, use the whole month range
-    # For weekly view, use the week range
-    # For list view, use the list range
-
-    # Update filters with new date ranges
-    new_filters =
-      socket.assigns.filters
-      |> Map.put("delivery_date_start", start_date)
-      |> Map.put("delivery_date_end", end_date)
-
-    filter_opts = parse_filters(new_filters)
-
-    # Get orders for both calendar and table with the new date range
-    orders_for_calendar =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    streamed_orders =
-      Orders.list_orders!(
-        filter_opts,
-        actor: socket.assigns[:current_user],
-        stream?: true,
-        load: [:items, :total_cost, customer: [:full_name]]
-      )
-
-    # Update calendar events based on the new orders
-    calendar_events =
-      Enum.map(orders_for_calendar, fn order ->
-        %{
-          id: order.reference,
-          title: "#{order.customer.full_name} - #{format_reference(order.reference)}",
-          start: DateTime.to_iso8601(order.delivery_date),
-          end: order.delivery_date |> DateTime.add(3600, :second) |> DateTime.to_iso8601(),
-          url: "/manage/orders/#{order.reference}",
-          color: get_status_color_hex(order.status)
-        }
-      end)
-
-    # Send a JavaScript command to update the calendar with the new events
-    socket =
-      socket
-      |> assign(:filters, new_filters)
-      |> assign(:orders, orders_for_calendar)
-      |> assign(:calendar_events, calendar_events)
-      |> stream(:orders, streamed_orders, reset: true)
-      |> push_event("update-calendar", %{events: calendar_events})
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
-    order = Ash.load!(order, [:items, :total_cost, customer: [:full_name]])
-    socket = stream_insert(socket, :orders, order)
-
-    # Add the new order to the orders list
-    orders = [order | socket.assigns.orders || []]
-    socket = assign(socket, :orders, orders)
-
-    # Update calendar events when a new order is added
-    calendar_events =
-      Enum.map(orders, fn order ->
-        %{
-          id: order.reference,
-          title: "#{order.customer.full_name} - #{format_reference(order.reference)}",
-          start: DateTime.to_iso8601(order.delivery_date),
-          end: order.delivery_date |> DateTime.add(3600, :second) |> DateTime.to_iso8601(),
-          url: "/manage/orders/#{order.reference}",
-          color: get_status_color_hex(order.status)
-        }
-      end)
-
-    socket = assign(socket, :calendar_events, calendar_events)
-
-    {:noreply, socket}
-  end
-
+  @spec parse_filters(map()) :: filter_options()
   defp parse_filters(filters) do
     %{
       status: parse_list(filters["status"]),
@@ -648,14 +577,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
     end
   end
 
-  defp emoji_for_payment(:pending), do: "⌛"
-  defp emoji_for_payment(:paid), do: "💰"
-  defp emoji_for_payment(:to_be_refunded), do: "↩️"
-  defp emoji_for_payment(:refunded), do: "✅"
-  defp emoji_for_payment(_), do: "❓"
-
-  # Get color hex values for calendar events based on order status
-  # Using brighter, more saturated colors for better contrast with black text
+  # Status color mapping for calendar events
   # Darker orange
   defp get_status_color_hex(:unconfirmed), do: "#f97316"
   # Brighter blue

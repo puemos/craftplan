@@ -15,7 +15,11 @@ defmodule MicrocraftWeb.SettingsLive.Index do
     </.header>
 
     <.tabs id="settings-tabs">
-      <:tab label="General" path={~p"/manage/settings?page=general"} selected?={@page == "general"}>
+      <:tab
+        label="General"
+        path={~p"/manage/settings/general"}
+        selected?={@live_action == :general || @live_action == :index}
+      >
         <div class="max-w-lg">
           <.live_component
             module={MicrocraftWeb.SettingsLive.FormComponent}
@@ -24,15 +28,15 @@ defmodule MicrocraftWeb.SettingsLive.Index do
             title={@page_title}
             action={@live_action}
             settings={@settings}
-            patch={~p"/manage/settings?page=general"}
+            patch={~p"/manage/settings/general"}
           />
         </div>
       </:tab>
 
       <:tab
         label="Allergens"
-        path={~p"/manage/settings?page=allergens"}
-        selected?={@page == "allergens"}
+        path={~p"/manage/settings/allergens"}
+        selected?={@live_action == :allergens}
       >
         <div class="">
           <.live_component
@@ -46,8 +50,8 @@ defmodule MicrocraftWeb.SettingsLive.Index do
 
       <:tab
         label="Nutritional Facts"
-        path={~p"/manage/settings?page=nutritional_facts"}
-        selected?={@page == "nutritional_facts"}
+        path={~p"/manage/settings/nutritional_facts"}
+        selected?={@live_action == :nutritional_facts}
       >
         <div class="">
           <.live_component
@@ -63,23 +67,7 @@ defmodule MicrocraftWeb.SettingsLive.Index do
   end
 
   @impl true
-  def mount(%{"page" => page}, _session, socket) do
-    settings = Settings.get_by_id!(socket.assigns.settings.id)
-    allergens = Inventory.list_allergens!()
-    nutritional_facts = Inventory.list_nutritional_facts!()
-
-    {:ok,
-     socket
-     |> assign(:settings, settings)
-     |> assign(:allergens, allergens)
-     |> assign(:nutritional_facts, nutritional_facts)
-     |> assign(:page, page)
-     |> assign_new(:current_user, fn -> nil end)}
-  end
-
-  @impl true
   def mount(_params, _session, socket) do
-    # Default to general tab
     settings = Settings.get_by_id!(socket.assigns.settings.id)
     allergens = Inventory.list_allergens!()
     nutritional_facts = Inventory.list_nutritional_facts!()
@@ -89,18 +77,28 @@ defmodule MicrocraftWeb.SettingsLive.Index do
      |> assign(:settings, settings)
      |> assign(:allergens, allergens)
      |> assign(:nutritional_facts, nutritional_facts)
-     |> assign(:page, "general")
      |> assign_new(:current_user, fn -> nil end)}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
-    page = Map.get(params, "page", "general")
-    {:noreply, socket |> apply_action(socket.assigns.live_action, params) |> assign(:page, page)}
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   defp apply_action(socket, :index, _params) do
     assign(socket, :page_title, "Settings")
+  end
+
+  defp apply_action(socket, :general, _params) do
+    assign(socket, :page_title, "General Settings")
+  end
+
+  defp apply_action(socket, :allergens, _params) do
+    assign(socket, :page_title, "Allergens Settings")
+  end
+
+  defp apply_action(socket, :nutritional_facts, _params) do
+    assign(socket, :page_title, "Nutritional Facts Settings")
   end
 
   @impl true

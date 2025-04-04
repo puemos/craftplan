@@ -26,8 +26,8 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     <.tabs id="material-tabs">
       <:tab
         label="Details"
-        path={~p"/manage/inventory/#{@material.sku}?page=details"}
-        selected?={@page == "details"}
+        path={~p"/manage/inventory/#{@material.sku}/details"}
+        selected?={@live_action == :details || @live_action == :show}
       >
         <.list>
           <:item title="Name">{@material.name}</:item>
@@ -68,8 +68,8 @@ defmodule MicrocraftWeb.InventoryLive.Show do
 
       <:tab
         label="Allergens"
-        path={~p"/manage/inventory/#{@material.sku}?page=allergens"}
-        selected?={@page == "allergens"}
+        path={~p"/manage/inventory/#{@material.sku}/allergens"}
+        selected?={@live_action == :allergens}
       >
         <.live_component
           module={MicrocraftWeb.InventoryLive.FormComponentAllergens}
@@ -77,15 +77,15 @@ defmodule MicrocraftWeb.InventoryLive.Show do
           material={@material}
           current_user={@current_user}
           settings={@settings}
-          patch={~p"/manage/inventory/#{@material.sku}?page=allergens"}
+          patch={~p"/manage/inventory/#{@material.sku}/allergens"}
           allergens={@allergens_available}
         />
       </:tab>
 
       <:tab
         label="Nutrition"
-        path={~p"/manage/inventory/#{@material.sku}?page=nutritional_facts"}
-        selected?={@page == "nutritional_facts"}
+        path={~p"/manage/inventory/#{@material.sku}/nutritional_facts"}
+        selected?={@live_action == :nutritional_facts}
       >
         <.live_component
           module={MicrocraftWeb.InventoryLive.FormComponentNutritionalFacts}
@@ -93,15 +93,15 @@ defmodule MicrocraftWeb.InventoryLive.Show do
           material={@material}
           current_user={@current_user}
           settings={@settings}
-          patch={~p"/manage/inventory/#{@material.sku}?page=nutritional_facts"}
+          patch={~p"/manage/inventory/#{@material.sku}/nutritional_facts"}
           nutritional_facts={@nutritional_facts_available}
         />
       </:tab>
 
       <:tab
         label="Stock"
-        path={~p"/manage/inventory/#{@material.sku}?page=stock"}
-        selected?={@page == "stock"}
+        path={~p"/manage/inventory/#{@material.sku}/stock"}
+        selected?={@live_action == :stock}
       >
         <div class="-mt-11">
           <.table id="inventory_movements" rows={@material.movements}>
@@ -140,7 +140,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         current_user={@current_user}
         material={@material}
         settings={@settings}
-        patch={~p"/manage/inventory/#{@material.sku}?page=details"}
+        patch={~p"/manage/inventory/#{@material.sku}/details"}
       />
     </.modal>
     <.modal
@@ -155,7 +155,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         material={@material}
         current_user={@current_user}
         settings={@settings}
-        patch={~p"/manage/inventory/#{@material.sku}?page=stock"}
+        patch={~p"/manage/inventory/#{@material.sku}/stock"}
       />
     </.modal>
     """
@@ -165,13 +165,12 @@ defmodule MicrocraftWeb.InventoryLive.Show do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page, "details")
      |> assign(:allergens_available, list_all_allergens())
      |> assign(:nutritional_facts_available, list_all_nutritional_facts())}
   end
 
   @impl true
-  def handle_params(%{"sku" => sku} = params, _, socket) do
+  def handle_params(%{"sku" => sku}, _, socket) do
     material =
       Inventory.get_material_by_sku!(sku,
         actor: socket.assigns[:current_user],
@@ -185,13 +184,10 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         ]
       )
 
-    page = Map.get(params, "page", "details")
-
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:material, material)
-     |> assign(:page, page)}
+     |> assign(:material, material)}
   end
 
   defp list_all_allergens do
@@ -223,4 +219,8 @@ defmodule MicrocraftWeb.InventoryLive.Show do
   defp page_title(:show), do: "Show Material"
   defp page_title(:adjust), do: "Adjust Material"
   defp page_title(:edit), do: "Edit Material"
+  defp page_title(:details), do: "Material Details"
+  defp page_title(:allergens), do: "Material Allergens"
+  defp page_title(:nutritional_facts), do: "Material Nutrition"
+  defp page_title(:stock), do: "Material Stock"
 end

@@ -1,0 +1,1234 @@
+/* Event Calendar Theme Variables */
+.ec {
+    /* HSL with Notion-like values */
+    color-scheme: light;
+    --ec-h: 0;
+    --ec-s: 0%;
+    --ec-l-300: 98%;
+    --ec-l-500: 95%;
+    --ec-l-600: 92%;
+    --ec-l-700: 88%;
+    --ec-hs: var(--ec-h), var(--ec-s);
+    --ec-bg-fallback-color: #ffffff;
+
+    /* Main color */
+    --ec-color-300: hsl(var(--ec-hs), var(--ec-l-300));
+    --ec-color-500: hsl(var(--ec-hs), var(--ec-l-500));
+    --ec-color-600: hsl(var(--ec-hs), var(--ec-l-600));
+    --ec-color-700: hsl(var(--ec-hs), var(--ec-l-700));
+
+    /* General properties */
+    --ec-border-color: rgba(55, 53, 47, 0.09);
+    --ec-accent-color: rgba(55, 53, 47, 0.16);
+    --ec-shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.1);
+    --ec-shadow-md: 0 1px 3px rgba(15, 15, 15, 0.1);
+
+    /* Button styles */
+    --ec-button-bg-color: var(--ec-bg-color, var(--ec-bg-fallback-color));
+    --ec-button-border-color: rgba(55, 53, 47, 0.16);
+    --ec-button-text-color: #37352f;
+    --ec-button-active-bg-color: rgba(55, 53, 47, 0.08);
+    --ec-button-active-border-color: rgba(55, 53, 47, 0.16);
+    --ec-button-active-text-color: var(--ec-button-text-color);
+
+    /* Event colors */
+    --ec-event-bg-color: #ffffff;
+    --ec-event-text-color: #37352f;
+    --ec-bg-event-color: var(--ec-color-500);
+    --ec-bg-event-opacity: 0.3;
+
+    /* Day styles */
+    --ec-today-bg-color: rgba(235, 236, 237, 0.3);
+    --ec-list-day-bg-color: rgba(247, 246, 243, 0.7);
+    --ec-highlight-color: rgba(55, 53, 47, 0.04);
+
+    /* Popup */
+    --ec-popup-bg-color: var(--ec-bg-color, var(--ec-bg-fallback-color));
+
+    /* Now indicator */
+    --ec-now-indicator-color: #eb5757;
+
+    /* Notion typography */
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+        "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji",
+        "Segoe UI Symbol";
+}
+
+/* Dark theme support */
+.ec-dark,
+.dark .ec {
+    color-scheme: dark;
+    --ec-h: 220;
+    --ec-s: 8%;
+    --ec-l-300: 18%;
+    --ec-l-500: 22%;
+    --ec-l-600: 26%;
+    --ec-l-700: 30%;
+    --ec-bg-fallback-color: #191919;
+    --ec-border-color: rgba(255, 255, 255, 0.13);
+    --ec-button-text-color: rgba(255, 255, 255, 0.9);
+    --ec-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.15);
+    --ec-shadow-md: 0 2px 5px rgba(0, 0, 0, 0.2);
+    --ec-event-bg-color: rgba(55, 53, 47, 0.3);
+    --ec-event-text-color: rgba(255, 255, 255, 0.9);
+    --ec-today-bg-color: rgba(255, 255, 255, 0.06);
+    --ec-list-day-bg-color: rgba(55, 53, 47, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    .ec-auto-dark .ec {
+        color-scheme: dark;
+        --ec-h: 220;
+        --ec-s: 8%;
+        --ec-l-300: 18%;
+        --ec-l-500: 22%;
+        --ec-l-600: 26%;
+        --ec-l-700: 30%;
+        --ec-bg-fallback-color: #191919;
+        --ec-border-color: rgba(255, 255, 255, 0.13);
+        --ec-button-text-color: rgba(255, 255, 255, 0.9);
+        --ec-event-bg-color: rgba(55, 53, 47, 0.3);
+        --ec-event-text-color: rgba(255, 255, 255, 0.9);
+    }
+}
+
+/* Make sure calendar buttons use Notion-like styles */
+.ec .ec-button {
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid var(--ec-button-border-color);
+    border-radius: 3px;
+    background-color: var(--ec-button-bg-color);
+    color: var(--ec-button-text-color);
+    font-size: 14px;
+    font-weight: 450;
+    transition: background 20ms ease-in;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+}
+
+.ec .ec-button:hover {
+    background-color: rgba(55, 53, 47, 0.08);
+}
+
+.ec .ec-button.ec-active {
+    background-color: rgba(55, 53, 47, 0.08);
+}
+
+/* Style calendar header to match Notion theme */
+.ec .ec-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--ec-border-color);
+}
+
+/* Style calendar title */
+.ec .ec-toolbar-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #37352f;
+    letter-spacing: -0.01em;
+}
+
+/* Make calendar cells more consistent with Notion theme */
+.ec .ec-day-grid .ec-day-head,
+.ec .ec-time-grid .ec-body:not(.ec-compact) .ec-line:nth-child(even):after {
+    border-bottom-style: dotted;
+    border-bottom-color: rgba(55, 53, 47, 0.06);
+}
+
+.ec-time-grid .ec-sidebar-title {
+    visibility: hidden;
+    overflow-y: hidden;
+    height: 0;
+    text-align: right;
+}
+
+.ec-time-grid .ec-all-day .ec-sidebar-title {
+    visibility: visible;
+    height: auto;
+    padding: 8px 0;
+}
+
+/* Day grid styles */
+.ec-day-grid .ec-body {
+    flex: 1 1 auto;
+}
+
+.ec-day-grid .ec-body .ec-day {
+    min-height: 5em;
+    position: relative;
+}
+
+.ec-day-grid .ec-content {
+    flex-direction: column;
+    height: 100%;
+}
+
+.ec-day-grid .ec-uniform .ec-content {
+    overflow: hidden;
+}
+
+.ec-day-grid .ec-uniform .ec-days {
+    flex: 1 1 0%;
+    min-height: 0;
+}
+
+.ec-day-grid .ec-uniform .ec-day {
+    min-height: 0;
+}
+
+.ec-day-grid .ec-day:first-child {
+    border-left: none;
+}
+
+.ec-day-grid .ec-day-head {
+    border: none;
+    padding: 8px 6px 4px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.ec-day-grid .ec-day-foot {
+    position: absolute;
+    bottom: 0;
+    padding: 2px;
+    font-size: 0.85em;
+}
+
+.ec-day-grid .ec-day-foot a {
+    cursor: pointer;
+}
+
+/* Month view day numbers */
+.ec-day-grid .ec-day-number {
+    font-size: 14px;
+    color: rgba(55, 53, 47, 0.7);
+    font-weight: 450;
+}
+
+/* All-day section styling */
+.ec-all-day-events {
+    background-color: rgba(247, 246, 243, 0.5);
+}
+
+/* Custom styling for events */
+.ec-time-grid .ec-day {
+    border-color: var(--ec-border-color);
+}
+
+/* Hover effects for interactive elements */
+.ec .ec-day-grid-container .ec-day-bg {
+    transition: background-color 20ms ease-in;
+}
+
+.ec .ec-day-grid .ec-day:hover {
+    background-color: rgba(55, 53, 47, 0.03);
+}
+
+/* Style events to look like Notion cards */
+.ec .ec-day-grid .ec-event,
+.ec .ec-time-grid .ec-event {
+    border-radius: 3px;
+    box-shadow:
+        rgba(15, 15, 15, 0.1) 0px 0px 0px 1px,
+        rgba(15, 15, 15, 0.1) 0px 2px 4px;
+    border: none;
+    overflow: hidden;
+    transition:
+        background 100ms ease-out,
+        transform 100ms ease-out,
+        box-shadow 100ms ease-out;
+}
+
+.ec .ec-day-grid .ec-event:hover,
+.ec .ec-time-grid .ec-event:hover {
+    box-shadow:
+        rgba(15, 15, 15, 0.1) 0px 0px 0px 1px,
+        rgba(15, 15, 15, 0.2) 0px 3px 6px;
+    transform: translateY(-1px);
+}
+
+/* Better styling for event content */
+.ec-event-content {
+    overflow: hidden;
+}
+
+.ec-event-time {
+    font-size: 12px;
+    color: rgba(55, 53, 47, 0.6);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+.ec-event-title {
+    font-size: 14px;
+    font-weight: 450;
+    color: #37352f;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Style time display */
+.ec-time-grid .ec-axis {
+    font-size: 12px;
+    color: rgba(55, 53, 47, 0.5);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    padding-right: 8px;
+}
+
+.ec-time-grid .ec-slot {
+    font-size: 11px;
+    color: rgba(55, 53, 47, 0.4);
+    font-weight: 400;
+}
+
+/* Style list view */
+.ec .ec-list {
+    border: 1px solid var(--ec-border-color);
+    border-radius: 3px;
+    background-color: var(--ec-bg-fallback-color);
+    box-shadow: var(--ec-shadow-sm);
+    overflow: hidden;
+}
+
+.ec .ec-list-day {
+    background-color: var(--ec-list-day-bg-color);
+}
+
+.ec .ec-list-day-text {
+    font-weight: 500;
+    font-size: 14px;
+    color: #37352f;
+    letter-spacing: -0.01em;
+}
+
+.ec .ec-list-day-side-text {
+    color: rgba(55, 53, 47, 0.5);
+    font-weight: 400;
+    font-size: 12px;
+}
+
+.ec .ec-list-event {
+    transition: background-color 20ms ease-in;
+}
+
+.ec .ec-list-event:hover {
+    background-color: rgba(55, 53, 47, 0.03);
+}
+
+.ec .ec-list-event-dot {
+    border-radius: 50%;
+    width: 8px;
+    height: 8px;
+}
+
+.ec .ec-list-event-title {
+    font-weight: 450;
+    color: #37352f;
+    font-size: 14px;
+}
+
+.ec .ec-list-event-time {
+    color: rgba(55, 53, 47, 0.5);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+}
+
+/* Style today highlight */
+.ec .ec-today {
+    background-color: var(--ec-today-bg-color);
+    text-transform: capitalize;
+}
+
+/* Style the time marker in time grid */
+.ec .ec-time-grid .ec-time-marker {
+    border-top: 2px solid var(--ec-now-indicator-color);
+    z-index: 10;
+}
+
+.ec .ec-time-grid .ec-time-marker::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -4px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--ec-now-indicator-color);
+    border-radius: 50%;
+}
+
+/* CORE STRUCTURE - PRESERVE THESE - DO NOT REMOVE */
+
+/* Grid */
+.ec-days,
+.ec-day,
+.ec-resource {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.ec {
+    display: flex;
+    flex-direction: column;
+    color: var(--ec-text-color);
+    background-color: var(--ec-bg-color);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ec-hidden-scroll {
+    display: none;
+    overflow-y: scroll;
+    visibility: hidden;
+    flex-shrink: 0;
+}
+.ec-with-scroll .ec-hidden-scroll {
+    display: block;
+}
+
+/* Toolbar */
+.ec-toolbar {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1em;
+}
+.ec-toolbar > * {
+    margin-bottom: -0.5em;
+}
+.ec-toolbar > * > * {
+    margin-bottom: 0.5em;
+}
+.ec-toolbar > * > *:not(:last-child) {
+    margin-right: 0.75em;
+}
+
+.ec-title {
+    margin: 0;
+}
+
+.ec-button-group {
+    display: inline-flex;
+}
+.ec-button-group .ec-button:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -1px;
+}
+.ec-button-group .ec-button:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.ec-icon {
+    display: inline-block;
+    width: 1em;
+}
+.ec-icon.ec-prev:after,
+.ec-icon.ec-next:after {
+    content: "";
+    position: relative;
+    width: 0.5em;
+    height: 0.5em;
+    border-top: 2px solid currentcolor;
+    border-right: 2px solid currentcolor;
+    display: inline-block;
+}
+.ec-icon.ec-prev:after {
+    transform: rotate(-135deg) translate(-2px, 2px);
+}
+.ec-icon.ec-next:after {
+    transform: rotate(45deg) translate(-2px, 2px);
+}
+
+/* Header */
+.ec-header,
+.ec-all-day,
+.ec-body,
+.ec-days,
+.ec-day,
+.ec-day-head {
+    border: 1px solid var(--ec-border-color);
+}
+
+.ec-header {
+    display: flex;
+    flex-shrink: 0;
+}
+.ec-header .ec-resource {
+    flex-direction: column;
+}
+.ec-header .ec-resource .ec-days {
+    border-top-style: solid;
+}
+.ec-header .ec-days {
+    border-bottom: none;
+}
+.ec-header .ec-day {
+    min-height: 24px;
+    line-height: 24px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* All Day */
+.ec-all-day {
+    flex-shrink: 0;
+    border-top: none;
+}
+.ec-all-day .ec-days {
+    border-bottom: none;
+}
+.ec-all-day .ec-day {
+    padding-bottom: 4px;
+    position: relative;
+}
+
+/* Body */
+.ec-body {
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.ec:not(.ec-list) .ec-body {
+    border-top: none;
+}
+
+.ec-sidebar {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+    padding: 0 4px 0 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-content {
+    display: flex;
+}
+.ec-list .ec-content {
+    flex-direction: column;
+}
+
+.ec-resource {
+    display: flex;
+}
+
+.ec-days {
+    display: flex;
+    border-style: none none solid;
+}
+.ec-days:last-child {
+    border-bottom: none;
+}
+.ec-day-grid .ec-days,
+.ec-resource .ec-days {
+    flex: 1 0 auto;
+}
+
+.ec-day {
+    border-style: none none none solid;
+}
+.ec-day.ec-today {
+    background-color: var(--ec-today-bg-color);
+}
+.ec-day.ec-highlight {
+    background-color: var(--ec-highlight-color);
+}
+.ec-day.ec-disabled {
+    position: relative;
+}
+.ec-day.ec-disabled:after {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 0;
+    background-color: var(--ec-bg-event-color);
+    opacity: 0.3;
+}
+.ec-day.ec-other-month .ec-day-head time {
+    opacity: 0.3;
+}
+.ec-list .ec-day {
+    border: none;
+}
+
+.ec-list .ec-day-head {
+    background-color: var(--ec-list-day-bg-color);
+    border-style: solid none;
+    margin: -1px 0 0;
+    padding: 8px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.ec-list .ec-day:first-child .ec-day-head {
+    border-top: none;
+}
+.ec-list .ec-day-side {
+    float: right;
+}
+.ec-list .ec-no-events {
+    text-align: center;
+    padding: 5em 0;
+}
+
+.ec-events {
+    margin: 0 6px 0 0;
+}
+.ec-time-grid .ec-events,
+.ec-events.ec-preview {
+    position: relative;
+}
+.ec-day-grid .ec-events,
+.ec-all-day .ec-events {
+    display: flow-root;
+}
+
+.ec-event {
+    display: flex;
+    margin: 2px;
+    color: var(--ec-event-text-color);
+    box-sizing: border-box;
+    box-shadow: 0 0 1px 0 var(--ec-border-color);
+    background-color: var(--ec-event-bg-color);
+    border-radius: 3px;
+    font-size: 0.85em;
+    line-height: 1.5;
+    z-index: 1;
+
+    @apply border border-solid border-stone-200;
+}
+.ec-day-grid .ec-event,
+.ec-all-day .ec-event {
+    position: relative;
+}
+.ec-list .ec-event {
+    flex-direction: row;
+    padding: 8px 14px;
+    color: inherit;
+    background-color: transparent;
+    border-radius: 0;
+}
+.ec-event.ec-preview {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    user-select: none;
+    opacity: 0.8;
+}
+.ec-event.ec-pointer {
+    color: inherit;
+    pointer-events: none;
+    user-select: none;
+    position: absolute;
+    z-index: 0;
+    box-shadow: none;
+    display: flex;
+}
+
+.ec-event-body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.ec-day-grid .ec-event-body,
+.ec-all-day .ec-event-body,
+.ec-timeline .ec-event-body {
+    flex-direction: row;
+}
+
+.ec-event-tag {
+    width: 4px;
+    border-radius: 2px;
+    margin-right: 8px;
+}
+
+.ec-event-time {
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0 0 1px 0;
+    flex-shrink: 0;
+    max-height: 100%;
+}
+.ec-day-grid .ec-event-time,
+.ec-timeline .ec-event-time {
+    margin: 0 3px 0 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+}
+
+.ec-draggable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.ec-ghost {
+    opacity: 0.5;
+    user-select: none;
+    pointer-events: none;
+}
+
+.ec-bg-events {
+    position: relative;
+}
+.ec-day-grid .ec-bg-events,
+.ec-all-day .ec-bg-events {
+    position: absolute;
+    inset: 0;
+}
+
+.ec-bg-event {
+    position: absolute;
+    background-color: var(--ec-bg-event-color);
+    opacity: var(--ec-bg-event-opacity);
+}
+.ec-day-grid .ec-bg-event,
+.ec-all-day .ec-bg-event {
+    height: 100%;
+    z-index: auto;
+}
+
+.ec-time {
+    white-space: nowrap;
+}
+
+.ec-popup {
+    position: absolute;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    width: 110%;
+    min-width: 180px;
+    z-index: 1010;
+    padding: 8px 10px 14px;
+    background-color: var(--ec-popup-bg-color);
+    border: 1px solid var(--ec-border-color);
+    border-radius: 3px;
+    outline: 1px solid transparent;
+    box-shadow:
+        0 1px 3px 0 hsla(var(--ec-hs), 50%, 0.12),
+        0 4px 8px 3px hsla(var(--ec-hs), 50%, 0.08);
+}
+.ec-popup .ec-day-head {
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+}
+.ec-popup .ec-day-head a {
+    cursor: pointer;
+    font-size: 1.5em;
+    line-height: 0.8;
+}
+.ec-popup .ec-events {
+    margin: 0;
+    min-height: 0;
+    overflow: auto;
+}
+
+.ec-extra {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    margin-left: -6.5px;
+    user-select: none;
+}
+
+.ec-resizer {
+    position: absolute;
+    user-select: none;
+}
+.ec-day-grid .ec-resizer,
+.ec-all-day .ec-resizer,
+.ec-timeline .ec-resizer {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    max-width: 8px;
+    cursor: ew-resize;
+}
+.ec-day-grid .ec-resizer.ec-start,
+.ec-all-day .ec-resizer.ec-start,
+.ec-timeline .ec-resizer.ec-start {
+    right: auto;
+    left: 0;
+}
+
+.ec-dragging,
+.ec-dragging * {
+    cursor: pointer !important;
+}
+
+.ec-resizing-y,
+.ec-resizing-y * {
+    cursor: ns-resize !important;
+}
+
+.ec-resizing-x,
+.ec-resizing-x * {
+    cursor: ew-resize !important;
+}
+
+/* Timeline specific styles */
+.ec-timeline .ec-container {
+    display: flex;
+    flex: 1 1 0%;
+    min-height: 0;
+}
+
+.ec-timeline .ec-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ec-timeline .ec-content {
+    flex-direction: column;
+}
+
+.ec-timeline .ec-body {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.ec-timeline .ec-body .ec-content {
+    min-height: 100%;
+    min-width: max-content;
+    position: relative;
+}
+
+.ec-timeline .ec-body .ec-days {
+    flex-shrink: 0;
+}
+
+.ec-timeline .ec-body .ec-days:not(:last-child) {
+    flex-grow: 0;
+}
+
+.ec-timeline .ec-header {
+    overflow: hidden;
+}
+
+.ec-timeline .ec-header .ec-days {
+    min-width: max-content;
+}
+
+.ec-timeline .ec-header .ec-day {
+    flex-basis: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-timeline .ec-header .ec-day:first-child .ec-day-head,
+.ec-timeline .ec-header .ec-day:first-child .ec-time:first-child {
+    border: none;
+}
+
+.ec-timeline .ec-day {
+    border: none;
+}
+
+.ec-timeline .ec-day-head {
+    border-style: none none none solid;
+}
+
+.ec-timeline .ec-times {
+    display: flex;
+    border-top: 1px solid var(--ec-border-color);
+}
+
+.ec-timeline .ec-time {
+    border-left: 1px solid var(--ec-border-color);
+    box-sizing: border-box;
+    font-size: 0.95em;
+    min-height: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ec-timeline .ec-time,
+.ec-timeline .ec-line {
+    width: 72px;
+}
+
+.ec-timeline .ec-events {
+    position: relative;
+    height: 100%;
+    margin: 0;
+}
+
+.ec-timeline .ec-event {
+    position: absolute;
+}
+
+.ec-timeline .ec-bg-event {
+    height: 100%;
+    z-index: auto;
+}
+
+.ec-timeline .ec-lines {
+    display: flex;
+}
+
+.ec-timeline .ec-line:not(:first-child):after {
+    content: "";
+    position: absolute;
+    height: 100%;
+    border-left: 1px solid var(--ec-border-color);
+    pointer-events: none;
+}
+
+.ec-timeline .ec-sidebar {
+    padding: 0;
+    border: 1px solid var(--ec-border-color);
+    border-right-style: none;
+}
+
+.ec-timeline .ec-sidebar .ec-sidebar-title {
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--ec-border-color);
+    box-sizing: content-box;
+}
+
+.ec-timeline .ec-sidebar .ec-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.ec-timeline .ec-sidebar .ec-resource {
+    padding: 0 8px;
+    flex-shrink: 0;
+}
+
+.ec-timeline .ec-sidebar .ec-resource:not(:last-child) {
+    flex-grow: 0;
+    border-bottom: 1px solid var(--ec-border-color);
+}
+
+.ec-timeline .ec-sidebar .ec-resource:last-child {
+    flex-basis: 100% !important;
+}
+
+.ec-timeline .ec-sidebar .ec-resource span {
+    padding-top: 8px;
+}
+
+/* Time grid styles */
+.ec-time-grid .ec-body .ec-event {
+    position: absolute;
+}
+
+.ec-time-grid .ec-body .ec-event-title {
+    position: sticky;
+    top: 0;
+}
+
+.ec-time-grid .ec-body .ec-resizer {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 50%;
+    max-height: 8px;
+    cursor: ns-resize;
+}
+
+.ec-time-grid .ec-body .ec-resizer.ec-start {
+    bottom: auto;
+    top: 0;
+}
+
+.ec-time-grid .ec-bg-event {
+    width: 100%;
+    z-index: 1;
+}
+
+.ec-time-grid .ec-time {
+    position: relative;
+    line-height: 24px;
+    top: -12px;
+    text-align: right;
+}
+
+.ec-time-grid .ec-header .ec-time,
+.ec-time-grid .ec-all-day .ec-time {
+    visibility: hidden;
+    overflow-y: hidden;
+    height: 0;
+}
+
+.ec-time-grid .ec-time,
+.ec-time-grid .ec-line {
+    height: 24px;
+}
+
+.ec-time-grid .ec-lines {
+    width: 8px;
+}
+
+.ec-time-grid .ec-line:not(:first-child):after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    border-bottom: 1px solid var(--ec-border-color);
+    pointer-events: none;
+}
+
+/* Custom styling for events in Notion style */
+.event-container {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    width: 100%;
+    border-left-width: 1px;
+    border-left-style: solid;
+}
+
+.event-container[data-status="unconfirmed"] {
+    border-left-color: rgba(120, 119, 116, 0.4);
+}
+.event-container[data-status="confirmed"] {
+    border-left-color: rgba(51, 126, 169, 0.4);
+}
+.event-container[data-status="in_process"] {
+    border-left-color: rgba(217, 115, 13, 0.4);
+}
+.event-container[data-status="ready"] {
+    border-left-color: rgba(15, 123, 108, 0.4);
+}
+.event-container[data-status="delivered"] {
+    border-left-color: rgba(11, 110, 153, 0.4);
+}
+.event-container[data-status="completed"] {
+    border-left-color: rgba(68, 131, 97, 0.4);
+}
+.event-container[data-status="cancelled"] {
+    border-left-color: rgba(212, 76, 71, 0.4);
+}
+
+.event-time {
+    font-size: 0.75rem;
+    color: #78777a;
+    margin-bottom: 0.125rem;
+    font-weight: normal;
+}
+
+.customer-name-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.customer-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #292524;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 0.125rem;
+}
+.status-container {
+    display: flex;
+    align-items: center;
+}
+
+.status-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    display: inline-block;
+    margin-right: 0.375rem;
+}
+
+.status-dot[data-status="unconfirmed"] {
+    background-color: rgba(120, 119, 116, 0.4);
+}
+.status-dot[data-status="confirmed"] {
+    background-color: rgba(51, 126, 169, 0.4);
+}
+.status-dot[data-status="in_process"] {
+    background-color: rgba(217, 115, 13, 0.4);
+}
+.status-dot[data-status="ready"] {
+    background-color: rgba(15, 123, 108, 0.4);
+}
+.status-dot[data-status="delivered"] {
+    background-color: rgba(11, 110, 153, 0.4);
+}
+.status-dot[data-status="completed"] {
+    background-color: rgba(68, 131, 97, 0.4);
+}
+.status-dot[data-status="cancelled"] {
+    background-color: rgba(212, 76, 71, 0.4);
+}
+
+.status-text {
+    font-size: 0.75rem;
+    color: #78777a;
+    text-transform: capitalize;
+}
+
+.order-cost {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #292524;
+}
+
+.placeholder {
+    width: 1px;
+    visibility: hidden;
+}
+
+.payment-container {
+    margin-top: 0.5rem;
+}
+
+.payment-separator {
+    margin-bottom: 0.375rem;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+.payment-label {
+    font-size: 0.75rem;
+    color: #78777a;
+}
+
+.payment-status-text {
+    font-size: 0.75rem;
+    color: #78777a;
+}
+
+/* List view specific styles */
+.ec-list .event-container {
+    flex-direction: row;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-left-width: 4px;
+}
+
+.ec-list .customer-name-container {
+    width: auto;
+    flex: 1;
+    margin-right: 2rem;
+}
+
+.ec-list .customer-name {
+    font-size: 1rem;
+}
+
+.ec-list .event-time {
+    margin-bottom: 0;
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.ec-list .status-row {
+    width: auto;
+    margin-top: 0;
+    margin-right: 2rem;
+}
+
+.ec-list .order-cost {
+    width: 100px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.ec-list .payment-container {
+    margin-top: 0;
+    margin-left: 2rem;
+    display: flex;
+    align-items: center;
+}
+
+.ec-list .payment-separator {
+    display: none;
+}
+
+.ec-list .payment-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+/* Scrollbar */
+.ec ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+    background-color: transparent;
+}
+
+.ec ::-webkit-scrollbar-thumb {
+    background-color: rgba(168, 162, 158, 0.2);
+    border-radius: 0.25rem;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.ec :hover::-webkit-scrollbar-thumb {
+    background-color: rgba(168, 162, 158, 0.3);
+}
+
+/* View selector styles */
+.view-selector-container {
+    display: inline-flex;
+    flex-direction: row;
+}
+
+.view-button {
+    height: 28px;
+    padding: 0 12px;
+    font-size: 14px;
+    font-weight: 450;
+    transition: background 20ms ease-in;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-button:hover {
+    background-color: rgba(55, 53, 47, 0.08);
+}
+
+.view-button.active {
+    background-color: rgba(55, 53, 47, 0.08);
+    font-weight: 500;
+}
+
+.month-button,
+.list-button {
+    min-width: 80px;
+}
+
+.month-button {
+    border-right: 0px !important;
+    border-radius: 3px 0 0 3px !important;
+}
+
+.list-button {
+    border-radius: 0 3px 3px 0 !important;
+}
