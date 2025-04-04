@@ -174,46 +174,14 @@ defmodule MicrocraftWeb.OrderLive.Index do
           path={~p"/manage/orders?view=calendar"}
           selected?={@view_mode == "calendar"}
         >
-          <div class="p-4">
-            <div class="mb-4 flex justify-end space-x-2">
-              <div class="bg-stone-200/50 calendar-view-switcher inline-flex h-9 rounded-lg p-1">
-                <button
-                  phx-click="switch_calendar_view"
-                  phx-value-view="dayGridMonth"
-                  class={[
-                    "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium",
-                    if(@calendar_view == "dayGridMonth",
-                      do: "border border-stone-300 bg-stone-50 shadow",
-                      else: "border border-transparent"
-                    )
-                  ]}
-                >
-                  Month
-                </button>
-                <button
-                  phx-click="switch_calendar_view"
-                  phx-value-view="listMonth"
-                  class={[
-                    "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium",
-                    if(@calendar_view == "listMonth",
-                      do: "border border-stone-300 bg-stone-50 shadow",
-                      else: "border border-transparent"
-                    )
-                  ]}
-                >
-                  List
-                </button>
-              </div>
-            </div>
-            <div
-              id="orders-calendar"
-              class="w-full"
-              phx-update="ignore"
-              phx-hook="OrderCalendar"
-              data-events={Jason.encode!(@calendar_events)}
-              data-view={@calendar_view}
-            >
-            </div>
+          <div
+            id="orders-calendar"
+            class="w-full"
+            phx-update="ignore"
+            phx-hook="OrderCalendar"
+            data-events={Jason.encode!(@calendar_events)}
+            data-view={@calendar_view}
+          >
           </div>
         </:tab>
       </.tabs>

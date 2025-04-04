@@ -201,21 +201,84 @@ const processEvents = (events, statusColors) => {
 // View selector component
 class ViewSelectorComponent {
   static render(calendar, currentView) {
+    // Create the container with Tailwind classes
     const selectorContainer = document.createElement("div");
-    selectorContainer.className = "view-selector-container";
+    selectorContainer.className =
+      "calendar-view-switcher inline-flex h-9 rounded-md p-1";
 
+    // Month button
     const monthButton = document.createElement("button");
-    monthButton.className = `view-button month-button ec-button ${currentView.includes("month") ? "active" : ""}`;
     monthButton.textContent = "Month";
+
+    // Check if the current view is a month view (could be dayGridMonth)
+    const isMonthActive =
+      currentView.includes("Month") && !currentView.includes("list");
+
+    monthButton.className = `inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ${
+      isMonthActive
+        ? "border border-stone-300 bg-stone-50 shadow"
+        : "border border-transparent"
+    }`;
+
     monthButton.addEventListener("click", () => {
+      // Update all buttons in the container
+      Array.from(selectorContainer.querySelectorAll("button")).forEach(
+        (btn) => {
+          btn.className =
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-transparent";
+        }
+      );
+
+      // Update this button's style
+      monthButton.className =
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-stone-300 bg-stone-50 shadow";
+
+      // Update the view through LiveView
       calendar.$set({ options: { view: "dayGridMonth" } });
+
+      // Also push the event to the server
+      document.dispatchEvent(
+        new CustomEvent("phx:switch_calendar_view", {
+          detail: { view: "dayGridMonth" },
+        })
+      );
     });
 
+    // List button
     const listButton = document.createElement("button");
-    listButton.className = `view-button list-button ec-button ec-today ${currentView.includes("list") ? "active" : ""}`;
     listButton.textContent = "List";
+
+    // Check if the current view is a list view
+    const isListActive = currentView.includes("list");
+
+    listButton.className = `inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ${
+      isListActive
+        ? "border border-stone-300 bg-stone-50 shadow"
+        : "border border-transparent"
+    }`;
+
     listButton.addEventListener("click", () => {
+      // Update all buttons in the container
+      Array.from(selectorContainer.querySelectorAll("button")).forEach(
+        (btn) => {
+          btn.className =
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-transparent";
+        }
+      );
+
+      // Update this button's style
+      listButton.className =
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-stone-300 bg-stone-50 shadow";
+
+      // Update the view through LiveView
       calendar.$set({ options: { view: "listMonth" } });
+
+      // Also push the event to the server
+      document.dispatchEvent(
+        new CustomEvent("phx:switch_calendar_view", {
+          detail: { view: "listMonth" },
+        })
+      );
     });
 
     selectorContainer.appendChild(monthButton);
@@ -235,16 +298,19 @@ const OrderCalendar = {
     // Process events to add status colors
     const processedEvents = processEvents(orderEvents, STATUS_COLORS);
 
-    // Create calendar container and view selector container
+    // Create calendar container
     const calendarContainer = document.createElement("div");
     calendarContainer.className = "calendar-container";
-
-    const viewSelectorWrapper = document.createElement("div");
-    viewSelectorWrapper.className = "view-selector-wrapper";
-    calendarEl.appendChild(viewSelectorWrapper);
-
     calendarEl.appendChild(calendarContainer);
 
+    // Setup event handler for LiveView events
+    this.handleEvent("switch_calendar_view", ({ view }) => {
+      if (this.calendar) {
+        this.calendar.$set({ options: { view } });
+      }
+    });
+
+    // Initialize the calendar
     this.calendar = new Calendar({
       target: calendarContainer,
       props: {
@@ -271,31 +337,82 @@ const OrderCalendar = {
               view_type: viewType,
             });
           },
+          // Standard header toolbar without custom buttons
+          headerToolbar: {
+            start: "title",
+            center: "",
+            end: "today prev,next",
+          },
         },
       },
     });
+
+    // Add the view switcher directly to the toolbar after calendar initialization
+    setTimeout(() => {
+      const toolbarEnd = calendarEl.querySelector(".ec-end");
+      if (toolbarEnd) {
+        // Create the switcher
+        const viewSwitcher = ViewSelectorComponent.render(
+          this.calendar,
+          initialView
+        );
+
+        // Insert it at the beginning of the toolbar-end section (before today/prev/next buttons)
+        if (toolbarEnd.firstChild) {
+          toolbarEnd.insertBefore(viewSwitcher, toolbarEnd.firstChild);
+        } else {
+          toolbarEnd.appendChild(viewSwitcher);
+        }
+      }
+    }, 1); // Small delay to ensure calendar is fully rendered
   },
 
   updated() {
     if (this.calendar) {
       const orderEvents = JSON.parse(this.el.dataset.events || "[]");
+      const currentView = this.el.dataset.view || "listMonth";
+
       // Process events to add status colors
       const processedEvents = processEvents(orderEvents, STATUS_COLORS);
 
+      // Update the calendar with new events and view
       this.calendar.$set({
-        options: { events: processedEvents, view: this.el.dataset.view },
+        options: {
+          events: processedEvents,
+          view: currentView,
+        },
       });
 
-      const ecEnd = this.el.querySelector(".ec-end");
-      if (ecEnd) {
-        ecEnd.appendChild(
-          ViewSelectorComponent.render(this.calendar, this.el.dataset.view),
+      // Update the view switcher
+      setTimeout(() => {
+        const toolbarEnd = this.el.querySelector(".ec-end");
+        const existingSwitcher = this.el.querySelector(
+          ".calendar-view-switcher"
         );
-      } else {
-        viewSelectorWrapper.appendChild(
-          ViewSelectorComponent.render(this.calendar, this.el.dataset.view),
-        );
-      }
+
+        if (toolbarEnd && !existingSwitcher) {
+          // If switcher doesn't exist, create and add it
+          const viewSwitcher = ViewSelectorComponent.render(
+            this.calendar,
+            currentView
+          );
+          if (toolbarEnd.firstChild) {
+            toolbarEnd.insertBefore(viewSwitcher, toolbarEnd.firstChild);
+          } else {
+            toolbarEnd.appendChild(viewSwitcher);
+          }
+        } else if (existingSwitcher) {
+          // If switcher exists, replace it with updated version
+          const newSwitcher = ViewSelectorComponent.render(
+            this.calendar,
+            currentView
+          );
+          existingSwitcher.parentNode.replaceChild(
+            newSwitcher,
+            existingSwitcher
+          );
+        }
+      }, 1);
     }
   },
 
