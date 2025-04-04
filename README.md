@@ -14,6 +14,19 @@
 
 Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
 
+## User Guides
+
+For detailed instructions on using Microcraft, check out our user guides:
+
+- [Overview](guides/OVERVIEW.md) - Introduction to Microcraft
+- [Catalog Management](guides/CATALOG.md) - Managing products and pricing
+- [Inventory Control](guides/INVENTORY.md) - Tracking raw materials and stock
+- [Order Management](guides/ORDERS.md) - Processing customer orders
+- [Customer Management](guides/CUSTOMERS.md) - Managing your customer database
+- [Business Intelligence](guides/REPORTS.md) - Reports and analytics
+- [Settings](guides/SETTINGS.md) - Configuring your Microcraft installation
+
+
 ## Features
 
 ### 📋 Catalog Management
@@ -122,4 +135,4 @@ This project is licensed under the AGPLv3 License - see the [LICENSE](LICENSE) f
 
 If you need help with setup or have questions:
 - Open an issue
-- Check out our [documentation]
+- Check out our [documentation](guides/OVERVIEW.md)
