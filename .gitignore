@@ -38,5 +38,6 @@ npm-debug.log
 .minio
 .postgres
 .elixir_ls
+.lexical
 .mix_complete.cache
 *.DS_Store

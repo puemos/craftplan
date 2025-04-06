@@ -5,6 +5,9 @@ defmodule Microcraft.Orders.Order do
     domain: Microcraft.Orders,
     data_layer: AshPostgres.DataLayer
 
+  alias Microcraft.Orders.Order.Types.PaymentStatus
+  alias Microcraft.Orders.Order.Types.Status
+
   postgres do
     table "orders_orders"
     repo Microcraft.Repo
@@ -39,15 +42,7 @@ defmodule Microcraft.Orders.Order do
         default nil
 
         constraints items: [
-                      one_of: [
-                        :unconfirmed,
-                        :confirmed,
-                        :in_process,
-                        :ready,
-                        :delivered,
-                        :completed,
-                        :cancelled
-                      ]
+                      one_of: Status.values()
                     ]
       end
 
@@ -56,12 +51,7 @@ defmodule Microcraft.Orders.Order do
         default nil
 
         constraints items: [
-                      one_of: [
-                        :pending,
-                        :paid,
-                        :to_be_refunded,
-                        :refunded
-                      ]
+                      one_of: PaymentStatus.values()
                     ]
       end
 
@@ -131,31 +121,14 @@ defmodule Microcraft.Orders.Order do
       allow_nil? false
     end
 
-    attribute :status, :atom do
+    attribute :status, Status do
       allow_nil? false
       default :unconfirmed
-
-      constraints one_of: [
-                    :unconfirmed,
-                    :confirmed,
-                    :in_process,
-                    :ready,
-                    :delivered,
-                    :completed,
-                    :cancelled
-                  ]
     end
 
-    attribute :payment_status, :atom do
+    attribute :payment_status, PaymentStatus do
       allow_nil? false
       default :pending
-
-      constraints one_of: [
-                    :pending,
-                    :paid,
-                    :to_be_refunded,
-                    :refunded
-                  ]
     end
 
     timestamps()

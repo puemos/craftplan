@@ -66,7 +66,6 @@ config :microcraft,
   ash_domains: [
     Microcraft.Settings,
     Microcraft.CRM,
-    Microcraft.Production,
     Microcraft.Orders,
     Microcraft.Inventory,
     Microcraft.Catalog,

@@ -5,7 +5,6 @@ alias Microcraft.Catalog
 alias Microcraft.CRM
 alias Microcraft.Inventory
 alias Microcraft.Orders
-alias Microcraft.Production
 alias Microcraft.Repo
 alias Microcraft.Settings
 
@@ -80,7 +79,6 @@ if Mix.env() == :dev do
   # ------------------------------------------------------------------------------
   Repo.delete_all(Orders.OrderItem)
   Repo.delete_all(Orders.Order)
-  Repo.delete_all(Production.Task)
   Repo.delete_all(Catalog.RecipeMaterial)
   Repo.delete_all(Catalog.Recipe)
   Repo.delete_all(Catalog.Product)
