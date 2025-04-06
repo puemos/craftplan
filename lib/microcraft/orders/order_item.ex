@@ -15,12 +15,12 @@ defmodule Microcraft.Orders.OrderItem do
 
     create :create do
       primary? true
-      accept [:product_id, :quantity, :unit_price]
+      accept [:product_id, :quantity, :unit_price, :status]
     end
 
     update :update do
       primary? true
-      accept [:quantity]
+      accept [:quantity, :status]
     end
   end
 
@@ -33,6 +33,11 @@ defmodule Microcraft.Orders.OrderItem do
 
     attribute :quantity, :decimal do
       allow_nil? false
+    end
+
+    attribute :status, Microcraft.Orders.OrderItem.Types.Status do
+      allow_nil? false
+      default :todo
     end
 
     timestamps()

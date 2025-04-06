@@ -184,6 +184,131 @@ defmodule MicrocraftWeb.OrderLive.Index do
           >
           </div>
         </:tab>
+        <:tab
+          label="Kanban View"
+          path={~p"/manage/orders?view=kanban"}
+          selected?={@view_mode == "kanban"}
+        >
+          <div class="mb-4 flex items-center justify-between">
+            <div class="flex space-x-4">
+              <div class="inline-flex items-center rounded-md shadow-sm">
+                <button
+                  phx-click="switch_kanban_mode"
+                  phx-value-mode="order"
+                  class={"#{if @kanban_mode == "order", do: "border-blue-500 bg-blue-50 text-blue-600", else: "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"} rounded-l-md border px-4 py-2 text-sm font-medium"}
+                >
+                  By Order Status
+                </button>
+                <button
+                  phx-click="switch_kanban_mode"
+                  phx-value-mode="product"
+                  class={"#{if @kanban_mode == "product", do: "border-blue-500 bg-blue-50 text-blue-600", else: "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"} rounded-r-md border border-l-0 px-4 py-2 text-sm font-medium"}
+                >
+                  By Product
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto pb-4">
+            <div class="inline-flex min-w-full space-x-4">
+              <%= if @kanban_mode == "order" do %>
+                <%= for {status, orders} <- group_orders_by_status(@orders) do %>
+                  <div class="w-80 flex-shrink-0">
+                    <div class={"#{status_color_class(status)} rounded-t-md p-3"}>
+                      <h3 class="font-medium capitalize text-gray-900">
+                        {status} ({length(orders)})
+                      </h3>
+                    </div>
+                    <div class="min-h-[30rem] h-full rounded-b-md bg-gray-50 p-2 shadow-md">
+                      <%= for order <- orders do %>
+                        <div
+                          class="mb-2 cursor-pointer rounded-md bg-white p-3 shadow hover:shadow-md"
+                          phx-click={JS.navigate(~p"/manage/orders/#{order.reference}")}
+                        >
+                          <div class="flex items-start justify-between">
+                            <div>
+                              <h4 class="font-medium">{order.customer.full_name}</h4>
+                              <p class="text-sm text-gray-500">{format_reference(order.reference)}</p>
+                            </div>
+                            <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
+                          </div>
+                          <div class="mt-2 text-sm text-gray-700">
+                            <p>Due: {format_time(order.delivery_date, @time_zone)}</p>
+                            <p class="font-medium">
+                              {format_money(@settings.currency, order.total_cost)}
+                            </p>
+                          </div>
+                          <%= if order.items && length(order.items) > 0 do %>
+                            <div class="mt-2 border-t pt-2">
+                              <p class="mb-1 text-xs text-gray-500">Items:</p>
+                              <%= for item <- Enum.take(order.items, 2) do %>
+                                <div class="flex justify-between text-xs">
+                                  <span>{item.quantity}x {item.product.name}</span>
+                                  <span>{format_money(@settings.currency, item.unit_price)}</span>
+                                </div>
+                              <% end %>
+                              <%= if length(order.items) > 2 do %>
+                                <p class="mt-1 text-xs text-gray-500">
+                                  + {length(order.items) - 2} more items
+                                </p>
+                              <% end %>
+                            </div>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              <% else %>
+                <%= for {product_name, orders} <- group_orders_by_product(@orders) do %>
+                  <div class="w-80 flex-shrink-0">
+                    <div class="rounded-t-md bg-indigo-50 p-3">
+                      <h3 class="font-medium text-gray-900">
+                        {product_name} ({length(orders)})
+                      </h3>
+                    </div>
+                    <div class="min-h-[30rem] h-full rounded-b-md bg-gray-50 p-2 shadow-md">
+                      <%= for {order, items} <- orders do %>
+                        <div
+                          class="mb-2 cursor-pointer rounded-md bg-white p-3 shadow hover:shadow-md"
+                          phx-click={JS.navigate(~p"/manage/orders/#{order.reference}")}
+                        >
+                          <div class="flex items-start justify-between">
+                            <div>
+                              <h4 class="font-medium">{order.customer.full_name}</h4>
+                              <p class="text-sm text-gray-500">{format_reference(order.reference)}</p>
+                            </div>
+                            <.badge
+                              text={order.status}
+                              colors={[
+                                {order.status,
+                                 "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
+                              ]}
+                            />
+                          </div>
+                          <div class="mt-2 text-sm">
+                            <div class="border-l-4 border-indigo-500 pl-2">
+                              <%= for item <- items do %>
+                                <div class="flex justify-between">
+                                  <span>{item.quantity}x {item.product.name}</span>
+                                  <span>{format_money(@settings.currency, item.unit_price)}</span>
+                                </div>
+                              <% end %>
+                            </div>
+                          </div>
+                          <div class="mt-2 text-xs text-gray-500">
+                            <p>Due: {format_time(order.delivery_date, @time_zone)}</p>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </:tab>
       </.tabs>
     </div>
 
@@ -355,6 +480,11 @@ defmodule MicrocraftWeb.OrderLive.Index do
   end
 
   @impl true
+  def handle_event("switch_kanban_mode", %{"mode" => mode}, socket) do
+    {:noreply, assign(socket, :kanban_mode, mode)}
+  end
+
+  @impl true
   def handle_event("apply_filters", %{"filters" => raw_filters}, socket) do
     new_filters = Map.merge(socket.assigns.filters, raw_filters)
     filter_opts = parse_filters(new_filters)
@@ -453,13 +583,14 @@ defmodule MicrocraftWeb.OrderLive.Index do
     |> assign(:calendar_view, "dayGridMonth")
     |> assign(:calendar_events, [])
     |> assign(:selected_order_reference, nil)
+    |> assign(:kanban_mode, "order")
   end
 
   defp load_orders_for_calendar(socket, filter_opts) do
     Orders.list_orders!(
       filter_opts,
       actor: socket.assigns[:current_user],
-      load: [:items, :total_cost, customer: [:full_name]]
+      load: [:items, :total_cost, customer: [:full_name], items: [product: [:name]]]
     )
   end
 
@@ -468,9 +599,73 @@ defmodule MicrocraftWeb.OrderLive.Index do
       filter_opts,
       actor: socket.assigns[:current_user],
       stream?: true,
-      load: [:items, :total_cost, customer: [:full_name]]
+      load: [:items, :total_cost, customer: [:full_name], items: [product: [:name]]]
     )
   end
+
+  # Group orders by their status for kanban view
+  defp group_orders_by_status(orders) do
+    all_statuses = [
+      "unconfirmed",
+      "confirmed",
+      "in_process",
+      "ready",
+      "delivered",
+      "completed",
+      "cancelled"
+    ]
+
+    # First group orders by status
+    grouped_orders =
+      Enum.group_by(orders, fn order ->
+        order_status = if is_atom(order.status), do: to_string(order.status), else: order.status
+        order_status
+      end)
+
+    # Make sure all statuses exist in the result, even if there are no orders
+    Enum.reduce(all_statuses, %{}, fn status, acc ->
+      Map.put(acc, status, Map.get(grouped_orders, status, []))
+    end)
+  end
+
+  # Group orders by products for kanban view
+  defp group_orders_by_product(orders) do
+    # First collect all unique product names
+    product_names =
+      orders
+      |> Enum.flat_map(fn order ->
+        if order.items, do: Enum.map(order.items, & &1.product.name), else: []
+      end)
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    # Then group orders with their items by product
+    Enum.reduce(product_names, %{}, fn product_name, acc ->
+      # Find all orders that contain this product
+      orders_with_product =
+        orders
+        |> Enum.filter(fn order ->
+          order.items && Enum.any?(order.items, &(&1.product.name == product_name))
+        end)
+        |> Enum.map(fn order ->
+          # Get just the items for this product
+          items = Enum.filter(order.items, &(&1.product.name == product_name))
+          {order, items}
+        end)
+
+      Map.put(acc, product_name, orders_with_product)
+    end)
+  end
+
+  # Return appropriate CSS classes for status columns
+  defp status_color_class("unconfirmed"), do: "bg-orange-100"
+  defp status_color_class("confirmed"), do: "bg-blue-100"
+  defp status_color_class("in_process"), do: "bg-purple-100"
+  defp status_color_class("ready"), do: "bg-green-100"
+  defp status_color_class("delivered"), do: "bg-sky-100"
+  defp status_color_class("completed"), do: "bg-teal-100"
+  defp status_color_class("cancelled"), do: "bg-red-100"
+  defp status_color_class(_), do: "bg-gray-100"
 
   defp create_calendar_events(orders) do
     Enum.map(orders, fn order ->
