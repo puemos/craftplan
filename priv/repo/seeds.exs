@@ -197,12 +197,13 @@ if Mix.env() == :dev do
     })
   end
 
-  seed_order_item = fn order, product, quantity ->
+  seed_order_item = fn order, product, quantity, status ->
     Ash.Seed.seed!(Orders.OrderItem, %{
       order_id: order.id,
       product_id: product.id,
       quantity: Decimal.new(quantity),
-      unit_price: product.price
+      unit_price: product.price,
+      status: status
     })
   end
 
@@ -567,95 +568,201 @@ if Mix.env() == :dev do
   # ------------------------------------------------------------------------------
   # 4. Create orders for these customers (simulate real bakery operations)
   # ------------------------------------------------------------------------------
+  # -----------------------------
+  # PAST WEEK (Days -7 to -1)
+  # -----------------------------
 
-  # John's orders
-  order1 = seed_order.(customers.john, 7, :unconfirmed, :pending)
-  seed_order_item.(order1, products.almond_cookies, "2")
-  seed_order_item.(order1, products.choc_cake, "1")
+  # Last Week - Monday (Day -7)
+  order1 = seed_order.(customers.john, -7, :delivered, :paid)
+  seed_order_item.(order1, products.bread, "2", :done)
+  seed_order_item.(order1, products.muffins, "6", :done)
+  seed_order_item.(order1, products.croissants, "4", :done)
 
-  order2 = seed_order.(customers.john, 14, :completed, :paid)
-  seed_order_item.(order2, products.bread, "2")
-  seed_order_item.(order2, products.croissants, "6")
+  order2 = seed_order.(customers.jane, -7, :delivered, :paid)
+  seed_order_item.(order2, products.choc_cake, "1", :done)
+  seed_order_item.(order2, products.gf_cupcakes, "8", :done)
 
-  order3 = seed_order.(customers.john, 7, :delivered, :paid)
-  seed_order_item.(order3, products.muffins, "4")
+  order3 = seed_order.(customers.michael, -7, :delivered, :paid)
+  seed_order_item.(order3, products.oatmeal_cookies, "12", :done)
+  seed_order_item.(order3, products.bread, "1", :done)
+  seed_order_item.(order3, products.rye_loaf, "1", :done)
 
-  # Jane's orders
-  order4 = seed_order.(customers.jane, 3, :confirmed, :pending)
-  seed_order_item.(order4, products.bread, "3")
-  seed_order_item.(order4, products.muffins, "6")
+  # Last Week - Tuesday (Day -6)
+  order4 = seed_order.(customers.alice, -6, :delivered, :paid)
+  seed_order_item.(order4, products.bread, "3", :done)
+  seed_order_item.(order4, products.carrot_cake, "1", :done)
 
-  order5 = seed_order.(customers.jane, 3, :cancelled, :refunded)
-  seed_order_item.(order5, products.choc_cake, "1")
+  order5 = seed_order.(customers.grace, -6, :delivered, :paid)
+  seed_order_item.(order5, products.cheese_danish, "5", :done)
+  seed_order_item.(order5, products.croissants, "6", :done)
+  seed_order_item.(order5, products.almond_cookies, "10", :done)
 
-  order6 = seed_order.(customers.jane, 10, :completed, :paid)
-  seed_order_item.(order6, products.almond_cookies, "5")
+  order6 = seed_order.(customers.bob, -6, :cancelled, :refunded)
+  seed_order_item.(order6, products.choc_cake, "1", :done)
 
-  # Bob's orders
-  order7 = seed_order.(customers.bob, 5, :in_process, :pending)
-  seed_order_item.(order7, products.croissants, "4")
-  seed_order_item.(order7, products.choc_cake, "2")
+  # Last Week - Thursday (Day -4)
+  order7 = seed_order.(customers.taylor, -4, :delivered, :paid)
+  seed_order_item.(order7, products.choc_cake, "2", :done)
+  seed_order_item.(order7, products.bread, "2", :done)
 
-  order8 = seed_order.(customers.bob, 5, :completed, :paid)
-  seed_order_item.(order8, products.bread, "2")
-  seed_order_item.(order8, products.muffins, "6")
+  order8 = seed_order.(customers.emily, -4, :delivered, :paid)
+  seed_order_item.(order8, products.rye_loaf, "1", :done)
+  seed_order_item.(order8, products.croissants, "12", :done)
+  seed_order_item.(order8, products.muffins, "4", :done)
 
-  order9 = seed_order.(customers.bob, 8, :ready, :to_be_refunded)
-  seed_order_item.(order9, products.almond_cookies, "3")
-  seed_order_item.(order9, products.croissants, "4")
+  # Last Weekend - Saturday (Day -2)
+  order9 = seed_order.(customers.john, -2, :delivered, :paid)
+  seed_order_item.(order9, products.choc_cake, "1", :done)
+  seed_order_item.(order9, products.muffins, "12", :done)
+  seed_order_item.(order9, products.bread, "2", :done)
+  seed_order_item.(order9, products.croissants, "8", :done)
 
-  # Alice's orders
-  order10 = seed_order.(customers.alice, 2, :confirmed, :pending)
-  seed_order_item.(order10, products.gf_cupcakes, "6")
-  seed_order_item.(order10, products.cheese_danish, "2")
+  order10 = seed_order.(customers.michael, -2, :delivered, :paid)
+  seed_order_item.(order10, products.choc_cake, "1", :done)
+  seed_order_item.(order10, products.gf_cupcakes, "12", :done)
 
-  order11 = seed_order.(customers.alice, 9, :completed, :paid)
-  seed_order_item.(order11, products.rye_loaf, "1")
-  seed_order_item.(order11, products.oatmeal_cookies, "4")
+  order11 = seed_order.(customers.grace, -2, :delivered, :paid)
+  seed_order_item.(order11, products.carrot_cake, "1", :done)
+  seed_order_item.(order11, products.oatmeal_cookies, "24", :done)
 
-  # Michael's orders
-  order12 = seed_order.(customers.michael, 4, :in_process, :pending)
-  seed_order_item.(order12, products.carrot_cake, "1")
-  seed_order_item.(order12, products.muffins, "4")
+  order12 = seed_order.(customers.jane, -2, :delivered, :paid)
+  seed_order_item.(order12, products.choc_cake, "1", :done)
+  seed_order_item.(order12, products.almond_cookies, "15", :done)
 
-  order13 = seed_order.(customers.michael, 12, :completed, :paid)
-  seed_order_item.(order13, products.bread, "2")
-  seed_order_item.(order13, products.oatmeal_cookies, "3")
-  seed_order_item.(order13, products.almond_cookies, "2")
+  # -----------------------------
+  # CURRENT WEEK (Days 0 to 7)
+  # -----------------------------
 
-  # Grace's orders
-  order14 = seed_order.(customers.grace, 6, :delivered, :paid)
-  seed_order_item.(order14, products.choc_cake, "1")
-  seed_order_item.(order14, products.bread, "1")
+  # Today (Day 0)
+  order13 = seed_order.(customers.alice, 0, :completed, :paid)
+  seed_order_item.(order13, products.bread, "2", :done)
+  seed_order_item.(order13, products.croissants, "6", :done)
 
-  order15 = seed_order.(customers.grace, 1, :confirmed, :pending)
-  seed_order_item.(order15, products.muffins, "8")
+  order14 = seed_order.(customers.bob, 0, :completed, :paid)
+  seed_order_item.(order14, products.carrot_cake, "1", :done)
+  seed_order_item.(order14, products.gf_cupcakes, "6", :done)
+  seed_order_item.(order14, products.rye_loaf, "1", :done)
 
-  # Taylor's orders
-  order16 = seed_order.(customers.taylor, 5, :in_process, :pending)
-  seed_order_item.(order16, products.gf_cupcakes, "2")
-  seed_order_item.(order16, products.almond_cookies, "4")
+  order15 = seed_order.(customers.taylor, 0, :ready, :pending)
+  seed_order_item.(order15, products.bread, "3", :done)
+  seed_order_item.(order15, products.muffins, "8", :in_progress)
 
-  order17 = seed_order.(customers.taylor, 8, :ready, :to_be_refunded)
-  seed_order_item.(order17, products.oatmeal_cookies, "2")
-  seed_order_item.(order17, products.cheese_danish, "5")
+  order16 = seed_order.(customers.emily, 0, :ready, :pending)
+  seed_order_item.(order16, products.choc_cake, "1", :done)
+  seed_order_item.(order16, products.cheese_danish, "8", :in_progress)
 
-  # Emily's orders
-  order18 = seed_order.(customers.emily, 7, :unconfirmed, :pending)
-  seed_order_item.(order18, products.carrot_cake, "2")
+  # Tomorrow (Day 1)
+  order17 = seed_order.(customers.john, 1, :confirmed, :pending)
+  seed_order_item.(order17, products.bread, "2", :in_progress)
+  seed_order_item.(order17, products.croissants, "4", :todo)
 
-  order19 = seed_order.(customers.emily, 3, :confirmed, :pending)
-  seed_order_item.(order19, products.rye_loaf, "1")
-  seed_order_item.(order19, products.oatmeal_cookies, "3")
+  order18 = seed_order.(customers.jane, 1, :confirmed, :pending)
+  seed_order_item.(order18, products.bread, "1", :done)
+  seed_order_item.(order18, products.almond_cookies, "10", :todo)
 
-  # Let's add a few extra for fun (bulk testing!)
-  order20 = seed_order.(customers.jane, 15, :completed, :paid)
-  seed_order_item.(order20, products.croissants, "12")
-  seed_order_item.(order20, products.bread, "2")
+  order19 = seed_order.(customers.michael, 1, :confirmed, :pending)
+  seed_order_item.(order19, products.bread, "2", :in_progress)
+  seed_order_item.(order19, products.oatmeal_cookies, "15", :done)
+  seed_order_item.(order19, products.muffins, "6", :todo)
 
-  order21 = seed_order.(customers.bob, 10, :in_process, :pending)
-  seed_order_item.(order21, products.cheese_danish, "10")
-  seed_order_item.(order21, products.oatmeal_cookies, "10")
+  # This Week - Wednesday (Day 3)
+  order20 = seed_order.(customers.bob, 3, :confirmed, :pending)
+  seed_order_item.(order20, products.choc_cake, "1", :in_progress)
+  seed_order_item.(order20, products.rye_loaf, "2", :todo)
+
+  order21 = seed_order.(customers.grace, 3, :confirmed, :pending)
+  seed_order_item.(order21, products.choc_cake, "1", :done)
+  seed_order_item.(order21, products.croissants, "8", :in_progress)
+  seed_order_item.(order21, products.almond_cookies, "12", :todo)
+
+  order22 = seed_order.(customers.alice, 3, :confirmed, :pending)
+  seed_order_item.(order22, products.choc_cake, "1", :done)
+  seed_order_item.(order22, products.muffins, "4", :in_progress)
+
+  # This Week - Friday (Day 5)
+  order23 = seed_order.(customers.taylor, 5, :unconfirmed, :pending)
+  seed_order_item.(order23, products.carrot_cake, "2", :done)
+  seed_order_item.(order23, products.bread, "3", :in_progress)
+  seed_order_item.(order23, products.croissants, "6", :todo)
+
+  order24 = seed_order.(customers.emily, 5, :unconfirmed, :pending)
+  seed_order_item.(order24, products.carrot_cake, "1", :in_progress)
+  seed_order_item.(order24, products.gf_cupcakes, "12", :todo)
+
+  # Weekend Event Orders (Day 6-7)
+  order25 = seed_order.(customers.john, 6, :unconfirmed, :pending)
+  seed_order_item.(order25, products.carrot_cake, "1", :done)
+  seed_order_item.(order25, products.cheese_danish, "12", :in_progress)
+  seed_order_item.(order25, products.bread, "5", :in_progress)
+  seed_order_item.(order25, products.croissants, "12", :todo)
+  seed_order_item.(order25, products.muffins, "24", :todo)
+
+  order26 = seed_order.(customers.jane, 6, :unconfirmed, :pending)
+  seed_order_item.(order26, products.carrot_cake, "1", :done)
+  seed_order_item.(order26, products.oatmeal_cookies, "20", :in_progress)
+
+  order27 = seed_order.(customers.michael, 7, :unconfirmed, :pending)
+  seed_order_item.(order27, products.choc_cake, "2", :done)
+  seed_order_item.(order27, products.gf_cupcakes, "15", :in_progress)
+  seed_order_item.(order27, products.rye_loaf, "3", :todo)
+
+  # -----------------------------
+  # NEXT WEEK (Days 8 to 14)
+  # -----------------------------
+
+  # Next Week - Monday (Day 8)
+  order28 = seed_order.(customers.alice, 8, :unconfirmed, :pending)
+  seed_order_item.(order28, products.bread, "2", :todo)
+  seed_order_item.(order28, products.croissants, "6", :todo)
+
+  order29 = seed_order.(customers.bob, 8, :unconfirmed, :pending)
+  seed_order_item.(order29, products.choc_cake, "1", :todo)
+  seed_order_item.(order29, products.muffins, "6", :todo)
+
+  # Next Week - Tuesday (Day 9)
+  order30 = seed_order.(customers.grace, 9, :unconfirmed, :pending)
+  seed_order_item.(order30, products.cheese_danish, "10", :todo)
+  seed_order_item.(order30, products.rye_loaf, "2", :todo)
+
+  order31 = seed_order.(customers.taylor, 9, :unconfirmed, :pending)
+  seed_order_item.(order31, products.bread, "3", :todo)
+  seed_order_item.(order31, products.almond_cookies, "15", :todo)
+  seed_order_item.(order31, products.croissants, "8", :todo)
+
+  # Office Party Orders (Day 10)
+  order32 = seed_order.(customers.emily, 10, :unconfirmed, :pending)
+  seed_order_item.(order32, products.oatmeal_cookies, "30", :todo)
+  seed_order_item.(order32, products.croissants, "24", :todo)
+  seed_order_item.(order32, products.muffins, "18", :todo)
+
+  order33 = seed_order.(customers.john, 10, :unconfirmed, :pending)
+  seed_order_item.(order33, products.gf_cupcakes, "12", :todo)
+  seed_order_item.(order33, products.cheese_danish, "15", :todo)
+
+  # Next Week - Friday (Day 12)
+  order34 = seed_order.(customers.jane, 12, :unconfirmed, :pending)
+  seed_order_item.(order34, products.carrot_cake, "1", :todo)
+  seed_order_item.(order34, products.bread, "2", :todo)
+
+  order35 = seed_order.(customers.michael, 12, :unconfirmed, :pending)
+  seed_order_item.(order35, products.choc_cake, "1", :todo)
+  seed_order_item.(order35, products.almond_cookies, "12", :todo)
+  seed_order_item.(order35, products.rye_loaf, "1", :todo)
+
+  # Weekend Event (Day 13-14)
+  order36 = seed_order.(customers.bob, 13, :unconfirmed, :pending)
+  seed_order_item.(order36, products.choc_cake, "2", :todo)
+  seed_order_item.(order36, products.carrot_cake, "1", :todo)
+  seed_order_item.(order36, products.bread, "4", :todo)
+  seed_order_item.(order36, products.muffins, "12", :todo)
+
+  order37 = seed_order.(customers.alice, 14, :unconfirmed, :pending)
+  seed_order_item.(order37, products.croissants, "18", :todo)
+  seed_order_item.(order37, products.oatmeal_cookies, "24", :todo)
+
+  order38 = seed_order.(customers.grace, 14, :unconfirmed, :pending)
+  seed_order_item.(order38, products.gf_cupcakes, "12", :todo)
+  seed_order_item.(order38, products.cheese_danish, "10", :todo)
 
   IO.puts("Done!")
 else

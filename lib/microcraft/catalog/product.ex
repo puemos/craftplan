@@ -69,6 +69,8 @@ defmodule Microcraft.Catalog.Product do
     has_one :recipe, Microcraft.Catalog.Recipe do
       allow_nil? true
     end
+
+    has_many :items, Microcraft.Orders.OrderItem
   end
 
   calculations do

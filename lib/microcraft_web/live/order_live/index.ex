@@ -67,7 +67,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
             options={[
               {"Unconfirmed", "unconfirmed"},
               {"Confirmed", "confirmed"},
-              {"In Process", "in_process"},
+              {"In Progress", "in_progress"},
               {"Ready", "ready"},
               {"Delivered", "delivered"},
               {"Completed", "completed"},
@@ -180,133 +180,19 @@ defmodule MicrocraftWeb.OrderLive.Index do
             phx-update="ignore"
             phx-hook="OrderCalendar"
             data-events={Jason.encode!(@calendar_events)}
-            data-view={@calendar_view}
+            data-view="dayGridMonth"
           >
           </div>
         </:tab>
-        <:tab
-          label="Kanban View"
-          path={~p"/manage/orders?view=kanban"}
-          selected?={@view_mode == "kanban"}
-        >
-          <div class="mb-4 flex items-center justify-between">
-            <div class="flex space-x-4">
-              <div class="inline-flex items-center rounded-md shadow-sm">
-                <button
-                  phx-click="switch_kanban_mode"
-                  phx-value-mode="order"
-                  class={"#{if @kanban_mode == "order", do: "border-blue-500 bg-blue-50 text-blue-600", else: "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"} rounded-l-md border px-4 py-2 text-sm font-medium"}
-                >
-                  By Order Status
-                </button>
-                <button
-                  phx-click="switch_kanban_mode"
-                  phx-value-mode="product"
-                  class={"#{if @kanban_mode == "product", do: "border-blue-500 bg-blue-50 text-blue-600", else: "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"} rounded-r-md border border-l-0 px-4 py-2 text-sm font-medium"}
-                >
-                  By Product
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto pb-4">
-            <div class="inline-flex min-w-full space-x-4">
-              <%= if @kanban_mode == "order" do %>
-                <%= for {status, orders} <- group_orders_by_status(@orders) do %>
-                  <div class="w-80 flex-shrink-0">
-                    <div class={"#{status_color_class(status)} rounded-t-md p-3"}>
-                      <h3 class="font-medium capitalize text-gray-900">
-                        {status} ({length(orders)})
-                      </h3>
-                    </div>
-                    <div class="min-h-[30rem] h-full rounded-b-md bg-gray-50 p-2 shadow-md">
-                      <%= for order <- orders do %>
-                        <div
-                          class="mb-2 cursor-pointer rounded-md bg-white p-3 shadow hover:shadow-md"
-                          phx-click={JS.navigate(~p"/manage/orders/#{order.reference}")}
-                        >
-                          <div class="flex items-start justify-between">
-                            <div>
-                              <h4 class="font-medium">{order.customer.full_name}</h4>
-                              <p class="text-sm text-gray-500">{format_reference(order.reference)}</p>
-                            </div>
-                            <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
-                          </div>
-                          <div class="mt-2 text-sm text-gray-700">
-                            <p>Due: {format_time(order.delivery_date, @time_zone)}</p>
-                            <p class="font-medium">
-                              {format_money(@settings.currency, order.total_cost)}
-                            </p>
-                          </div>
-                          <%= if order.items && length(order.items) > 0 do %>
-                            <div class="mt-2 border-t pt-2">
-                              <p class="mb-1 text-xs text-gray-500">Items:</p>
-                              <%= for item <- Enum.take(order.items, 2) do %>
-                                <div class="flex justify-between text-xs">
-                                  <span>{item.quantity}x {item.product.name}</span>
-                                  <span>{format_money(@settings.currency, item.unit_price)}</span>
-                                </div>
-                              <% end %>
-                              <%= if length(order.items) > 2 do %>
-                                <p class="mt-1 text-xs text-gray-500">
-                                  + {length(order.items) - 2} more items
-                                </p>
-                              <% end %>
-                            </div>
-                          <% end %>
-                        </div>
-                      <% end %>
-                    </div>
-                  </div>
-                <% end %>
-              <% else %>
-                <%= for {product_name, orders} <- group_orders_by_product(@orders) do %>
-                  <div class="w-80 flex-shrink-0">
-                    <div class="rounded-t-md bg-indigo-50 p-3">
-                      <h3 class="font-medium text-gray-900">
-                        {product_name} ({length(orders)})
-                      </h3>
-                    </div>
-                    <div class="min-h-[30rem] h-full rounded-b-md bg-gray-50 p-2 shadow-md">
-                      <%= for {order, items} <- orders do %>
-                        <div
-                          class="mb-2 cursor-pointer rounded-md bg-white p-3 shadow hover:shadow-md"
-                          phx-click={JS.navigate(~p"/manage/orders/#{order.reference}")}
-                        >
-                          <div class="flex items-start justify-between">
-                            <div>
-                              <h4 class="font-medium">{order.customer.full_name}</h4>
-                              <p class="text-sm text-gray-500">{format_reference(order.reference)}</p>
-                            </div>
-                            <.badge
-                              text={order.status}
-                              colors={[
-                                {order.status,
-                                 "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
-                              ]}
-                            />
-                          </div>
-                          <div class="mt-2 text-sm">
-                            <div class="border-l-4 border-indigo-500 pl-2">
-                              <%= for item <- items do %>
-                                <div class="flex justify-between">
-                                  <span>{item.quantity}x {item.product.name}</span>
-                                  <span>{format_money(@settings.currency, item.unit_price)}</span>
-                                </div>
-                              <% end %>
-                            </div>
-                          </div>
-                          <div class="mt-2 text-xs text-gray-500">
-                            <p>Due: {format_time(order.delivery_date, @time_zone)}</p>
-                          </div>
-                        </div>
-                      <% end %>
-                    </div>
-                  </div>
-                <% end %>
-              <% end %>
-            </div>
+        <:tab label="List View" path={~p"/manage/orders?view=list"} selected?={@view_mode == "list"}>
+          <div
+            id="orders-calendar"
+            class="w-full"
+            phx-update="ignore"
+            phx-hook="OrderCalendar"
+            data-events={Jason.encode!(@calendar_events)}
+            data-view="listMonth"
+          >
           </div>
         </:tab>
       </.tabs>
@@ -333,62 +219,58 @@ defmodule MicrocraftWeb.OrderLive.Index do
     </.modal>
 
     <.modal
-      :if={@selected_order_reference != nil}
+      :if={@selected_order != nil}
       id="event-details-modal"
       show
       on_cancel={JS.push("close_event_modal")}
     >
       <.header>
         <h2 class="text-lg font-medium leading-6">
-          <%= if order = get_selected_order(@orders, @selected_order_reference) do %>
-            {order.customer.full_name} - {format_reference(order.reference)}
-          <% end %>
+          "#{@selected_order.customer.full_name} - #{format_reference(@selected_order.reference)}"
         </h2>
       </.header>
 
       <div class="py-6">
-        <div class="">
-          <%= if order = get_selected_order(@orders, @selected_order_reference) do %>
-            <.list>
-              <:item title="Start Time">
-                {format_time(order.delivery_date, @time_zone)}
-              </:item>
+        <div>
+          <.list>
+            <:item title="Start Time">
+              {format_time(@selected_order.delivery_date, @time_zone)}
+            </:item>
 
-              <:item title="End Time">
-                {format_time(
-                  DateTime.add(order.delivery_date, @calendar_event_duration, :second),
-                  @time_zone
-                )}
-              </:item>
+            <:item title="End Time">
+              {format_time(
+                DateTime.add(@selected_order.delivery_date, @calendar_event_duration, :second),
+                @time_zone
+              )}
+            </:item>
 
-              <:item title="Customer">
-                {order.customer.full_name}
-              </:item>
+            <:item title="Customer">
+              {@selected_order.customer.full_name}
+            </:item>
 
-              <:item title="Status">
-                <.badge
-                  text={order.status}
-                  colors={[
-                    {order.status,
-                     "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
-                  ]}
-                />
-              </:item>
+            <:item title="Status">
+              <.badge
+                text={@selected_order.status}
+                colors={[
+                  {@selected_order.status,
+                   "#{order_status_color(@selected_order.status)} #{order_status_bg(@selected_order.status)}"}
+                ]}
+              />
+            </:item>
 
-              <:item title="Payment Status">
-                <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
-              </:item>
+            <:item title="Payment Status">
+              <.badge text={"#{emoji_for_payment(@selected_order.payment_status)} #{@selected_order.payment_status}"} />
+            </:item>
 
-              <:item title="Total">
-                {format_money(@settings.currency, order.total_cost)}
-              </:item>
-            </.list>
-          <% end %>
+            <:item title="Total">
+              {format_money(@settings.currency, @selected_order.total_cost)}
+            </:item>
+          </.list>
         </div>
       </div>
 
       <div class="flex justify-end space-x-3">
-        <.button class="mr-2" phx-click={JS.navigate(~p"/manage/orders/#{@selected_order_reference}")}>
+        <.button class="mr-2" phx-click={JS.navigate(~p"/manage/orders/#{@selected_order.reference}")}>
           View Order Details
         </.button>
         <.button variant={:outline} phx-click="close_event_modal">
@@ -431,7 +313,8 @@ defmodule MicrocraftWeb.OrderLive.Index do
       end
 
     # Create calendar events from orders
-    calendar_events = create_calendar_events(orders_for_calendar)
+    calendar_events =
+      create_calendar_events(orders_for_calendar, @calendar_event_duration)
 
     socket =
       socket
@@ -450,7 +333,9 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
     streamed_orders = load_streamed_orders(socket, filter_opts)
-    calendar_events = create_calendar_events(orders_for_calendar)
+
+    calendar_events =
+      create_calendar_events(orders_for_calendar, @calendar_event_duration)
 
     socket =
       socket
@@ -463,25 +348,15 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
   @impl true
   def handle_event("show_event_modal", %{"eventId" => order_reference}, socket) do
-    {:noreply, assign(socket, :selected_order_reference, order_reference)}
+    selected_order =
+      Enum.find(socket.assigns.orders, fn order -> order.reference == order_reference end)
+
+    {:noreply, assign(socket, selected_order: selected_order)}
   end
 
   @impl true
   def handle_event("close_event_modal", _params, socket) do
-    {:noreply, assign(socket, :selected_order_reference, nil)}
-  end
-
-  @impl true
-  def handle_event("switch_calendar_view", %{"view" => view}, socket) do
-    {:noreply,
-     socket
-     |> assign(:calendar_view, view)
-     |> push_event("update-calendar-view", %{view: view})}
-  end
-
-  @impl true
-  def handle_event("switch_kanban_mode", %{"mode" => mode}, socket) do
-    {:noreply, assign(socket, :kanban_mode, mode)}
+    {:noreply, assign(socket, selected_order: nil)}
   end
 
   @impl true
@@ -491,7 +366,9 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
     streamed_orders = load_streamed_orders(socket, filter_opts)
-    calendar_events = create_calendar_events(orders_for_calendar)
+
+    calendar_events =
+      create_calendar_events(orders_for_calendar, @calendar_event_duration)
 
     {:noreply,
      socket
@@ -538,7 +415,9 @@ defmodule MicrocraftWeb.OrderLive.Index do
 
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
     streamed_orders = load_streamed_orders(socket, filter_opts)
-    calendar_events = create_calendar_events(orders_for_calendar)
+
+    calendar_events =
+      create_calendar_events(orders_for_calendar, @calendar_event_duration)
 
     {:noreply,
      socket
@@ -553,7 +432,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
   def handle_info({MicrocraftWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
     order = Ash.load!(order, [:items, :total_cost, customer: [:full_name]])
     orders = [order | socket.assigns.orders || []]
-    calendar_events = create_calendar_events(orders)
+    calendar_events = create_calendar_events(orders, @calendar_event_duration)
 
     {:noreply,
      socket
@@ -580,10 +459,8 @@ defmodule MicrocraftWeb.OrderLive.Index do
   defp assign_initial_view_state(socket) do
     socket
     |> assign(:view_mode, "table")
-    |> assign(:calendar_view, "dayGridMonth")
     |> assign(:calendar_events, [])
-    |> assign(:selected_order_reference, nil)
-    |> assign(:kanban_mode, "order")
+    |> assign(:selected_order, nil)
   end
 
   defp load_orders_for_calendar(socket, filter_opts) do
@@ -603,100 +480,6 @@ defmodule MicrocraftWeb.OrderLive.Index do
     )
   end
 
-  # Group orders by their status for kanban view
-  defp group_orders_by_status(orders) do
-    all_statuses = [
-      "unconfirmed",
-      "confirmed",
-      "in_process",
-      "ready",
-      "delivered",
-      "completed",
-      "cancelled"
-    ]
-
-    # First group orders by status
-    grouped_orders =
-      Enum.group_by(orders, fn order ->
-        order_status = if is_atom(order.status), do: to_string(order.status), else: order.status
-        order_status
-      end)
-
-    # Make sure all statuses exist in the result, even if there are no orders
-    Enum.reduce(all_statuses, %{}, fn status, acc ->
-      Map.put(acc, status, Map.get(grouped_orders, status, []))
-    end)
-  end
-
-  # Group orders by products for kanban view
-  defp group_orders_by_product(orders) do
-    # First collect all unique product names
-    product_names =
-      orders
-      |> Enum.flat_map(fn order ->
-        if order.items, do: Enum.map(order.items, & &1.product.name), else: []
-      end)
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    # Then group orders with their items by product
-    Enum.reduce(product_names, %{}, fn product_name, acc ->
-      # Find all orders that contain this product
-      orders_with_product =
-        orders
-        |> Enum.filter(fn order ->
-          order.items && Enum.any?(order.items, &(&1.product.name == product_name))
-        end)
-        |> Enum.map(fn order ->
-          # Get just the items for this product
-          items = Enum.filter(order.items, &(&1.product.name == product_name))
-          {order, items}
-        end)
-
-      Map.put(acc, product_name, orders_with_product)
-    end)
-  end
-
-  # Return appropriate CSS classes for status columns
-  defp status_color_class("unconfirmed"), do: "bg-orange-100"
-  defp status_color_class("confirmed"), do: "bg-blue-100"
-  defp status_color_class("in_process"), do: "bg-purple-100"
-  defp status_color_class("ready"), do: "bg-green-100"
-  defp status_color_class("delivered"), do: "bg-sky-100"
-  defp status_color_class("completed"), do: "bg-teal-100"
-  defp status_color_class("cancelled"), do: "bg-red-100"
-  defp status_color_class(_), do: "bg-gray-100"
-
-  defp create_calendar_events(orders) do
-    Enum.map(orders, fn order ->
-      %{
-        id: order.reference,
-        title: "#{order.customer.full_name} - #{format_reference(order.reference)}",
-        start: DateTime.to_iso8601(order.delivery_date),
-        end:
-          order.delivery_date
-          |> DateTime.add(@calendar_event_duration, :second)
-          |> DateTime.to_iso8601(),
-        color: get_status_color_hex(order.status),
-        textColor: "#000",
-        url: nil,
-        # Additional separated information for further customization
-        extendedProps: %{
-          customer: %{
-            name: order.customer.full_name,
-            reference: order.customer.reference
-          },
-          order: %{
-            reference: order.reference,
-            status: order.status,
-            payment_status: order.payment_status,
-            total_cost: order.total_cost
-          }
-        }
-      }
-    end)
-  end
-
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Order")
@@ -708,12 +491,6 @@ defmodule MicrocraftWeb.OrderLive.Index do
     |> assign(:page_title, "Orders")
     |> assign(:order, nil)
   end
-
-  defp get_selected_order(orders, reference) when is_binary(reference) do
-    Enum.find(orders, fn order -> order.reference == reference end)
-  end
-
-  defp get_selected_order(_orders, _reference), do: nil
 
   @spec parse_filters(map()) :: filter_options()
   defp parse_filters(filters) do
@@ -739,22 +516,4 @@ defmodule MicrocraftWeb.OrderLive.Index do
       _ -> nil
     end
   end
-
-  # Status color mapping for calendar events
-  # Darker orange
-  defp get_status_color_hex(:unconfirmed), do: "#f97316"
-  # Brighter blue
-  defp get_status_color_hex(:confirmed), do: "#60a5fa"
-  # Brighter purple
-  defp get_status_color_hex(:in_process), do: "#a78bfa"
-  # Brighter green
-  defp get_status_color_hex(:ready), do: "#34d399"
-  # Brighter sky blue
-  defp get_status_color_hex(:delivered), do: "#38bdf8"
-  # Brighter teal
-  defp get_status_color_hex(:completed), do: "#2dd4bf"
-  # Brighter red
-  defp get_status_color_hex(:cancelled), do: "#f87171"
-  # Darker gray
-  defp get_status_color_hex(_), do: "#6b7280"
 end

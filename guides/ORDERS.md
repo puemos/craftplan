@@ -18,7 +18,7 @@ The calendar view provides a visual representation of your orders scheduled by d
 3. Orders are color-coded by status for easy identification:
    - Unconfirmed: Gray
    - Confirmed: Blue
-   - In Process: Orange
+   - In Progress: Orange
    - Ready: Teal
    - Delivered: Cyan
    - Completed: Green
@@ -84,7 +84,7 @@ Microcraft uses a workflow-based approach to track orders through their lifecycl
 
 1. **Unconfirmed**: Initial state when order is created
 2. **Confirmed**: Order has been accepted and scheduled
-3. **In Process**: Production has started
+3. **In Progress**: Production has started
 4. **Ready**: Order is ready for delivery
 5. **Delivered**: Order has been delivered to the customer
 6. **Completed**: Order is fully completed and paid

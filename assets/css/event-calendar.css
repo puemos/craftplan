@@ -140,56 +140,56 @@
 
 /* Calendar toolbar styling for a cohesive Notion-like design */
 .ec .ec-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
 }
 
 .ec .ec-toolbar-end {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem; /* Add consistent spacing between elements */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Add consistent spacing between elements */
 }
 
 /* Calendar view switcher styles - updated to match other buttons */
 .ec .calendar-view-switcher {
-  display: inline-flex;
-  height: 2.25rem; /* h-9 */
-  padding: 0.25rem; /* p-1 */
-  border: 1px solid rgba(214, 211, 209, 0.5);
-  margin-right: 0.5rem;
+    display: inline-flex;
+    height: 2.25rem; /* h-9 */
+    padding: 0.25rem; /* p-1 */
+    border: 1px solid rgba(214, 211, 209, 0.5);
+    margin-right: 0.5rem;
 }
 
 .ec .calendar-view-switcher button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  border-radius: 0.375rem; /* rounded-md */
-  padding: 0 0.75rem; /* px-3 py-1 */
-  font-size: 0.875rem; /* text-sm */
-  font-weight: 500; /* font-medium */
-  border: 1px solid transparent;
-  transition: all 150ms ease;
-  height: 100%;
-  background: transparent;
-  cursor: pointer;
-  color: rgba(55, 53, 47, 0.85); /* Notion-like text color */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 0.375rem; /* rounded-md */
+    padding: 0 0.75rem; /* px-3 py-1 */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    border: 1px solid transparent;
+    transition: all 150ms ease;
+    height: 100%;
+    background: transparent;
+    cursor: pointer;
+    color: rgba(55, 53, 47, 0.85); /* Notion-like text color */
 }
 
 .ec .calendar-view-switcher button[class*="border-stone-300"] {
-  border: 1px solid rgba(214, 211, 209, 0.5); /* lighter border */
-  background-color: rgb(231 229 228 / 0.5);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03); /* lighter shadow */
+    border: 1px solid rgba(214, 211, 209, 0.5); /* lighter border */
+    background-color: rgb(231 229 228 / 0.5);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03); /* lighter shadow */
 }
 
 /* Title styling to match Notion */
 .ec .ec-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: rgba(55, 53, 47, 0.95);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: rgba(55, 53, 47, 0.95);
 }
 
 /* Style calendar header to match Notion theme */
@@ -1070,7 +1070,7 @@
 .event-container[data-status="confirmed"] {
     border-left-color: rgba(51, 126, 169, 0.4);
 }
-.event-container[data-status="in_process"] {
+.event-container[data-status="in_progress"] {
     border-left-color: rgba(217, 115, 13, 0.4);
 }
 .event-container[data-status="ready"] {
@@ -1135,7 +1135,7 @@
 .status-dot[data-status="confirmed"] {
     background-color: rgba(51, 126, 169, 0.4);
 }
-.status-dot[data-status="in_process"] {
+.status-dot[data-status="in_progress"] {
     background-color: rgba(217, 115, 13, 0.4);
 }
 .status-dot[data-status="ready"] {
@@ -1268,16 +1268,16 @@
 
 /* Fix for the @apply rule that's causing lint warnings */
 .ec-day-grid .ec-event {
-  position: relative;
-  z-index: 1;
-  margin: 1px 0;
-  padding: 2px 4px;
-  min-height: 20px;
-  font-size: 0.85em;
-  line-height: 1.3;
-  border-radius: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background-color 0.2s ease;
+    position: relative;
+    z-index: 1;
+    margin: 1px 0;
+    padding: 2px 4px;
+    min-height: 20px;
+    font-size: 0.85em;
+    line-height: 1.3;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.2s ease;
 }

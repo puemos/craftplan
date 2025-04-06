@@ -7,7 +7,7 @@ import ListView from "@event-calendar/list";
 const STATUS_COLORS = {
   unconfirmed: "rgba(120, 119, 116, 0.4)", // gray
   confirmed: "rgba(51, 126, 169, 0.4)", // blue
-  in_process: "rgba(217, 115, 13, 0.4)", // orange
+  in_progress: "rgba(217, 115, 13, 0.4)", // orange
   ready: "rgba(15, 123, 108, 0.4)", // teal
   delivered: "rgba(11, 110, 153, 0.4)", // cyan
   completed: "rgba(68, 131, 97, 0.4)", // green
@@ -198,96 +198,6 @@ const processEvents = (events, statusColors) => {
   });
 };
 
-// View selector component
-class ViewSelectorComponent {
-  static render(calendar, currentView) {
-    // Create the container with Tailwind classes
-    const selectorContainer = document.createElement("div");
-    selectorContainer.className =
-      "calendar-view-switcher inline-flex h-9 rounded-md p-1";
-
-    // Month button
-    const monthButton = document.createElement("button");
-    monthButton.textContent = "Month";
-
-    // Check if the current view is a month view (could be dayGridMonth)
-    const isMonthActive =
-      currentView.includes("Month") && !currentView.includes("list");
-
-    monthButton.className = `inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ${
-      isMonthActive
-        ? "border border-stone-300 bg-stone-50 shadow"
-        : "border border-transparent"
-    }`;
-
-    monthButton.addEventListener("click", () => {
-      // Update all buttons in the container
-      Array.from(selectorContainer.querySelectorAll("button")).forEach(
-        (btn) => {
-          btn.className =
-            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-transparent";
-        }
-      );
-
-      // Update this button's style
-      monthButton.className =
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-stone-300 bg-stone-50 shadow";
-
-      // Update the view through LiveView
-      calendar.$set({ options: { view: "dayGridMonth" } });
-
-      // Also push the event to the server
-      document.dispatchEvent(
-        new CustomEvent("phx:switch_calendar_view", {
-          detail: { view: "dayGridMonth" },
-        })
-      );
-    });
-
-    // List button
-    const listButton = document.createElement("button");
-    listButton.textContent = "List";
-
-    // Check if the current view is a list view
-    const isListActive = currentView.includes("list");
-
-    listButton.className = `inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ${
-      isListActive
-        ? "border border-stone-300 bg-stone-50 shadow"
-        : "border border-transparent"
-    }`;
-
-    listButton.addEventListener("click", () => {
-      // Update all buttons in the container
-      Array.from(selectorContainer.querySelectorAll("button")).forEach(
-        (btn) => {
-          btn.className =
-            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-transparent";
-        }
-      );
-
-      // Update this button's style
-      listButton.className =
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium border border-stone-300 bg-stone-50 shadow";
-
-      // Update the view through LiveView
-      calendar.$set({ options: { view: "listMonth" } });
-
-      // Also push the event to the server
-      document.dispatchEvent(
-        new CustomEvent("phx:switch_calendar_view", {
-          detail: { view: "listMonth" },
-        })
-      );
-    });
-
-    selectorContainer.appendChild(monthButton);
-    selectorContainer.appendChild(listButton);
-
-    return selectorContainer;
-  }
-}
-
 // Main component
 const OrderCalendar = {
   mounted() {
@@ -302,13 +212,6 @@ const OrderCalendar = {
     const calendarContainer = document.createElement("div");
     calendarContainer.className = "calendar-container";
     calendarEl.appendChild(calendarContainer);
-
-    // Setup event handler for LiveView events
-    this.handleEvent("switch_calendar_view", ({ view }) => {
-      if (this.calendar) {
-        this.calendar.$set({ options: { view } });
-      }
-    });
 
     // Initialize the calendar
     this.calendar = new Calendar({
@@ -346,25 +249,6 @@ const OrderCalendar = {
         },
       },
     });
-
-    // Add the view switcher directly to the toolbar after calendar initialization
-    setTimeout(() => {
-      const toolbarEnd = calendarEl.querySelector(".ec-end");
-      if (toolbarEnd) {
-        // Create the switcher
-        const viewSwitcher = ViewSelectorComponent.render(
-          this.calendar,
-          initialView
-        );
-
-        // Insert it at the beginning of the toolbar-end section (before today/prev/next buttons)
-        if (toolbarEnd.firstChild) {
-          toolbarEnd.insertBefore(viewSwitcher, toolbarEnd.firstChild);
-        } else {
-          toolbarEnd.appendChild(viewSwitcher);
-        }
-      }
-    }, 1); // Small delay to ensure calendar is fully rendered
   },
 
   updated() {
@@ -382,37 +266,6 @@ const OrderCalendar = {
           view: currentView,
         },
       });
-
-      // Update the view switcher
-      setTimeout(() => {
-        const toolbarEnd = this.el.querySelector(".ec-end");
-        const existingSwitcher = this.el.querySelector(
-          ".calendar-view-switcher"
-        );
-
-        if (toolbarEnd && !existingSwitcher) {
-          // If switcher doesn't exist, create and add it
-          const viewSwitcher = ViewSelectorComponent.render(
-            this.calendar,
-            currentView
-          );
-          if (toolbarEnd.firstChild) {
-            toolbarEnd.insertBefore(viewSwitcher, toolbarEnd.firstChild);
-          } else {
-            toolbarEnd.appendChild(viewSwitcher);
-          }
-        } else if (existingSwitcher) {
-          // If switcher exists, replace it with updated version
-          const newSwitcher = ViewSelectorComponent.render(
-            this.calendar,
-            currentView
-          );
-          existingSwitcher.parentNode.replaceChild(
-            newSwitcher,
-            existingSwitcher
-          );
-        }
-      }, 1);
     }
   },
 

@@ -35,7 +35,7 @@ defmodule Microcraft.Orders.Order do
     end
 
     read :list do
-      prepare build(sort: [delivery_date: :asc], load: [:customer])
+      prepare build(sort: [delivery_date: :asc], load: [:customer, items: [:product]])
 
       argument :status, {:array, :atom} do
         allow_nil? true
@@ -70,6 +70,11 @@ defmodule Microcraft.Orders.Order do
         default nil
       end
 
+      argument :product_id, :uuid do
+        allow_nil? true
+        default nil
+      end
+
       filter expr(is_nil(^arg(:status)) or status in ^arg(:status))
       filter expr(is_nil(^arg(:payment_status)) or payment_status in ^arg(:payment_status))
 
@@ -81,6 +86,8 @@ defmodule Microcraft.Orders.Order do
                is_nil(^arg(:customer_name)) or
                  fragment("? ILIKE ?", customer.full_name, "%" <> ^arg(:customer_name) <> "%")
              )
+
+      filter expr(is_nil(^arg(:product_id)) or exists(items, product_id == ^arg(:product_id)))
 
       pagination do
         required? false

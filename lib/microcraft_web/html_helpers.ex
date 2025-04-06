@@ -7,9 +7,11 @@ defmodule MicrocraftWeb.HtmlHelpers do
 
   # Formatting helpers
 
-  @spec format_percentage(Decimal.t() | nil, Keyword.t()) :: Decimal.t()
+  @spec format_percentage(Decimal.t() | integer() | nil, Keyword.t()) :: Decimal.t()
   def format_percentage(value, opts \\ [])
   def format_percentage(nil, opts), do: format_percentage(Decimal.new(0), opts)
+
+  def format_percentage(value, opts) when is_integer(value), do: format_percentage(Decimal.new(value), opts)
 
   def format_percentage(value, opts) do
     places = Keyword.get(opts, :places, 2)
@@ -38,6 +40,19 @@ defmodule MicrocraftWeb.HtmlHelpers do
     |> String.replace("_", replace)
   end
 
+  @doc """
+  Format a reference ID for display
+  """
+  def format_reference(nil), do: "N/A"
+
+  def format_reference(reference) when is_binary(reference) do
+    if String.length(reference) > 8 do
+      "#{String.slice(reference, 0, 4)}...#{String.slice(reference, -4, 4)}"
+    else
+      reference
+    end
+  end
+
   def format_reference(reference), do: format_label(reference, "-")
 
   @spec format_time(DateTime.t(), String.t() | nil) :: String.t()
@@ -50,12 +65,51 @@ defmodule MicrocraftWeb.HtmlHelpers do
     end
   end
 
+  @doc """
+  Format short date for compact displays
+  """
+  def format_short_date(nil, _time_zone), do: "N/A"
+
+  def format_short_date(datetime, time_zone) do
+    case datetime do
+      %DateTime{} ->
+        datetime
+        |> DateTime.shift_zone!(time_zone)
+        |> Calendar.strftime("%b %d")
+
+      %Date{} ->
+        # Handle Date objects directly without timezone conversion
+        Calendar.strftime(datetime, "%b %d")
+
+      _ ->
+        "N/A"
+    end
+  end
+
+  @doc """
+  Safely adds two values that could be either Decimal or integers.
+  Returns a Decimal or integer depending on the inputs.
+  """
+  def safe_add(%Decimal{} = a, %Decimal{} = b), do: Decimal.add(a, b)
+  def safe_add(%Decimal{} = a, b) when is_integer(b), do: Decimal.add(a, Decimal.new(b))
+  def safe_add(a, %Decimal{} = b) when is_integer(a), do: Decimal.add(Decimal.new(a), b)
+  def safe_add(a, b) when is_integer(a) and is_integer(b), do: a + b
+  # Fallback, return the first value in case of unexpected input
+  def safe_add(a, _), do: a
+
+  @doc """
+  Helper to normalize status values
+  """
+  def normalize_status(status) when is_atom(status), do: Atom.to_string(status)
+  def normalize_status(status) when is_binary(status), do: status
+  def normalize_status(_), do: "unknown"
+
   # Status color functions
   @status_colors %{
     order: %{
       unconfirmed: "text-orange-700 border-orange-600",
       confirmed: "text-emerald-700 border-emerald-600",
-      in_process: "text-indigo-700 border-indigo-600",
+      in_progress: "text-indigo-700 border-indigo-600",
       ready: "text-emerald-700 border-emerald-600",
       delivered: "text-emerald-700 border-emerald-600",
       completed: "text-emerald-700 border-emerald-600",
@@ -91,7 +145,7 @@ defmodule MicrocraftWeb.HtmlHelpers do
     order: %{
       unconfirmed: "bg-yellow-50",
       confirmed: "bg-green-50",
-      in_process: "bg-indigo-50",
+      in_progress: "bg-indigo-50",
       ready: "bg-green-50",
       delivered: "bg-green-50",
       completed: "bg-green-50",
@@ -130,6 +184,47 @@ defmodule MicrocraftWeb.HtmlHelpers do
     default: "bg-gray-400"
   }
 
+  @doc """
+  Return appropriate CSS classes for status columns in kanban view
+  """
+  def status_color_class("unconfirmed"), do: "bg-orange-100"
+  def status_color_class("confirmed"), do: "bg-blue-100"
+  def status_color_class("in_progress"), do: "bg-purple-100"
+  def status_color_class("ready"), do: "bg-green-100"
+  def status_color_class("delivered"), do: "bg-sky-100"
+  def status_color_class("completed"), do: "bg-teal-100"
+  def status_color_class("cancelled"), do: "bg-red-100"
+  def status_color_class(_), do: "bg-gray-100"
+
+  @doc """
+  Status color mapping for calendar events
+  """
+  # Darker orange
+  def get_status_color_hex(:unconfirmed), do: "#f97316"
+  # Brighter blue
+  def get_status_color_hex(:confirmed), do: "#60a5fa"
+  # Brighter purple
+  def get_status_color_hex(:in_progress), do: "#a78bfa"
+  # Brighter green
+  def get_status_color_hex(:ready), do: "#34d399"
+  # Brighter sky blue
+  def get_status_color_hex(:delivered), do: "#38bdf8"
+  # Brighter teal
+  def get_status_color_hex(:completed), do: "#2dd4bf"
+  # Brighter red
+  def get_status_color_hex(:cancelled), do: "#f87171"
+  # Darker gray
+
+  # Convert atom status to string for color hex
+  def get_status_color_hex(status) when is_binary(status) do
+    status
+    |> String.to_existing_atom()
+    |> get_status_color_hex()
+  rescue
+    # Default to gray if conversion fails
+    _ -> "#6b7280"
+  end
+
   defp status_color(status, type) do
     get_in(@status_colors, [String.to_atom(type), status]) ||
       @status_colors[String.to_atom(type)][:default]
@@ -153,4 +248,17 @@ defmodule MicrocraftWeb.HtmlHelpers do
   def product_status_dot(status) do
     @status_dots[status] || @status_dots[:default]
   end
+
+  @doc """
+  Get an emoji for a payment status.
+  """
+  def emoji_for_payment("paid"), do: "✅"
+  def emoji_for_payment(:paid), do: "✅"
+  def emoji_for_payment("pending"), do: "⏳"
+  def emoji_for_payment(:pending), do: "⏳"
+  def emoji_for_payment("to_be_refunded"), do: "↩️"
+  def emoji_for_payment(:to_be_refunded), do: "↩️"
+  def emoji_for_payment("refunded"), do: "🔄"
+  def emoji_for_payment(:refunded), do: "🔄"
+  def emoji_for_payment(_), do: "❓"
 end

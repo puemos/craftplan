@@ -10,6 +10,9 @@ defmodule Microcraft.Orders do
       define :list_orders_with_keyset, action: :keyset
     end
 
-    resource Microcraft.Orders.OrderItem
+    resource Microcraft.Orders.OrderItem do
+      define :get_order_item_by_id, action: :read, get_by: [:id]
+      define :update_item, action: :update
+    end
   end
 end

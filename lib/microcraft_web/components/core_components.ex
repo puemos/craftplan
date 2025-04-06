@@ -100,7 +100,7 @@ defmodule MicrocraftWeb.CoreComponents do
         tabindex="0"
       >
         <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
+          <div class="w-full max-w-4xl p-4 sm:p-6 lg:py-8">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
@@ -912,7 +912,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
     ~H"""
     <span class={[
-      "inline-flex rounded-full border px-2 text-xs font-normal capitalize leading-5",
+      "inline-flex whitespace-nowrap rounded-full border px-2 text-xs font-normal capitalize leading-5",
       @color_class
     ]}>
       {format_label(@text)}

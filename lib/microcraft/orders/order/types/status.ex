@@ -4,7 +4,7 @@ defmodule Microcraft.Orders.Order.Types.Status do
     values: [
       :unconfirmed,
       :confirmed,
-      :in_process,
+      :in_progress,
       :ready,
       :delivered,
       :completed,

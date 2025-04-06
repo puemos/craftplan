@@ -115,6 +115,7 @@ defmodule Microcraft.Inventory.Material do
     has_many :movements, Microcraft.Inventory.Movement
     has_many :material_allergens, MaterialAllergen
     has_many :material_nutritional_facts, MaterialNutritionalFact
+    many_to_many :recipes, Microcraft.Catalog.Recipe, through: Microcraft.Catalog.RecipeMaterial
 
     many_to_many :allergens, Microcraft.Inventory.Allergen, through: MaterialAllergen
 

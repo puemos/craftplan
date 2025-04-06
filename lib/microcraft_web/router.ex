@@ -73,6 +73,10 @@ defmodule MicrocraftWeb.Router do
       live "/manage/customers/:reference/statistics", CustomerLive.Show, :statistics
       live "/manage/customers/:reference/edit", CustomerLive.Index, :edit
 
+      live "/manage/plan", PlanLive.Index, :index
+      live "/manage/plan/schedule", PlanLive.Index, :schedule
+      live "/manage/plan/materials", PlanLive.Index, :materials
+
       # in each liveview, add one of the following at the top of the module:
       #
       # If an authenticated user must be present:

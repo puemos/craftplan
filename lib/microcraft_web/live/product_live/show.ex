@@ -212,6 +212,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
 
   defp page_title(:show), do: "Show Product"
   defp page_title(:edit), do: "Edit Product"
+  defp page_title(:recipe), do: "Product recipe"
 
   defp list_available_materials do
     Inventory.list_materials!()

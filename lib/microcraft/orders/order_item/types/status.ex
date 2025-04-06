@@ -3,7 +3,15 @@ defmodule Microcraft.Orders.OrderItem.Types.Status do
   use Ash.Type.Enum,
     values: [
       :todo,
-      :in_process,
+      :in_progress,
       :done
     ]
+
+  def match(:todo), do: {:ok, :todo}
+  def match("todo"), do: {:ok, :todo}
+  def match(:in_progress), do: {:ok, :in_progress}
+  def match("in_progress"), do: {:ok, :in_progress}
+  def match(:done), do: {:ok, :done}
+  def match("done"), do: {:ok, :done}
+  def match(value), do: super(value)
 end
