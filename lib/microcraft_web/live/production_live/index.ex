@@ -61,21 +61,16 @@ defmodule MicrocraftWeb.PlanLive.Index do
                               {product.name}
                             </span>
                           </div>
-                          <div class="h-1.5 w-full rounded-full bg-stone-100 group-hover:bg-stone-200">
+                          <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
+                            <span>
+                              {format_amount(:piece, total_quantity(items))}
+                            </span>
+                          </div>
+                          <div class="mt-1.5 h-1.5 w-full rounded-full bg-stone-200 group-hover:bg-stone-200">
                             <div class="relative h-1.5 w-full">
                               <div
                                 class="absolute h-1.5 bg-green-500"
                                 style={"width: calc(#{progress_by_status(items, :done)}%)"}
-                              >
-                              </div>
-                              <div
-                                class="absolute h-1.5 bg-blue-500"
-                                style={"width: calc(#{progress_by_status(items, :in_progress)}%); left: calc(#{progress_by_status(items, :done)}%)"}
-                              >
-                              </div>
-                              <div
-                                class="absolute h-1.5 bg-stone-300"
-                                style={"width: calc(#{progress_by_status(items, :todo)}%); left: calc(#{progress_by_status(items, :done)}% + #{progress_by_status(items, :in_progress)}%)"}
                               >
                               </div>
                             </div>
@@ -88,9 +83,6 @@ defmodule MicrocraftWeb.PlanLive.Index do
                                   Decimal.new(100)
                                 )
                               )}% complete
-                            </span>
-                            <span class="flex-shrink-0 whitespace-nowrap rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium">
-                              {format_amount(:piece, total_quantity(items))}
                             </span>
                           </div>
                         </div>
@@ -748,10 +740,6 @@ defmodule MicrocraftWeb.PlanLive.Index do
     end)
   end
 
-  defp count_status(items, status) do
-    Enum.count(items, &(&1.status == status))
-  end
-
   defp find_material(_socket, material_id) do
     # Fetch the material from the database
     Inventory.get_material_by_id!(material_id)
@@ -854,11 +842,28 @@ defmodule MicrocraftWeb.PlanLive.Index do
   defp page_title(_), do: "Plan"
 
   defp progress_by_status(items, status) do
-    status_count = count_status(items, status)
-    total = Enum.count(items)
+    # Calculate total sum of quantities for all items
+    total_quantity =
+      Enum.reduce(items, Decimal.new(0), fn item, acc ->
+        Decimal.add(acc, item.quantity)
+      end)
 
-    if total > 0 do
-      trunc(status_count / total * 100)
+    # Calculate sum of quantities for items with the given status
+    status_quantity =
+      Enum.reduce(items, Decimal.new(0), fn item, acc ->
+        if item.status == status do
+          Decimal.add(acc, item.quantity)
+        else
+          acc
+        end
+      end)
+
+    # Calculate percentage based on quantities
+    if Decimal.compare(total_quantity, Decimal.new(0)) == :gt do
+      percentage =
+        Decimal.to_float(Decimal.mult(Decimal.div(status_quantity, total_quantity), Decimal.new(100)))
+
+      trunc(percentage)
     else
       0
     end
