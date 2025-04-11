@@ -214,7 +214,7 @@ defmodule MicrocraftWeb.PlanLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = generate_current_week_range()
 
     production_items = load_production_items(socket, days_range)
     materials_requirements = prepare_materials_requirements(socket, days_range)
@@ -271,8 +271,7 @@ defmodule MicrocraftWeb.PlanLive.Index do
 
   @impl true
   def handle_event("previous_week", _params, socket) do
-    new_start = Date.add(List.first(socket.assigns.days_range), -7)
-    days_range = generate_week_range(new_start)
+    days_range = get_previous_week_range(socket.assigns.days_range)
     production_items = load_production_items(socket, days_range)
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
@@ -285,8 +284,7 @@ defmodule MicrocraftWeb.PlanLive.Index do
 
   @impl true
   def handle_event("next_week", _params, socket) do
-    new_start = Date.add(List.first(socket.assigns.days_range), 7)
-    days_range = generate_week_range(new_start)
+    days_range = get_next_week_range(socket.assigns.days_range)
     production_items = load_production_items(socket, days_range)
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
@@ -299,14 +297,13 @@ defmodule MicrocraftWeb.PlanLive.Index do
 
   @impl true
   def handle_event("today", _params, socket) do
-    today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = generate_current_week_range()
     production_items = load_production_items(socket, days_range)
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
     {:noreply,
      socket
-     |> assign(:today, today)
+     |> assign(:today, Date.utc_today())
      |> assign(:days_range, days_range)
      |> assign(:production_items, production_items)
      |> assign(:materials_requirements, materials_requirements)}
@@ -365,8 +362,23 @@ defmodule MicrocraftWeb.PlanLive.Index do
     end
   end
 
-  defp generate_week_range(start_date) do
-    Enum.map(0..6, &Date.add(start_date, &1))
+  defp generate_current_week_range do
+    today = Date.utc_today()
+    # Get the beginning of week (Monday)
+    monday = Date.add(today, -(Date.day_of_week(today) - 1))
+    Enum.map(0..6, &Date.add(monday, &1))
+  end
+
+  defp get_previous_week_range(current_week_range) do
+    monday = List.first(current_week_range)
+    prev_monday = Date.add(monday, -7)
+    Enum.map(0..6, &Date.add(prev_monday, &1))
+  end
+
+  defp get_next_week_range(current_week_range) do
+    monday = List.first(current_week_range)
+    next_monday = Date.add(monday, 7)
+    Enum.map(0..6, &Date.add(next_monday, &1))
   end
 
   defp is_weekend?(date) do
