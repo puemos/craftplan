@@ -132,11 +132,10 @@ defmodule MicrocraftWeb.HtmlHelpers do
       archived: "text-red-700 border-red-600",
       default: "text-gray-700 border-gray-600"
     },
-    task: %{
-      pending: "text-yellow-700 border-yellow-600",
+    order_item: %{
+      todo: "text-yellow-700 border-yellow-600",
       in_progress: "text-blue-700 border-blue-600",
       done: "text-green-700 border-green-600",
-      cancelled: "text-red-700 border-red-600",
       default: "text-gray-700 border-gray-600"
     }
   }
@@ -168,11 +167,10 @@ defmodule MicrocraftWeb.HtmlHelpers do
       archived: "bg-red-100",
       default: "bg-gray-100"
     },
-    task: %{
-      pending: "bg-yellow-100",
+    order_item: %{
+      todo: "bg-yellow-100",
       in_progress: "bg-blue-100",
       done: "bg-green-100",
-      cancelled: "bg-red-100",
       default: "bg-gray-100"
     }
   }
@@ -238,12 +236,12 @@ defmodule MicrocraftWeb.HtmlHelpers do
   def product_status_color(status), do: status_color(status, "product")
   def order_status_color(status), do: status_color(status, "order")
   def payment_status_color(status), do: status_color(status, "payment")
-  def task_status_color(status), do: status_color(status, "task")
+  def order_item_status_color(status), do: status_color(status, "order_item")
 
   def product_status_bg(status), do: status_bg(status, "product")
   def order_status_bg(status), do: status_bg(status, "order")
   def payment_status_bg(status), do: status_bg(status, "payment")
-  def task_status_bg(status), do: status_bg(status, "task")
+  def order_item_status_bg(status), do: status_bg(status, "order_item")
 
   def product_status_dot(status) do
     @status_dots[status] || @status_dots[:default]

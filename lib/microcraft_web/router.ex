@@ -31,7 +31,11 @@ defmodule MicrocraftWeb.Router do
     pipe_through :browser
 
     ash_authentication_live_session :admin_routes,
-      on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_admin_required}] do
+      on_mount: [
+        MicrocraftWeb.LiveCurrentPath,
+        MicrocraftWeb.LiveSettings,
+        {MicrocraftWeb.LiveUserAuth, :live_admin_required}
+      ] do
       live "/manage/settings", SettingsLive.Index, :index
       live "/manage/settings/general", SettingsLive.Index, :general
       live "/manage/settings/allergens", SettingsLive.Index, :allergens
@@ -39,7 +43,11 @@ defmodule MicrocraftWeb.Router do
     end
 
     ash_authentication_live_session :manage_routes,
-      on_mount: [MicrocraftWeb.LiveSettings, {MicrocraftWeb.LiveUserAuth, :live_staff_required}] do
+      on_mount: [
+        MicrocraftWeb.LiveCurrentPath,
+        MicrocraftWeb.LiveSettings,
+        {MicrocraftWeb.LiveUserAuth, :live_staff_required}
+      ] do
       live "/manage/products", ProductLive.Index, :index
       live "/manage/products/new", ProductLive.Index, :new
       live "/manage/products/:sku", ProductLive.Show, :show
@@ -49,6 +57,7 @@ defmodule MicrocraftWeb.Router do
       live "/manage/products/:sku/edit", ProductLive.Show, :edit
 
       live "/manage/inventory", InventoryLive.Index, :index
+      live "/manage/inventory/forecast", InventoryLive.Index, :forecast
       live "/manage/inventory/new", InventoryLive.Index, :new
       live "/manage/inventory/:sku", InventoryLive.Show, :show
       live "/manage/inventory/:sku/details", InventoryLive.Show, :details

@@ -9,7 +9,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="All Materials" path={~p"/manage/inventory"} current?={false} />
+        <:crumb label="Inventory" path={~p"/manage/inventory"} current?={false} />
         <:crumb label={@material.name} path={~p"/manage/inventory/#{@material.sku}"} current?={true} />
       </.breadcrumb>
 

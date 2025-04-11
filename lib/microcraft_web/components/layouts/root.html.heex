@@ -29,33 +29,20 @@
             <.link navigate={~p'/'}>
               <div class="flex items-center">
                 <img src={~p'/images/bread.svg'} class="mr-1 h-7 w-7" />
-                <span class="text-lg font-semibold">Microcraft</span>
+                <span class="ml-1 text-lg font-semibold">Microcraft</span>
               </div>
             </.link>
           </div>
 
-          <ul class="flex items-center space-x-8">
+          <ul
+            id="nav-items"
+            class="absolute left-1/2 flex -translate-x-1/2 items-center space-x-4 rounded-lg border border-stone-200 bg-white px-1 py-1"
+          >
             <%= if @current_user && (@current_user.role in [:admin, :staff]) do %>
               <li>
                 <.link
-                  href={~p"/manage/products"}
-                  class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
-                >
-                  <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                    />
-                  </svg>
-                  Products
-                </.link>
-              </li>
-              <li>
-                <.link
                   href={~p"/manage/plan"}
-                  class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                  class={"#{if @current_path == "/manage/plan", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -71,7 +58,7 @@
               <li>
                 <.link
                   href={~p"/manage/inventory"}
-                  class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                  class={"#{if @current_path == "/manage/inventory", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -86,8 +73,24 @@
               </li>
               <li>
                 <.link
+                  href={~p"/manage/products"}
+                  class={"#{if @current_path == "/manage/products", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
+                >
+                  <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                    />
+                  </svg>
+                  Products
+                </.link>
+              </li>
+              <li>
+                <.link
                   href={~p"/manage/orders"}
-                  class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                  class={"#{if @current_path == "/manage/orders", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -103,7 +106,7 @@
               <li>
                 <.link
                   href={~p"/manage/customers"}
-                  class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                  class={"#{if @current_path == "/manage/customers", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -120,7 +123,7 @@
                 <li>
                   <.link
                     href={~p"/manage/settings"}
-                    class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                    class={"#{if @current_path == "/manage/settings", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                   >
                     <svg
                       class="mr-1 h-4 w-4"
@@ -146,46 +149,64 @@
                 </li>
               <% end %>
             <% end %>
-            <%= if @current_user do %>
-              <li class="group relative">
-                <button class="flex items-center text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900">
-                  <span>{@current_user.email}</span>
-                  <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-                <div class="invisible absolute right-0 mt-2 w-48 rounded-md border border-stone-100 bg-white py-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                  <.link
-                    href={~p"/sign-out"}
-                    class="block px-4 py-2 text-sm text-stone-600 hover:bg-stone-50 hover:text-stone-900"
-                  >
-                    Log out
-                  </.link>
-                </div>
-              </li>
-            <% else %>
-              <li>
-                <.link
-                  href={~p"/register"}
-                  class="text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
-                >
-                  Register
-                </.link>
-              </li>
-              <li>
-                <.link href={~p"/sign-in"}>
-                  <.button>
-                    Log in
-                  </.button>
-                </.link>
-              </li>
-            <% end %>
           </ul>
+          <div class="flex w-full justify-end">
+            <ul class="flex items-center space-x-8">
+              <%= if @current_user do %>
+                <li class="relative">
+                  <button
+                    type="button"
+                    phx-click={JS.toggle(to: "#user-dropdown")}
+                    phx-click-away={JS.hide(to: "#user-dropdown")}
+                    class="flex items-center px-3 py-1 text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                  >
+                    <span>{@current_user.email}</span>
+                    <svg
+                      id="user-dropdown-chevron"
+                      class="ml-2 h-4 w-4 transform transition-transform duration-200"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    id="user-dropdown"
+                    class="absolute right-0 mt-2 hidden w-48 transform rounded-md border border-stone-100 bg-white py-2 shadow-lg transition-all duration-200 ease-out"
+                  >
+                    <.link
+                      href={~p"/sign-out"}
+                      class="block px-4 py-2 text-sm text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                    >
+                      Log out
+                    </.link>
+                  </div>
+                </li>
+              <% else %>
+                <li>
+                  <.link
+                    href={~p"/register"}
+                    class="rounded-lg border border-stone-200 px-3 py-1 text-sm tracking-wide text-stone-600 transition-colors duration-200 hover:text-stone-900"
+                  >
+                    Register
+                  </.link>
+                </li>
+                <li>
+                  <.link href={~p"/sign-in"}>
+                    <.button>
+                      Log in
+                    </.button>
+                  </.link>
+                </li>
+              <% end %>
+            </ul>
+          </div>
         </div>
       </div>
     </nav>

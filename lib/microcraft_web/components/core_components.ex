@@ -531,10 +531,14 @@ defmodule MicrocraftWeb.CoreComponents do
   attr :value, :any
   attr :flat, :boolean, default: false
 
+  attr :badge_colors, :list,
+    default: [],
+    doc: "A keyword list of statuses to CSS classes for badge-select"
+
   attr :type, :string,
     default: "text",
     values: ~w(checkbox checkdrop checkgroup color date datetime-local email file month number password
-               range search select tel text textarea time url week radiogroup hidden)
+               range search select tel text textarea time url week radiogroup badge-select hidden)
 
   attr :field, FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -783,6 +787,79 @@ defmodule MicrocraftWeb.CoreComponents do
     """
   end
 
+  def input(%{type: "badge-select"} = assigns) do
+    assigns = assign_new(assigns, :badge_colors, fn -> [] end)
+
+    ~H"""
+    <div>
+      <.label for={@id}>{@label}</.label>
+
+      <div phx-click-away={JS.hide(to: "##{@id}-dropdown")} class="relative">
+        <select id={@id} name={@name} class="hidden" {@rest}>
+          <option :if={@prompt} value="">{@prompt}</option>
+          {Phoenix.HTML.Form.options_for_select(@options, @value)}
+        </select>
+
+        <button
+          type="button"
+          phx-click={JS.toggle(to: "##{@id}-dropdown")}
+          class={[
+            "relative w-full cursor-default cursor-pointer text-left text-sm leading-6",
+            "focus:outline-none",
+            @flat != true && "rounded-md border focus:ring-1 focus:ring-stone-400",
+            @flat != true && @errors == [] && "border-stone-300",
+            @flat != true && @errors != [] && "border-rose-400"
+          ]}
+        >
+          <.badge
+            text={selected_label(@options, @value, @prompt)}
+            value={@value}
+            colors={@badge_colors}
+          />
+        </button>
+
+        <div
+          id={"#{@id}-dropdown"}
+          class={[
+            "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white",
+            "text-base shadow-lg ring-1 ring-stone-200 focus:outline-none sm:text-sm",
+            "hidden transform transition-all duration-200 ease-out"
+          ]}
+        >
+          <div class="w-full p-1">
+            <div class="px-2 py-1.5 text-xs font-medium text-stone-500">
+              Select an option
+            </div>
+            <div :for={{label, val} <- @options} class="flex items-center">
+              <label
+                for={"#{@name}-#{val}"}
+                class={[
+                  "relative flex w-full cursor-pointer select-none items-center rounded-md px-2 py-1.5",
+                  "transition-colors duration-100 hover:bg-stone-100",
+                  to_string(val) == to_string(@value) && "bg-stone-100"
+                ]}
+              >
+                <.badge text={label} value={val} colors={@badge_colors} />
+                <input
+                  type="radio"
+                  id={"#{@name}-#{val}"}
+                  name={@name}
+                  value={val}
+                  phx-click={JS.toggle(to: "##{@id}-dropdown")}
+                  checked={to_string(val) == to_string(@value)}
+                  class="hidden h-4 w-4 flex-shrink-0 rounded border-stone-300 text-blue-600 focus:ring-blue-600"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
+    """
+  end
+
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div>
@@ -845,6 +922,15 @@ defmodule MicrocraftWeb.CoreComponents do
     """
   end
 
+  defp selected_label(options, selected_value, placeholder) do
+    options
+    |> Enum.find(fn {_label, value} -> to_string(value) == to_string(selected_value) end)
+    |> case do
+      nil -> placeholder || "Select option..."
+      {label, _value} -> label
+    end
+  end
+
   @doc """
   Renders a label.
   """
@@ -902,12 +988,33 @@ defmodule MicrocraftWeb.CoreComponents do
   Renders a badge with customizable text and conditionally applied color classes based on a keyword list.
   """
   attr :text, :string, required: true, doc: "The text to display inside the badge"
+
+  attr :value, :any,
+    required: false,
+    default: :default,
+    doc: "The value to use for color lookup, can be atom or string"
+
   attr :colors, :list, default: [], doc: "A keyword list of statuses to CSS classes"
 
   def badge(assigns) do
-    key = if is_atom(assigns.text), do: assigns.text, else: :default
-    color_class = Keyword.get(assigns.colors, key, "bg-stone-100 text-stone-700 border-stone-300")
+    key =
+      if Map.has_key?(assigns, :value) and assigns.value != :default do
+        value = assigns.value
 
+        cond do
+          is_atom(value) -> value
+          is_binary(value) -> String.to_atom(value)
+          true -> :default
+        end
+      else
+        cond do
+          is_atom(assigns.text) -> assigns.text
+          is_binary(assigns.text) -> String.to_atom(assigns.text)
+          true -> :default
+        end
+      end
+
+    color_class = Keyword.get(assigns.colors, key, "bg-stone-100 text-stone-700 border-stone-300")
     assigns = assign(assigns, :color_class, color_class)
 
     ~H"""
