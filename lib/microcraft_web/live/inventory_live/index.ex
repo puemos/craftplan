@@ -71,8 +71,8 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         path={~p"/manage/inventory/forecast"}
         selected?={@live_action == :forecast}
       >
-        <div class="mt-4 mb-6 flex w-full items-center justify-center">
-          <div class="bg-stone-200/50 flex space-x-1 rounded p-2">
+        <div class="mt-4 mb-6 flex w-full items-center justify-end">
+          <div class=" flex space-x-1 rounded p-2">
             <.button
               phx-click="previous_week"
               size={:sm}
@@ -154,7 +154,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
               </thead>
               <tbody class="text-sm leading-6 text-stone-700">
                 <tr :for={{material, material_data} <- @materials_requirements}>
-                  <td class="border-t border-r border-t-stone-200 py-2 pr-2 text-center font-medium">
+                  <td class="border-t border-r border-t-stone-200 border-r-stone-200 py-2 pr-2 text-center font-medium">
                     {material.name}
                   </td>
                   <td
@@ -175,7 +175,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
                       Decimal.compare(day_quantity, Decimal.new(0)) == :gt && material.id
                     }
                     class={[
-                      "relative border-t border-r border-t-stone-200 p-2 text-center text-sm",
+                      "relative border-t border-r border-t-stone-200 border-r-stone-200 p-2 text-center text-sm",
                       (Decimal.lt?(Enum.at(material_data.balance_cells, index), day_quantity) and
                          Decimal.compare(day_quantity, Decimal.new(0)) != :eq) && "bg-red-50",
                       Decimal.compare(day_quantity, Decimal.new(0)) == :gt &&

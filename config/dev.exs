@@ -42,9 +42,8 @@ config :microcraft, MicrocraftWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "NlbIq9/9aO9+5xxg8ESxxFI7ay172FlEI5IVJvhLx50ZcZbWLjV1L1ito7aZ0fiM",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:microcraft, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:microcraft, ~w(--watch)]},
-    storybook_tailwind: {Tailwind, :install_and_run, [:storybook, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
 config :microcraft, MicrocraftWeb.Endpoint,

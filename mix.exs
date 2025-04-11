@@ -44,7 +44,7 @@ defmodule Microcraft.MixProject do
       {:bcrypt_elixir, "~> 3.0"},
       {:dns_cluster, "~> 0.1.1"},
       {:ecto_sql, "~> 3.10"},
-      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.9", runtime: Mix.env() == :dev},
       {:ex_money_sql, "~> 1.0"},
       {:finch, "~> 0.13"},
       {:floki, ">= 0.30.0", only: :test},
@@ -59,13 +59,12 @@ defmodule Microcraft.MixProject do
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.0.0"},
-      {:phoenix_storybook, "~> 0.7.0"},
       {:picosat_elixir, "~> 0.2"},
       {:postgrex, ">= 0.0.0"},
       {:spark, "~> 2.2.36"},
       {:styler, "~> 1.2", only: [:dev, :test], runtime: false},
       {:swoosh, "~> 1.5"},
-      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:tailwind_formatter, "~> 0.4.2", only: [:dev, :test], runtime: false},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
@@ -89,7 +88,6 @@ defmodule Microcraft.MixProject do
       "assets.build": ["tailwind microcraft", "esbuild microcraft"],
       "assets.deploy": [
         "tailwind microcraft --minify",
-        "tailwind storybook --minify",
         "esbuild microcraft --minify",
         "phx.digest"
       ]

@@ -14,12 +14,7 @@
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playwrite+US+Trad&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
   </head>
   <body class="microcraft-web bg-stone-50 text-stone-800">
     <nav class="fixed top-0 z-50 w-full border-b border-stone-200 bg-stone-50">
@@ -36,13 +31,13 @@
 
           <ul
             id="nav-items"
-            class="absolute left-1/2 flex -translate-x-1/2 items-center space-x-4 rounded-lg border border-stone-200 bg-white px-1 py-1"
+            class="shadow-xs absolute left-1/2 flex -translate-x-1/2 items-center space-x-4 rounded-lg border border-stone-200 bg-white px-1 py-1"
           >
             <%= if @current_user && (@current_user.role in [:admin, :staff]) do %>
               <li>
                 <.link
                   href={~p"/manage/plan"}
-                  class={"#{if @current_path == "/manage/plan", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
+                  class={"#{if @current_path == "/manage/plan", do: "bg-stone-200/60 border border-stone-300 text-stone-900", else: "border border-transparent text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -58,7 +53,7 @@
               <li>
                 <.link
                   href={~p"/manage/inventory"}
-                  class={"#{if @current_path == "/manage/inventory", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
+                  class={"#{if @current_path == "/manage/inventory", do: "bg-stone-200/60 border border-stone-300 text-stone-900", else: "border border-transparent text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -74,7 +69,7 @@
               <li>
                 <.link
                   href={~p"/manage/products"}
-                  class={"#{if @current_path == "/manage/products", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
+                  class={"#{if @current_path == "/manage/products", do: "bg-stone-200/60 border border-stone-300 text-stone-900", else: "border border-transparent text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -90,7 +85,7 @@
               <li>
                 <.link
                   href={~p"/manage/orders"}
-                  class={"#{if @current_path == "/manage/orders", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
+                  class={"#{if @current_path == "/manage/orders", do: "bg-stone-200/60 border border-stone-300 text-stone-900", else: "border border-transparent text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -106,7 +101,7 @@
               <li>
                 <.link
                   href={~p"/manage/customers"}
-                  class={"#{if @current_path == "/manage/customers", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
+                  class={"#{if @current_path == "/manage/customers", do: "bg-stone-200/60 border border-stone-300 text-stone-900", else: "border border-transparent text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                 >
                   <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -123,7 +118,7 @@
                 <li>
                   <.link
                     href={~p"/manage/settings"}
-                    class={"#{if @current_path == "/manage/settings", do: "bg-stone-200/80 text-stone-900", else: "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
+                    class={"#{if @current_path == "/manage/settings", do: "bg-stone-200/60 border border-stone-300 text-stone-900", else: "border border-transparent text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"} flex items-center rounded-md px-2 py-1 text-sm tracking-wide transition-colors duration-200"}
                   >
                     <svg
                       class="mr-1 h-4 w-4"

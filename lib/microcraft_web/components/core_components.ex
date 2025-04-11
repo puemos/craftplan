@@ -340,19 +340,19 @@ defmodule MicrocraftWeb.CoreComponents do
   end
 
   defp button_variant_classes(:default),
-    do: "bg-stone-200/50 border border-stone-300 shadow-sm hover:bg-stone-200 hover:text-gray-800"
+    do: "bg-stone-200/50 border border-stone-300 shadow-xs hover:bg-stone-200 hover:text-gray-800"
 
-  defp button_variant_classes(:danger), do: "bg-rose-50 text-rose-500 hover:bg-rose-100 border border-rose-300 shadow-sm"
+  defp button_variant_classes(:danger), do: "bg-rose-50 text-rose-500 hover:bg-rose-100 border border-rose-300 shadow-xs"
 
   defp button_variant_classes(:outline),
-    do: "bg-transparent text-stone-700 border border-stone-300 shadow-sm hover:bg-stone-100"
+    do: "bg-transparent text-stone-700 border border-stone-300 shadow-xs hover:bg-stone-100"
 
   defp button_size_classes(:sm), do: "h-7 px-3 py-1 text-xs"
   defp button_size_classes(:base), do: "h-9 px-4 py-2"
   defp button_size_classes(:lg), do: "h-11 px-5 py-3 text-base"
 
   defp button_base_classes,
-    do: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium"
+    do: "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium"
 
   defp button_focus_classes,
     do:
@@ -806,16 +806,30 @@ defmodule MicrocraftWeb.CoreComponents do
           class={[
             "relative w-full cursor-default cursor-pointer text-left text-sm leading-6",
             "focus:outline-none",
-            @flat != true && "rounded-md border focus:ring-1 focus:ring-stone-400",
+            @flat != true && "rounded-md border p-2 hover:bg-white",
             @flat != true && @errors == [] && "border-stone-300",
             @flat != true && @errors != [] && "border-rose-400"
           ]}
         >
-          <.badge
-            text={selected_label(@options, @value, @prompt)}
-            value={@value}
-            colors={@badge_colors}
-          />
+          <div class="flex items-center justify-between">
+            <.badge
+              text={selected_label(@options, @value, @prompt)}
+              value={@value}
+              colors={@badge_colors}
+            />
+            <svg
+              class="h-5 w-5 text-gray-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
         </button>
 
         <div

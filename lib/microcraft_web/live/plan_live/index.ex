@@ -15,9 +15,62 @@ defmodule MicrocraftWeb.PlanLive.Index do
       </.breadcrumb>
 
       <:actions>
-        <.button phx-click="previous_week" size={:sm}>Previous</.button>
-        <.button phx-click="today" size={:sm}>Today</.button>
-        <.button phx-click="next_week" size={:sm}>Next</.button>
+        <div class="">
+          <.button
+            phx-click="previous_week"
+            size={:sm}
+            class="px-[6px] rounded-md border border-gray-300 bg-white py-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+            </svg>
+          </.button>
+          <.button
+            phx-click="today"
+            size={:sm}
+            variant={:outline}
+            class="flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="mr-1 h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            This week
+          </.button>
+          <.button
+            phx-click="next_week"
+            size={:sm}
+            class="px-[6px] rounded-md border border-gray-300 bg-white py-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </.button>
+        </div>
       </:actions>
     </.header>
 
@@ -136,7 +189,6 @@ defmodule MicrocraftWeb.PlanLive.Index do
                      "#{order_item_status_bg(:in_progress)} #{order_item_status_color(:in_progress)}"},
                     {:done, "#{order_item_status_bg(:done)} #{order_item_status_color(:done)}"}
                   ]}
-                  flat={true}
                 />
               </form>
             </:col>

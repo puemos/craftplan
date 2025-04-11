@@ -7,14 +7,12 @@
 # General application configuration
 import Config
 
-alias AshMoney.Types.Money
-
 config :ash,
   include_embedded_source_by_default?: false,
   show_keysets_for_all_actions?: false,
   default_page_type: :keyset,
   policies: [no_filter_static_forbidden_reads?: false],
-  known_types: [Money],
+  known_types: [AshMoney.Types.Money],
   custom_types: [
     money: Money,
     currency: Microcraft.Types.Currency,
@@ -25,10 +23,9 @@ config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.17.11",
-  microcraft: [
-    args:
-      ~w(js/app.js js/storybook.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+  version: "0.25.0",
+  default: [
+    args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
@@ -102,27 +99,14 @@ config :spark,
     "Ash.Domain": [section_order: [:resources, :policies, :authorization, :domain, :execution]]
   ]
 
-# Configure tailwind (the version is required)
 config :tailwind,
-  version: "3.4.3",
-  microcraft: [
+  version: "4.1.3",
+  default: [
     args: ~w(
-      --config=tailwind.config.js
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
-    ),
-    cd: Path.expand("../assets", __DIR__)
-  ],
-  storybook: [
-    args: ~w(
-            --config=tailwind.config.js
-            --input=css/storybook.css
-            --output=../priv/static/assets/storybook.css
-          ),
-
-    # Import environment specific config. This must remain at the bottom
-    # of this file so it overrides the configuration defined above.
-    cd: Path.expand("../assets", __DIR__)
+        --input=assets/css/app.css
+        --output=priv/static/assets/app.css
+      ),
+    cd: Path.expand("..", __DIR__)
   ]
 
 import_config "#{config_env()}.exs"

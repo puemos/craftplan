@@ -2,8 +2,6 @@ defmodule MicrocraftWeb.Router do
   use MicrocraftWeb, :router
   use AshAuthentication.Phoenix.Router
 
-  import PhoenixStorybook.Router
-
   alias AshAuthentication.Phoenix.Overrides.Default
 
   pipeline :browser do
@@ -143,15 +141,6 @@ defmodule MicrocraftWeb.Router do
 
       live_dashboard "/dashboard", metrics: MicrocraftWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-
-    scope "/" do
-      storybook_assets()
-    end
-
-    scope "/", Elixir.MicrocraftWeb do
-      pipe_through(:browser)
-      live_storybook("/storybook", backend_module: Elixir.MicrocraftWeb.Storybook)
     end
   end
 end
