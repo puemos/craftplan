@@ -19,11 +19,11 @@ Microcraft is an open-source ERP system designed specifically for small-scale ar
 <div align="center">
   <table>
     <tr>
+      <td><img src="./screenshots/plan.png" width="100%" /></td>
       <td><img src="./screenshots/inventory.png" width="100%" /></td>
-      <td><img src="./screenshots/customer-orders.png" width="100%" /></td>
     </tr>
     <tr>
-      <td><img src="./screenshots/plan.png" width="100%" /></td>
+      <td><img src="./screenshots/customer-orders.png" width="100%" /></td>
       <td><img src="./screenshots/product-nutritional-facts.png" width="100%" /></td>
     </tr>
   </table>
