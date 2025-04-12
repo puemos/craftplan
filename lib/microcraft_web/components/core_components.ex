@@ -789,12 +789,15 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def input(%{type: "badge-select"} = assigns) do
     assigns = assign_new(assigns, :badge_colors, fn -> [] end)
+    # Generate a unique ID for the dropdown if one isn't provided
+    dropdown_id = "#{assigns.id}-dropdown-#{:erlang.unique_integer([:positive])}"
+    assigns = assign(assigns, :dropdown_id, dropdown_id)
 
     ~H"""
     <div>
       <.label for={@id}>{@label}</.label>
 
-      <div phx-click-away={JS.hide(to: "##{@id}-dropdown")} class="relative">
+      <div phx-click-away={JS.hide(to: "##{@dropdown_id}")} class="relative">
         <select id={@id} name={@name} class="hidden" {@rest}>
           <option :if={@prompt} value="">{@prompt}</option>
           {Phoenix.HTML.Form.options_for_select(@options, @value)}
@@ -802,7 +805,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
         <button
           type="button"
-          phx-click={JS.toggle(to: "##{@id}-dropdown")}
+          phx-click={JS.toggle(to: "##{@dropdown_id}")}
           class={[
             "relative w-full cursor-default cursor-pointer text-left text-sm leading-6",
             "focus:outline-none",
@@ -833,7 +836,7 @@ defmodule MicrocraftWeb.CoreComponents do
         </button>
 
         <div
-          id={"#{@id}-dropdown"}
+          id={@dropdown_id}
           class={[
             "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white",
             "text-base shadow-lg ring-1 ring-stone-200 focus:outline-none sm:text-sm",
@@ -846,20 +849,20 @@ defmodule MicrocraftWeb.CoreComponents do
             </div>
             <div :for={{label, val} <- @options} class="flex items-center">
               <label
-                for={"#{@name}-#{val}"}
+                for={"#{@name}-#{val}-#{@dropdown_id}"}
                 class={[
                   "relative flex w-full cursor-pointer select-none items-center rounded-md px-2 py-1.5",
                   "transition-colors duration-100 hover:bg-stone-100",
-                  to_string(val) == to_string(@value) && "bg-stone-100"
+                  to_string(val) == to_string(@value) && "bg-stone-200"
                 ]}
               >
                 <.badge text={label} value={val} colors={@badge_colors} />
                 <input
                   type="radio"
-                  id={"#{@name}-#{val}"}
+                  id={"#{@name}-#{val}-#{@dropdown_id}"}
                   name={@name}
                   value={val}
-                  phx-click={JS.toggle(to: "##{@id}-dropdown")}
+                  phx-click={JS.toggle(to: "##{@dropdown_id}")}
                   checked={to_string(val) == to_string(@value)}
                   class="hidden h-4 w-4 flex-shrink-0 rounded border-stone-300 text-blue-600 focus:ring-blue-600"
                 />

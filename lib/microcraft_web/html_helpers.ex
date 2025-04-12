@@ -75,15 +75,34 @@ defmodule MicrocraftWeb.HtmlHelpers do
       %DateTime{} ->
         datetime
         |> DateTime.shift_zone!(time_zone)
-        |> Calendar.strftime("%b %d")
+        |> Calendar.strftime("%d")
 
       %Date{} ->
         # Handle Date objects directly without timezone conversion
-        Calendar.strftime(datetime, "%b %d")
+        Calendar.strftime(datetime, "%d")
 
       _ ->
         "N/A"
     end
+  end
+
+  def is_weekend?(date) do
+    day_of_week = Date.day_of_week(date)
+    day_of_week == 6 || day_of_week == 7
+  end
+
+  def is_today?(date) do
+    Date.compare(date, Date.utc_today()) == :eq
+  end
+
+  def is_current_week?(day) do
+    today = Date.utc_today()
+    # Get the beginning of current week (Monday)
+    current_monday = Date.add(today, -(Date.day_of_week(today) - 1))
+    # Get the beginning of the week for the given day
+    day_monday = Date.add(day, -(Date.day_of_week(day) - 1))
+
+    Date.compare(current_monday, day_monday) == :eq
   end
 
   @doc """

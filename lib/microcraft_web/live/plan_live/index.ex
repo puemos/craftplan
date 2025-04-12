@@ -13,87 +13,119 @@ defmodule MicrocraftWeb.PlanLive.Index do
       <.breadcrumb>
         <:crumb label="Plan" path={~p"/manage/plan"} current?={true} />
       </.breadcrumb>
-
-      <:actions>
-        <div class="">
-          <.button
-            phx-click="previous_week"
-            size={:sm}
-            class="px-[6px] rounded-md border border-gray-300 bg-white py-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-            </svg>
-          </.button>
-          <.button
-            phx-click="today"
-            size={:sm}
-            variant={:outline}
-            class="flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="mr-1 h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            This week
-          </.button>
-          <.button
-            phx-click="next_week"
-            size={:sm}
-            class="px-[6px] rounded-md border border-gray-300 bg-white py-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </.button>
-        </div>
-      </:actions>
     </.header>
 
     <div class="mt-4">
-      <div class="mt-8 overflow-x-auto">
+      <div class="mt-8">
+        <div id="controls" class="border-gray-200/70 flex items-center justify-between border-b pb-4">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-medium text-stone-700">
+              {Calendar.strftime(List.first(@days_range), "%B %Y")}
+            </span>
+          </div>
+          <div class="flex items-center">
+            <button
+              phx-click="previous_week"
+              size={:sm}
+              class="px-[6px] cursor-pointer rounded-l-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+              </svg>
+            </button>
+            <button
+              phx-click="today"
+              size={:sm}
+              variant={:outline}
+              disabled={is_current_week?(List.first(@days_range))}
+              class="flex cursor-pointer items-center border-y border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="mr-1 h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              Today
+            </button>
+            <button
+              phx-click="next_week"
+              size={:sm}
+              class="px-[6px] cursor-pointer rounded-r-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </button>
+          </div>
+        </div>
         <div class="min-w-[1000px]">
           <table class="w-full table-fixed border-collapse">
             <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
               <tr>
                 <th
                   :for={{day, index} <- Enum.with_index(@days_range |> Enum.take(7))}
-                  class={"#{if index > 0, do: "pl-4"} w-1/7 border-r border-stone-200 p-0 pb-4 font-normal last:border-r-0"}
+                  class={
+                    [
+                      "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
+                      index > 0 && "pl-4",
+                      is_today?(day) && "border border-stone-300 bg-stone-200",
+                      is_today?(Date.add(day, 1)) && "border-r border-r-stone-300"
+                    ]
+                    |> Enum.filter(& &1)
+                    |> Enum.join("  ")
+                  }
                 >
-                  <div>{format_day_name(day)}</div>
-                  <div>{format_short_date(day, @time_zone)}</div>
+                  <div class={["flex items-center justify-center"]}>
+                    <div class={[
+                      "inline-flex items-center justify-center space-x-1 rounded px-2",
+                      is_today?(day) && "bg-stone-500 text-white"
+                    ]}>
+                      <div>{format_day_name(day)}</div>
+                      <div>{format_short_date(day, @time_zone)}</div>
+                    </div>
+                  </div>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr class="h-[60vh]">
                 <td
                   :for={{day, index} <- Enum.with_index(@days_range |> Enum.take(7))}
-                  class={"#{(is_weekend?(day) && "border-t border-t-stone-200") || "border-t border-t-stone-200"} #{if index > 0, do: "border-l", else: ""} #{if index < 6, do: "border-r", else: ""} min-h-[200px] w-1/7 overflow-hidden border-stone-200 bg-white p-2 align-top"}
+                  class={
+                    [
+                      "border-t border-t-stone-200",
+                      index > 0 && "border-l",
+                      index < 6 && "border-r",
+                      is_today?(day) && "border border-stone-300 bg-stone-200",
+                      is_today?(Date.add(day, 1)) && "border-r border-r-stone-300",
+                      "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
+                    ]
+                    |> Enum.filter(& &1)
+                    |> Enum.join("  ")
+                  }
                 >
                   <div class="h-full overflow-y-auto">
                     <div
@@ -101,7 +133,10 @@ defmodule MicrocraftWeb.PlanLive.Index do
                       phx-click="view_details"
                       phx-value-date={Date.to_iso8601(day)}
                       phx-value-product={product.id}
-                      class="group mb-2 cursor-pointer border border-stone-200 p-2 hover:bg-stone-100"
+                      class={[
+                        "group mb-2 cursor-pointer border bg-white p-2 hover:bg-stone-100",
+                        (is_today?(day) && "border-stone-300") || "border-stone-200"
+                      ]}
                     >
                       <div class="mb-1.5 flex items-center justify-between gap-2">
                         <span class="truncate text-sm font-medium" title={product.name}>
@@ -381,23 +416,10 @@ defmodule MicrocraftWeb.PlanLive.Index do
     Enum.map(0..6, &Date.add(next_monday, &1))
   end
 
-  defp is_weekend?(date) do
-    day_of_week = Date.day_of_week(date)
-    day_of_week == 6 || day_of_week == 7
-  end
-
-  defp is_today?(date) do
-    Date.compare(date, Date.utc_today()) == :eq
-  end
-
   defp format_day_name(date) do
     day_names = ~w(Mon Tue Wed Thu Fri Sat Sun)
 
-    if is_today?(date) do
-      "Today"
-    else
-      Enum.at(day_names, Date.day_of_week(date) - 1)
-    end
+    Enum.at(day_names, Date.day_of_week(date) - 1)
   end
 
   defp load_production_items(socket, days_range) do
