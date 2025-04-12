@@ -3,13 +3,10 @@ defmodule Microcraft.InventoryForecasting do
   Module for inventory forecasting operations
   """
 
-  alias Microcraft.Inventory
-  alias Microcraft.Orders
-
   @doc """
   Prepares materials requirements for a given date range
   """
-  def prepare_materials_requirements(days_range, orders, time_zone) do
+  def prepare_materials_requirements(days_range, orders) do
     materials_by_day_data = load_materials_requirements(days_range, orders)
 
     Enum.map(materials_by_day_data, fn {material, quantities} ->
@@ -90,7 +87,7 @@ defmodule Microcraft.InventoryForecasting do
   @doc """
   Gets material usage details for a specific material on a specific date
   """
-  def get_material_usage_details(material, date, orders) do
+  def get_material_usage_details(material, orders) do
     order_items_using_material =
       for order <- orders,
           item <- order.items,

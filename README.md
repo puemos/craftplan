@@ -14,6 +14,21 @@
 
 Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
 
+## Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="./screenshots/inventory.png" width="100%" /></td>
+      <td><img src="./screenshots/customer-orders.png" width="100%" /></td>
+    </tr>
+    <tr>
+      <td><img src="./screenshots/plan.png" width="100%" /></td>
+      <td><img src="./screenshots/product-nutritional-facts.png" width="100%" /></td>
+    </tr>
+  </table>
+</div>
+
 ## User Guides
 
 For detailed instructions on using Microcraft, check out our user guides:
@@ -45,8 +60,8 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [x] Stock levels movement history
 - [x] Allergen
 - [x] Nutritional facts
+- [x] Advanced inventory forecasting
 - [ ] Unit conversion
-- [ ] Advanced inventory forecasting
 
 ### 🛍️ Sales & Order Management
 - [x] Order processing workflow
@@ -55,8 +70,8 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [ ] Customer-specific pricing
 - [ ] Delivery scheduling
 - [ ] Basic invoicing
-- [ ] Integration with whatsapp business
-- [ ] Integration with e-commerce platforms
+- [ ] Integration with WhatsApp Business
+- [ ] Integration with e-commerce platforms (Shopify, WooCommerce, etc...)
 
 ### 👥 Customer Relationship Management
 - [x] Customer database
@@ -73,7 +88,7 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [ ] Production efficiency metrics
 
 ### 🗓️ Production Planning
-- [ ] Production scheduling
+- [x] Production scheduling
 - [ ] Quality control tracking
 - [ ] Notifications
 

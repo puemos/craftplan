@@ -34,13 +34,13 @@ defmodule Microcraft.Types.Unit do
   def abbreviation(:gram, value) when value >= 1000 do
     kg_value = value / 1000
     formatted = format_number(kg_value)
-    "#{formatted} #{if kg_value == 1, do: "kg", else: "kgs"}"
+    "#{formatted} #{if kg_value == 1, do: "kg", else: "kg"}"
   end
 
   def abbreviation(:gram, value) when value <= -1000 do
     kg_value = value / 1000
     formatted = format_number(kg_value)
-    "#{formatted} #{if kg_value == -1, do: "kg", else: "kgs"}"
+    "#{formatted} #{if kg_value == -1, do: "kg", else: "kg"}"
   end
 
   def abbreviation(:gram, value) when value < 1 and value > 0 do

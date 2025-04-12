@@ -8,8 +8,12 @@
 @import "./event-calendar.css";
 
 @plugin "@tailwindcss/forms";
-/* @plugin "./tailwind_heroicons.js"; */
+@plugin "./tailwind_heroicons.js";
 
 @theme {
     --color-brand: "#FD4F00";
+}
+
+button {
+    cursor: pointer;
 }

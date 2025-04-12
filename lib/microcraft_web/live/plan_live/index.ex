@@ -44,7 +44,6 @@ defmodule MicrocraftWeb.PlanLive.Index do
               phx-click="today"
               size={:sm}
               variant={:outline}
-              disabled={is_current_week?(List.first(@days_range))}
               class="flex cursor-pointer items-center border-y border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
             >
               <svg

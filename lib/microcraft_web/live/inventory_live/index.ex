@@ -15,7 +15,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       </.breadcrumb>
 
       <:actions>
-        <.link patch={~p"/manage/inventory/new"}>
+        <.link :if={@live_action == :index} patch={~p"/manage/inventory/new"}>
           <.button>New Material</.button>
         </.link>
       </:actions>
@@ -88,7 +88,6 @@ defmodule MicrocraftWeb.InventoryLive.Index do
                   phx-click="today"
                   size={:sm}
                   variant={:outline}
-                  disabled={is_current_week?(List.first(@days_range))}
                   class="flex cursor-pointer items-center rounded-l-md border-y border-l border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
                 >
                   <svg
@@ -135,7 +134,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
                       Material
                     </th>
                     <th
-                      :for={{day, index} <- Enum.with_index(@days_range)}
+                      :for={{day, _index} <- Enum.with_index(@days_range)}
                       class={
                         [
                           "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 pl-4 font-normal last:border-r-0"
@@ -275,7 +274,14 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       on_cancel={JS.push("close_material_modal")}
     >
       <.header>
-        {@selected_material.name} - {format_short_date(@selected_material_date, @time_zone)}
+        <div class="flex flex-row items-center justify-between gap-1">
+          <div>{@selected_material.name}</div>
+          <div>for</div>
+          <div class="flex flex-row items-center gap-1 text-stone-500 underline decoration-dotted underline-offset-2">
+            {format_day_name(@selected_material_date)}
+            {format_short_date(@selected_material_date, @time_zone)}
+          </div>
+        </div>
       </.header>
 
       <div class="py-4">
@@ -316,6 +322,12 @@ defmodule MicrocraftWeb.InventoryLive.Index do
 
       <footer>
         <.button variant={:outline} phx-click="close_material_modal">Close</.button>
+        <.link
+          patch={~p"/manage/inventory/#{@selected_material.sku}/adjust"}
+          phx-click={JS.push_focus()}
+        >
+          <.button>Adjust Stock</.button>
+        </.link>
       </footer>
     </.modal>
     """
@@ -422,7 +434,7 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         ]
       )
 
-    details = InventoryForecasting.get_material_usage_details(material, date, orders)
+    details = InventoryForecasting.get_material_usage_details(material, orders)
 
     {:noreply,
      socket
@@ -530,6 +542,6 @@ defmodule MicrocraftWeb.InventoryLive.Index do
         ]
       )
 
-    InventoryForecasting.prepare_materials_requirements(days_range, orders, time_zone)
+    InventoryForecasting.prepare_materials_requirements(days_range, orders)
   end
 end

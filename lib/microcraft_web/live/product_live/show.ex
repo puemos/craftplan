@@ -101,7 +101,7 @@ defmodule MicrocraftWeb.ProductLive.Show do
           </div>
           <.table id="nutritional-facts" rows={@product.nutritional_facts}>
             <:col :let={fact} label="Nutrient">{fact.name}</:col>
-            <:col :let={fact} label="Amount">{fact.amount} {fact.unit}</:col>
+            <:col :let={fact} label="Amount">{format_amount(fact.unit, fact.amount)}</:col>
           </.table>
         </:tab>
       </.tabs>
@@ -210,9 +210,11 @@ defmodule MicrocraftWeb.ProductLive.Show do
     end
   end
 
-  defp page_title(:show), do: "Show Product"
-  defp page_title(:edit), do: "Edit Product"
-  defp page_title(:recipe), do: "Product recipe"
+  defp page_title(:show), do: "Product"
+  defp page_title(:nutrition), do: "Product Nutritional Information"
+  defp page_title(:edit), do: "Modify Product"
+  defp page_title(:recipe), do: "Product Recipe"
+  defp page_title(:details), do: "Product"
 
   defp list_available_materials do
     Inventory.list_materials!()

@@ -112,7 +112,7 @@ defmodule MicrocraftWeb.CoreComponents do
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="-m-3 flex-none p-3 opacity-60 hover:opacity-100"
                   aria-label={gettext("close")}
                 >
                   <.icon name="hero-x-mark-solid" class="h-5 w-5" />
@@ -987,7 +987,7 @@ defmodule MicrocraftWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={["mb-4 flex items-center justify-between gap-6", @class]}>
+    <header class={["min-h-10 mb-4 flex items-center justify-between gap-6", @class]}>
       <div>
         <h1 class="text-lg font-semibold leading-8 text-stone-800">
           {render_slot(@inner_block)}

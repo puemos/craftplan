@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = function ({ matchComponents, theme }) {
-  let iconsDir = path.join(process.cwd(), "../deps/heroicons/optimized");
+  let iconsDir = path.join(process.cwd(), "./deps/heroicons/optimized");
   let values = {};
   let icons = [
     ["", "/24/outline"],
