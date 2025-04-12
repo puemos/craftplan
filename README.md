@@ -13,7 +13,7 @@
 
 Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Microcraft provides everything you need to manage your entire production process and make data-driven decisions as you grow.
 
-## Screenshots
+## (Some) screenshots
 
 <div align="center">
   <table>
