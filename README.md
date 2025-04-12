@@ -2,25 +2,35 @@
   <img src="priv/static/images/favicon.svg" width="100" />
   <h1>Microcraft</h1>
   <p>
-    Modern tool — built for managing artisanal micro-scale craft businesses.
+      Just what you need and nothing more for managing artisanal micro-scale craft businesses.
   </p>
 </div>
 <br>
 <br>
 <br>
 
-
 ## Overview
 
-Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It provides tools for managing your entire production process from raw materials to finished products, while helping you make data-driven decisions to scale efficiently.
+Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Microcraft provides everything you need to manage your entire production process and make data-driven decisions as you grow.
 
 ## Screenshots
 
 <div align="center">
   <table>
     <tr>
+      <td>Production Planning Dashboard</td>
+      <td>Inventory Management Interface</td>
+    </tr>
+    <tr>
       <td><img src="./screenshots/plan.png" width="100%" /></td>
       <td><img src="./screenshots/inventory.png" width="100%" /></td>
+    </tr>
+  </table>
+
+  <table>
+    <tr>
+      <td>Customer Orders Tracking</td>
+      <td>Product Nutritional Facts Analysis</td>
     </tr>
     <tr>
       <td><img src="./screenshots/customer-orders.png" width="100%" /></td>
@@ -41,10 +51,10 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [Business Intelligence](guides/REPORTS.md) - Reports and analytics
 - [Settings](guides/SETTINGS.md) - Configuring your Microcraft installation
 
-
 ## Features
 
 ### 📋 Catalog Management
+
 - [x] Product lifecycle management (from idea to production)
 - [x] Cost and margin analysis
 - [x] Allergen tracking
@@ -54,6 +64,7 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [ ] Variant management
 
 ### 📦 Inventory Control
+
 - [x] Raw material stock tracking
 - [x] Minimum/maximum stock levels
 - [x] Cost tracking
@@ -64,6 +75,7 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [ ] Unit conversion
 
 ### 🛍️ Sales & Order Management
+
 - [x] Order processing workflow
 - [x] Order status tracking
 - [ ] Discounts and promotions
@@ -74,6 +86,7 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [ ] Integration with e-commerce platforms (Shopify, WooCommerce, etc...)
 
 ### 👥 Customer Relationship Management
+
 - [x] Customer database
 - [x] Order history
 - [x] Shipping & billing address management
@@ -81,6 +94,7 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [ ] Customer segmentation
 
 ### 📊 Business Intelligence
+
 - [x] Cost analysis
 - [x] Margin calculations
 - [ ] Sales trends
@@ -88,11 +102,13 @@ For detailed instructions on using Microcraft, check out our user guides:
 - [ ] Production efficiency metrics
 
 ### 🗓️ Production Planning
+
 - [x] Production scheduling
 - [ ] Quality control tracking
 - [ ] Notifications
 
 ### 🗓️ Storefront
+
 - [ ] Online ordering
 - [ ] Mobile view
 - [ ] Blog
@@ -116,17 +132,20 @@ For detailed instructions on using Microcraft, check out our user guides:
 ### Installation
 
 1. Clone the repository
+
    ```bash
    git clone https://github.com/puemos/microcraft.git
    cd microcraft
    ```
 
 2. Install dependencies
+
    ```bash
    mix setup
    ```
 
 3. Create and migrate database
+
    ```bash
    mix ash.setup
    ```
@@ -149,5 +168,6 @@ This project is licensed under the AGPLv3 License - see the [LICENSE](LICENSE) f
 ## Support
 
 If you need help with setup or have questions:
+
 - Open an issue
 - Check out our [documentation](guides/OVERVIEW.md)
