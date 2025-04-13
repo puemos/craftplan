@@ -110,6 +110,7 @@ defmodule MicrocraftWeb.OrderLive.Show do
       :if={@live_action == :edit}
       id="order-modal"
       show
+      title={@page_title}
       on_cancel={JS.patch(~p"/manage/orders/#{@order.reference}")}
     >
       <.live_component

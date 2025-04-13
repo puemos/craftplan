@@ -6,11 +6,6 @@ defmodule MicrocraftWeb.CustomerLive.FormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        {@title}
-        <:subtitle>Use this form to manage customer records in your database.</:subtitle>
-      </.header>
-
       <.simple_form
         for={@form}
         id="customer-form"

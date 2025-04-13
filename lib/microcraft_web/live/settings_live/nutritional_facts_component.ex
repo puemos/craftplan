@@ -46,13 +46,10 @@ defmodule MicrocraftWeb.SettingsLive.NutritionalFactsComponent do
         :if={@show_modal}
         id="add-nutritional-fact-modal"
         show
+        title="Add Nutritional Fact"
+        description="Enter the name of the nutritional fact you want to add"
         on_cancel={JS.push("hide_modal", target: @myself)}
       >
-        <.header>
-          Add Nutritional Fact
-          <:subtitle>Enter the name of the nutritional fact you want to add</:subtitle>
-        </.header>
-
         <.simple_form
           for={@form}
           id="nutritional-fact-form"

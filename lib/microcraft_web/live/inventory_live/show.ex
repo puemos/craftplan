@@ -129,6 +129,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     <.modal
       :if={@live_action == :edit}
       id="material-modal"
+      title={@page_title}
       show
       on_cancel={JS.patch(~p"/manage/inventory/#{@material.sku}")}
     >
@@ -145,6 +146,7 @@ defmodule MicrocraftWeb.InventoryLive.Show do
     </.modal>
     <.modal
       :if={@live_action == :adjust}
+      title={"Adjust Stock for #{@material.name}"}
       id="material-movement-modal"
       show
       on_cancel={JS.patch(~p"/manage/inventory/#{@material.sku}")}

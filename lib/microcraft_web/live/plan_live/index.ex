@@ -186,12 +186,9 @@ defmodule MicrocraftWeb.PlanLive.Index do
       :if={@selected_date && @selected_product}
       id="product-details-modal"
       show
+      title={"#{@selected_product.name} for #{format_day_name(@selected_date)} #{format_short_date(@selected_date, @time_zone)}"}
       on_cancel={JS.push("close_modal")}
     >
-      <.header>
-        {@selected_product.name} - {format_short_date(@selected_date, @time_zone)}
-      </.header>
-
       <div class="py-4">
         <div :if={@selected_details} class="space-y-4">
           <.table id="product-orders" rows={@selected_details}>

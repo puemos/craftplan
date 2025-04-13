@@ -17,13 +17,6 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMovement do
         phx-submit="save"
       >
         <div class="mb-4">
-          <.header>
-            Adjust Stock for
-            <span class="text-stone-500 underline decoration-dotted underline-offset-2">
-              {@material.name}
-            </span>
-          </.header>
-
           <div class="mb-2">
             <div class="flex items-center">
               <button

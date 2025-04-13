@@ -9,11 +9,6 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentMaterial do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        {@title}
-        <:subtitle>Use this form to manage material records in your database.</:subtitle>
-      </.header>
-
       <.simple_form
         for={@form}
         id="material-form"

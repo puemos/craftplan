@@ -252,6 +252,8 @@ defmodule MicrocraftWeb.InventoryLive.Index do
     <.modal
       :if={@live_action in [:new, :edit]}
       id="material-modal"
+      title={@page_title}
+      description="Use this form to manage material records in your database."
       show
       on_cancel={JS.patch(~p"/manage/inventory")}
     >
@@ -270,20 +272,12 @@ defmodule MicrocraftWeb.InventoryLive.Index do
     <.modal
       :if={@selected_material_date && @selected_material}
       id="material-details-modal"
+      title={
+      "#{@selected_material.name} for #{format_day_name(@selected_material_date)} #{format_short_date(@selected_material_date, @time_zone)}"
+      }
       show
       on_cancel={JS.push("close_material_modal")}
     >
-      <.header>
-        <div class="flex flex-row items-center justify-between gap-1">
-          <div>{@selected_material.name}</div>
-          <div>for</div>
-          <div class="flex flex-row items-center gap-1 text-stone-500 underline decoration-dotted underline-offset-2">
-            {format_day_name(@selected_material_date)}
-            {format_short_date(@selected_material_date, @time_zone)}
-          </div>
-        </div>
-      </.header>
-
       <div class="py-4">
         <div :if={@material_details && !Enum.empty?(@material_details)} class="space-y-4">
           <.table id="material-products" rows={@material_details}>

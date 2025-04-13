@@ -71,11 +71,26 @@ defmodule MicrocraftWeb.Components.Core do
         This is another modal.
       </.modal>
 
+  ## Attributes
+
+    * `:id` - Required. The ID of the modal.
+    * `:show` - Optional. Whether to show the modal immediately (default: false).
+    * `:on_cancel` - Optional. JS commands to execute when modal is cancelled.
+    * `:title` - Optional. The title of the modal.
+    * `:description` - Optional. A description for the modal, displayed below the title.
+    * `:max_width` - Optional. Maximum width class for the modal (default: "max-w-lg").
+    * `:class` - Optional. Additional classes to apply to the modal container.
+
   """
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :title, :string, required: true
+  attr :description, :string, default: nil
+  attr :max_width, :string, default: "max-w-3xl"
+  attr :class, :string, default: nil
   slot :inner_block, required: true
+  slot :footer
 
   def modal(assigns) do
     ~H"""
@@ -85,41 +100,68 @@ defmodule MicrocraftWeb.Components.Core do
       phx-remove={hide_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
+      aria-labelledby={if @title, do: "#{@id}-title"}
+      aria-describedby={if @description, do: "#{@id}-description"}
     >
       <div
         id={"#{@id}-bg"}
-        class="bg-stone-50/90 fixed inset-0 transition-opacity"
+        class="bg-stone-900/50 fixed inset-0 transition-opacity"
         aria-hidden="true"
       />
-      <div
-        class="fixed inset-0 overflow-y-auto"
-        aria-labelledby={"#{@id}-title"}
-        aria-describedby={"#{@id}-description"}
-        role="dialog"
-        aria-modal="true"
-        tabindex="0"
-      >
+      <div class="fixed inset-0 overflow-y-auto" role="dialog" aria-modal="true" tabindex="0">
         <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-4xl p-4 sm:p-6 lg:py-8">
+          <div class={[
+            "left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] fixed z-50 w-full p-4",
+            @max_width
+          ]}>
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-stone-700/10 ring-stone-700/20 relative hidden rounded bg-white p-14 shadow-lg ring-1 transition"
+              class={[
+                "ring-stone-700/20 relative hidden rounded-lg bg-white shadow-lg ring-1 transition",
+                "duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in",
+                "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+                "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+                "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
+                "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+                @class
+              ]}
             >
-              <div class="absolute top-6 right-5">
-                <button
-                  phx-click={JS.exec("data-cancel", to: "##{@id}")}
-                  type="button"
-                  class="-m-3 flex-none p-3 opacity-60 hover:opacity-100"
-                  aria-label={gettext("close")}
+              <button
+                type="button"
+                phx-click={JS.exec("data-cancel", to: "##{@id}")}
+                class="absolute top-4 right-4 rounded-sm p-1 opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2"
+                aria-label={gettext("close")}
+              >
+                <.icon name="hero-x-mark-solid" class="h-5 w-5" />
+              </button>
+
+              <div class="flex flex-col p-6">
+                <div :if={@title || @description} class="mb-4 space-y-1.5">
+                  <h2
+                    :if={@title}
+                    id={"#{@id}-title"}
+                    class="text-lg font-semibold leading-none tracking-tight text-stone-900"
+                  >
+                    {@title}
+                  </h2>
+                  <p :if={@description} id={"#{@id}-description"} class="text-sm text-stone-600">
+                    {@description}
+                  </p>
+                </div>
+
+                <div id={"#{@id}-content"} class="py-1">
+                  {render_slot(@inner_block)}
+                </div>
+
+                <div
+                  :if={@footer != []}
+                  class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
                 >
-                  <.icon name="hero-x-mark-solid" class="h-5 w-5" />
-                </button>
-              </div>
-              <div id={"#{@id}-content"}>
-                {render_slot(@inner_block)}
+                  {render_slot(@footer)}
+                </div>
               </div>
             </.focus_wrap>
           </div>

@@ -155,10 +155,10 @@ defmodule MicrocraftWeb.InventoryLive.FormComponentNutritionalFacts do
         <.modal
           id="add-nutritional-fact-modal"
           show
+          title="Select a nutritional fact to add:"
           on_cancel={JS.push("hide_modal", target: @myself)}
         >
           <div class="mt-4 space-y-6">
-            <p class="text-sm text-stone-600">Select a nutritional fact to add:</p>
             <div class="max-h-64 overflow-y-auto">
               <ul class="divide-y divide-stone-200">
                 <%= for {name, id} <- available_nutritional_fact_options(@nutritional_facts, @form, @existing_facts) do %>

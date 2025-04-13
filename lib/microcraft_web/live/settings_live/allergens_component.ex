@@ -46,13 +46,10 @@ defmodule MicrocraftWeb.SettingsLive.AllergensComponent do
         :if={@show_modal}
         id="add-allergen-modal"
         show
+        title="Add New Allergen"
+        description="Enter the name of the allergen you want to add"
         on_cancel={JS.push("hide_modal", target: @myself)}
       >
-        <.header>
-          Add New Allergen
-          <:subtitle>Enter the name of the allergen you want to add</:subtitle>
-        </.header>
-
         <.simple_form
           for={@form}
           id="allergen-form"

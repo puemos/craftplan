@@ -162,9 +162,13 @@ defmodule MicrocraftWeb.ProductLive.FormComponentRecipe do
       </.simple_form>
 
       <%= if @show_modal do %>
-        <.modal id="add-recipe-material-modal" show on_cancel={JS.push("hide_modal", target: @myself)}>
+        <.modal
+          title="Select a material to add to the recipe:"
+          id="add-recipe-material-modal"
+          show
+          on_cancel={JS.push("hide_modal", target: @myself)}
+        >
           <div class="mt-4 space-y-6">
-            <p class="text-sm text-stone-600">Select a material to add to the recipe:</p>
             <div class="max-h-64 overflow-y-auto">
               <ul class="divide-y divide-stone-200">
                 <%= for material <- @available_materials do %>

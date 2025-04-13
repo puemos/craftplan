@@ -110,6 +110,8 @@ defmodule MicrocraftWeb.ProductLive.Show do
     <.modal
       :if={@live_action == :edit}
       id="product-modal"
+      title={@page_title}
+      description="Update product information and details."
       show
       on_cancel={JS.patch(~p"/manage/products/#{@product.sku}")}
     >

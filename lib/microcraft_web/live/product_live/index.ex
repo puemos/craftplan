@@ -75,6 +75,7 @@ defmodule MicrocraftWeb.ProductLive.Index do
       :if={@live_action in [:new, :edit]}
       id="product-modal"
       show
+      title={@page_title}
       on_cancel={JS.patch(~p"/manage/products")}
     >
       <.live_component

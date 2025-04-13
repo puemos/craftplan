@@ -45,6 +45,8 @@ defmodule MicrocraftWeb.CustomerLive.Index do
     <.modal
       :if={@live_action in [:new, :edit]}
       id="customer-modal"
+      title={@page_title}
+      description="Use this form to manage customer records in your database."
       show
       on_cancel={JS.patch(~p"/manage/customers")}
     >

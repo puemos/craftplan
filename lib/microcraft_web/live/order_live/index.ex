@@ -201,6 +201,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
     <.modal
       :if={@live_action in [:new, :edit]}
       id="order-modal"
+      title={@page_title}
       show
       on_cancel={JS.patch(~p"/manage/orders")}
     >
@@ -221,15 +222,10 @@ defmodule MicrocraftWeb.OrderLive.Index do
     <.modal
       :if={@selected_order != nil}
       id="event-details-modal"
+      title={"#{@selected_order.customer.full_name} - #{format_reference(@selected_order.reference)}"}
       show
       on_cancel={JS.push("close_event_modal")}
     >
-      <.header>
-        <h2 class="text-lg font-medium leading-6">
-          "#{@selected_order.customer.full_name} - #{format_reference(@selected_order.reference)}"
-        </h2>
-      </.header>
-
       <div class="py-6">
         <div>
           <.list>
