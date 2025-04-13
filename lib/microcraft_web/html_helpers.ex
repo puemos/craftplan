@@ -22,7 +22,7 @@ defmodule MicrocraftWeb.HtmlHelpers do
   def format_money(currency, nil), do: format_money(currency, Decimal.new(0))
 
   def format_money(currency, %Decimal{} = amount) do
-    Money.from_float!(currency, Decimal.to_float(amount), fractional_digits: 4)
+    Money.from_float!(currency, Decimal.to_float(amount), fractional_digits: 2)
   end
 
   @spec format_amount(atom(), Decimal.t() | Money.t() | number() | nil) :: String.t()
@@ -60,7 +60,20 @@ defmodule MicrocraftWeb.HtmlHelpers do
 
   def format_time(datetime, timezone) do
     case DateTime.shift_zone(datetime, timezone) do
-      {:ok, shifted} -> Calendar.strftime(shifted, "%Y-%m-%d %I:%M %p")
+      {:ok, shifted} -> Calendar.strftime(shifted, "%Y/%m/%d %I:%M %p")
+      {:error, _} -> ""
+    end
+  end
+
+  @doc """
+  Format hour for displaying time in 12-hour format with AM/PM
+  """
+  @spec format_hour(DateTime.t(), String.t() | nil) :: String.t()
+  def format_hour(_datetime, nil), do: ""
+
+  def format_hour(datetime, timezone) do
+    case DateTime.shift_zone(datetime, timezone) do
+      {:ok, shifted} -> Calendar.strftime(shifted, "%I:%M %p")
       {:error, _} -> ""
     end
   end
@@ -170,6 +183,16 @@ defmodule MicrocraftWeb.HtmlHelpers do
       cancelled: "bg-red-50",
       default: "bg-slate-50"
     },
+    order_dot: %{
+      unconfirmed: "bg-yellow-400",
+      confirmed: "bg-green-400",
+      in_progress: "bg-indigo-400",
+      ready: "bg-green-400",
+      delivered: "bg-green-400",
+      completed: "bg-green-400",
+      cancelled: "bg-red-400",
+      default: "bg-slate-400"
+    },
     payment: %{
       pending: "bg-yellow-50",
       paid: "bg-green-50",
@@ -261,6 +284,7 @@ defmodule MicrocraftWeb.HtmlHelpers do
   def order_status_bg(status), do: status_bg(status, "order")
   def payment_status_bg(status), do: status_bg(status, "payment")
   def order_item_status_bg(status), do: status_bg(status, "order_item")
+  def order_dot_status_bg(status), do: status_bg(status, "order_dot")
 
   def product_status_dot(status) do
     @status_dots[status] || @status_dots[:default]

@@ -193,7 +193,9 @@ defmodule MicrocraftWeb.PlanLive.Index do
         <div :if={@selected_details} class="space-y-4">
           <.table id="product-orders" rows={@selected_details}>
             <:col :let={item} label="Reference">
-              <.kbd class="font-medium">{format_reference(item.order.reference)}</.kbd>
+              <.link navigate={~p"/manage/orders/#{item.order.reference}"}>
+                <.kbd>{format_reference(item.order.reference)}</.kbd>
+              </.link>
             </:col>
             <:col :let={item} label="Quantity">
               <span class="text-sm">{item.quantity}x</span>
