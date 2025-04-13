@@ -103,8 +103,8 @@ defmodule MicrocraftWeb.InventoryLive.Show do
         path={~p"/manage/inventory/#{@material.sku}/stock"}
         selected?={@live_action == :stock}
       >
-        <div class="-mt-11">
-          <.table id="inventory_movements" rows={@material.movements}>
+        <div>
+          <.table id="inventory_movements" no_margin rows={@material.movements}>
             <:empty>
               <div class="block py-4 pr-6">
                 <span class={["relative"]}>

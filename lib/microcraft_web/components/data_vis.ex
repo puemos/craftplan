@@ -24,6 +24,10 @@ defmodule MicrocraftWeb.Components.DataVis do
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
 
+  attr :no_margin, :boolean,
+    default: false,
+    doc: "removes the default top margin when set to true"
+
   attr :row_item, :any,
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col and :action slots"
@@ -44,7 +48,10 @@ defmodule MicrocraftWeb.Components.DataVis do
 
     ~H"""
     <div class="table-fixed overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 table-fixed border-collapse sm:w-full ">
+      <table class={[
+        "w-[40rem] table-fixed border-collapse sm:w-full",
+        if(not @no_margin, do: "mt-11")
+      ]}>
         <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
           <tr>
             <th

@@ -281,17 +281,19 @@ defmodule MicrocraftWeb.InventoryLive.Index do
       <div class="py-4">
         <div :if={@material_details && !Enum.empty?(@material_details)} class="space-y-4">
           <.table id="material-products" rows={@material_details}>
-            <:col :let={{product, _items}} label="Product">
-              <div class="font-medium">{product.name}</div>
-            </:col>
             <:col :let={{_product, items}} label="Order References">
               <div class="grid grid-cols-1 gap-1 text-sm">
                 <div :for={item <- items.order_items}>
-                  <.kbd>
-                    {format_reference(item.order.reference)}
-                  </.kbd>
+                  <.link navigate={~p"/manage/orders/#{item.order.reference}"}>
+                    <.kbd>
+                      {format_reference(item.order.reference)}
+                    </.kbd>
+                  </.link>
                 </div>
               </div>
+            </:col>
+            <:col :let={{product, _items}} label="Product">
+              <div class="font-medium">{product.name}</div>
             </:col>
             <:col :let={{_product, items}} label="Total Required">
               <div class="text-sm">
