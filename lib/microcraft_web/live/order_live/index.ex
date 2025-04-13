@@ -82,7 +82,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
             id="payment_status"
             value={@filters["payment_status"]}
             multiple={true}
-            label="Payment"
+            label="Payment status"
             options={[
               {"Paid", "paid"},
               {"Pending", "pending"},
@@ -97,7 +97,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
           name="filters[delivery_date_start]"
           id="delivery_date_start"
           value={@filters["delivery_date_start"]}
-          label="Delivery Start"
+          label="Delivery date after"
         />
 
         <.input
@@ -105,7 +105,7 @@ defmodule MicrocraftWeb.OrderLive.Index do
           name="filters[delivery_date_end]"
           id="delivery_date_end"
           value={@filters["delivery_date_end"]}
-          label="Delivery End"
+          label="Delivery date before"
         />
         <div class="mt-8 flex justify-end">
           <.button type="button" phx-click="reset_filters" class="ml-2">

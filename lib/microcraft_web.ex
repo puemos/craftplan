@@ -85,8 +85,8 @@ defmodule MicrocraftWeb do
     quote do
       # Translation
       use Gettext, backend: MicrocraftWeb.Gettext
+      use MicrocraftWeb.Components
 
-      import MicrocraftWeb.CoreComponents
       import MicrocraftWeb.HtmlHelpers
 
       # HTML escaping functionality
