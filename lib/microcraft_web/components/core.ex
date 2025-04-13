@@ -198,8 +198,8 @@ defmodule MicrocraftWeb.Components.Core do
       role="alert"
       class={[
         "group fixed right-2 bottom-4 z-50 mr-2 w-80 rounded-md p-4 shadow-xl ring-1 sm:w-96",
-        @kind == :info && "bg-white fill-stone-900 text-stone-900 ring-gray-200",
-        @kind == :error && "bg-white text-stone-900 ring-gray-200"
+        if(@kind == :info, do: "bg-white fill-stone-900 text-stone-900 ring-gray-200", else: ""),
+        if(@kind == :error, do: "bg-white text-stone-900 ring-gray-200", else: "")
       ]}
       {@rest}
     >
@@ -365,8 +365,7 @@ defmodule MicrocraftWeb.Components.Core do
         "focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
         "disabled:pointer-events-none disabled:opacity-50",
         "border",
-        not @selected? && "border-transparent",
-        @selected? && "border-stone-300 bg-stone-50 shadow"
+        if(@selected?, do: "border-stone-300 bg-stone-50 shadow", else: "border-transparent")
       ]}
     >
       {@label}
