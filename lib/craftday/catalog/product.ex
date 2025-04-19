@@ -21,6 +21,13 @@ defmodule Craftday.Catalog.Product do
     read :list do
       prepare build(sort: :name)
 
+      argument :status, {:array, :atom} do
+        allow_nil? true
+        default nil
+      end
+
+      filter expr(is_nil(^arg(:status)) or status in ^arg(:status))
+
       pagination do
         required? false
         offset? true

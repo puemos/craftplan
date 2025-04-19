@@ -13,6 +13,12 @@ defmodule CraftdayWeb.Router do
     plug :put_secure_browser_headers
     plug :load_from_session
     plug :put_session_timezone
+    plug :load_cart
+  end
+
+  def load_cart(conn, _opts) do
+    cart = get_session(conn, :cart) || %{items: %{}, total_items: 0}
+    assign(conn, :cart, cart)
   end
 
   pipeline :api do
@@ -27,6 +33,22 @@ defmodule CraftdayWeb.Router do
 
   scope "/", CraftdayWeb do
     pipe_through :browser
+
+    post "/cart/add", CartController, :add
+    delete "/cart/remove/:id", CartController, :remove
+    put "/cart/update/:id", CartController, :update
+    post "/cart/clear", CartController, :clear
+
+    live_session :public,
+      on_mount: [
+        CraftdayWeb.LiveCurrentPath,
+        CraftdayWeb.LiveSettings
+      ] do
+      live "/catalog", Public.CatalogLive.Index, :index
+      live "/catalog/:sku", Public.CatalogLive.Show, :show
+      live "/cart", Public.CartLive.Index, :index
+      live "/checkout", Public.CheckoutLive.Index, :index
+    end
 
     ash_authentication_live_session :admin_routes,
       on_mount: [
