@@ -1,43 +1,9 @@
-<div align="center">
-  <img src="priv/static/images/favicon.svg" width="100" />
-  <h1>Microcraft</h1>
-  <p>
-      Just what you need and nothing more for managing artisanal micro-scale craft businesses.
-  </p>
-</div>
-<br>
-<br>
-<br>
+
+<img width="1280" alt="GitHub-Banner" src="https://github.com/user-attachments/assets/25e649e8-64a5-4c9f-b610-0f1cadccde14" />
 
 ## Overview
 
 Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Microcraft provides everything you need to manage your entire production process and make data-driven decisions as you grow.
-
-## (Some) screenshots
-
-<div align="center">
-  <table>
-    <tr>
-      <td>Production Planning Dashboard</td>
-      <td>Inventory Management Interface</td>
-    </tr>
-    <tr>
-      <td><img src="./screenshots/plan.png" width="100%" /></td>
-      <td><img src="./screenshots/inventory.png" width="100%" /></td>
-    </tr>
-  </table>
-
-  <table>
-    <tr>
-      <td>Customer Orders Tracking</td>
-      <td>Product Nutritional Facts Analysis</td>
-    </tr>
-    <tr>
-      <td><img src="./screenshots/customer-orders.png" width="100%" /></td>
-      <td><img src="./screenshots/product-nutritional-facts.png" width="100%" /></td>
-    </tr>
-  </table>
-</div>
 
 ## User Guides
 
