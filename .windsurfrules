@@ -1,7 +1,7 @@
 1. My app is built with Elixir, Phoenix, LiveView, and Ash Framework
-2. All Ash resources are defined in the /lib/microcraft/resources directory
+2. All Ash resources are defined in the /lib/craftday/resources directory
 3. Follow Elixir naming conventions: snake_case for files and variables, CamelCase for modules
-4. LiveView modules should be placed in /lib/microcraft_web/live
+4. LiveView modules should be placed in /lib/craftday_web/live
 5. Use Ash extensions for common patterns rather than custom implementations
 6. Follow Phoenix Context pattern for business logic organization
 7. Keep LiveView modules focused on UI concerns only

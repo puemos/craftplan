@@ -82,7 +82,7 @@
     "global": null,
     "strategy": null
   },
-  "repo": "Elixir.Microcraft.Repo",
+  "repo": "Elixir.Craftday.Repo",
   "schema": null,
   "table": "catalog_recipes"
 }

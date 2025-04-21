@@ -15,8 +15,40 @@ config :ash,
   known_types: [AshMoney.Types.Money],
   custom_types: [
     money: Money,
-    currency: Microcraft.Types.Currency,
-    unit: Microcraft.Types.Unit
+    currency: Craftday.Types.Currency,
+    unit: Craftday.Types.Unit
+  ]
+
+# Configures the mailer
+#
+# By default it uses the "Local" adapter which stores the emails
+# locally. You can see the emails in your browser, at "/dev/mailbox".
+#
+# For production it's recommended to configure a different adapter
+# at the `config/runtime.exs`.
+config :craftday, Craftday.Mailer, adapter: Swoosh.Adapters.Local
+
+# Configures the endpoint
+config :craftday, CraftdayWeb.Endpoint,
+  url: [host: "localhost"],
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [
+    formats: [html: CraftdayWeb.ErrorHTML, json: CraftdayWeb.ErrorJSON],
+    layout: false
+  ],
+  pubsub_server: Craftday.PubSub,
+  live_view: [signing_salt: "vNk6HzXn"]
+
+config :craftday,
+  ecto_repos: [Craftday.Repo],
+  generators: [timestamp_type: :utc_datetime],
+  ash_domains: [
+    Craftday.Settings,
+    Craftday.CRM,
+    Craftday.Orders,
+    Craftday.Inventory,
+    Craftday.Catalog,
+    Craftday.Accounts
   ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
@@ -30,44 +62,12 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
-config :ex_cldr, default_backend: Microcraft.Cldr
+config :ex_cldr, default_backend: Craftday.Cldr
 
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
-
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-config :microcraft, Microcraft.Mailer, adapter: Swoosh.Adapters.Local
-
-# Configures the endpoint
-config :microcraft, MicrocraftWeb.Endpoint,
-  url: [host: "localhost"],
-  adapter: Bandit.PhoenixAdapter,
-  render_errors: [
-    formats: [html: MicrocraftWeb.ErrorHTML, json: MicrocraftWeb.ErrorJSON],
-    layout: false
-  ],
-  pubsub_server: Microcraft.PubSub,
-  live_view: [signing_salt: "vNk6HzXn"]
-
-config :microcraft,
-  ecto_repos: [Microcraft.Repo],
-  generators: [timestamp_type: :utc_datetime],
-  ash_domains: [
-    Microcraft.Settings,
-    Microcraft.CRM,
-    Microcraft.Orders,
-    Microcraft.Inventory,
-    Microcraft.Catalog,
-    Microcraft.Accounts
-  ]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

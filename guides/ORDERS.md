@@ -1,6 +1,6 @@
 # Order Management
 
-The Orders module in Microcraft helps you process and track customer orders from creation to delivery. This guide will walk you through all the features available for managing your orders efficiently.
+The Orders module in Craftday helps you process and track customer orders from creation to delivery. This guide will walk you through all the features available for managing your orders efficiently.
 
 ## Accessing Order Management
 
@@ -80,7 +80,7 @@ You can filter the order list by:
 
 ## Managing Order Status
 
-Microcraft uses a workflow-based approach to track orders through their lifecycle:
+Craftday uses a workflow-based approach to track orders through their lifecycle:
 
 1. **Unconfirmed**: Initial state when order is created
 2. **Confirmed**: Order has been accepted and scheduled

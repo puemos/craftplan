@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.AddAllergens do
+defmodule Craftday.Repo.Migrations.AddAllergens do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

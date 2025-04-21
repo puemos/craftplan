@@ -1,6 +1,6 @@
 # Settings & Configuration
 
-The Settings module in Microcraft allows you to customize the application to match your specific business needs. This guide will walk you through the various configuration options available.
+The Settings module in Craftday allows you to customize the application to match your specific business needs. This guide will walk you through the various configuration options available.
 
 ## Accessing Settings
 
@@ -28,7 +28,7 @@ Manage user accounts and permissions:
 
 ### User Roles and Permissions
 
-Microcraft uses a role-based permission system:
+Craftday uses a role-based permission system:
 
 - **Admin**: Full access to all features and settings
 - **Manager**: Access to most features but limited settings access

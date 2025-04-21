@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.AddOrderDeliveryDate do
+defmodule Craftday.Repo.Migrations.AddOrderDeliveryDate do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

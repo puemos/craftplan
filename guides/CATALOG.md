@@ -1,6 +1,6 @@
 # Catalog Management
 
-The Catalog module in Microcraft helps you manage your products from concept to production. This guide will walk you through all the features available for managing your product catalog.
+The Catalog module in Craftday helps you manage your products from concept to production. This guide will walk you through all the features available for managing your product catalog.
 
 ## Accessing the Catalog
 
@@ -59,7 +59,7 @@ You can filter the product list by:
 
 ## Cost and Margin Analysis
 
-Microcraft provides detailed cost and margin analysis for each product:
+Craftday provides detailed cost and margin analysis for each product:
 
 1. Navigate to the product detail page
 2. Click on the **Costs** tab

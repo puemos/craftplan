@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.ChangeOrderStatus do
+defmodule Craftday.Repo.Migrations.ChangeOrderStatus do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

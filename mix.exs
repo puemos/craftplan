@@ -1,9 +1,9 @@
-defmodule Microcraft.MixProject do
+defmodule Craftday.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :microcraft,
+      app: :craftday,
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -19,7 +19,7 @@ defmodule Microcraft.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {Microcraft.Application, []},
+      mod: {Craftday.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -85,10 +85,10 @@ defmodule Microcraft.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ash.setup --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind microcraft", "esbuild microcraft"],
+      "assets.build": ["tailwind craftday", "esbuild craftday"],
       "assets.deploy": [
-        "tailwind microcraft --minify",
-        "esbuild microcraft --minify",
+        "tailwind craftday --minify",
+        "esbuild craftday --minify",
         "phx.digest"
       ]
     ]

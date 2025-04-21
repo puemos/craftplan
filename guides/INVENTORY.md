@@ -1,6 +1,6 @@
 # Inventory Control
 
-The Inventory module in Microcraft helps you track and manage your raw materials, monitor stock levels, and maintain inventory history. This guide will walk you through all the inventory management features.
+The Inventory module in Craftday helps you track and manage your raw materials, monitor stock levels, and maintain inventory history. This guide will walk you through all the inventory management features.
 
 ## Accessing Inventory Management
 
@@ -94,7 +94,7 @@ View the complete history of stock movements for each material:
 
 ## Cost Tracking
 
-Microcraft helps you track the cost of your raw materials over time:
+Craftday helps you track the cost of your raw materials over time:
 
 1. Navigate to the material detail page
 2. Click on the **Cost History** tab
@@ -127,7 +127,7 @@ For food-related raw materials:
 
 ## Low Stock Alerts
 
-Microcraft can alert you when stock levels fall below the minimum threshold:
+Craftday can alert you when stock levels fall below the minimum threshold:
 
 1. Go to **Settings** > **Notifications**
 2. Enable low stock alerts

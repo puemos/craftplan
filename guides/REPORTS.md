@@ -1,6 +1,6 @@
 # Business Intelligence & Reports
 
-The Business Intelligence module in Microcraft provides valuable insights into your business operations through various reports and analytics. This guide will help you understand how to access and interpret the data to make informed business decisions.
+The Business Intelligence module in Craftday provides valuable insights into your business operations through various reports and analytics. This guide will help you understand how to access and interpret the data to make informed business decisions.
 
 ## Accessing Business Intelligence
 

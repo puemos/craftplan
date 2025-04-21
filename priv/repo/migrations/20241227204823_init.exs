@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.Init do
+defmodule Craftday.Repo.Migrations.Init do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

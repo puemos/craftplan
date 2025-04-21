@@ -1,12 +1,12 @@
 # seeds.exs
 
-alias Microcraft.Accounts
-alias Microcraft.Catalog
-alias Microcraft.CRM
-alias Microcraft.Inventory
-alias Microcraft.Orders
-alias Microcraft.Repo
-alias Microcraft.Settings
+alias Craftday.Accounts
+alias Craftday.Catalog
+alias Craftday.CRM
+alias Craftday.Inventory
+alias Craftday.Orders
+alias Craftday.Repo
+alias Craftday.Settings
 
 # ------------------------------------------------------------------------------
 # 1. Define helper functions for readability and code organization

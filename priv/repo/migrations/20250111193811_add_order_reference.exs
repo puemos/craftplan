@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.AddOrderReference do
+defmodule Craftday.Repo.Migrations.AddOrderReference do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

@@ -1,6 +1,6 @@
 # Customer Management
 
-The Customers module in Microcraft helps you manage your customer relationships effectively. This guide will walk you through all the features available for maintaining your customer database and tracking customer interactions.
+The Customers module in Craftday helps you manage your customer relationships effectively. This guide will walk you through all the features available for maintaining your customer database and tracking customer interactions.
 
 ## Accessing Customer Management
 

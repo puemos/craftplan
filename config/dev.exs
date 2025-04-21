@@ -1,13 +1,6 @@
 import Config
 
-# Do not include metadata nor timestamps in development logs
-#       certfile: "priv/cert/selfsigned.pem"
-#       port: 4001,
-# in production as building large stacktraces may be expensive.
-# Configure your database
-config :logger, :console, format: "[$level] $message\n"
-
-config :microcraft, Microcraft.Repo,
+config :craftday, Craftday.Repo,
   # For development, we disable any cache and enable
   # debugging and code reloading.
   #
@@ -17,12 +10,12 @@ config :microcraft, Microcraft.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "microcraft_dev",
+  database: "craftday_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-config :microcraft, MicrocraftWeb.Endpoint,
+config :craftday, CraftdayWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Watch static and templates for browser reloading.
 
@@ -46,7 +39,7 @@ config :microcraft, MicrocraftWeb.Endpoint,
     tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
-config :microcraft, MicrocraftWeb.Endpoint,
+config :craftday, CraftdayWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
@@ -56,20 +49,27 @@ config :microcraft, MicrocraftWeb.Endpoint,
       # The `http:` config above can be replaced with:
       #
       #     https: [
-      ~r"lib/microcraft_web/(controllers|live|components)/.*(ex|heex)$",
+      ~r"lib/craftday_web/(controllers|live|components)/.*(ex|heex)$",
       ~r"storybook/.*(exs)$"
     ]
+
+    # Do not include metadata nor timestamps in development logs
+    #       cipher_suite: :strong,
   ]
 
-config :microcraft, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIrtiyGZ+A0eBS9"
-
-#       cipher_suite: :strong,
+#       certfile: "priv/cert/selfsigned.pem"
 # Include HEEx debug annotations as HTML comments in rendered markup
+#       port: 4001,
 #     ],
+config :craftday, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIrtiyGZ+A0eBS9"
+# in production as building large stacktraces may be expensive.
 #       keyfile: "priv/cert/selfsigned_key.pem",
+# Configure your database
 # configured to run both http and https servers on
 #
 # different ports.
+config :logger, :console, format: "[$level] $message\n"
+
 config :phoenix, :plug_init_mode, :runtime
 # If desired, both `http:` and `https:` keys can be
 config :phoenix, :stacktrace_depth, 20
@@ -79,8 +79,8 @@ config :phoenix_live_view,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
 
+config :swoosh, :api_client, false
+
 # Set a higher stacktrace during development. Avoid configuring such
 # Disable swoosh api client as it is only required for production adapters.
 # Initialize plugs at runtime for faster development compilation
-
-config :swoosh, :api_client, false

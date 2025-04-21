@@ -1,4 +1,4 @@
-defmodule Microcraft.DataCase do
+defmodule Craftday.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -10,7 +10,7 @@ defmodule Microcraft.DataCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use Microcraft.DataCase, async: true`, although
+  by setting `use Craftday.DataCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -20,17 +20,17 @@ defmodule Microcraft.DataCase do
 
   using do
     quote do
+      import Craftday.DataCase
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Microcraft.DataCase
 
-      alias Microcraft.Repo
+      alias Craftday.Repo
     end
   end
 
   setup tags do
-    Microcraft.DataCase.setup_sandbox(tags)
+    Craftday.DataCase.setup_sandbox(tags)
     :ok
   end
 
@@ -38,7 +38,7 @@ defmodule Microcraft.DataCase do
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do
-    pid = Sandbox.start_owner!(Microcraft.Repo, shared: not tags[:async])
+    pid = Sandbox.start_owner!(Craftday.Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 

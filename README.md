@@ -1,21 +1,20 @@
-
 <img width="1280" alt="GitHub-Banner" src="https://github.com/user-attachments/assets/25e649e8-64a5-4c9f-b610-0f1cadccde14" />
 
 ## Overview
 
-Microcraft is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Microcraft provides everything you need to manage your entire production process and make data-driven decisions as you grow.
+Craftday is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Craftday provides everything you need to manage your entire production process and make data-driven decisions as you grow.
 
 ## User Guides
 
-For detailed instructions on using Microcraft, check out our user guides:
+For detailed instructions on using Craftday, check out our user guides:
 
-- [Overview](guides/OVERVIEW.md) - Introduction to Microcraft
+- [Overview](guides/OVERVIEW.md) - Introduction to Craftday
 - [Catalog Management](guides/CATALOG.md) - Managing products and pricing
 - [Inventory Control](guides/INVENTORY.md) - Tracking raw materials and stock
 - [Order Management](guides/ORDERS.md) - Processing customer orders
 - [Customer Management](guides/CUSTOMERS.md) - Managing your customer database
 - [Business Intelligence](guides/REPORTS.md) - Reports and analytics
-- [Settings](guides/SETTINGS.md) - Configuring your Microcraft installation
+- [Settings](guides/SETTINGS.md) - Configuring your Craftday installation
 
 ## Features
 
@@ -100,8 +99,8 @@ For detailed instructions on using Microcraft, check out our user guides:
 1. Clone the repository
 
    ```bash
-   git clone https://github.com/puemos/microcraft.git
-   cd microcraft
+   git clone https://github.com/puemos/craftday.git
+   cd craftday
    ```
 
 2. Install dependencies

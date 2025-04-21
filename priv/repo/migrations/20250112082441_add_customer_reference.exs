@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.AddCustomerReference do
+defmodule Craftday.Repo.Migrations.AddCustomerReference do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

@@ -1,4 +1,4 @@
-defmodule Microcraft.Repo.Migrations.AddNutritionalFactExtensions1 do
+defmodule Craftday.Repo.Migrations.AddNutritionalFactExtensions1 do
   @moduledoc """
   Installs any extensions that are mentioned in the repo's `installed_extensions/0` callback
 
