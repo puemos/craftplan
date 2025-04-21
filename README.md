@@ -97,8 +97,8 @@ For detailed instructions on using Microcraft, check out our user guides:
 
 - [x] Cost analysis
 - [x] Margin calculations
+- [x] Inventory turnover
 - [ ] Sales trends
-- [ ] Inventory turnover
 - [ ] Production efficiency metrics
 
 ### 🗓️ Production Planning
