@@ -21,9 +21,7 @@ defmodule Craftday.Catalog.Product.Photo do
 
   # Whitelist file extensions:
   def validate({file, _}) do
-    dbg(file)
     file_extension = file.file_name |> Path.extname() |> String.downcase()
-    dbg(file)
 
     if Enum.member?(~w(.jpg .jpeg .gif .png), file_extension) do
       :ok

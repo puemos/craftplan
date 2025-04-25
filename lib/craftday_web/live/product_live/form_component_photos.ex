@@ -26,6 +26,31 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
             phx-drop-target={@uploads.photos.ref}
             class="rounded-md border-2 border-dashed border-gray-300 p-4"
           >
+            <div :if={@upload_warning} class="mb-4 rounded-md bg-yellow-50 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg
+                    class="h-5 w-5 text-yellow-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-yellow-800">Upload Warning</h3>
+                  <div class="mt-2 text-sm text-yellow-700">
+                    <p>{@upload_warning}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               <div :for={entry <- @uploads.photos.entries} class="relative">
                 <figure class="overflow-hidden rounded-md bg-gray-100">
@@ -77,10 +102,7 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
                   "overflow-hidden rounded-md border-2",
                   (@form[:featured_photo].value == photo && "border-blue-500") || "border-gray-200"
                 ]}>
-                  <img
-                    src={Craftday.Catalog.Product.Photo.url({photo, @product}, :thumb)}
-                    class="h-40 w-full object-cover"
-                  />
+                  <img src={Photo.url({photo, @product}, :thumb)} class="h-40 w-full object-cover" />
 
                   <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity hover:opacity-100">
                     <div class="flex space-x-2">
@@ -128,14 +150,15 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
       |> assign(:uploaded_files, [])
       |> assign(:product_photos, [])
       |> assign(:removed_photos, [])
+      |> assign(:upload_warning, nil)
       |> allow_upload(:photos,
         accept: ~w(.jpg .jpeg .png),
         max_entries: 10,
-        max_file_size: 10_000_000
+        max_file_size: 10_000_000,
+        progress: &handle_progress/3
       )
       |> assign_form()
 
-    # Extract existing photos if product exists
     socket =
       if socket.assigns.product do
         product_photos = socket.assigns.product.photos || []
@@ -162,19 +185,14 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
   end
 
   def handle_event("remove-photo", %{"photo" => photo}, socket) do
-    # Add the photo to removed photos list
     removed_photos = [photo | socket.assigns.removed_photos]
 
-    # Update product_photos by removing the photo
     product_photos = Enum.reject(socket.assigns.product_photos, fn p -> p == photo end)
 
-    # Update uploaded_files by removing the photo
     uploaded_files = Enum.reject(socket.assigns.uploaded_files, fn p -> p == photo end)
 
-    # If the featured photo is being removed, set a new one
     socket =
       if socket.assigns.form[:featured_photo].value == photo do
-        # Find the first remaining photo to set as featured, if any
         remaining_photos = product_photos ++ uploaded_files
 
         form =
@@ -200,7 +218,6 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
   end
 
   def handle_event("save", _params, socket) do
-    # Consume the uploaded files
     uploaded_files =
       consume_uploaded_entries(socket, :photos, fn %{path: path}, entry ->
         path_with_extension = path <> String.replace(entry.client_type, "image/", ".")
@@ -209,30 +226,26 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
         Photo.store({path_with_extension, socket.assigns.product})
       end)
 
-    # Combine existing photos with new uploads, excluding removed photos
     all_photos =
       Enum.reject(socket.assigns.product_photos ++ uploaded_files, fn photo ->
         photo in socket.assigns.removed_photos
       end)
 
-    # Update the product parameters with the photos array
     product_params = Map.put(%{}, "photos", all_photos)
 
-    # If no featured photo is set, but we have photos, set the first as featured
     product_params =
       if (is_nil(socket.assigns.form[:featured_photo].value) ||
             socket.assigns.form[:featured_photo].value in socket.assigns.removed_photos) &&
            length(all_photos) > 0 do
         Map.put(product_params, "featured_photo", List.first(all_photos))
       else
-        # Pass the current featured photo value
         Map.put(product_params, "featured_photo", socket.assigns.form[:featured_photo].value)
       end
 
     case AshPhoenix.Form.submit(socket.assigns.form, params: product_params) do
       {:ok, product} ->
-        notify_parent({:saved, product})
-        # Delete removed photos
+        # notify_parent({:saved, product})
+
         Enum.each(socket.assigns.removed_photos, fn photo ->
           Photo.delete({photo, socket.assigns.product})
         end)
@@ -261,7 +274,52 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
     assign(socket, form: to_form(form))
   end
 
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+  def handle_progress(:photos, entry, socket) do
+    if entry.done? do
+      result =
+        consume_uploaded_entry(socket, entry, fn %{path: path} ->
+          case validate_image_dimensions(entry.client_type, path) do
+            :ok ->
+              {:ok, path}
+
+            {:error, message} ->
+              {:postpone, {:error, message}}
+          end
+        end)
+
+      dbg(result)
+
+      case result do
+        {:error, message} ->
+          socket =
+            socket
+            |> cancel_upload(:photos, entry.ref)
+            |> assign(:upload_warning, message)
+
+          {:noreply, socket}
+
+        _ ->
+          {:noreply, socket}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp validate_image_dimensions(_content_type, path) do
+    {_, width, height, _} =
+      path
+      |> File.read!()
+      |> ExImageInfo.info()
+
+    if width == height do
+      :ok
+    else
+      {:error, "Image must be square (width and height must be equal)"}
+    end
+  end
+
+  defp _notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
   defp error_to_string(:too_large), do: "File is too large"
   defp error_to_string(:too_many_files), do: "You have selected too many files"
