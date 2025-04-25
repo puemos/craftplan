@@ -2,6 +2,8 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
   @moduledoc false
   use CraftdayWeb, :live_component
 
+  alias Craftday.Catalog.Product.Photo
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -75,20 +77,34 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
                   "overflow-hidden rounded-md border-2",
                   (@form[:featured_photo].value == photo && "border-blue-500") || "border-gray-200"
                 ]}>
-                  <img src={photo} class="h-40 w-full object-cover" />
+                  <img
+                    src={Craftday.Catalog.Product.Photo.url({photo, @product}, :thumb)}
+                    class="h-40 w-full object-cover"
+                  />
 
                   <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity hover:opacity-100">
-                    <button
-                      type="button"
-                      phx-click="set-featured"
-                      phx-value-photo={photo}
-                      phx-target={@myself}
-                      class="rounded bg-blue-500 px-2 py-1 text-xs text-white"
-                    >
-                      {if @form[:featured_photo].value == photo,
-                        do: "Featured",
-                        else: "Set as Featured"}
-                    </button>
+                    <div class="flex space-x-2">
+                      <button
+                        type="button"
+                        phx-click="set-featured"
+                        phx-value-photo={photo}
+                        phx-target={@myself}
+                        class="rounded bg-blue-500 px-2 py-1 text-xs text-white"
+                      >
+                        {if @form[:featured_photo].value == photo,
+                          do: "Featured",
+                          else: "Set as Featured"}
+                      </button>
+                      <button
+                        type="button"
+                        phx-click="remove-photo"
+                        phx-value-photo={photo}
+                        phx-target={@myself}
+                        class="rounded bg-red-500 px-2 py-1 text-xs text-white"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -111,8 +127,9 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
       |> assign(assigns)
       |> assign(:uploaded_files, [])
       |> assign(:product_photos, [])
+      |> assign(:removed_photos, [])
       |> allow_upload(:photos,
-        accept: ~w(.jpg .jpeg .png .gif),
+        accept: ~w(.jpg .jpeg .png),
         max_entries: 10,
         max_file_size: 10_000_000
       )
@@ -131,8 +148,8 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
   end
 
   @impl true
-  def handle_event("validate", %{"product" => product_params}, socket) do
-    {:noreply, assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, product_params))}
+  def handle_event("validate", _params, socket) do
+    {:noreply, socket}
   end
 
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
@@ -144,38 +161,88 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
     {:noreply, assign(socket, form: form)}
   end
 
-  def handle_event("save", %{"product" => product_params}, socket) do
+  def handle_event("remove-photo", %{"photo" => photo}, socket) do
+    # Add the photo to removed photos list
+    removed_photos = [photo | socket.assigns.removed_photos]
+
+    # Update product_photos by removing the photo
+    product_photos = Enum.reject(socket.assigns.product_photos, fn p -> p == photo end)
+
+    # Update uploaded_files by removing the photo
+    uploaded_files = Enum.reject(socket.assigns.uploaded_files, fn p -> p == photo end)
+
+    # If the featured photo is being removed, set a new one
+    socket =
+      if socket.assigns.form[:featured_photo].value == photo do
+        # Find the first remaining photo to set as featured, if any
+        remaining_photos = product_photos ++ uploaded_files
+
+        form =
+          if Enum.empty?(remaining_photos) do
+            AshPhoenix.Form.validate(socket.assigns.form, %{"featured_photo" => nil})
+          else
+            AshPhoenix.Form.validate(socket.assigns.form, %{
+              "featured_photo" => List.first(remaining_photos)
+            })
+          end
+
+        assign(socket, form: form)
+      else
+        socket
+      end
+
+    {:noreply,
+     assign(socket,
+       product_photos: product_photos,
+       uploaded_files: uploaded_files,
+       removed_photos: removed_photos
+     )}
+  end
+
+  def handle_event("save", _params, socket) do
     # Consume the uploaded files
     uploaded_files =
-      consume_uploaded_entries(socket, :photos, fn %{path: path}, _entry ->
-        # In a real app, you'll likely want to copy this to a cloud storage
-        dest = Path.join([:code.priv_dir(:craftday), "static", "uploads", Path.basename(path)])
-        File.cp!(path, dest)
-        {:ok, "/uploads/#{Path.basename(dest)}"}
+      consume_uploaded_entries(socket, :photos, fn %{path: path}, entry ->
+        path_with_extension = path <> String.replace(entry.client_type, "image/", ".")
+        File.cp!(path, path_with_extension)
+
+        Photo.store({path_with_extension, socket.assigns.product})
       end)
 
-    # Combine existing photos with new uploads
-    all_photos = socket.assigns.product_photos ++ uploaded_files
+    # Combine existing photos with new uploads, excluding removed photos
+    all_photos =
+      Enum.reject(socket.assigns.product_photos ++ uploaded_files, fn photo ->
+        photo in socket.assigns.removed_photos
+      end)
 
     # Update the product parameters with the photos array
-    product_params = Map.put(product_params, "photos", all_photos)
+    product_params = Map.put(%{}, "photos", all_photos)
 
     # If no featured photo is set, but we have photos, set the first as featured
     product_params =
-      if is_nil(product_params["featured_photo"]) && length(all_photos) > 0 do
+      if (is_nil(socket.assigns.form[:featured_photo].value) ||
+            socket.assigns.form[:featured_photo].value in socket.assigns.removed_photos) &&
+           length(all_photos) > 0 do
         Map.put(product_params, "featured_photo", List.first(all_photos))
       else
-        product_params
+        # Pass the current featured photo value
+        Map.put(product_params, "featured_photo", socket.assigns.form[:featured_photo].value)
       end
 
     case AshPhoenix.Form.submit(socket.assigns.form, params: product_params) do
       {:ok, product} ->
         notify_parent({:saved, product})
+        # Delete removed photos
+        Enum.each(socket.assigns.removed_photos, fn photo ->
+          Photo.delete({photo, socket.assigns.product})
+        end)
 
         {:noreply,
-         socket
-         |> put_flash(:info, "Product photos #{socket.assigns.form.source.type}d successfully")
-         |> push_patch(to: socket.assigns.patch)}
+         put_flash(
+           socket,
+           :info,
+           "Product photos #{socket.assigns.form.source.type}d successfully"
+         )}
 
       {:error, form} ->
         {:noreply, assign(socket, form: form)}
@@ -183,20 +250,13 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
   end
 
   defp assign_form(%{assigns: %{product: product}} = socket) do
-    form =
-      if product do
-        product = Ash.load!(product, recipe: [:components])
+    product = Ash.load!(product, recipe: [:components])
 
-        AshPhoenix.Form.for_update(product, :update,
-          as: "product",
-          actor: socket.assigns.current_user
-        )
-      else
-        AshPhoenix.Form.for_create(Craftday.Catalog.Product, :create,
-          as: "product",
-          actor: socket.assigns.current_user
-        )
-      end
+    form =
+      AshPhoenix.Form.for_update(product, :update,
+        as: "product",
+        actor: socket.assigns.current_user
+      )
 
     assign(socket, form: to_form(form))
   end

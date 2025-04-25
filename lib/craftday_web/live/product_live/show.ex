@@ -104,6 +104,22 @@ defmodule CraftdayWeb.ProductLive.Show do
             <:col :let={fact} label="Amount">{format_amount(fact.unit, fact.amount)}</:col>
           </.table>
         </:tab>
+        <:tab
+          label="Photos"
+          path={~p"/manage/products/#{@product.sku}/photos"}
+          selected?={@live_action == :photos}
+        >
+          <.live_component
+            module={CraftdayWeb.ProductLive.FormComponentPhotos}
+            id={@product.id}
+            title={@page_title}
+            action={@live_action}
+            current_user={@current_user}
+            product={@product}
+            settings={@settings}
+            patch={~p"/manage/products/#{@product.sku}"}
+          />
+        </:tab>
       </.tabs>
     </div>
 
@@ -124,26 +140,6 @@ defmodule CraftdayWeb.ProductLive.Show do
         product={@product}
         settings={@settings}
         patch={~p"/manage/products/#{@product.sku}/details"}
-      />
-    </.modal>
-
-    <.modal
-      :if={@live_action == :photos}
-      id="product-photos-modal"
-      title="Upload Photos"
-      description="Upload product photos."
-      show
-      on_cancel={JS.patch(~p"/manage/products/#{@product.sku}")}
-    >
-      <.live_component
-        module={CraftdayWeb.ProductLive.FormComponentPhotos}
-        id={@product.id}
-        title={@page_title}
-        action={@live_action}
-        current_user={@current_user}
-        product={@product}
-        settings={@settings}
-        patch={~p"/manage/products/#{@product.sku}"}
       />
     </.modal>
     """
@@ -181,6 +177,25 @@ defmodule CraftdayWeb.ProductLive.Show do
   end
 
   @impl true
+  def handle_info({CraftdayWeb.ProductLive.FormComponentPhotos, {:saved, _}}, socket) do
+    product =
+      Craftday.Catalog.get_product_by_sku!(socket.assigns.product.sku,
+        load: [
+          :markup_percentage,
+          :materials_cost,
+          :gross_profit,
+          :nutritional_facts,
+          recipe: [components: [:material]]
+        ]
+      )
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Photos updated successfully")
+     |> assign(:product, product)}
+  end
+
+  @impl true
   def handle_info({CraftdayWeb.ProductLive.FormComponentRecipe, {:saved, _}}, socket) do
     product =
       Craftday.Catalog.get_product_by_sku!(socket.assigns.product.sku,
@@ -189,6 +204,7 @@ defmodule CraftdayWeb.ProductLive.Show do
           :materials_cost,
           :gross_profit,
           :nutritional_facts,
+          :allergens,
           recipe: [components: [:material]]
         ]
       )
@@ -208,6 +224,7 @@ defmodule CraftdayWeb.ProductLive.Show do
           :materials_cost,
           :gross_profit,
           :nutritional_facts,
+          :allergens,
           recipe: [components: [:material]]
         ]
       )

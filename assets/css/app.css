@@ -6,6 +6,7 @@
 
 @import "tailwindcss";
 @import "./event-calendar.css";
+@import "./cropper.css";
 
 @plugin "@tailwindcss/forms";
 @plugin "./tailwind_heroicons.js";

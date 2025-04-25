@@ -33,6 +33,7 @@ defmodule Craftday.Accounts.User do
     add_ons do
       confirmation :confirm_new_user do
         monitor_fields [:email]
+        require_interaction? true
         confirm_on_create? true
         confirm_on_update? false
         auto_confirm_actions [:sign_in_with_magic_link, :reset_password_with_password]
