@@ -72,6 +72,18 @@ config :craftday, CraftdayWeb.Endpoint,
 # different ports.
 config :craftday, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIrtiyGZ+A0eBS9"
 
+config :ex_aws,
+  json_codec: Jason,
+  access_key_id: "minio",
+  secret_access_key: "minio123",
+  region: "us-east-1",
+  s3: [
+    scheme: "http://",
+    host: "localhost",
+    port: 9000,
+    region: "us-east-1"
+  ]
+
 config :logger, :console, format: "[$level] $message\n"
 
 config :phoenix, :plug_init_mode, :runtime
@@ -86,10 +98,9 @@ config :phoenix_live_view,
 config :swoosh, :api_client, false
 
 config :waffle,
-  storage: Waffle.Storage.Local,
-  asset_host: "http://localhost:4000",
-  storage_dir_prefix: "priv/static",
-  storage_dir: "uploads"
+  storage: Waffle.Storage.S3,
+  bucket: "craftday",
+  asset_host: "http://localhost:9000/craftday"
 
 # Set a higher stacktrace during development. Avoid configuring such
 # Disable swoosh api client as it is only required for production adapters.
