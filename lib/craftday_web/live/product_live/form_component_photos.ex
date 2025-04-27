@@ -6,130 +6,9 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
 
   alias Craftday.Catalog.Product.Photo
 
-  # 10MB
   @max_file_size 10_000_000
   @max_entries 10
   @accepted_types ~w(.jpg .jpeg .png .webp)
-
-  @impl true
-  def mount(socket) do
-    {:ok,
-     socket
-     |> assign_defaults()
-     |> allow_uploads()}
-  end
-
-  @impl true
-  def update(%{uploads: uploads} = assigns, socket) when is_map(uploads) do
-    # Ensure has_changes is always a boolean
-    socket =
-      socket
-      |> assign(assigns)
-      |> ensure_has_changes()
-      |> update_has_changes()
-
-    {:ok, socket}
-  end
-
-  @impl true
-  def update(%{product: product} = assigns, socket) do
-    socket =
-      socket
-      |> assign(assigns)
-      |> ensure_has_changes()
-      |> assign_product_photos(product)
-      |> assign_form()
-      |> update_has_changes()
-
-    {:ok, socket}
-  end
-
-  @impl true
-  def update(assigns, socket) do
-    socket =
-      socket
-      |> assign(assigns)
-      |> ensure_has_changes()
-      |> update_has_changes()
-
-    {:ok, socket}
-  end
-
-  @impl true
-  def handle_event("validate", _params, socket) do
-    {:noreply, update_has_changes(socket)}
-  end
-
-  @impl true
-  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
-    {:noreply,
-     socket
-     |> cancel_upload(:photos, ref)
-     |> update_has_changes()}
-  end
-
-  @impl true
-  def handle_event("set-featured", %{"photo" => photo}, socket) do
-    {:noreply,
-     socket
-     |> update_form(%{"featured_photo" => photo})
-     |> update_has_changes()}
-  end
-
-  @impl true
-  def handle_event("remove-photo", %{"photo" => photo}, socket) do
-    %{product_photos: product_photos, uploaded_files: uploaded_files} = socket.assigns
-    removed_photos = [photo | socket.assigns.removed_photos]
-
-    updated_product_photos = Enum.reject(product_photos, &(&1 == photo))
-    updated_uploaded_files = Enum.reject(uploaded_files, &(&1 == photo))
-    remaining_photos = updated_product_photos ++ updated_uploaded_files
-
-    socket =
-      if socket.assigns.form[:featured_photo].value == photo do
-        update_form(socket, %{"featured_photo" => List.first(remaining_photos)})
-      else
-        socket
-      end
-
-    {:noreply,
-     socket
-     |> assign(
-       product_photos: updated_product_photos,
-       uploaded_files: updated_uploaded_files,
-       removed_photos: removed_photos
-     )
-     |> update_has_changes()}
-  end
-
-  @impl true
-  def handle_event("save", _params, socket) do
-    if socket.assigns.has_changes == false do
-      {:noreply, socket}
-    else
-      uploaded_files = process_uploaded_files(socket)
-      all_photos = get_all_photos(socket, uploaded_files)
-
-      product_params = %{
-        "photos" => all_photos,
-        "featured_photo" => determine_featured_photo(socket, all_photos)
-      }
-
-      case AshPhoenix.Form.submit(socket.assigns.form, params: product_params) do
-        {:ok, product} ->
-          notify_parent({:saved, product})
-          delete_removed_photos(socket)
-
-          {:noreply,
-           socket
-           |> put_flash(:info, "Product photos #{socket.assigns.form.source.type}d successfully")
-           |> reset_state(product)}
-
-        {:error, form} ->
-          {:noreply, socket |> assign(form: form) |> update_has_changes()}
-      end
-    end
-  end
 
   @impl true
   def render(assigns) do
@@ -324,7 +203,124 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
     """
   end
 
-  # Private functions
+  @impl true
+  def mount(socket) do
+    {:ok,
+     socket
+     |> assign_defaults()
+     |> allow_uploads()}
+  end
+
+  @impl true
+  def update(%{uploads: uploads} = assigns, socket) when is_map(uploads) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> ensure_has_changes()
+      |> update_has_changes()
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(%{product: product} = assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> ensure_has_changes()
+      |> assign_product_photos(product)
+      |> assign_form()
+      |> update_has_changes()
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> ensure_has_changes()
+      |> update_has_changes()
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("validate", _params, socket) do
+    {:noreply, update_has_changes(socket)}
+  end
+
+  @impl true
+  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply,
+     socket
+     |> cancel_upload(:photos, ref)
+     |> update_has_changes()}
+  end
+
+  @impl true
+  def handle_event("set-featured", %{"photo" => photo}, socket) do
+    {:noreply,
+     socket
+     |> update_form(%{"featured_photo" => photo})
+     |> update_has_changes()}
+  end
+
+  @impl true
+  def handle_event("remove-photo", %{"photo" => photo}, socket) do
+    %{product_photos: product_photos, uploaded_files: uploaded_files} = socket.assigns
+    removed_photos = [photo | socket.assigns.removed_photos]
+
+    updated_product_photos = Enum.reject(product_photos, &(&1 == photo))
+    updated_uploaded_files = Enum.reject(uploaded_files, &(&1 == photo))
+    remaining_photos = updated_product_photos ++ updated_uploaded_files
+
+    socket =
+      if socket.assigns.form[:featured_photo].value == photo do
+        update_form(socket, %{"featured_photo" => List.first(remaining_photos)})
+      else
+        socket
+      end
+
+    {:noreply,
+     socket
+     |> assign(
+       product_photos: updated_product_photos,
+       uploaded_files: updated_uploaded_files,
+       removed_photos: removed_photos
+     )
+     |> update_has_changes()}
+  end
+
+  @impl true
+  def handle_event("save", _params, socket) do
+    if socket.assigns.has_changes == false do
+      {:noreply, socket}
+    else
+      uploaded_files = process_uploaded_files(socket)
+      all_photos = get_all_photos(socket, uploaded_files)
+
+      product_params = %{
+        "photos" => all_photos,
+        "featured_photo" => determine_featured_photo(socket, all_photos)
+      }
+
+      case AshPhoenix.Form.submit(socket.assigns.form, params: product_params) do
+        {:ok, product} ->
+          notify_parent({:saved, product})
+          delete_removed_photos(socket)
+
+          {:noreply,
+           socket
+           |> put_flash(:info, "Product photos #{socket.assigns.form.source.type}d successfully")
+           |> reset_state(product)}
+
+        {:error, form} ->
+          {:noreply, socket |> assign(form: form) |> update_has_changes()}
+      end
+    end
+  end
 
   defp assign_defaults(socket) do
     socket
@@ -336,7 +332,6 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
     |> assign(:has_changes, false)
   end
 
-  # Make sure has_changes is always a boolean
   defp ensure_has_changes(socket) do
     has_changes = socket.assigns[:has_changes] || false
     assign(socket, :has_changes, has_changes)
@@ -396,24 +391,17 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
 
   defp process_uploaded_files(socket) do
     consume_uploaded_entries(socket, :photos, fn %{path: path}, entry ->
-      # Use client_name for the file
       filename = entry.client_name
 
-      # Extract extension from filename
       ext = Path.extname(filename)
 
-      # Get base filename without extension and slugify it
       basename =
         filename
         |> Path.basename(ext)
-        |> String.downcase()
-        |> String.replace(~r/[^a-z0-9]+/, "_")
-        |> String.trim("_")
+        |> Slug.slugify()
 
-      # Add random string to prevent filename collisions
       random_suffix = 8 |> :crypto.strong_rand_bytes() |> Base.encode16(case: :lower)
 
-      # Create new path using the original filename with random suffix
       dir = Path.dirname(path)
       path_with_filename = Path.join(dir, "#{basename}-#{random_suffix}#{ext}")
 
@@ -432,12 +420,10 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
   defp determine_featured_photo(socket, all_photos) do
     current_featured = socket.assigns.form[:featured_photo].value
 
-    # If current featured photo was removed or is nil, but we have photos, use first one
     if (is_nil(current_featured) || current_featured in socket.assigns.removed_photos) &&
          length(all_photos) > 0 do
       List.first(all_photos)
     else
-      # Otherwise keep the current featured photo
       current_featured
     end
   end
