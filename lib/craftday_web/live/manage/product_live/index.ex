@@ -3,6 +3,7 @@ defmodule CraftdayWeb.ProductLive.Index do
   use CraftdayWeb, :live_view
 
   alias Craftday.Catalog
+  alias Craftday.Catalog.Product.Photo
 
   @impl true
   def render(assigns) do
@@ -32,7 +33,19 @@ defmodule CraftdayWeb.ProductLive.Index do
           </span>
         </div>
       </:empty>
-      <:col :let={{_, product}} label="Name">{product.name}</:col>
+      <:col :let={{_, product}} label="Name">
+        <div class="flex items-center space-x-2">
+          <img
+            :if={product.featured_photo != nil}
+            src={Photo.url({product.featured_photo, product}, :thumb, signed: true)}
+            alt={product.name}
+            class="h-5 w-5"
+          />
+          <span class="">
+            {product.name}
+          </span>
+        </div>
+      </:col>
       <:col :let={{_, product}} label="SKU">
         <.kbd>
           {product.sku}

@@ -3,6 +3,7 @@ defmodule CraftdayWeb.Router do
   use AshAuthentication.Phoenix.Router
 
   alias AshAuthentication.Phoenix.Overrides.Default
+  alias Craftday.Cart
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -13,12 +14,21 @@ defmodule CraftdayWeb.Router do
     plug :put_secure_browser_headers
     plug :load_from_session
     plug :put_session_timezone
-    plug :load_cart
+    plug :put_cart
   end
 
-  def load_cart(conn, _opts) do
-    cart = get_session(conn, :cart) || %{items: %{}, total_items: 0}
-    assign(conn, :cart, cart)
+  def put_cart(conn, _opts) do
+    cart =
+      case get_session(conn, :cart_id) do
+        nil ->
+          {:ok, cart} = Cart.create_cart(%{items: []})
+          cart
+
+        cart_id ->
+          Cart.get_cart_by_id!(cart_id)
+      end
+
+    put_session(conn, :cart_id, cart.id)
   end
 
   pipeline :api do
@@ -34,15 +44,13 @@ defmodule CraftdayWeb.Router do
   scope "/", CraftdayWeb do
     pipe_through :browser
 
-    post "/cart/add", CartController, :add
-    delete "/cart/remove/:id", CartController, :remove
-    put "/cart/update/:id", CartController, :update
     post "/cart/clear", CartController, :clear
 
     live_session :public,
       on_mount: [
         CraftdayWeb.LiveCurrentPath,
-        CraftdayWeb.LiveSettings
+        CraftdayWeb.LiveSettings,
+        CraftdayWeb.LiveCart
       ] do
       live "/catalog", Public.CatalogLive.Index, :index
       live "/catalog/:sku", Public.CatalogLive.Show, :show
@@ -54,6 +62,7 @@ defmodule CraftdayWeb.Router do
       on_mount: [
         CraftdayWeb.LiveCurrentPath,
         CraftdayWeb.LiveSettings,
+        CraftdayWeb.LiveCart,
         {CraftdayWeb.LiveUserAuth, :live_admin_required}
       ] do
       live "/manage/settings", SettingsLive.Index, :index
@@ -66,6 +75,7 @@ defmodule CraftdayWeb.Router do
       on_mount: [
         CraftdayWeb.LiveCurrentPath,
         CraftdayWeb.LiveSettings,
+        CraftdayWeb.LiveCart,
         {CraftdayWeb.LiveUserAuth, :live_staff_required}
       ] do
       live "/manage/products", ProductLive.Index, :index
@@ -131,7 +141,11 @@ defmodule CraftdayWeb.Router do
     sign_in_route register_path: "/register",
                   reset_path: "/reset",
                   auth_routes_prefix: "/auth",
-                  on_mount: [{CraftdayWeb.LiveUserAuth, :live_no_user}],
+                  on_mount: [
+                    CraftdayWeb.LiveCurrentPath,
+                    CraftdayWeb.LiveCart,
+                    {CraftdayWeb.LiveUserAuth, :live_no_user}
+                  ],
                   overrides: [
                     CraftdayWeb.AuthOverrides,
                     Default

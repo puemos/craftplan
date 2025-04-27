@@ -4,7 +4,11 @@ defmodule CraftdayWeb.LiveCurrentPath do
   import Phoenix.LiveView, only: [attach_hook: 4]
 
   def on_mount(:default, _params, _session, socket) do
-    {:cont, attach_hook(socket, :assign_current_path, :handle_params, &assign_current_path/3)}
+    if socket.router == nil do
+      {:cont, assign(socket, :current_path, "")}
+    else
+      {:cont, attach_hook(socket, :assign_current_path, :handle_params, &assign_current_path/3)}
+    end
   end
 
   defp assign_current_path(_params, url, socket) do

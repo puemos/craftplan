@@ -3,6 +3,7 @@ defmodule CraftdayWeb.OrderLive.Show do
   use CraftdayWeb, :live_view
 
   alias Craftday.Catalog
+  alias Craftday.Catalog.Product.Photo
   alias Craftday.CRM
   alias Craftday.Orders
 
@@ -91,7 +92,17 @@ defmodule CraftdayWeb.OrderLive.Show do
                 class="hover:text-blue-800 hover:underline"
                 navigate={~p"/manage/products/#{item.product.sku}"}
               >
-                {item.product.name}
+                <div class="flex items-center space-x-2">
+                  <img
+                    :if={item.product.featured_photo != nil}
+                    src={Photo.url({item.product.featured_photo, item.product}, :thumb, signed: true)}
+                    alt={item.product.name}
+                    class="h-5 w-5"
+                  />
+                  <span>
+                    {item.product.name}
+                  </span>
+                </div>
               </.link>
             </:col>
             <:col :let={item} label="Quantity">{item.quantity}</:col>

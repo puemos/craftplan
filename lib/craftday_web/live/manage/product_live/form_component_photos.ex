@@ -406,7 +406,7 @@ defmodule CraftdayWeb.ProductLive.FormComponentPhotos do
       path_with_filename = Path.join(dir, "#{basename}-#{random_suffix}#{ext}")
 
       File.cp!(path, path_with_filename)
-      dbg(path_with_filename)
+
       Photo.store({path_with_filename, socket.assigns.product})
     end)
   end

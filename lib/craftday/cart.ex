@@ -1,72 +1,24 @@
 defmodule Craftday.Cart do
   @moduledoc """
-  The Cart context - handles shopping cart operations.
+  The Cart domain - handles shopping cart operations.
   """
+  use Ash.Domain
 
-  alias Craftday.Cart.Item
-  alias Craftday.Catalog
+  resources do
+    resource Craftday.Cart.Cart do
+      define :get_cart_by_id, action: :read, get_by: [:id]
+      define :list_carts, action: :list
+      define :create_cart, action: :create
+      define :update_cart, action: :update
+      define :delete_cart, action: :destroy
+    end
 
-  @doc """
-  Gets the cart from the session, or creates a new one.
-  """
-  def get_cart(nil), do: %{items: %{}, total_items: 0}
-  def get_cart(cart), do: cart
-
-  @doc """
-  Adds an item to the cart.
-  """
-  def add_item(cart, product_id, quantity) when is_binary(quantity) do
-    add_item(cart, product_id, String.to_integer(quantity))
-  end
-
-  def add_item(cart, product_id, quantity) when is_integer(quantity) and quantity > 0 do
-    product = Catalog.get_product_by_id!(product_id)
-
-    items =
-      Map.update(
-        cart.items,
-        product_id,
-        %Item{product: product, quantity: quantity},
-        &%{&1 | quantity: &1.quantity + quantity}
-      )
-
-    total_items = Enum.reduce(items, 0, fn {_id, item}, acc -> acc + item.quantity end)
-
-    %{items: items, total_items: total_items}
-  end
-
-  @doc """
-  Updates the quantity of an item in the cart.
-  """
-  def update_item(cart, product_id, quantity) when is_binary(quantity) do
-    update_item(cart, product_id, String.to_integer(quantity))
-  end
-
-  def update_item(cart, product_id, quantity) when is_integer(quantity) and quantity > 0 do
-    items =
-      Map.update!(cart.items, product_id, fn item ->
-        %{item | quantity: quantity}
-      end)
-
-    total_items = Enum.reduce(items, 0, fn {_id, item}, acc -> acc + item.quantity end)
-
-    %{items: items, total_items: total_items}
-  end
-
-  @doc """
-  Removes an item from the cart.
-  """
-  def remove_item(cart, product_id) do
-    items = Map.delete(cart.items, product_id)
-    total_items = Enum.reduce(items, 0, fn {_id, item}, acc -> acc + item.quantity end)
-
-    %{items: items, total_items: total_items}
-  end
-
-  @doc """
-  Clears the cart.
-  """
-  def clear_cart(_cart) do
-    %{items: %{}, total_items: 0}
+    resource Craftday.Cart.CartItem do
+      define :get_cart_item_by_id, action: :read, get_by: [:id]
+      define :list_cart_items, action: :read
+      define :create_cart_item, action: :create
+      define :update_cart_item, action: :update
+      define :delete_cart_item, action: :destroy
+    end
   end
 end

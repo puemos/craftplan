@@ -48,7 +48,8 @@ config :craftday,
     Craftday.Orders,
     Craftday.Inventory,
     Craftday.Catalog,
-    Craftday.Accounts
+    Craftday.Accounts,
+    Craftday.Cart
   ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
