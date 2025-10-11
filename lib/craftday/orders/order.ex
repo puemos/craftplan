@@ -6,6 +6,7 @@ defmodule Craftday.Orders.Order do
     data_layer: AshPostgres.DataLayer
 
   alias Craftday.Orders.Changes.CalculateTotals
+  alias Craftday.Orders.Changes.ValidateConstraints
   alias Craftday.Orders.Order.Types.PaymentStatus
   alias Craftday.Orders.Order.Types.Status
 
@@ -37,6 +38,7 @@ defmodule Craftday.Orders.Order do
 
       change manage_relationship(:items, type: :direct_control)
       change {CalculateTotals, []}
+      change {ValidateConstraints, []}
     end
 
     update :update do
@@ -62,6 +64,7 @@ defmodule Craftday.Orders.Order do
 
       change manage_relationship(:items, type: :direct_control)
       change {CalculateTotals, []}
+      change {ValidateConstraints, []}
     end
 
     read :list do

@@ -4,8 +4,10 @@ defmodule CraftdayWeb.PlanLive.Index do
 
   alias Craftday.Catalog
   alias Craftday.Inventory
+  alias Craftday.InventoryForecasting
   alias Craftday.Orders
   alias Craftday.Orders.Consumption
+  alias Craftday.Production
 
   @impl true
   def render(assigns) do
@@ -52,138 +54,103 @@ defmodule CraftdayWeb.PlanLive.Index do
         </div>
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div>
-            <h3 class="mb-2 text-sm font-medium text-stone-600">Over‑Capacity Details</h3>
-            <div class="rounded border border-stone-200 bg-white">
-              <table class="w-full table-fixed border-collapse">
-                <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
-                  <tr>
-                    <th class="p-0 pr-6 pb-2">Day</th>
-                    <th class="p-0 pr-6 pb-2">Product</th>
-                    <th class="p-0 pr-6 pb-2">Scheduled</th>
-                    <th class="p-0 pr-6 pb-2">Max</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-200 text-sm leading-6 text-stone-700">
-                  <tr :for={row <- @overview_tables.over_capacity}>
-                    <td class="p-0 py-2 pr-6">{Calendar.strftime(row.day, "%a %d")}</td>
-                    <td class="p-0 py-2 pr-6">{row.product.name}</td>
-                    <td class="p-0 py-2 pr-6">{row.qty}</td>
-                    <td class="p-0 py-2 pr-6">{row.max}</td>
-                  </tr>
-                  <tr :if={Enum.empty?(@overview_tables.over_capacity)}>
-                    <td colspan="4" class="py-6 text-center text-stone-500">No items</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <.table_card title="Over‑Capacity Details">
+            <.table
+              id="over-capacity-details"
+              rows={@overview_tables.over_capacity}
+              variant={:compact}
+              zebra
+              no_margin
+            >
+              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+              <:col :let={row} label="Product">{row.product.name}</:col>
+              <:col :let={row} label="Scheduled" align={:right}>{row.qty}</:col>
+              <:col :let={row} label="Max" align={:right}>{row.max}</:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
 
-          <div>
-            <h3 class="mb-2 text-sm font-medium text-stone-600">Days Over Order Capacity</h3>
-            <div class="rounded border border-stone-200 bg-white">
-              <table class="w-full table-fixed border-collapse">
-                <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
-                  <tr>
-                    <th class="p-0 pr-6 pb-2">Day</th>
-                    <th class="p-0 pr-6 pb-2">Orders</th>
-                    <th class="p-0 pr-6 pb-2">Cap</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-200 text-sm leading-6 text-stone-700">
-                  <tr :for={row <- @overview_tables.over_order_capacity}>
-                    <td class="p-0 py-2 pr-6">{Calendar.strftime(row.day, "%a %d")}</td>
-                    <td class="p-0 py-2 pr-6">{row.count}</td>
-                    <td class="p-0 py-2 pr-6">{row.cap}</td>
-                  </tr>
-                  <tr :if={Enum.empty?(@overview_tables.over_order_capacity)}>
-                    <td colspan="3" class="py-6 text-center text-stone-500">No items</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <.table_card title="Days Over Order Capacity">
+            <.table
+              id="over-order-capacity"
+              rows={@overview_tables.over_order_capacity}
+              variant={:compact}
+              zebra
+              no_margin
+            >
+              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+              <:col :let={row} label="Orders" align={:right}>{row.count}</:col>
+              <:col :let={row} label="Cap" align={:right}>{row.cap}</:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
 
-          <div class="lg:col-span-2">
-            <h3 class="mb-2 text-sm font-medium text-stone-600">Material Shortages</h3>
-            <div class="rounded border border-stone-200 bg-white">
-              <table class="w-full table-fixed border-collapse">
-                <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
-                  <tr>
-                    <th class="p-0 pr-6 pb-2">Day</th>
-                    <th class="p-0 pr-6 pb-2">Material</th>
-                    <th class="p-0 pr-6 pb-2">Required</th>
-                    <th class="p-0 pr-6 pb-2">Opening</th>
-                    <th class="p-0 pr-6 pb-2">End Balance</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-200 text-sm leading-6 text-stone-700">
-                  <tr :for={row <- @overview_tables.shortage}>
-                    <td class="p-0 py-2 pr-6">{Calendar.strftime(row.day, "%a %d")}</td>
-                    <td class="p-0 py-2 pr-6">{row.material.name}</td>
-                    <td class="p-0 py-2 pr-6">{format_amount(row.material.unit, row.required)}</td>
-                    <td class="p-0 py-2 pr-6">{format_amount(row.material.unit, row.opening)}</td>
-                    <td class="p-0 py-2 pr-6">{format_amount(row.material.unit, row.ending)}</td>
-                  </tr>
-                  <tr :if={Enum.empty?(@overview_tables.shortage)}>
-                    <td colspan="5" class="py-6 text-center text-stone-500">No items</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <.table_card title="Material Shortages" class="lg:col-span-2">
+            <.table
+              id="material-shortages"
+              rows={@overview_tables.shortage}
+              variant={:compact}
+              zebra
+              no_margin
+            >
+              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+              <:col :let={row} label="Material">{row.material.name}</:col>
+              <:col :let={row} label="Required" align={:right}>
+                {format_amount(row.material.unit, row.required)}
+              </:col>
+              <:col :let={row} label="Opening" align={:right}>
+                {format_amount(row.material.unit, row.opening)}
+              </:col>
+              <:col :let={row} label="End Balance" align={:right}>
+                {format_amount(row.material.unit, row.ending)}
+              </:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
 
-          <div>
-            <h3 class="mb-2 text-sm font-medium text-stone-600">Orders Today</h3>
-            <div class="rounded border border-stone-200 bg-white">
-              <table class="w-full table-fixed border-collapse">
-                <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
-                  <tr>
-                    <th class="p-0 pr-6 pb-2">Reference</th>
-                    <th class="p-0 pr-6 pb-2">Customer</th>
-                    <th class="p-0 pr-6 pb-2">Total</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-200 text-sm leading-6 text-stone-700">
-                  <tr :for={row <- @overview_tables.orders_today}>
-                    <td class="p-0 py-2 pr-6">
-                      <.kbd>{row.reference}</.kbd>
-                    </td>
-                    <td class="p-0 py-2 pr-6">{row.customer}</td>
-                    <td class="p-0 py-2 pr-6">{format_money(@settings.currency, row.total)}</td>
-                  </tr>
-                  <tr :if={Enum.empty?(@overview_tables.orders_today)}>
-                    <td colspan="3" class="py-6 text-center text-stone-500">No items</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <.table_card title="Orders Today">
+            <.table
+              id="orders-today"
+              rows={@overview_tables.orders_today}
+              variant={:compact}
+              zebra
+              no_margin
+            >
+              <:col :let={row} label="Reference">
+                <.kbd>{row.reference}</.kbd>
+              </:col>
+              <:col :let={row} label="Customer">{row.customer}</:col>
+              <:col :let={row} label="Total" align={:right}>
+                {format_money(@settings.currency, row.total)}
+              </:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
 
-          <div>
-            <h3 class="mb-2 text-sm font-medium text-stone-600">Outstanding Today</h3>
-            <div class="rounded border border-stone-200 bg-white">
-              <table class="w-full table-fixed border-collapse">
-                <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
-                  <tr>
-                    <th class="p-0 pr-6 pb-2">Product</th>
-                    <th class="p-0 pr-6 pb-2">Todo Qty</th>
-                    <th class="p-0 pr-6 pb-2">In Progress Qty</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-200 text-sm leading-6 text-stone-700">
-                  <tr :for={row <- @overview_tables.outstanding_today}>
-                    <td class="p-0 py-2 pr-6">{row.product.name}</td>
-                    <td class="p-0 py-2 pr-6">{row.todo}</td>
-                    <td class="p-0 py-2 pr-6">{row.in_progress}</td>
-                  </tr>
-                  <tr :if={Enum.empty?(@overview_tables.outstanding_today)}>
-                    <td colspan="3" class="py-6 text-center text-stone-500">No items</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <.table_card title="Outstanding Today">
+            <.table
+              id="outstanding-today"
+              rows={@overview_tables.outstanding_today}
+              variant={:compact}
+              zebra
+              no_margin
+            >
+              <:col :let={row} label="Product">{row.product.name}</:col>
+              <:col :let={row} label="Todo Qty" align={:right}>{row.todo}</:col>
+              <:col :let={row} label="In Progress Qty" align={:right}>{row.in_progress}</:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
         </div>
       </:tab>
 
@@ -539,25 +506,10 @@ defmodule CraftdayWeb.PlanLive.Index do
     today = Date.utc_today()
     days_range = generate_current_week_range()
 
-    production_items = load_production_items(socket, days_range)
-    materials_requirements = prepare_materials_requirements(socket, days_range)
-
-    week_metrics =
-      compute_week_metrics(socket, days_range, production_items, materials_requirements)
-
-    overview_tables =
-      compute_overview_tables_from(
-        build_overview_assigns(socket, days_range, production_items, materials_requirements)
-      )
-
     socket =
       socket
       |> assign(:today, today)
-      |> assign(:days_range, days_range)
-      |> assign(:production_items, production_items)
-      |> assign(:materials_requirements, materials_requirements)
-      |> assign(:week_metrics, week_metrics)
-      |> assign(:overview_tables, overview_tables)
+      |> update_for_range(days_range)
       |> assign(:schedule_view, :week)
       |> assign(:selected_date, nil)
       |> assign(:selected_product, nil)
@@ -579,11 +531,7 @@ defmodule CraftdayWeb.PlanLive.Index do
   end
 
   @impl true
-  def handle_event(
-        "view_material_details",
-        %{"date" => date_str, "material" => material_id},
-        socket
-      ) do
+  def handle_event("view_material_details", %{"date" => date_str, "material" => material_id}, socket) do
     date = Date.from_iso8601!(date_str)
     material = find_material(socket, material_id)
     {day_quantity, day_balance} = get_material_day_info(socket, material, date)
@@ -615,24 +563,7 @@ defmodule CraftdayWeb.PlanLive.Index do
     monday = List.first(socket.assigns.days_range)
     new_start = Date.add(monday, -step)
     days_range = generate_week_range(new_start)
-    production_items = load_production_items(socket, days_range)
-    materials_requirements = prepare_materials_requirements(socket, days_range)
-
-    week_metrics =
-      compute_week_metrics(socket, days_range, production_items, materials_requirements)
-
-    overview_tables =
-      compute_overview_tables_from(
-        build_overview_assigns(socket, days_range, production_items, materials_requirements)
-      )
-
-    {:noreply,
-     socket
-     |> assign(:days_range, days_range)
-     |> assign(:production_items, production_items)
-     |> assign(:materials_requirements, materials_requirements)
-     |> assign(:week_metrics, week_metrics)
-     |> assign(:overview_tables, overview_tables)}
+    {:noreply, update_for_range(socket, days_range)}
   end
 
   @impl true
@@ -641,48 +572,17 @@ defmodule CraftdayWeb.PlanLive.Index do
     monday = List.first(socket.assigns.days_range)
     new_start = Date.add(monday, step)
     days_range = generate_week_range(new_start)
-    production_items = load_production_items(socket, days_range)
-    materials_requirements = prepare_materials_requirements(socket, days_range)
-
-    week_metrics =
-      compute_week_metrics(socket, days_range, production_items, materials_requirements)
-
-    overview_tables =
-      compute_overview_tables_from(
-        build_overview_assigns(socket, days_range, production_items, materials_requirements)
-      )
-
-    {:noreply,
-     socket
-     |> assign(:days_range, days_range)
-     |> assign(:production_items, production_items)
-     |> assign(:materials_requirements, materials_requirements)
-     |> assign(:week_metrics, week_metrics)
-     |> assign(:overview_tables, overview_tables)}
+    {:noreply, update_for_range(socket, days_range)}
   end
 
   @impl true
   def handle_event("today", _params, socket) do
     days_range = generate_current_week_range()
-    production_items = load_production_items(socket, days_range)
-    materials_requirements = prepare_materials_requirements(socket, days_range)
-
-    week_metrics =
-      compute_week_metrics(socket, days_range, production_items, materials_requirements)
-
-    overview_tables =
-      compute_overview_tables_from(
-        build_overview_assigns(socket, days_range, production_items, materials_requirements)
-      )
 
     {:noreply,
      socket
      |> assign(:today, Date.utc_today())
-     |> assign(:days_range, days_range)
-     |> assign(:production_items, production_items)
-     |> assign(:materials_requirements, materials_requirements)
-     |> assign(:week_metrics, week_metrics)
-     |> assign(:overview_tables, overview_tables)}
+     |> update_for_range(days_range)}
   end
 
   @impl true
@@ -717,9 +617,7 @@ defmodule CraftdayWeb.PlanLive.Index do
   def handle_event("update_item_status", %{"item_id" => id, "status" => status}, socket) do
     order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
 
-    case Orders.update_item(order_item, %{status: String.to_atom(status)},
-           actor: socket.assigns.current_user
-         ) do
+    case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
       {:ok, updated_item} ->
         days_range = socket.assigns.days_range
         production_items = load_production_items(socket, days_range)
@@ -947,126 +845,13 @@ defmodule CraftdayWeb.PlanLive.Index do
   end
 
   defp load_production_items(socket, days_range) do
-    orders =
-      Orders.list_orders!(
-        %{
-          delivery_date_start:
-            days_range |> List.first() |> DateTime.new!(~T[00:00:00], socket.assigns.time_zone),
-          delivery_date_end:
-            days_range |> List.last() |> DateTime.new!(~T[23:59:59], socket.assigns.time_zone)
-        },
-        load: [
-          :items,
-          :status,
-          customer: [:full_name],
-          items: [:consumed_at, product: [:name, :max_daily_quantity]]
-        ]
-      )
-
-    Enum.flat_map(orders, fn order ->
-      day = DateTime.to_date(order.delivery_date)
-
-      order.items
-      |> Enum.group_by(& &1.product)
-      |> Enum.map(fn {product, items} ->
-        production_items =
-          Enum.map(items, fn item ->
-            %{
-              id: item.id,
-              product: product,
-              quantity: item.quantity,
-              status: item.status,
-              consumed_at: item.consumed_at,
-              order: order
-            }
-          end)
-
-        {day, product, production_items}
-      end)
-    end)
+    orders = Production.fetch_orders_in_range(socket.assigns.time_zone, days_range)
+    Production.build_production_items(orders)
   end
 
   defp prepare_materials_requirements(socket, days_range) do
-    raw_materials_data = load_materials_requirements(socket, days_range)
-
-    Enum.map(raw_materials_data, fn {material, quantities} ->
-      total_quantity = total_material_quantity(quantities)
-      {balance_cells, final_balance} = calculate_material_balances(material, quantities)
-
-      {material,
-       %{
-         quantities: quantities,
-         total_quantity: total_quantity,
-         balance_cells: balance_cells,
-         final_balance: final_balance
-       }}
-    end)
-  end
-
-  defp calculate_material_balances(material, quantities) do
-    initial_balance = material.current_stock || Decimal.new(0)
-
-    Enum.map_reduce(quantities, initial_balance, fn {day_quantity, _day}, acc_balance ->
-      current_balance = acc_balance
-      new_balance = Decimal.sub(acc_balance, day_quantity)
-      {current_balance, new_balance}
-    end)
-  end
-
-  defp load_materials_requirements(socket, days_range) do
-    start_date =
-      days_range |> List.first() |> DateTime.new!(~T[00:00:00], socket.assigns.time_zone)
-
-    end_date = days_range |> List.last() |> DateTime.new!(~T[23:59:59], socket.assigns.time_zone)
-
-    orders =
-      Orders.list_orders!(
-        %{
-          delivery_date_start: start_date,
-          delivery_date_end: end_date
-        },
-        load: [
-          :items,
-          items: [
-            product: [:recipe, recipe: [components: [material: [:current_stock, :unit, :sku]]]]
-          ]
-        ]
-      )
-
-    # Pre-create a map with zero quantities for all days to avoid filtering later
-    days_map = Map.new(days_range, fn day -> {day, Decimal.new(0)} end)
-
-    # First pass: collect materials with quantities by day
-    materials_map =
-      for order <- orders,
-          item <- order.items,
-          recipe = item.product.recipe,
-          recipe != nil,
-          component <- recipe.components,
-          reduce: %{} do
-        acc ->
-          day = DateTime.to_date(order.delivery_date)
-          material = component.material
-          quantity_needed = Decimal.mult(component.quantity, item.quantity)
-
-          material_days = Map.get(acc, material, days_map)
-          current_qty = Map.get(material_days, day, Decimal.new(0))
-          updated_qty = Decimal.add(current_qty, quantity_needed)
-
-          Map.put(acc, material, Map.put(material_days, day, updated_qty))
-      end
-
-    # Convert to the expected output format
-    materials_map
-    |> Enum.map(fn {material, days_with_quantities} ->
-      quantities_by_day =
-        Enum.map(days_range, fn day ->
-          {Map.get(days_with_quantities, day, Decimal.new(0)), day}
-        end)
-
-      {material, quantities_by_day}
-    end)
-    |> Enum.sort_by(fn {material, _} -> material.name end)
+    orders = Production.fetch_orders_in_range(socket.assigns.time_zone, days_range)
+    InventoryForecasting.prepare_materials_requirements(days_range, orders)
   end
 
   defp get_items_for_day(day, production_items) do
@@ -1141,12 +926,6 @@ defmodule CraftdayWeb.PlanLive.Index do
       :limit -> "border-amber-300 bg-amber-50"
       :ok -> "border-stone-200 bg-white"
     end
-  end
-
-  defp total_material_quantity(day_quantities) do
-    Enum.reduce(day_quantities, Decimal.new(0), fn {quantity, _}, acc ->
-      Decimal.add(acc, quantity)
-    end)
   end
 
   defp find_material(_socket, material_id) do
@@ -1295,9 +1074,7 @@ defmodule CraftdayWeb.PlanLive.Index do
             idx ->
               # simulate to index
               {balance, _} =
-                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d},
-                                                                                           {_bal,
-                                                                                            _} ->
+                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d}, {_bal, _} ->
                   # We need initial stock; balance_cells[idx] holds opening balance for that day
                   opening =
                     Enum.at(
@@ -1452,5 +1229,23 @@ defmodule CraftdayWeb.PlanLive.Index do
       time_zone: socket.assigns.time_zone,
       settings: socket.assigns.settings
     }
+  end
+
+  defp update_for_range(socket, days_range) do
+    production_items = load_production_items(socket, days_range)
+    materials_requirements = prepare_materials_requirements(socket, days_range)
+
+    week_metrics =
+      compute_week_metrics(socket, days_range, production_items, materials_requirements)
+
+    overview_tables =
+      compute_overview_tables_from(build_overview_assigns(socket, days_range, production_items, materials_requirements))
+
+    socket
+    |> assign(:days_range, days_range)
+    |> assign(:production_items, production_items)
+    |> assign(:materials_requirements, materials_requirements)
+    |> assign(:week_metrics, week_metrics)
+    |> assign(:overview_tables, overview_tables)
   end
 end

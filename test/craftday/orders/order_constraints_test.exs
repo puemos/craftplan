@@ -1,0 +1,145 @@
+defmodule Craftday.Orders.OrderConstraintsTest do
+  use Craftday.DataCase, async: true
+
+  alias Craftday.Catalog
+  alias Craftday.CRM
+  alias Craftday.Orders
+  alias Craftday.Settings
+
+  setup do
+    # Ensure a settings row exists with defaults
+    {:ok, settings} = Settings.Settings |> Ash.Changeset.for_create(:init, %{}) |> Ash.create()
+
+    {:ok, customer} =
+      CRM.Customer
+      |> Ash.Changeset.for_create(:create, %{
+        type: :individual,
+        first_name: "Jane",
+        last_name: "Roe",
+        email: "jane.roe@example.com"
+      })
+      |> Ash.create()
+
+    {:ok, product} =
+      Catalog.Product
+      |> Ash.Changeset.for_create(:create, %{
+        name: "Cap Product",
+        status: :active,
+        price: Decimal.new("10.00"),
+        sku: "CAP-1",
+        max_daily_quantity: 5
+      })
+      |> Ash.create()
+
+    {:ok, %{settings: settings, customer: customer, product: product}}
+  end
+
+  test "lead time is enforced", %{settings: settings, customer: customer, product: product} do
+    # Set lead_time_days = 1
+    {:ok, _} = settings |> Ash.Changeset.for_update(:update, %{lead_time_days: 1}) |> Ash.update()
+
+    items = [%{product_id: product.id, quantity: Decimal.new(1), unit_price: product.price}]
+
+    # Today should fail
+    {:error, changeset} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: DateTime.new!(Date.utc_today(), ~T[09:00:00], "Etc/UTC"),
+        items: items
+      })
+      |> Ash.create()
+
+    assert changeset.errors |> inspect() |> String.contains?("delivery date must be on or after")
+
+    # Tomorrow should pass
+    {:ok, _order} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: DateTime.new!(Date.add(Date.utc_today(), 1), ~T[09:00:00], "Etc/UTC"),
+        items: items
+      })
+      |> Ash.create()
+  end
+
+  test "global daily capacity is enforced", %{
+    settings: settings,
+    customer: customer,
+    product: product
+  } do
+    {:ok, _} = settings |> Ash.Changeset.for_update(:update, %{daily_capacity: 1}) |> Ash.update()
+    today_dt = DateTime.new!(Date.utc_today(), ~T[10:00:00], "Etc/UTC")
+    items = [%{product_id: product.id, quantity: Decimal.new(1), unit_price: product.price}]
+
+    {:ok, _o1} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: today_dt,
+        items: items
+      })
+      |> Ash.create()
+
+    {:error, changeset} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: today_dt,
+        items: items
+      })
+      |> Ash.create()
+
+    assert changeset.errors |> inspect() |> String.contains?("daily capacity reached")
+  end
+
+  test "per-product capacity is enforced across orders", %{customer: customer, product: product} do
+    day_dt = DateTime.new!(Date.utc_today(), ~T[11:00:00], "Etc/UTC")
+
+    {:ok, _o1} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: day_dt,
+        items: [%{product_id: product.id, quantity: Decimal.new(3), unit_price: product.price}]
+      })
+      |> Ash.create()
+
+    {:error, changeset} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: day_dt,
+        items: [%{product_id: product.id, quantity: Decimal.new(3), unit_price: product.price}]
+      })
+      |> Ash.create()
+
+    assert inspect(changeset.errors) =~ "exceeds daily capacity"
+  end
+
+  test "per-product capacity enforced on update without double counting", %{
+    customer: customer,
+    product: product
+  } do
+    day_dt = DateTime.new!(Date.utc_today(), ~T[12:00:00], "Etc/UTC")
+
+    {:ok, order} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: day_dt,
+        items: [%{product_id: product.id, quantity: Decimal.new(2), unit_price: product.price}]
+      })
+      |> Ash.create()
+
+    # Attempt to increase quantity to 6 (> max 5)
+    {:error, changeset} =
+      order
+      |> Ash.Changeset.for_update(:update, %{
+        items: [%{product_id: product.id, quantity: Decimal.new(6), unit_price: product.price}]
+      })
+      |> Ash.update()
+
+    assert inspect(changeset.errors) =~ "exceeds daily capacity"
+  end
+end

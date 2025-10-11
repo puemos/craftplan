@@ -32,8 +32,19 @@ defmodule CraftdayWeb.Components.DataVis do
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col and :action slots"
 
+  attr :variant, :atom,
+    default: :default,
+    values: [:default, :compact],
+    doc: "visual density variant"
+
+  attr :zebra, :boolean, default: false, doc: "alternating row background stripes"
+  attr :sticky_header, :boolean, default: false, doc: "sticky header at top of scroll container"
+  attr :wrapper_class, :string, default: nil, doc: "extra classes for the outer wrapper"
+  attr :table_class, :string, default: nil, doc: "extra classes for the table element"
+
   slot :col, required: true do
     attr :label, :string
+    attr :align, :atom
   end
 
   slot :empty
@@ -47,12 +58,16 @@ defmodule CraftdayWeb.Components.DataVis do
       end
 
     ~H"""
-    <div class="table-fixed overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+    <div class={["table-fixed overflow-y-auto px-4 sm:overflow-visible sm:px-0", @wrapper_class]}>
       <table class={[
         "w-[40rem] table-fixed border-collapse sm:w-full",
-        if(not @no_margin, do: "mt-11")
+        if(not @no_margin, do: "mt-11"),
+        @table_class
       ]}>
-        <thead class="border-b border-stone-300 text-left text-sm leading-6 text-stone-500">
+        <thead class={[
+          "border-b border-stone-300 text-left text-sm leading-6 text-stone-500",
+          @sticky_header && "sticky top-0 bg-white"
+        ]}>
           <tr>
             <th
               :for={{col, i} <- Enum.with_index(@col)}
@@ -74,7 +89,11 @@ defmodule CraftdayWeb.Components.DataVis do
         <tbody
           id={@id}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          class="relative divide-y divide-stone-200 text-sm leading-6 text-stone-700"
+          class={[
+            "relative divide-y divide-stone-200 text-stone-700",
+            (@variant == :compact && "text-sm leading-5") || "text-sm leading-6",
+            @zebra && "[&_tr:nth-child(even)]:bg-stone-50"
+          ]}
         >
           <tr :if={@empty != nil} id={"empty-#{@id}"} class="hidden only:block">
             <td colspan={Enum.count(@col)}>
@@ -88,10 +107,12 @@ defmodule CraftdayWeb.Components.DataVis do
               class={[
                 "relative border-r border-b border-stone-200 p-0 last:border-r-0",
                 i > 0 && "pl-4",
-                @row_click && "hover:cursor-pointer"
+                @row_click && "hover:cursor-pointer",
+                (Map.get(col, :align, :left) == :right && "text-right") ||
+                  (Map.get(col, :align, :left) == :center && "text-center") || "text-left"
               ]}
             >
-              <div class="block py-4 pr-6">
+              <div class={["block pr-6", (@variant == :compact && "py-2") || "py-4"]}>
                 <span class={["relative"]}>
                   {render_slot(col, @row_item.(row))}
                 </span>
@@ -176,12 +197,46 @@ defmodule CraftdayWeb.Components.DataVis do
 
   def stat_card(assigns) do
     ~H"""
-    <div class="rounded-lg border border-stone-200 p-2">
-      <dt :if={@title} class="text-sm font-medium text-stone-500">{@title}</dt>
+    <div class="rounded-lg border-2 border-stone-200 bg-white p-3">
+      <dt :if={@title} class="mb-5 text-base font-medium text-stone-600">{@title}</dt>
       <dd class="mt-1">
-        <div class="text-xl text-stone-900">{@value}</div>
+        <div class="text-xl font-semibold text-stone-900">{@value}</div>
         <div :if={@description} class="text-sm text-stone-500">{@description}</div>
       </dd>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a table card with a title and table content.
+
+  ## Examples
+
+      <.table_card title="Orders Today">
+        <.table id="orders" rows={@orders} variant={:compact} zebra no_margin>
+          <:col :let={row} label="Reference">{row.reference}</:col>
+          <:col :let={row} label="Total">{row.total}</:col>
+        </.table>
+      </.table_card>
+
+  ## Attributes
+
+    * `title` - The title of the table card (required)
+    * `class` - Additional CSS classes for the card wrapper (optional)
+
+  The component provides consistent card styling for tables, matching the stat_card design.
+  """
+  attr :title, :string, required: true, doc: "The title of the table card"
+  attr :class, :string, default: nil, doc: "Additional CSS classes for the card wrapper"
+  slot :inner_block, required: true
+
+  def table_card(assigns) do
+    ~H"""
+    <div class={["rounded-lg border-2 border-stone-200 bg-white p-4", @class]}>
+      <h3 class="mb-5 text-base font-medium text-stone-600">{@title}</h3>
+      <div>
+        {render_slot(@inner_block)}
+      </div>
     </div>
     """
   end
