@@ -17,3 +17,26 @@
 button {
     cursor: pointer;
 }
+
+/* Kanban Drag and Drop Styles */
+.kanban-card {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.kanban-card:hover {
+    transform: translateY(-2px);
+}
+
+.kanban-card.dragging {
+    opacity: 0.5;
+}
+
+.kanban-column {
+    transition: background-color 0.2s ease;
+}
+
+.kanban-column.drag-over {
+    background-color: rgba(0, 0, 0, 0.05);
+}

@@ -1,4 +1,5 @@
 import OrderCalendar from "./order_calendar";
+import KanbanDragDrop from "./kanban_drag_drop";
 
 const Hooks = {
   TimezoneInput: {
@@ -7,6 +8,7 @@ const Hooks = {
     },
   },
   OrderCalendar,
+  KanbanDragDrop,
 };
 
 export default Hooks;
