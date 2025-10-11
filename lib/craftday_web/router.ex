@@ -8,6 +8,17 @@ defmodule CraftdayWeb.Router do
   #
   # Plugs
   #
+  # Content Security Policy compatible with LiveView and topbar
+  @csp Enum.join([
+          "default-src 'self'",
+          "base-uri 'self'",
+          "frame-ancestors 'self'",
+          "img-src 'self' data: blob:",
+          "style-src 'self' 'unsafe-inline'",
+          "font-src 'self' data:",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          "connect-src 'self' ws: wss:"
+        ], "; ")
 
   def put_cart(conn, _opts) do
     cart =
@@ -39,6 +50,7 @@ defmodule CraftdayWeb.Router do
     plug :put_root_layout, html: {CraftdayWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_csp
     plug :load_from_session
     plug :put_session_timezone
     plug :put_cart
@@ -212,4 +224,12 @@ defmodule CraftdayWeb.Router do
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
+
+  #
+  # Content Security Policy
+  #
+  # Phoenix 1.8 secures defaults in `put_secure_browser_headers`. We provide an
+  # explicit CSP compatible with LiveView, topbar, and dev websocket connections.
+  # Tighten as needed for your deployment.
+  defp put_csp(conn, _opts), do: Plug.Conn.put_resp_header(conn, "content-security-policy", @csp)
 end

@@ -20,7 +20,7 @@ defmodule CraftdayWeb.LiveSettings do
 
   defp load_settings(socket) do
     settings =
-      case Craftday.Settings.get() do
+      case Craftday.Settings.get_settings() do
         {:ok, settings} -> settings
         {:error, _error} -> Craftday.Settings.init!()
       end
