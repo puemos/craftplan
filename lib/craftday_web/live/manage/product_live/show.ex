@@ -37,6 +37,9 @@ defmodule CraftdayWeb.ProductLive.Show do
                 ]}
               />
             </:item>
+            <:item title="Availability">
+              <.badge text={@product.selling_availability} />
+            </:item>
             <:item title="Name">{@product.name}</:item>
 
             <:item title="SKU">
@@ -66,6 +69,13 @@ defmodule CraftdayWeb.ProductLive.Show do
 
             <:item title="Markup percentage">
               {format_percentage(@product.markup_percentage)}%
+            </:item>
+
+            <:item
+              :if={@product.max_daily_quantity && @product.max_daily_quantity > 0}
+              title="Max units per day"
+            >
+              {@product.max_daily_quantity}
             </:item>
           </.list>
         </:tab>

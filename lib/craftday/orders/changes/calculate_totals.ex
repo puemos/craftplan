@@ -34,10 +34,50 @@ defmodule Craftday.Orders.Changes.CalculateTotals do
           end
       end
 
-    # Get fee fields from attributes or defaults
-    tax_total = get_attribute(changeset, :tax_total) || Decimal.new(0)
+    # Compute discount and tax based on settings & attributes
+    settings = safe_get_settings()
+
+    discount_total =
+      case get_attribute(changeset, :discount_type) || :none do
+        :percent ->
+          percent = get_attribute(changeset, :discount_value) || Decimal.new(0)
+
+          subtotal
+          |> Decimal.mult(Decimal.div(percent, Decimal.new(100)))
+          |> Decimal.max(Decimal.new(0))
+
+        :fixed ->
+          fixed = get_attribute(changeset, :discount_value) || Decimal.new(0)
+          if Decimal.compare(fixed, subtotal) == :gt, do: subtotal, else: fixed
+
+        _ ->
+          Decimal.new(0)
+      end
+
     shipping_total = get_attribute(changeset, :shipping_total) || Decimal.new(0)
-    discount_total = get_attribute(changeset, :discount_total) || Decimal.new(0)
+
+    tax_base = Decimal.sub(subtotal, discount_total)
+
+    tax_total =
+      case settings do
+        %{tax_mode: :exclusive, tax_rate: rate} ->
+          Decimal.mult(tax_base, rate || Decimal.new(0))
+
+        %{tax_mode: :inclusive, tax_rate: rate} ->
+          # derive included tax portion from tax_base
+          case rate do
+            r when not is_nil(r) ->
+              denom = Decimal.add(Decimal.new(1), r)
+              net = Decimal.div(tax_base, denom)
+              Decimal.sub(tax_base, net)
+
+            _ ->
+              Decimal.new(0)
+          end
+
+        _ ->
+          Decimal.new(0)
+      end
 
     total =
       subtotal
@@ -47,6 +87,8 @@ defmodule Craftday.Orders.Changes.CalculateTotals do
 
     changeset
     |> Ash.Changeset.force_change_attribute(:subtotal, subtotal)
+    |> Ash.Changeset.force_change_attribute(:discount_total, discount_total)
+    |> Ash.Changeset.force_change_attribute(:tax_total, tax_total)
     |> Ash.Changeset.force_change_attribute(:total, total)
   end
 
@@ -69,5 +111,11 @@ defmodule Craftday.Orders.Changes.CalculateTotals do
       {:ok, d} -> d
       :error -> Decimal.new(0)
     end
+  end
+
+  defp safe_get_settings do
+    Craftday.Settings.get_settings!()
+  rescue
+    _ -> %{tax_mode: :exclusive, tax_rate: Decimal.new(0)}
   end
 end

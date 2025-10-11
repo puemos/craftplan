@@ -11,23 +11,14 @@ The Customers module in Craftday helps you manage your customer relationships ef
 
 ## Customer List
 
-The customer list provides an overview of all your customers with key information:
+The customer list provides an overview with key information:
 
 - Customer name
+- Reference
 - Contact information (phone, email)
-- Number of orders
-- Total spent
-- Last order date
+- Type (individual/company)
 
-### Filtering and Searching
-
-You can filter the customer list by:
-- Activity status (active, inactive)
-- Order count
-- Total spent range
-- Search term (name, email, phone)
-
-![Customer Filtering Screenshot Placeholder](#)
+Customers are listed alphabetically. Click a customer to view details and order history.
 
 ## Adding a New Customer
 
@@ -51,14 +42,11 @@ You can filter the customer list by:
 
 ## Customer Details
 
-The customer details page provides comprehensive information about a customer:
+The customer details page provides:
 
-1. **Overview**: Basic customer information and contact details
-2. **Addresses**: Shipping and billing addresses
-3. **Orders**: Order history with status and amounts
-4. **Notes**: Internal notes about the customer
-
-![Customer Details Screenshot Placeholder](#)
+1. Overview: Basic customer information and contact details
+2. Addresses: Shipping and billing addresses
+3. Orders: Order history with status and amounts
 
 ## Managing Customer Addresses
 
@@ -87,38 +75,13 @@ View a customer's complete order history:
 
 ![Customer Order History Screenshot Placeholder](#)
 
-## Customer Notes
+## Statistics
 
-Add and manage notes about customer interactions:
+Use the Statistics tab to see total orders and total spent for a customer.
 
-1. Navigate to the customer detail page
-2. Click on the **Notes** tab
-3. View existing notes
-4. Click **Add Note** to create a new note
-5. For each note, specify:
-   - Date
-   - Content
-   - Category (if configured)
-   - Visibility (private or shared with team)
+## Customer Metrics
 
-![Customer Notes Screenshot Placeholder](#)
-
-## Importing and Exporting Customers
-
-Manage your customer database in bulk:
-
-1. From the main customers page, click on **Import/Export**
-2. To import customers:
-   - Download the template
-   - Fill in customer data
-   - Upload the completed file
-   - Review and confirm the import
-3. To export customers:
-   - Select export format (CSV, Excel)
-   - Choose which customers to export (all or filtered)
-   - Download the exported file
-
-![Customer Import/Export Screenshot Placeholder](#)
+Customer pages show order history and summary metrics such as total orders and total spent. Use these to understand top customers and recent activity.
 
 ## Best Practices
 

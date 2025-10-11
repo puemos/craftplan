@@ -32,5 +32,53 @@ defmodule Craftday.Settings.Settings do
       allow_nil? false
       default :USD
     end
+
+    # Tax configuration
+    attribute :tax_mode, :atom do
+      public? true
+      allow_nil? false
+      default :exclusive
+      constraints one_of: [:inclusive, :exclusive]
+    end
+
+    attribute :tax_rate, :decimal do
+      public? true
+      allow_nil? false
+      default 0
+    end
+
+    # Fulfillment configuration
+    attribute :offers_pickup, :boolean do
+      public? true
+      allow_nil? false
+      default true
+    end
+
+    attribute :offers_delivery, :boolean do
+      public? true
+      allow_nil? false
+      default true
+    end
+
+    attribute :lead_time_days, :integer do
+      public? true
+      allow_nil? false
+      default 0
+      constraints min: 0
+    end
+
+    attribute :daily_capacity, :integer do
+      public? true
+      allow_nil? false
+      default 0
+      description "Max orders per day (0 = unlimited)"
+      constraints min: 0
+    end
+
+    attribute :shipping_flat, :decimal do
+      public? true
+      allow_nil? false
+      default 0
+    end
   end
 end

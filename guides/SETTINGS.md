@@ -1,6 +1,6 @@
 # Settings & Configuration
 
-The Settings module in Craftday allows you to customize the application to match your specific business needs. This guide will walk you through the various configuration options available.
+The Settings module in Craftday lets you configure global options used across the app. Today, this focuses on currency, allergens, and nutritional facts.
 
 ## Accessing Settings
 
@@ -9,75 +9,21 @@ The Settings module in Craftday allows you to customize the application to match
 
 ![Settings Main Page Screenshot Placeholder](#)
 
-## User Management
+## General
 
-Manage user accounts and permissions:
+- Default currency: choose the currency used to format prices and totals throughout the app.
 
-1. From the Settings menu, select **Users**
-2. View a list of all user accounts
-3. Click **Add User** to create a new user account
-4. For each user, configure:
-   - Name
-   - Email
-   - Password
-   - Role (Admin, Manager, Staff)
-   - Status (Active, Inactive)
-5. Click on an existing user to edit their details or change their permissions
+## Allergens
 
-![User Management Screenshot Placeholder](#)
+- Manage the master list of allergens used by materials.
+- Materials can reference allergens; products inherit allergens through their recipes.
 
-### User Roles and Permissions
+## Nutritional Facts
 
-Craftday uses a role-based permission system:
-
-- **Admin**: Full access to all features and settings
-- **Manager**: Access to most features but limited settings access
-- **Staff**: Access to day-to-day operations but no settings access
-
-Customize permissions for each role:
-1. From the Users page, click on **Roles**
-2. Select a role to edit
-3. Configure permissions for each module and feature
-4. Click **Save** to apply changes
-
-![Role Permissions Screenshot Placeholder](#)
-
-## Business Information
-
-Configure your business details:
-
-1. From the Settings menu, select **Business**
-2. Enter your business information:
-   - Business name
-   - Legal entity type
-   - Tax ID/Registration number
-   - Contact information
-   - Logo (upload your business logo)
-   - Address
-3. This information will be used on invoices, reports, and other documents
-
-![Business Information Screenshot Placeholder](#)
-
-## System Preferences
-
-Configure general system settings:
-
-1. From the Settings menu, select **Preferences**
-2. Configure various system preferences:
-   - Default currency
-   - Date and time format
-   - Measurement units
-   - Language
-   - Timezone
-   - Number format
-3. Click **Save** to apply changes
-
-![System Preferences Screenshot Placeholder](#)
+- Manage the master list of nutritional facts (e.g., protein, carbs, sugar).
+- Materials can define amounts per unit; products aggregate totals via recipes.
 
 ## Best Practices
 
-- **Regular Backups**: Schedule regular data backups to prevent data loss
-- **User Access Control**: Only grant necessary permissions to each user
-- **Review Settings**: Periodically review your settings to ensure they still match your business needs
-- **Test Changes**: After making significant settings changes, test the affected features
-- **Document Custom Configurations**: Keep track of any custom configurations you've made
+- **Review Settings**: Periodically review your settings (currency, allergens, nutritional facts)
+- **Test Changes**: After changing settings, confirm they reflect correctly in product and inventory views

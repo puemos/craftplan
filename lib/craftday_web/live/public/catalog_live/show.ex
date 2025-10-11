@@ -41,10 +41,12 @@ defmodule CraftdayWeb.Public.CatalogLive.Show do
           </h1>
         </div>
 
-        <div>
+        <div class="flex items-center gap-3">
           <p class="text-lg text-gray-900 sm:text-xl">
             {format_money(@settings.currency, @product.price)}
           </p>
+          <.badge :if={@product.selling_availability == :preorder} text="Preorder" />
+          <.badge :if={@product.selling_availability == :off} text="Unavailable" />
         </div>
 
         <div :if={not Enum.empty?(@product.allergens)} class="space-y-2">
@@ -76,13 +78,16 @@ defmodule CraftdayWeb.Public.CatalogLive.Show do
               />
             </div>
 
-            <.button class="mt-4 w-full">
+            <.button class="mt-4 w-full" disabled={@product.selling_availability == :off}>
               {existing_item =
                 Enum.find(@cart.items || [], fn item -> item.product_id == @product.id end)
 
               if existing_item, do: "Update cart", else: "Add to cart"}
             </.button>
           </form>
+          <p :if={@product.selling_availability == :off} class="text-sm text-stone-500">
+            This product is currently unavailable.
+          </p>
         </section>
       </div>
       
@@ -150,7 +155,7 @@ defmodule CraftdayWeb.Public.CatalogLive.Show do
   def mount(%{"sku" => sku}, _session, socket) do
     product =
       Catalog.get_product_by_sku!(sku,
-        load: [:allergens, :nutritional_facts, :photos]
+        load: [:allergens, :nutritional_facts, :photos, :selling_availability]
       )
 
     {:ok,
@@ -174,29 +179,34 @@ defmodule CraftdayWeb.Public.CatalogLive.Show do
 
     product = socket.assigns.product
 
-    # Check if product already in cart
-    existing_item = Enum.find(cart_items, fn item -> item.product_id == product_id end)
-
-    if existing_item do
-      # Update existing item
-      new_quantity = quantity
-      {:ok, _} = Cart.update_cart_item(existing_item, %{quantity: new_quantity})
+    # Guard: availability
+    if socket.assigns.product.selling_availability == :off do
+      {:noreply, put_flash(socket, :error, "This product is unavailable.")}
     else
-      # Create new item
-      {:ok, _} =
-        Cart.create_cart_item(%{
-          cart_id: cart.id,
-          product_id: product_id,
-          quantity: quantity,
-          price: product.price
-        })
+      # Check if product already in cart
+      existing_item = Enum.find(cart_items, fn item -> item.product_id == product_id end)
+
+      if existing_item do
+        # Update existing item
+        new_quantity = quantity
+        {:ok, _} = Cart.update_cart_item(existing_item, %{quantity: new_quantity})
+      else
+        # Create new item
+        {:ok, _} =
+          Cart.create_cart_item(%{
+            cart_id: cart.id,
+            product_id: product_id,
+            quantity: quantity,
+            price: product.price
+          })
+      end
+
+      cart = Ash.reload!(cart, load: [:items])
+
+      {:noreply,
+       socket
+       |> assign(:cart, cart)
+       |> put_flash(:info, "Product added to cart.")}
     end
-
-    cart = Ash.reload!(cart, load: [:items])
-
-    {:noreply,
-     socket
-     |> assign(:cart, cart)
-     |> put_flash(:info, "Product added to cart.")}
   end
 end

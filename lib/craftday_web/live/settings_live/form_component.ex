@@ -19,6 +19,46 @@ defmodule CraftdayWeb.SettingsLive.FormComponent do
           options={currency_options()}
           label="Default currency"
         />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <.input
+            field={@form[:tax_mode]}
+            type="select"
+            options={[
+              {"Exclusive (add tax)", :exclusive},
+              {"Inclusive (price includes tax)", :inclusive}
+            ]}
+            label="Tax mode"
+          />
+          <.input
+            field={@form[:tax_rate]}
+            type="number"
+            step="0.001"
+            min="0"
+            label="Tax rate (e.g., 0.21)"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <.input field={@form[:offers_pickup]} type="checkbox" label="Offer Pickup" />
+          <.input field={@form[:offers_delivery]} type="checkbox" label="Offer Delivery" />
+          <.input
+            field={@form[:shipping_flat]}
+            type="number"
+            step="0.01"
+            min="0"
+            label="Flat Shipping"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <.input field={@form[:lead_time_days]} type="number" min="0" label="Lead time (days)" />
+          <.input
+            field={@form[:daily_capacity]}
+            type="number"
+            min="0"
+            label="Daily capacity (0=unlimited)"
+          />
+        </div>
         <:actions>
           <.button phx-disable-with="Saving...">Save Settings</.button>
         </:actions>

@@ -20,64 +20,69 @@ For detailed instructions on using Craftday, check out our user guides:
 
 ### 📋 Catalog Management
 
-- [x] Product lifecycle management (from idea to production)
-- [x] Cost and margin analysis
-- [x] Allergen tracking
-- [x] Multi-currency support
-- [x] Nutritional facts
-- [ ] Recipe/Bill of Materials management
+- [x] Product lifecycle management (draft/active/discontinued)
+- [x] Cost and margin analysis (materials cost, gross profit, markup)
+- [x] Allergen tracking (auto-aggregated from recipe materials)
+- [x] Nutritional facts (auto-calculated from recipe materials)
+- [x] Recipe/Bill of Materials management
 - [ ] Variant management
+- [x] Default currency setting and money formatting
 
 ### 📦 Inventory Control
 
 - [x] Raw material stock tracking
 - [x] Minimum/maximum stock levels
-- [x] Cost tracking
-- [x] Stock levels movement history
-- [x] Allergen
-- [x] Nutritional facts
-- [x] Advanced inventory forecasting
-- [ ] Unit conversion
+- [x] Stock movement history (adjustments, consumption, receiving)
+- [x] Allergen support
+- [x] Nutritional facts per material
+- [x] Inventory forecasting by upcoming orders (materials requirements)
+- [ ] Unit conversion (display formatting only)
+
+### 🧾 Purchasing
+
+- [x] Suppliers
+- [x] Purchase orders
+- [x] Receive POs into stock
 
 ### 🛍️ Sales & Order Management
 
-- [x] Order processing workflow
-- [x] Order status tracking
+- [x] Order processing workflow with statuses
+- [x] Order status tracking and calendar view
+- [x] Delivery date per order
 - [ ] Discounts and promotions
 - [ ] Customer-specific pricing
-- [ ] Delivery scheduling
-- [ ] Basic invoicing
-- [ ] Integration with WhatsApp Business
-- [ ] Integration with e-commerce platforms (Shopify, WooCommerce, etc...)
+- [ ] Invoicing and payments
+- [ ] WhatsApp Business integration
+- [ ] E-commerce integrations (Shopify, WooCommerce, etc.)
 
 ### 👥 Customer Relationship Management
 
 - [x] Customer database
-- [x] Order history
-- [x] Shipping & billing address management
-- [ ] Loyatly programs
+- [x] Order history per customer
+- [x] Shipping & billing addresses
+- [ ] Loyalty programs
 - [ ] Customer segmentation
 
 ### 📊 Business Intelligence
 
-- [x] Cost analysis
-- [x] Margin calculations
-- [x] Inventory turnover
+- [x] Product cost and margin visibility
+- [ ] Inventory turnover
 - [ ] Sales trends
 - [ ] Production efficiency metrics
 
 ### 🗓️ Production Planning
 
-- [x] Production scheduling
+- [x] Weekly production planner (by product/day)
+- [x] Materials consumption on completion (optional)
 - [ ] Quality control tracking
 - [ ] Notifications
 
-### 🗓️ Storefront
+### 🛒 Storefront
 
-- [ ] Online ordering
-- [ ] Mobile view
+- [x] Public catalog, cart, and checkout (creates orders)
+- [x] Responsive UI
 - [ ] Blog
-- [ ] Billing
+- [ ] Billing/payments
 
 ## Technology Stack
 

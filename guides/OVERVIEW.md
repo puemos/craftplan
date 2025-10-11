@@ -23,6 +23,7 @@ The main navigation menu is located on the left side of the screen and provides 
 - **Dashboard** - Overview of your business metrics and activities
 - **Catalog** - Manage your products and recipes
 - **Inventory** - Track raw materials and stock levels
+- **Purchasing** - Manage suppliers and purchase orders
 - **Orders** - Process and manage customer orders
 - **Customers** - Maintain your customer database
 - **Settings** - Configure your Craftday installation
@@ -33,12 +34,13 @@ The main navigation menu is located on the left side of the screen and provides 
 
 Craftday is organized around several core modules, each addressing a specific aspect of your craft business:
 
-1. **[Catalog Management](CATALOG.md)** - Create and manage your products, including recipes, costs, and pricing
-2. **[Inventory Control](INVENTORY.md)** - Track raw materials, monitor stock levels, and manage suppliers
-3. **[Order Management](ORDERS.md)** - Process customer orders from creation to delivery
-4. **[Customer Management](CUSTOMERS.md)** - Maintain your customer database and track order history
-5. **[Business Intelligence](REPORTS.md)** - Access reports and analytics to make data-driven decisions
-6. **[Settings](SETTINGS.md)** - Configure your Craftday installation
+1. **[Catalog Management](CATALOG.md)** - Create and manage products, recipes, and pricing
+2. **[Inventory Control](INVENTORY.md)** - Track raw materials and stock levels
+3. Purchasing - Manage suppliers and purchase orders, receive into stock
+4. **[Order Management](ORDERS.md)** - Process customer orders from creation to delivery
+5. **[Customer Management](CUSTOMERS.md)** - Maintain your customer database and track order history
+6. **[Business Intelligence](REPORTS.md)** - View built-in insights
+7. **[Settings](SETTINGS.md)** - Configure your Craftday installation
 
 ## Need Help?
 

@@ -1,6 +1,6 @@
 # Inventory Control
 
-The Inventory module in Craftday helps you track and manage your raw materials, monitor stock levels, and maintain inventory history. This guide will walk you through all the inventory management features.
+The Inventory module in Craftday helps you track and manage raw materials, monitor stock levels, maintain movement history, and plan materials needs. This guide reflects the features available today.
 
 ## Accessing Inventory Management
 
@@ -19,40 +19,27 @@ The inventory list provides an overview of all your raw materials with key infor
 - Unit of measurement
 - Minimum stock level
 - Maximum stock level
-- Cost per unit
-- Status indicators (below minimum, optimal, excess)
+ - Cost per unit
 
-### Filtering and Searching
+### Sorting
 
-You can filter the inventory list by:
-- Stock status (Low, Optimal, Excess)
-- Category
-- Search term (material name or SKU)
-
-![Inventory Filtering Screenshot Placeholder](#)
+Materials are listed alphabetically by name. Click a material to view its details and stock history.
 
 ## Adding a New Raw Material
 
 1. Click the **Add Material** button in the top right corner of the inventory page
 2. Fill in the material details in the form:
-   - **Basic Information**
-     - Name
-     - SKU/Code
-     - Description
-     - Category
-     - Unit of measurement
+    - **Basic Information**
+      - Name
+      - SKU/Code
+      - Unit of measurement
    - **Stock Settings**
      - Initial stock level
      - Minimum stock level
      - Maximum stock level
    - **Cost Information**
-     - Purchase cost
-     - Currency
-   - **Allergen Information** (if applicable)
-     - Contains allergens checkbox
-     - Allergen selection
-   - **Nutritional Facts** (if applicable)
-     - Nutritional information per unit
+     - Unit price (material cost)
+   - Allergens and Nutritional Facts can be managed after creation from the material page
 
 ![Add Material Form Screenshot Placeholder](#)
 
@@ -92,16 +79,9 @@ View the complete history of stock movements for each material:
 
 ![Stock Movement History Screenshot Placeholder](#)
 
-## Cost Tracking
+## Costs
 
-Craftday helps you track the cost of your raw materials over time:
-
-1. Navigate to the material detail page
-2. Click on the **Cost History** tab
-3. View the history of cost changes
-4. The system uses weighted average costing to calculate the current cost of your inventory
-
-![Cost Tracking Screenshot Placeholder](#)
+Materials have a unit price used for product cost calculations. When creating purchase orders, you can optionally set unit prices on items to reflect supplier quotes; receiving POs updates stock levels. A full costing method (e.g., weighted average) is not yet implemented.
 
 ## Allergen Management
 
@@ -125,36 +105,18 @@ For food-related raw materials:
 
 ![Nutritional Facts Screenshot Placeholder](#)
 
-## Low Stock Alerts
+## Purchasing and Receiving
 
-Craftday can alert you when stock levels fall below the minimum threshold:
+Use the Purchasing module to create purchase orders from suppliers. When you receive a PO, the system creates positive stock movements for each item and marks the PO as received. Open PO items for a material are shown on the material details page.
 
-1. Go to **Settings** > **Notifications**
-2. Enable low stock alerts
-3. Configure how you want to be notified (in-app, email)
+## Forecasting
 
-When materials fall below their minimum stock level, they will be highlighted in the inventory list and included in the alerts section of your dashboard.
-
-![Low Stock Alerts Screenshot Placeholder](#)
-
-## Inventory Reports
-
-Access inventory reports to gain insights into your stock:
-
-1. Go to the Inventory page
-2. Click on **Reports** in the top navigation
-3. Choose from available reports:
-   - Current Stock Value
-   - Low Stock Items
-   - Stock Movement History
-   - Cost Analysis
-
-![Inventory Reports Screenshot Placeholder](#)
+The Forecast tab shows upcoming materials requirements by day based on scheduled order deliveries. Use it to anticipate shortages and plan purchasing.
 
 ## Best Practices
 
-- **Regular Audits**: Perform physical inventory counts regularly and use the adjustment feature to correct discrepancies
+- **Regular Audits**: Perform physical inventory counts regularly and use stock adjustments to correct discrepancies
 - **Consistent Units**: Use consistent units of measurement for similar materials
 - **Timely Recording**: Record stock movements as they happen for accurate inventory levels
 - **Set Appropriate Levels**: Review and adjust minimum and maximum stock levels based on usage patterns
-- **Cost Monitoring**: Keep track of cost changes to ensure accurate product pricing
+- **Cost Monitoring**: Update material prices as supplier pricing changes to keep product costing accurate

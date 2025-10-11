@@ -19,7 +19,19 @@ defmodule Craftday.Orders.Order do
 
     create :create do
       primary? true
-      accept [:status, :customer_id, :delivery_date]
+
+      accept [
+        :status,
+        :customer_id,
+        :delivery_date,
+        :invoice_number,
+        :invoice_status,
+        :invoiced_at,
+        :payment_method,
+        :discount_type,
+        :discount_value,
+        :delivery_method
+      ]
 
       argument :items, {:array, :map}
 
@@ -29,7 +41,22 @@ defmodule Craftday.Orders.Order do
 
     update :update do
       require_atomic? false
-      accept [:status, :customer_id, :delivery_date]
+
+      accept [
+        :status,
+        :customer_id,
+        :delivery_date,
+        :invoice_number,
+        :invoice_status,
+        :invoiced_at,
+        :payment_method,
+        :discount_type,
+        :discount_value,
+        :delivery_method,
+        :tax_total,
+        :shipping_total,
+        :discount_total
+      ]
 
       argument :items, {:array, :map}
 
@@ -134,6 +161,43 @@ defmodule Craftday.Orders.Order do
 
     attribute :delivery_date, :utc_datetime do
       allow_nil? false
+    end
+
+    # Invoicing / payments / discounts
+    attribute :invoice_number, :string do
+      allow_nil? true
+    end
+
+    attribute :invoice_status, :atom do
+      allow_nil? false
+      default :none
+      constraints one_of: [:none, :issued, :paid]
+    end
+
+    attribute :invoiced_at, :utc_datetime do
+      allow_nil? true
+    end
+
+    attribute :payment_method, :atom do
+      allow_nil? true
+      constraints one_of: [:cash, :card, :bank_transfer, :other]
+    end
+
+    attribute :discount_type, :atom do
+      allow_nil? false
+      default :none
+      constraints one_of: [:none, :percent, :fixed]
+    end
+
+    attribute :discount_value, :decimal do
+      allow_nil? false
+      default 0
+    end
+
+    attribute :delivery_method, :atom do
+      allow_nil? false
+      default :delivery
+      constraints one_of: [:pickup, :delivery]
     end
 
     attribute :status, Status do

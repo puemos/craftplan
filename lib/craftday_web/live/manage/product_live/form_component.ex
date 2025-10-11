@@ -33,6 +33,24 @@ defmodule CraftdayWeb.ProductLive.FormComponent do
           ]}
         />
 
+        <.input
+          field={@form[:selling_availability]}
+          type="radiogroup"
+          label="Selling availability"
+          options={[
+            {"Available", :available},
+            {"Preorder", :preorder},
+            {"Off", :off}
+          ]}
+        />
+
+        <.input
+          field={@form[:max_daily_quantity]}
+          type="number"
+          min="0"
+          label="Max units per day (0 = unlimited)"
+        />
+
         <:actions>
           <.button phx-disable-with="Saving...">Save Product</.button>
         </:actions>

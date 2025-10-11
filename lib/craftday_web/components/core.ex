@@ -88,6 +88,7 @@ defmodule CraftdayWeb.Components.Core do
   attr :title, :string, required: true
   attr :description, :string, default: nil
   attr :max_width, :string, default: "max-w-3xl"
+  attr :fullscreen, :boolean, default: false
   attr :class, :string, default: nil
   slot :inner_block, required: true
   slot :footer
@@ -105,14 +106,17 @@ defmodule CraftdayWeb.Components.Core do
     >
       <div
         id={"#{@id}-bg"}
-        class="bg-stone-900/50 fixed inset-0 transition-opacity"
+        class="bg-stone-900/50 fixed inset-0 transition-opacity print:hidden"
         aria-hidden="true"
       />
       <div class="fixed inset-0 overflow-y-auto" role="dialog" aria-modal="true" tabindex="0">
         <div class="flex min-h-full items-center justify-center">
           <div class={[
-            "left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] fixed z-50 w-full p-4",
-            @max_width
+            if(@fullscreen,
+              do: "fixed inset-0 z-50 h-full w-full max-w-none p-0",
+              else: "left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] fixed z-50 w-full p-4"
+            ),
+            not @fullscreen && @max_width
           ]}>
             <.focus_wrap
               id={"#{@id}-container"}
@@ -120,19 +124,26 @@ defmodule CraftdayWeb.Components.Core do
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
               class={[
-                "ring-stone-700/20 relative hidden rounded-lg bg-white shadow-lg ring-1 transition",
+                if(@fullscreen,
+                  do:
+                    "relative hidden bg-white transition print:m-0 print:border-0 print:shadow-none",
+                  else:
+                    "ring-stone-700/20 relative hidden rounded-lg bg-white shadow-lg ring-1 transition"
+                ),
                 "duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in",
                 "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-                "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-                "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
-                "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+                not @fullscreen && "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+                not @fullscreen &&
+                  "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
+                not @fullscreen &&
+                  "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
                 @class
               ]}
             >
               <button
                 type="button"
                 phx-click={JS.exec("data-cancel", to: "##{@id}")}
-                class="absolute top-4 right-4 rounded-sm p-1 opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2"
+                class="absolute top-4 right-4 rounded-sm p-1 opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2 print:hidden"
                 aria-label={gettext("close")}
               >
                 <.icon name="hero-x-mark-solid" class="h-5 w-5" />
@@ -152,7 +163,10 @@ defmodule CraftdayWeb.Components.Core do
                   </p>
                 </div>
 
-                <div id={"#{@id}-content"} class="py-1">
+                <div
+                  id={"#{@id}-content"}
+                  class={[@fullscreen && "h-[calc(100vh-3.5rem)] overflow-auto", "py-1"]}
+                >
                   {render_slot(@inner_block)}
                 </div>
 
@@ -437,7 +451,7 @@ defmodule CraftdayWeb.Components.Core do
 
   def breadcrumb(assigns) do
     ~H"""
-    <nav class={["flex justify-between", @class]}>
+    <nav class={["flex justify-between print:hidden", @class]}>
       <ol class="inline-flex items-center space-x-1 text-base font-semibold">
         <li :for={{crumb, index} <- Enum.with_index(@crumb)} class="flex items-center">
           <.link
@@ -509,7 +523,7 @@ defmodule CraftdayWeb.Components.Core do
           {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
+      <div class="flex-none print:hidden">{render_slot(@actions)}</div>
     </header>
     """
   end

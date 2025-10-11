@@ -184,6 +184,7 @@ defmodule CraftdayWeb.Router do
       live "/manage/orders/:reference/details", OrderLive.Show, :details
       live "/manage/orders/:reference/items", OrderLive.Show, :items
       live "/manage/orders/:reference/edit", OrderLive.Show, :edit
+      live "/manage/orders/:reference/invoice", OrderLive.Invoice, :show
 
       # Purchasing
       live "/manage/purchasing", PurchasingLive.Index, :index
@@ -209,6 +210,7 @@ defmodule CraftdayWeb.Router do
       # Production
       live "/manage/production", PlanLive.Index, :index
       live "/manage/production/schedule", PlanLive.Index, :schedule
+      live "/manage/production/make_sheet", PlanLive.Index, :make_sheet
       live "/manage/production/materials", PlanLive.Index, :materials
 
       # in each liveview, add one of the following at the top of the module:

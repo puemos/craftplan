@@ -30,6 +30,9 @@ defmodule CraftdayWeb.OrderLive.Show do
         <.link patch={~p"/manage/orders/#{@order.reference}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit order</.button>
         </.link>
+        <.link navigate={~p"/manage/orders/#{@order.reference}/invoice"}>
+          <.button variant={:outline}>View Invoice</.button>
+        </.link>
       </:actions>
     </.header>
 

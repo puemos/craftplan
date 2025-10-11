@@ -90,12 +90,12 @@ if Mix.env() == :dev do
   Repo.delete_all(Inventory.MaterialNutritionalFact)
   Repo.delete_all(Inventory.NutritionalFact)
   Repo.delete_all(Inventory.MaterialAllergen)
-  Repo.delete_all(Inventory.Material)
-  Repo.delete_all(Inventory.Allergen)
-  # Purchasing domain
+  # Purchasing domain must be cleared before materials (FK on material_id)
   Repo.delete_all(Inventory.PurchaseOrderItem)
   Repo.delete_all(Inventory.PurchaseOrder)
   Repo.delete_all(Inventory.Supplier)
+  Repo.delete_all(Inventory.Material)
+  Repo.delete_all(Inventory.Allergen)
   Repo.delete_all(CRM.Customer)
   Repo.delete_all(Accounts.User)
   Repo.delete_all(Settings.Settings)
@@ -246,7 +246,16 @@ if Mix.env() == :dev do
   _customer_user = seed_user.("customer@customer.com", :customer)
 
   # -- 3.2 Set up global bakery settings
-  Ash.Seed.seed!(Settings.Settings, %{})
+  Ash.Seed.seed!(Settings.Settings, %{
+    currency: :USD,
+    tax_mode: :exclusive,
+    tax_rate: Decimal.new("0.10"),
+    offers_pickup: true,
+    offers_delivery: true,
+    lead_time_days: 1,
+    daily_capacity: 25,
+    shipping_flat: Decimal.new("5.00")
+  })
 
   # -- 3.3 Allergen data
   allergens = seed_allergens.()
@@ -372,6 +381,28 @@ if Mix.env() == :dev do
     carrot_cake: seed_product.("Carrot Cake", "CAKE-002", "12.99"),
     oatmeal_cookies: seed_product.("Oatmeal Cookies", "COOK-002", "3.49"),
     cheese_danish: seed_product.("Cheese Danish", "PAST-002", "2.99")
+  }
+
+  # Set product availability and per-day capacity to try the feature
+  update_product = fn product, attrs ->
+    product |> Ash.Changeset.for_update(:update, attrs) |> Ash.update!()
+  end
+
+  products = %{
+    almond_cookies: update_product.(products.almond_cookies, %{max_daily_quantity: 200}),
+    choc_cake: update_product.(products.choc_cake, %{max_daily_quantity: 20}),
+    bread: update_product.(products.bread, %{max_daily_quantity: 150}),
+    muffins: update_product.(products.muffins, %{max_daily_quantity: 120}),
+    croissants:
+      update_product.(products.croissants, %{
+        max_daily_quantity: 80,
+        selling_availability: :preorder
+      }),
+    gf_cupcakes: update_product.(products.gf_cupcakes, %{max_daily_quantity: 60}),
+    rye_loaf: update_product.(products.rye_loaf, %{max_daily_quantity: 50}),
+    carrot_cake: update_product.(products.carrot_cake, %{selling_availability: :off, max_daily_quantity: 0}),
+    oatmeal_cookies: update_product.(products.oatmeal_cookies, %{max_daily_quantity: 200}),
+    cheese_danish: update_product.(products.cheese_danish, %{max_daily_quantity: 100})
   }
 
   # -- 3.10 Seed recipes

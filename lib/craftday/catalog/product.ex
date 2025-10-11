@@ -14,8 +14,26 @@ defmodule Craftday.Catalog.Product do
     defaults [
       :read,
       :destroy,
-      create: [:name, :status, :price, :sku, :photos, :featured_photo],
-      update: [:name, :status, :price, :sku, :photos, :featured_photo]
+      create: [
+        :name,
+        :status,
+        :price,
+        :sku,
+        :photos,
+        :featured_photo,
+        :selling_availability,
+        :max_daily_quantity
+      ],
+      update: [
+        :name,
+        :status,
+        :price,
+        :sku,
+        :photos,
+        :featured_photo,
+        :selling_availability,
+        :max_daily_quantity
+      ]
     ]
 
     read :list do
@@ -79,6 +97,22 @@ defmodule Craftday.Catalog.Product do
       public? true
       allow_nil? true
       description "ID or reference to the featured photo from the photos array"
+    end
+
+    attribute :selling_availability, :atom do
+      public? true
+      allow_nil? false
+      default :available
+      constraints one_of: [:available, :preorder, :off]
+      description "Customer-facing availability: available, preorder, or off"
+    end
+
+    attribute :max_daily_quantity, :integer do
+      public? true
+      allow_nil? false
+      default 0
+      constraints min: 0
+      description "Optional per-product capacity per day (0 = unlimited)"
     end
 
     timestamps()
