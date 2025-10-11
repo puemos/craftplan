@@ -1,8 +1,10 @@
 defmodule CraftdayWeb.PageControllerTest do
   use CraftdayWeb.ConnCase
 
-  test "GET /", %{conn: conn} do
+  test "GET / renders homepage", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Peace of mind from prototype to production"
+    body = html_response(conn, 200)
+    assert body =~ "Craftday"
+    assert body =~ "Crafting excellence"
   end
 end

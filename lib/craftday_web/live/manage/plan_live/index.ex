@@ -5,79 +5,88 @@ defmodule CraftdayWeb.PlanLive.Index do
   alias Craftday.Catalog
   alias Craftday.Inventory
   alias Craftday.Orders
+  alias Craftday.Orders.Consumption
 
   @impl true
   def render(assigns) do
     ~H"""
     <.header>
       <.breadcrumb>
-        <:crumb label="Plan" path={~p"/manage/plan"} current?={true} />
+        <:crumb label="Production" path={~p"/manage/production"} current?={true} />
       </.breadcrumb>
     </.header>
 
     <div class="mt-4">
       <div class="mt-8">
         <div id="controls" class="border-gray-200/70 flex items-center justify-between border-b pb-4">
-          <div class="flex items-center space-x-2">
-            <span class="text-xl font-medium text-stone-700">
+          <div></div>
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <button
+                phx-click="previous_week"
+                size={:sm}
+                class="px-[6px] cursor-pointer rounded-l-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M11 17l-5-5m0 0l5-5m-5 5h12"
+                  />
+                </svg>
+              </button>
+              <button
+                phx-click="today"
+                size={:sm}
+                variant={:outline}
+                class="flex cursor-pointer items-center border-y border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mr-1 h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Today
+              </button>
+              <button
+                phx-click="next_week"
+                size={:sm}
+                class="px-[6px] cursor-pointer rounded-r-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="absolute left-1/2 -translate-x-1/2 transform">
+            <span class="font-medium text-stone-700">
               {Calendar.strftime(List.first(@days_range), "%B %Y")}
             </span>
-          </div>
-          <div class="flex items-center">
-            <button
-              phx-click="previous_week"
-              size={:sm}
-              class="px-[6px] cursor-pointer rounded-l-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-              </svg>
-            </button>
-            <button
-              phx-click="today"
-              size={:sm}
-              variant={:outline}
-              class="flex cursor-pointer items-center border-y border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="mr-1 h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              Today
-            </button>
-            <button
-              phx-click="next_week"
-              size={:sm}
-              class="px-[6px] cursor-pointer rounded-r-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </button>
           </div>
         </div>
         <div class="min-w-[1000px]">
@@ -190,10 +199,33 @@ defmodule CraftdayWeb.PlanLive.Index do
       on_cancel={JS.push("close_modal")}
     >
       <div class="py-4">
+        <div
+          :if={@pending_consumption_item_id}
+          class="mb-4 rounded border border-stone-200 bg-amber-50 p-4"
+        >
+          <div class="mb-2 text-base font-medium text-stone-900">
+            Would you like to update materials stock?
+          </div>
+          <p class="mb-3 text-sm text-stone-700">
+            Completing this item will consume materials according to the product recipe. Review the quantities below and confirm.
+          </p>
+          <.table id="consumption-recap" rows={@pending_consumption_recap}>
+            <:col :let={row} label="Material">{row.material.name}</:col>
+            <:col :let={row} label="Required">{format_amount(row.material.unit, row.required)}</:col>
+            <:col :let={row} label="Current Stock">
+              {format_amount(row.material.unit, row.current_stock || Decimal.new(0))}
+            </:col>
+          </.table>
+          <div class="mt-3 flex space-x-2">
+            <.button phx-click="confirm_consume">Consume Now</.button>
+            <.button variant={:outline} phx-click="cancel_consume">Not Now</.button>
+          </div>
+        </div>
+
         <div :if={@selected_details} class="space-y-4">
           <.table id="product-orders" rows={@selected_details}>
             <:col :let={item} label="Reference">
-              <.link navigate={~p"/manage/orders/#{item.order.reference}"}>
+              <.link navigate={~p"/manage/orders/#{item.order.reference}/items"}>
                 <.kbd>{format_reference(item.order.reference)}</.kbd>
               </.link>
             </:col>
@@ -266,6 +298,8 @@ defmodule CraftdayWeb.PlanLive.Index do
       |> assign(:material_details, nil)
       |> assign(:material_day_quantity, nil)
       |> assign(:material_day_balance, nil)
+      |> assign(:pending_consumption_item_id, nil)
+      |> assign(:pending_consumption_recap, [])
 
     {:ok, socket}
   end
@@ -369,7 +403,7 @@ defmodule CraftdayWeb.PlanLive.Index do
     order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
 
     case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
-      {:ok, _order_item} ->
+      {:ok, updated_item} ->
         days_range = socket.assigns.days_range
         production_items = load_production_items(socket, days_range)
         materials_requirements = prepare_materials_requirements(socket, days_range)
@@ -383,16 +417,120 @@ defmodule CraftdayWeb.PlanLive.Index do
             )
           end
 
-        {:noreply,
-         socket
-         |> assign(:production_items, production_items)
-         |> assign(:materials_requirements, materials_requirements)
-         |> assign(:selected_details, selected_details)
-         |> put_flash(:info, "Item status updated")}
+        socket =
+          socket
+          |> assign(:production_items, production_items)
+          |> assign(:materials_requirements, materials_requirements)
+          |> assign(:selected_details, selected_details)
+          |> put_flash(:info, "Item status updated")
+
+        # If just marked completed, prepare confirmation recap
+        socket =
+          if String.to_atom(status) == :done do
+            item =
+              Orders.get_order_item_by_id!(updated_item.id,
+                load: [
+                  :quantity,
+                  product: [recipe: [components: [material: [:name, :unit, :current_stock]]]]
+                ]
+              )
+
+            recap =
+              case item.product.recipe do
+                nil ->
+                  []
+
+                recipe ->
+                  Enum.map(recipe.components, fn c ->
+                    %{
+                      material: c.material,
+                      required: Decimal.mult(c.quantity, item.quantity),
+                      current_stock: c.material.current_stock
+                    }
+                  end)
+              end
+
+            socket
+            |> assign(:pending_consumption_item_id, updated_item.id)
+            |> assign(:pending_consumption_recap, recap)
+          else
+            socket
+          end
+
+        {:noreply, socket}
 
       {:error, _} ->
         {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_event("consume_item", %{"item_id" => id}, socket) do
+    _ = Consumption.consume_item(id, actor: socket.assigns.current_user)
+
+    days_range = socket.assigns.days_range
+    production_items = load_production_items(socket, days_range)
+    materials_requirements = prepare_materials_requirements(socket, days_range)
+
+    selected_details =
+      if socket.assigns.selected_product do
+        get_product_items_for_day(
+          socket.assigns.selected_date,
+          socket.assigns.selected_product,
+          production_items
+        )
+      end
+
+    {:noreply,
+     socket
+     |> assign(:production_items, production_items)
+     |> assign(:materials_requirements, materials_requirements)
+     |> assign(:selected_details, selected_details)
+     |> assign(:pending_consumption_item_id, nil)
+     |> assign(:pending_consumption_recap, [])
+     |> put_flash(:info, "Materials consumed")}
+  end
+
+  @impl true
+  def handle_event("confirm_consume", _params, socket) do
+    if socket.assigns.pending_consumption_item_id do
+      _ =
+        Consumption.consume_item(socket.assigns.pending_consumption_item_id,
+          actor: socket.assigns.current_user
+        )
+
+      days_range = socket.assigns.days_range
+      production_items = load_production_items(socket, days_range)
+      materials_requirements = prepare_materials_requirements(socket, days_range)
+
+      selected_details =
+        if socket.assigns.selected_product do
+          get_product_items_for_day(
+            socket.assigns.selected_date,
+            socket.assigns.selected_product,
+            production_items
+          )
+        end
+
+      {:noreply,
+       socket
+       |> assign(:production_items, production_items)
+       |> assign(:materials_requirements, materials_requirements)
+       |> assign(:selected_details, selected_details)
+       |> assign(:pending_consumption_item_id, nil)
+       |> assign(:pending_consumption_recap, [])
+       |> put_flash(:info, "Materials consumed")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("cancel_consume", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:pending_consumption_item_id, nil)
+     |> assign(:pending_consumption_recap, [])}
   end
 
   defp generate_current_week_range do
@@ -431,7 +569,7 @@ defmodule CraftdayWeb.PlanLive.Index do
           :items,
           :status,
           customer: [:full_name],
-          items: [product: [:name]]
+          items: [:consumed_at, product: [:name]]
         ]
       )
 
@@ -448,6 +586,7 @@ defmodule CraftdayWeb.PlanLive.Index do
               product: product,
               quantity: item.quantity,
               status: item.status,
+              consumed_at: item.consumed_at,
               order: order
             }
           end)

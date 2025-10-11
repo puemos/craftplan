@@ -83,12 +83,12 @@ defmodule CraftdayWeb.InventoryLive.FormComponentMaterial do
   defp assign_form(%{assigns: %{material: material}} = socket) do
     form =
       if material do
-        AshPhoenix.Form.for_update(material, :update,
+        Form.for_update(material, :update,
           as: "material",
           actor: socket.assigns.current_user
         )
       else
-        AshPhoenix.Form.for_create(Inventory.Material, :create,
+        Form.for_create(Inventory.Material, :create,
           as: "material",
           actor: socket.assigns.current_user
         )

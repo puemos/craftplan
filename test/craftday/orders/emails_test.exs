@@ -1,0 +1,51 @@
+defmodule Craftday.Orders.EmailsTest do
+  use Craftday.DataCase, async: true
+
+  import Swoosh.TestAssertions
+
+  alias Craftday.Catalog
+  alias Craftday.CRM
+  alias Craftday.Orders
+  alias Craftday.Orders.Emails
+
+  test "delivers order confirmation email" do
+    {:ok, customer} =
+      CRM.Customer
+      |> Ash.Changeset.for_create(:create, %{
+        type: :individual,
+        first_name: "Pat",
+        last_name: "Buyer",
+        email: "buyer@example.com"
+      })
+      |> Ash.create()
+
+    {:ok, product} =
+      Catalog.Product
+      |> Ash.Changeset.for_create(:create, %{
+        name: "Email Test Product",
+        status: :active,
+        price: Decimal.new("9.99"),
+        sku: "EMAIL-1"
+      })
+      |> Ash.create()
+
+    {:ok, order} =
+      Orders.Order
+      |> Ash.Changeset.for_create(:create, %{
+        customer_id: customer.id,
+        delivery_date: DateTime.utc_now(),
+        items: [%{product_id: product.id, quantity: Decimal.new(1), unit_price: product.price}]
+      })
+      |> Ash.create()
+
+    order =
+      Orders.get_order_by_id!(order.id, load: [items: [product: [:name]], customer: [:email]])
+
+    assert {:ok, _} = Emails.deliver_order_confirmation(order)
+
+    assert_email_sent(fn email ->
+      assert Enum.any?(email.to, fn {_name, addr} -> addr == "buyer@example.com" end)
+      assert String.contains?(email.subject, order.reference)
+    end)
+  end
+end

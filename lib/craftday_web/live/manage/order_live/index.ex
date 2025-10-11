@@ -179,11 +179,8 @@ defmodule CraftdayWeb.OrderLive.Index do
               id="controls"
               class="border-gray-200/70 mb-4 flex items-center justify-between border-b pb-4"
             >
-              <div class="flex items-center space-x-2">
-                <span class="text-xl font-medium text-stone-700">
-                  {Calendar.strftime(List.first(@days_range), "%B %Y")}
-                </span>
-              </div>
+              <div></div>
+
               <div class="flex items-center">
                 <button
                   phx-click="prev_week"
@@ -243,6 +240,11 @@ defmodule CraftdayWeb.OrderLive.Index do
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </button>
+              </div>
+              <div class="absolute left-1/2 -translate-x-1/2 transform">
+                <span class="font-medium text-stone-700">
+                  {Calendar.strftime(List.first(@days_range), "%B %Y")}
+                </span>
               </div>
             </div>
             <table class="w-full table-fixed border-collapse">

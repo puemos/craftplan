@@ -199,7 +199,7 @@ defmodule CraftdayWeb.InventoryLive.FormComponentMovement do
 
   defp assign_form(socket) do
     form =
-      AshPhoenix.Form.for_create(Inventory.Movement, :adjust_stock,
+      Form.for_create(Inventory.Movement, :adjust_stock,
         as: "movement",
         actor: socket.assigns.current_user
       )

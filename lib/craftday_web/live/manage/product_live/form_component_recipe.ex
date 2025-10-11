@@ -256,7 +256,7 @@ defmodule CraftdayWeb.ProductLive.FormComponentRecipe do
   def handle_event("add_material", %{"material-id" => material_id}, socket) do
     # Add a new component form with the selected material
     form =
-      AshPhoenix.Form.add_form(socket.assigns.form, socket.assigns.form[:components].name,
+      Form.add_form(socket.assigns.form, socket.assigns.form[:components].name,
         params: %{material_id: material_id, quantity: 0}
       )
 
@@ -273,7 +273,7 @@ defmodule CraftdayWeb.ProductLive.FormComponentRecipe do
 
   @impl true
   def handle_event("remove_form", %{"path" => path}, socket) do
-    form = AshPhoenix.Form.remove_form(socket.assigns.form, path)
+    form = Form.remove_form(socket.assigns.form, path)
 
     {available_materials, _selected_material} =
       recompute_availability(form, socket.assigns.materials)
@@ -287,7 +287,7 @@ defmodule CraftdayWeb.ProductLive.FormComponentRecipe do
   defp assign_form(%{assigns: %{recipe: recipe}} = socket) do
     form =
       if recipe do
-        AshPhoenix.Form.for_update(recipe, :update,
+        Form.for_update(recipe, :update,
           as: "recipe",
           actor: socket.assigns.current_user,
           forms: [
@@ -301,7 +301,7 @@ defmodule CraftdayWeb.ProductLive.FormComponentRecipe do
           ]
         )
       else
-        AshPhoenix.Form.for_create(Catalog.Recipe, :create,
+        Form.for_create(Catalog.Recipe, :create,
           as: "recipe",
           actor: socket.assigns.current_user,
           forms: [

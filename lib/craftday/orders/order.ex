@@ -5,6 +5,7 @@ defmodule Craftday.Orders.Order do
     domain: Craftday.Orders,
     data_layer: AshPostgres.DataLayer
 
+  alias Craftday.Orders.Changes.CalculateTotals
   alias Craftday.Orders.Order.Types.PaymentStatus
   alias Craftday.Orders.Order.Types.Status
 
@@ -23,6 +24,7 @@ defmodule Craftday.Orders.Order do
       argument :items, {:array, :map}
 
       change manage_relationship(:items, type: :direct_control)
+      change {CalculateTotals, []}
     end
 
     update :update do
@@ -32,6 +34,7 @@ defmodule Craftday.Orders.Order do
       argument :items, {:array, :map}
 
       change manage_relationship(:items, type: :direct_control)
+      change {CalculateTotals, []}
     end
 
     read :list do
@@ -106,6 +109,11 @@ defmodule Craftday.Orders.Order do
   attributes do
     uuid_primary_key :id
 
+    attribute :currency, Craftday.Types.Currency do
+      allow_nil? false
+      default :USD
+    end
+
     attribute :reference, :string do
       writable? false
 
@@ -136,6 +144,36 @@ defmodule Craftday.Orders.Order do
     attribute :payment_status, PaymentStatus do
       allow_nil? false
       default :pending
+    end
+
+    # Monetary totals (persisted)
+    attribute :subtotal, :decimal do
+      allow_nil? false
+      default 0
+    end
+
+    attribute :tax_total, :decimal do
+      allow_nil? false
+      default 0
+    end
+
+    attribute :shipping_total, :decimal do
+      allow_nil? false
+      default 0
+    end
+
+    attribute :discount_total, :decimal do
+      allow_nil? false
+      default 0
+    end
+
+    attribute :total, :decimal do
+      allow_nil? false
+      default 0
+    end
+
+    attribute :paid_at, :utc_datetime do
+      allow_nil? true
     end
 
     timestamps()

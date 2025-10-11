@@ -9,7 +9,7 @@ defmodule CraftdayWeb.OrderLive.Show do
 
   @default_order_load [
     :total_cost,
-    items: [:cost, :product],
+    items: [:cost, :status, :consumed_at, product: [:name, :sku]],
     customer: [:full_name, shipping_address: [:full_address]]
   ]
 
@@ -65,7 +65,13 @@ defmodule CraftdayWeb.OrderLive.Show do
                 {@order.customer.full_name}
               </.link>
             </:item>
-            <:item title="Shipping Address">{@order.customer.shipping_address.full_address}</:item>
+            <:item title="Shipping Address">
+              {if @order.customer.shipping_address do
+                @order.customer.shipping_address.full_address
+              else
+                "N/A"
+              end}
+            </:item>
 
             <:item title="Total">
               {format_money(@settings.currency, @order.total_cost)}
@@ -112,10 +118,60 @@ defmodule CraftdayWeb.OrderLive.Show do
             <:col :let={item} label="Total">
               {format_money(@settings.currency, item.cost)}
             </:col>
+            <:col :let={item} label="Status">
+              <form phx-change="update_item_status">
+                <input type="hidden" name="item_id" value={item.id} />
+                <.input
+                  name="status"
+                  type="badge-select"
+                  value={item.status}
+                  options={[
+                    {"To Do", "todo"},
+                    {"In Progress", "in_progress"},
+                    {"Completed", "done"}
+                  ]}
+                  badge_colors={[
+                    {:todo, "#{order_item_status_bg(:todo)} #{order_item_status_color(:todo)}"},
+                    {:in_progress,
+                     "#{order_item_status_bg(:in_progress)} #{order_item_status_color(:in_progress)}"},
+                    {:done, "#{order_item_status_bg(:done)} #{order_item_status_color(:done)}"}
+                  ]}
+                />
+              </form>
+              <span
+                :if={item.status == :done && not is_nil(item.consumed_at)}
+                class="ml-2 text-xs text-stone-500"
+              >
+                Consumed
+              </span>
+            </:col>
           </.table>
         </:tab>
       </.tabs>
     </div>
+
+    <.modal
+      :if={@pending_consumption_item_id}
+      id="consume-confirm-modal"
+      show
+      title="Confirm Materials Consumption"
+      on_cancel={JS.push("cancel_consume")}
+    >
+      <p class="mb-3 text-sm text-stone-700">
+        Completing this item will consume materials per the product recipe. Review the quantities and confirm.
+      </p>
+      <.table id="order-consumption-recap" rows={@pending_consumption_recap}>
+        <:col :let={row} label="Material">{row.material.name}</:col>
+        <:col :let={row} label="Required">{format_amount(row.material.unit, row.required)}</:col>
+        <:col :let={row} label="Current Stock">
+          {format_amount(row.material.unit, row.current_stock || Decimal.new(0))}
+        </:col>
+      </.table>
+      <footer>
+        <.button variant={:outline} phx-click="cancel_consume">Close</.button>
+        <.button phx-click="confirm_consume">Consume Now</.button>
+      </footer>
+    </.modal>
 
     <.modal
       :if={@live_action == :edit}
@@ -151,7 +207,9 @@ defmodule CraftdayWeb.OrderLive.Show do
     {:ok,
      assign(socket,
        products: products,
-       customers: customers
+       customers: customers,
+       pending_consumption_item_id: nil,
+       pending_consumption_recap: []
      )}
   end
 
@@ -166,6 +224,87 @@ defmodule CraftdayWeb.OrderLive.Show do
       |> assign(:order, order)
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("update_item_status", %{"item_id" => id, "status" => status}, socket) do
+    order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
+
+    case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
+      {:ok, updated_item} ->
+        order = Orders.get_order_by_id!(order_item.order_id, load: @default_order_load)
+
+        socket =
+          socket
+          |> assign(:order, order)
+          |> put_flash(:info, "Item status updated")
+
+        socket =
+          if String.to_atom(status) == :done do
+            item =
+              Orders.get_order_item_by_id!(updated_item.id,
+                load: [
+                  :quantity,
+                  product: [recipe: [components: [material: [:name, :unit, :current_stock]]]]
+                ]
+              )
+
+            recap =
+              case item.product.recipe do
+                nil ->
+                  []
+
+                recipe ->
+                  Enum.map(recipe.components, fn c ->
+                    %{
+                      material: c.material,
+                      required: Decimal.mult(c.quantity, item.quantity),
+                      current_stock: c.material.current_stock
+                    }
+                  end)
+              end
+
+            socket
+            |> assign(:pending_consumption_item_id, updated_item.id)
+            |> assign(:pending_consumption_recap, recap)
+          else
+            socket
+          end
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("confirm_consume", _params, socket) do
+    if socket.assigns.pending_consumption_item_id do
+      _ =
+        Craftday.Orders.Consumption.consume_item(socket.assigns.pending_consumption_item_id,
+          actor: socket.assigns.current_user
+        )
+
+      order = Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
+
+      {:noreply,
+       socket
+       |> assign(:order, order)
+       |> assign(:pending_consumption_item_id, nil)
+       |> assign(:pending_consumption_recap, [])
+       |> put_flash(:info, "Materials consumed")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("cancel_consume", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:pending_consumption_item_id, nil)
+     |> assign(:pending_consumption_recap, [])}
   end
 
   @impl true

@@ -15,6 +15,29 @@ defmodule Craftday.Inventory do
       define :adjust_stock, action: :adjust_stock
     end
 
+    resource Craftday.Inventory.Supplier do
+      define :get_supplier_by_id, action: :read, get_by: [:id]
+      define :list_suppliers, action: :list
+      define :create_supplier, action: :create
+      define :update_supplier, action: :update
+    end
+
+    resource Craftday.Inventory.PurchaseOrder do
+      define :get_purchase_order_by_id, action: :read, get_by: [:id]
+      define :get_purchase_order_by_reference, action: :read, get_by: [:reference]
+      define :list_purchase_orders, action: :list
+      define :create_purchase_order, action: :create
+      define :update_purchase_order, action: :update
+    end
+
+    resource Craftday.Inventory.PurchaseOrderItem do
+      define :get_purchase_order_item_by_id, action: :read, get_by: [:id]
+      define :list_purchase_order_items, action: :list
+      define :list_open_po_items_for_material, action: :open_for_material
+      define :create_purchase_order_item, action: :create
+      define :update_purchase_order_item, action: :update
+    end
+
     resource Craftday.Inventory.Allergen do
       define :get_allergen_by_id, action: :read, get_by: [:id]
       define :list_allergens, action: :list

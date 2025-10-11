@@ -309,7 +309,7 @@ defmodule CraftdayWeb.InventoryLive.FormComponentNutritionalFacts do
       ])
 
     material_with_nutritional_facts
-    |> AshPhoenix.Form.for_update(:update_nutritional_facts,
+    |> Form.for_update(:update_nutritional_facts,
       actor: actor,
       as: "material",
       forms: [

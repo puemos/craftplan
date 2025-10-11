@@ -233,9 +233,7 @@ defmodule CraftdayWeb.OrderLive.FormComponent do
   @impl true
   def handle_event("add_form", %{"path" => path}, socket) do
     form =
-      AshPhoenix.Form.add_form(socket.assigns.form, path,
-        params: %{product_id: socket.assigns.selected_product, quantity: 0}
-      )
+      Form.add_form(socket.assigns.form, path, params: %{product_id: socket.assigns.selected_product, quantity: 0})
 
     {available_products, selected_product} =
       recompute_availability(form, socket.assigns.products)
@@ -249,7 +247,7 @@ defmodule CraftdayWeb.OrderLive.FormComponent do
 
   @impl true
   def handle_event("remove_form", %{"path" => path}, socket) do
-    form = AshPhoenix.Form.remove_form(socket.assigns.form, path)
+    form = Form.remove_form(socket.assigns.form, path)
 
     {available_products, selected_product} =
       recompute_availability(form, socket.assigns.products)
@@ -264,7 +262,7 @@ defmodule CraftdayWeb.OrderLive.FormComponent do
   defp assign_form(%{assigns: %{order: order}} = socket) do
     form =
       if order do
-        AshPhoenix.Form.for_update(order, :update,
+        Form.for_update(order, :update,
           as: "order",
           actor: socket.assigns.current_user,
           forms: [
@@ -278,7 +276,7 @@ defmodule CraftdayWeb.OrderLive.FormComponent do
           ]
         )
       else
-        AshPhoenix.Form.for_create(Orders.Order, :create,
+        Form.for_create(Orders.Order, :create,
           as: "order",
           actor: socket.assigns.current_user,
           forms: [

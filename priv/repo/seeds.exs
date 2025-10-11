@@ -1,6 +1,7 @@
 # seeds.exs
 
 alias Craftday.Accounts
+alias Craftday.Cart
 alias Craftday.Catalog
 alias Craftday.CRM
 alias Craftday.Inventory
@@ -81,6 +82,9 @@ if Mix.env() == :dev do
   Repo.delete_all(Orders.Order)
   Repo.delete_all(Catalog.RecipeMaterial)
   Repo.delete_all(Catalog.Recipe)
+  # Clear carts before products to avoid FK violations
+  Repo.delete_all(Cart.CartItem)
+  Repo.delete_all(Cart.Cart)
   Repo.delete_all(Catalog.Product)
   Repo.delete_all(Inventory.Movement)
   Repo.delete_all(Inventory.MaterialNutritionalFact)
@@ -88,6 +92,10 @@ if Mix.env() == :dev do
   Repo.delete_all(Inventory.MaterialAllergen)
   Repo.delete_all(Inventory.Material)
   Repo.delete_all(Inventory.Allergen)
+  # Purchasing domain
+  Repo.delete_all(Inventory.PurchaseOrderItem)
+  Repo.delete_all(Inventory.PurchaseOrder)
+  Repo.delete_all(Inventory.Supplier)
   Repo.delete_all(CRM.Customer)
   Repo.delete_all(Accounts.User)
   Repo.delete_all(Settings.Settings)
@@ -173,6 +181,31 @@ if Mix.env() == :dev do
       recipe_id: recipe.id,
       material_id: material.id,
       quantity: Decimal.new(quantity)
+    })
+  end
+
+  # Purchasing helpers
+  seed_supplier = fn name, email ->
+    Ash.Seed.seed!(Inventory.Supplier, %{
+      name: name,
+      contact_email: email
+    })
+  end
+
+  seed_purchase_order = fn supplier, status ->
+    Ash.Seed.seed!(Inventory.PurchaseOrder, %{
+      supplier_id: supplier.id,
+      status: status,
+      ordered_at: DateTime.utc_now()
+    })
+  end
+
+  seed_purchase_order_item = fn po, material, quantity, unit_price ->
+    Ash.Seed.seed!(Inventory.PurchaseOrderItem, %{
+      purchase_order_id: po.id,
+      material_id: material.id,
+      quantity: Decimal.new(quantity),
+      unit_price: Decimal.new(unit_price)
     })
   end
 
@@ -312,6 +345,20 @@ if Mix.env() == :dev do
   Enum.each(materials, fn {_key, material} ->
     add_initial_stock.(material, "5000")
   end)
+
+  # -- 3.8.1 Suppliers and Purchase Orders
+  suppliers = %{
+    miller: seed_supplier.("Miller & Co.", "hello@miller.test"),
+    dairy: seed_supplier.("Fresh Dairy Ltd.", "sales@dairy.test")
+  }
+
+  po1 = seed_purchase_order.(suppliers.miller, :ordered)
+  seed_purchase_order_item.(po1, materials.flour, "10000", "0.0018")
+  seed_purchase_order_item.(po1, materials.whole_wheat, "5000", "0.0027")
+
+  po2 = seed_purchase_order.(suppliers.dairy, :ordered)
+  seed_purchase_order_item.(po2, materials.butter, "2000", "0.009")
+  seed_purchase_order_item.(po2, materials.milk, "5000", "0.0025")
 
   # -- 3.9 Seed products
   products = %{
@@ -763,6 +810,13 @@ if Mix.env() == :dev do
   order38 = seed_order.(customers.grace, 14, :unconfirmed, :pending)
   seed_order_item.(order38, products.gf_cupcakes, "12", :todo)
   seed_order_item.(order38, products.cheese_danish, "10", :todo)
+
+  # -- 5. Recalculate persisted order totals now that all items exist
+  for order <- Orders.list_orders!(%{}, load: [:items]) do
+    order
+    |> Ash.Changeset.for_update(:update, %{})
+    |> Ash.update!()
+  end
 
   IO.puts("Done!")
 else

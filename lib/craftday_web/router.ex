@@ -9,16 +9,19 @@ defmodule CraftdayWeb.Router do
   # Plugs
   #
   # Content Security Policy compatible with LiveView and topbar
-  @csp Enum.join([
-          "default-src 'self'",
-          "base-uri 'self'",
-          "frame-ancestors 'self'",
-          "img-src 'self' data: blob:",
-          "style-src 'self' 'unsafe-inline'",
-          "font-src 'self' data:",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-          "connect-src 'self' ws: wss:"
-        ], "; ")
+  @csp Enum.join(
+         [
+           "default-src 'self'",
+           "base-uri 'self'",
+           "frame-ancestors 'self'",
+           "img-src 'self' data: blob:",
+           "style-src 'self' 'unsafe-inline'",
+           "font-src 'self' data:",
+           "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+           "connect-src 'self' ws: wss:"
+         ],
+         "; "
+       )
 
   def put_cart(conn, _opts) do
     cart =
@@ -28,7 +31,18 @@ defmodule CraftdayWeb.Router do
           cart
 
         cart_id ->
-          Cart.get_cart_by_id!(cart_id)
+          case Cart.get_cart_by_id(cart_id) do
+            {:ok, nil} ->
+              {:ok, cart} = Cart.create_cart(%{items: []})
+              cart
+
+            {:ok, cart} ->
+              cart
+
+            {:error, _} ->
+              {:ok, cart} = Cart.create_cart(%{items: []})
+              cart
+          end
       end
 
     put_session(conn, :cart_id, cart.id)
@@ -98,6 +112,7 @@ defmodule CraftdayWeb.Router do
     live_session :public,
       on_mount: [
         CraftdayWeb.LiveCurrentPath,
+        CraftdayWeb.LiveNav,
         CraftdayWeb.LiveSettings,
         CraftdayWeb.LiveCart
       ] do
@@ -119,6 +134,7 @@ defmodule CraftdayWeb.Router do
     ash_authentication_live_session :admin_routes,
       on_mount: [
         CraftdayWeb.LiveCurrentPath,
+        CraftdayWeb.LiveNav,
         CraftdayWeb.LiveSettings,
         CraftdayWeb.LiveCart,
         {CraftdayWeb.LiveUserAuth, :live_admin_required}
@@ -134,6 +150,7 @@ defmodule CraftdayWeb.Router do
     ash_authentication_live_session :manage_routes,
       on_mount: [
         CraftdayWeb.LiveCurrentPath,
+        CraftdayWeb.LiveNav,
         CraftdayWeb.LiveSettings,
         CraftdayWeb.LiveCart,
         {CraftdayWeb.LiveUserAuth, :live_staff_required}
@@ -168,6 +185,18 @@ defmodule CraftdayWeb.Router do
       live "/manage/orders/:reference/items", OrderLive.Show, :items
       live "/manage/orders/:reference/edit", OrderLive.Show, :edit
 
+      # Purchasing
+      live "/manage/purchasing", PurchasingLive.Index, :index
+      live "/manage/purchasing/new", PurchasingLive.Index, :new
+      # Specific suppliers routes must come before the catch-all :po_ref
+      live "/manage/purchasing/suppliers", PurchasingLive.Suppliers, :index
+      live "/manage/purchasing/suppliers/new", PurchasingLive.Suppliers, :new
+      live "/manage/purchasing/suppliers/:id/edit", PurchasingLive.Suppliers, :edit
+      # Purchase order routes (by reference)
+      live "/manage/purchasing/:po_ref/items", PurchasingLive.Show, :items
+      live "/manage/purchasing/:po_ref", PurchasingLive.Show, :show
+      live "/manage/purchasing/:po_ref/add_item", PurchasingLive.Show, :add_item
+
       # Customers
       live "/manage/customers", CustomerLive.Index, :index
       live "/manage/customers/new", CustomerLive.Index, :new
@@ -177,10 +206,10 @@ defmodule CraftdayWeb.Router do
       live "/manage/customers/:reference/statistics", CustomerLive.Show, :statistics
       live "/manage/customers/:reference/edit", CustomerLive.Index, :edit
 
-      # Planning
-      live "/manage/plan", PlanLive.Index, :index
-      live "/manage/plan/schedule", PlanLive.Index, :schedule
-      live "/manage/plan/materials", PlanLive.Index, :materials
+      # Production
+      live "/manage/production", PlanLive.Index, :index
+      live "/manage/production/schedule", PlanLive.Index, :schedule
+      live "/manage/production/materials", PlanLive.Index, :materials
 
       # in each liveview, add one of the following at the top of the module:
       #

@@ -20,7 +20,8 @@ defmodule Craftday.Orders.OrderItem do
 
     update :update do
       primary? true
-      accept [:quantity, :status]
+      require_atomic? false
+      accept [:quantity, :status, :consumed_at]
     end
   end
 
@@ -38,6 +39,11 @@ defmodule Craftday.Orders.OrderItem do
     attribute :status, Craftday.Orders.OrderItem.Types.Status do
       allow_nil? false
       default :todo
+    end
+
+    attribute :consumed_at, :utc_datetime do
+      allow_nil? true
+      description "Timestamp indicating materials were consumed for this item"
     end
 
     timestamps()

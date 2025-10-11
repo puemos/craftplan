@@ -64,6 +64,26 @@ defmodule CraftdayWeb.InventoryLive.Show do
             {format_amount(@material.unit, @material.maximum_stock)}
           </:item>
         </.list>
+
+        <div :if={!Enum.empty?(@open_po_items)} class="mt-6">
+          <div class="mb-2 text-base font-medium text-stone-900">Open Purchase Orders</div>
+          <.table id="material-open-pos" rows={@open_po_items}>
+            <:col :let={poi} label="Purchase Order">
+              <.link navigate={~p"/manage/purchasing/#{poi.purchase_order.reference}"}>
+                <.kbd>{poi.purchase_order.reference}</.kbd>
+              </.link>
+            </:col>
+            <:col :let={poi} label="Supplier">
+              <.link navigate={~p"/manage/purchasing/suppliers"} class="hover:underline">
+                {poi.purchase_order.supplier.name}
+              </.link>
+            </:col>
+            <:col :let={poi} label="Quantity">
+              {format_amount(@material.unit, poi.quantity)}
+            </:col>
+            <:col :let={poi} label="Status">{poi.purchase_order.status}</:col>
+          </.table>
+        </div>
       </:tab>
 
       <:tab
@@ -186,18 +206,25 @@ defmodule CraftdayWeb.InventoryLive.Show do
         ]
       )
 
+    open_po_items =
+      Inventory.list_open_po_items_for_material!(
+        %{material_id: material.id},
+        actor: socket.assigns[:current_user]
+      )
+
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:material, material)}
+     |> assign(:material, material)
+     |> assign(:open_po_items, open_po_items)}
   end
 
   defp list_all_allergens do
-    Craftday.Inventory.list_allergens!()
+    Inventory.list_allergens!()
   end
 
   defp list_all_nutritional_facts do
-    Craftday.Inventory.list_nutritional_facts!()
+    Inventory.list_nutritional_facts!()
   end
 
   @impl true

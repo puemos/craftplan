@@ -22,7 +22,8 @@ defmodule CraftdayWeb.HtmlHelpers do
   def format_money(currency, nil), do: format_money(currency, Decimal.new(0))
 
   def format_money(currency, %Decimal{} = amount) do
-    Money.from_float!(currency, Decimal.to_float(amount), fractional_digits: 2)
+    # Avoid float conversion to preserve precision
+    Money.new(currency, amount)
   end
 
   @spec format_amount(atom(), Decimal.t() | Money.t() | number() | nil) :: String.t()
@@ -55,7 +56,8 @@ defmodule CraftdayWeb.HtmlHelpers do
 
   def format_reference(reference), do: format_label(reference, "-")
 
-  @spec format_time(DateTime.t(), String.t() | nil) :: String.t()
+  @spec format_time(DateTime.t() | nil, String.t() | nil) :: String.t()
+  def format_time(nil, _timezone), do: ""
   def format_time(_datetime, nil), do: ""
 
   def format_time(datetime, timezone) do
@@ -68,7 +70,8 @@ defmodule CraftdayWeb.HtmlHelpers do
   @doc """
   Format hour for displaying time in 12-hour format with AM/PM
   """
-  @spec format_hour(DateTime.t(), String.t() | nil) :: String.t()
+  @spec format_hour(DateTime.t() | nil, String.t() | nil) :: String.t()
+  def format_hour(nil, _timezone), do: ""
   def format_hour(_datetime, nil), do: ""
 
   def format_hour(datetime, timezone) do
