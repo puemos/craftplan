@@ -27,15 +27,6 @@ defmodule CraftdayWeb.ManagePurchasingInteractionsLiveTest do
     |> Ash.create!(actor: staff_user!())
   end
 
-  defp create_po!(sup) do
-    PurchaseOrder
-    |> Ash.Changeset.for_create(:create, %{
-      supplier_id: sup.id,
-      ordered_at: DateTime.utc_now()
-    })
-    |> Ash.create!(actor: staff_user!())
-  end
-
   defp create_material! do
     Material
     |> Ash.Changeset.for_create(:create, %{
@@ -92,7 +83,11 @@ defmodule CraftdayWeb.ManagePurchasingInteractionsLiveTest do
     index
     |> element("#purchase-order-item-form")
     |> render_submit(%{
-      "purchase_order_item" => %{"material_id" => mat.id, "quantity" => "2", "unit_price" => "1.5"}
+      "purchase_order_item" => %{
+        "material_id" => mat.id,
+        "quantity" => "2",
+        "unit_price" => "1.5"
+      }
     })
 
     assert render(index) =~ "Item added"

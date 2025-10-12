@@ -238,7 +238,10 @@ defmodule CraftdayWeb.OrderLive.Show do
 
     case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
       {:ok, updated_item} ->
-        order = Orders.get_order_by_id!(order_item.order_id, load: @default_order_load)
+        order = Orders.get_order_by_id!(order_item.order_id,
+          load: @default_order_load,
+          actor: socket.assigns[:current_user]
+        )
 
         socket =
           socket
@@ -252,7 +255,8 @@ defmodule CraftdayWeb.OrderLive.Show do
                 load: [
                   :quantity,
                   product: [recipe: [components: [material: [:name, :unit, :current_stock]]]]
-                ]
+                ],
+                actor: socket.assigns[:current_user]
               )
 
             recap =
@@ -292,7 +296,10 @@ defmodule CraftdayWeb.OrderLive.Show do
           actor: socket.assigns.current_user
         )
 
-      order = Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
+      order = Orders.get_order_by_id!(socket.assigns.order.id,
+        load: @default_order_load,
+        actor: socket.assigns[:current_user]
+      )
 
       {:noreply,
        socket
