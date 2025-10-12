@@ -56,6 +56,44 @@ defmodule CraftdayWeb.ManageInventoryInteractionsLiveTest do
     assert render(view) =~ "Material created successfully"
   end
 
+  test "adjust stock via add", %{conn: conn} do
+    m = create_material!()
+    conn = sign_in(conn, staff_user!())
+    {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/adjust")
+
+    view
+    |> element("button[phx-click=toggle_adjustment_type][phx-value-type=add]")
+    |> render_click()
+
+    params = %{"movement" => %{"material_id" => m.id, "quantity" => "2", "reason" => "add"}}
+
+    view
+    |> element("#movement-movment-form")
+    |> render_submit(params)
+
+    assert_patch(view, ~p"/manage/inventory/#{m.sku}/stock")
+    assert render(view) =~ "Material created successfully"
+  end
+
+  test "adjust stock via subtract", %{conn: conn} do
+    m = create_material!()
+    conn = sign_in(conn, staff_user!())
+    {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/adjust")
+
+    view
+    |> element("button[phx-click=toggle_adjustment_type][phx-value-type=subtract]")
+    |> render_click()
+
+    params = %{"movement" => %{"material_id" => m.id, "quantity" => "1", "reason" => "sub"}}
+
+    view
+    |> element("#movement-movment-form")
+    |> render_submit(params)
+
+    assert_patch(view, ~p"/manage/inventory/#{m.sku}/stock")
+    assert render(view) =~ "Material created successfully"
+  end
+
   test "assign allergens to material", %{conn: conn} do
     m = create_material!()
     a = create_allergen!()

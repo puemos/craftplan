@@ -3,7 +3,7 @@ defmodule CraftdayWeb.ManagePurchasingInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias Craftday.Inventory.{Supplier, PurchaseOrder, Material}
+  alias Craftday.Inventory.{Supplier, Material}
 
   defp staff_user! do
     Craftday.DataCase.staff_actor()
@@ -92,6 +92,15 @@ defmodule CraftdayWeb.ManagePurchasingInteractionsLiveTest do
 
     assert render(index) =~ "Item added"
 
-    # Receive flow is covered via UI elsewhere; add-item interaction verified here
+    # Navigate to show and mark received
+    {:ok, show, _} = live(conn, ~p"/manage/purchasing/#{po.reference}")
+
+    show
+    |> element("a[phx-click]")
+    |> render_click()
+
+    # Revisit show to assert status updated
+    {:ok, show2, _} = live(conn, ~p"/manage/purchasing/#{po.reference}")
+    assert render(show2) =~ "received"
   end
 end
