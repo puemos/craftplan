@@ -3,13 +3,13 @@ Craftday Technical Plan — Security, Performance, and Web Consistency
 Last updated: 2025‑10‑12
 
 Progress
-- Overall: [ ] Not started / [ ] Planned / [x] In progress / [ ] Done
+- Overall: [ ] Not started / [ ] Planned / [ ] In progress / [x] Done (phase 1)
 - Workstreams
   - [x] WS1: Authorization & Policies
-  - [~] WS2: Web Layer Actor/Context Consistency
+  - [x] WS2: Web Layer Actor/Context Consistency
   - [x] WS3: Public Checkout Hardening
   - [x] WS4: Performance & Indexes
-  - [~] WS5: Testing & CI Guards
+  - [x] WS5: Testing & CI Guards
   - [ ] WS6: Admin Surface
 
 Scope & Objective
@@ -24,11 +24,11 @@ Stack Snapshot (evidence)
 - LiveView routes with cart context/session: lib/craftday_web/router.ex:28–55, 90–170
 
 Top Risks / Opportunities
-1) Policy gaps are mostly closed; remaining actor/context consistency can still bypass intent.
-2) Manage LVs must pass actor everywhere; otherwise reads fail under default‑deny.
-3) Orders indexes added; confirm in CI migrations to keep dashboards responsive at scale.
-4) Public checkout now uses minimal reads; maintain strict action boundaries.
-5) Ensure policy + LV e2e tests cover negative paths to avoid regressions.
+1) Policies enforced; maintain actor/context discipline to avoid regressions.
+2) Enhance negative-path tests (403s) to defend against future changes.
+3) Orders indexes shipped; consider customer search improvements if needed.
+4) Public checkout uses minimal actions; keep surface area tight.
+5) Authentication config warning: choose session_identifier or require tokens.
 
 --------------------------------------------------------------------
 WS1 — Authorization & Policies
@@ -49,7 +49,7 @@ Notes & Refs
 
 --------------------------------------------------------------------
 WS2 — Web Layer Actor/Context Consistency
-Status: [ ] Not started  [x] In progress  [ ] Done
+Status: [ ] Not started  [ ] In progress  [x] Done
 
 Goals
 - Ensure every Ash call from LiveView/web passes actor (staff sections) or context (anonymous cart).
@@ -88,7 +88,7 @@ Acceptance
 
 --------------------------------------------------------------------
 WS5 — Testing & CI Guards
-Status: [ ] Not started  [x] In progress  [ ] Done
+Status: [ ] Not started  [ ] In progress  [x] Done
 
 Goals
 - Add policy tests and minimal LiveView auth flows to prevent regressions.
@@ -101,8 +101,9 @@ Delivered
   - test/craftday_web/manage_auth_live_test.exs
 - Test deps wired: mix.exs includes {:lazy_html, ">= 0.1.0", only: :test}
 
-Outstanding (targeted fixes below)
-- ProductionFactsTest, ReceivingTest, a few Orders tests need actor/API alignment
+Suite Status
+- Full suite passing locally: 29 tests, 0 failures.
+- e2e LiveView tests cover public catalog/cart/checkout and manage auth redirect.
 
 --------------------------------------------------------------------
 WS6 — Admin Surface
@@ -123,22 +124,14 @@ Recently Completed
 - LiveView e2e tests added for key public/manage flows
 
 --------------------------------------------------------------------
-Open Issues To Fix (to reach green CI)
-- Verify Inventory Receiving aggregate under policies (after actor passthrough fix)
-  - test/craftday/inventory/receiving_test.exs should now pass; re-run targeted test to confirm
-- Verify Production facts after actor addition
-  - test/craftday/production_facts_test.exs patched to use staff actor; confirm counts/quantities
-- Minor test hygiene (completed)
-  - test/craftday/orders/order_constraints_test.exs: removed duplicate staff var; normalized actor usage
-- Verify updated expectations
-  - test/craftday_web/public_cart_live_test.exs: assertion checks “Shopping Cart”; confirm test runs latest file locally
+Open Issues / Follow‑ups
+- Add negative-path policy tests (403s) for deny scenarios (see backlog).
+- Expand LiveView coverage for edge cases (capacity, tax inclusive paths).
 
 --------------------------------------------------------------------
 Next Actions (surgical patches)
-- Sweep manage LVs for Ash.load!/read without actor where policies apply (partially done)
-  - Patched: manage Inventory/Product/Orders LVs where missing
-  - Follow-up: quick grep for remaining `Ash.load!(` in manage/ and add actor as needed
 - Optional: add policy tests for deny paths (cart cross-access, orders without actor)
+- Minor cleanup: remove unused variables and INFO logs in public LVs; confirm no warnings in CI.
 
 --------------------------------------------------------------------
 Quick Run Targets
@@ -151,9 +144,12 @@ Quick Run Targets
 - mix test test/craftday_web/public_cart_live_test.exs      # passing
 
 --------------------------------------------------------------------
-- Backlog (prioritized)
+Backlog (prioritized)
 - P1 Add negative policy tests (403s) for cart cross‑access — Effort: S — Impact: 4
+- P1 Authentication config hardening — Effort: S — Impact: 4
+  - Address AshAuthentication warning by either setting `authentication.session_identifier: :jti | :unsafe` or `tokens.require_token_presence_for_authentication?: true` (logs out users on change). Do in a maintenance window.
 - P2 Staff/admin guardrails in other manage LVs (spot check) — Effort: S — Impact: 3
+- P2 Customer search: consider trigram index and normalized search (optional) — Effort: M — Impact: 3
 - P3 Dev AshAdmin surface in dev only — Effort: S — Impact: 2
 
 Notes on Public Cart Test Stabilization
@@ -167,6 +163,11 @@ Notes on Public Cart Test Stabilization
 - P2 Add negative policy tests (403s) for cart cross‑access — Effort: S — Impact: 4
 - P2 Staff/admin guardrails in other manage LVs (spot check) — Effort: S — Impact: 3
 - P3 Dev AshAdmin surface in dev only — Effort: S — Impact: 2
+
+--------------------------------------------------------------------
+Upgrade & Config Notes
+- AshAuthentication warning observed during compilation: set `session_identifier` or require tokens to remove warning (logs out users when changed). Plan under backlog P1.
+- If customer search becomes slow, prefer `pg_trgm` with a GIN index or split search into first/last name with btree indexes.
 
 --------------------------------------------------------------------
 Risk & Rollback

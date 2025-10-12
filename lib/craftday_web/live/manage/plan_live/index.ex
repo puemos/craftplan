@@ -778,7 +778,11 @@ defmodule CraftdayWeb.PlanLive.Index do
   end
 
   @impl true
-  def handle_event("view_material_details", %{"date" => date_str, "material" => material_id}, socket) do
+  def handle_event(
+        "view_material_details",
+        %{"date" => date_str, "material" => material_id},
+        socket
+      ) do
     date = Date.from_iso8601!(date_str)
     material = find_material(socket, material_id)
     {day_quantity, day_balance} = get_material_day_info(socket, material, date)
@@ -876,7 +880,8 @@ defmodule CraftdayWeb.PlanLive.Index do
       {:ok, date} ->
         new_status_atom = String.to_atom(new_status)
         # Get all items for this product on this date
-        items = get_product_items_for_day(date, %{id: product_id}, socket.assigns.production_items)
+        items =
+          get_product_items_for_day(date, %{id: product_id}, socket.assigns.production_items)
 
         # Update all items to the new status
         Enum.each(items, fn item ->
@@ -897,7 +902,9 @@ defmodule CraftdayWeb.PlanLive.Index do
   def handle_event("update_item_status", %{"item_id" => id, "status" => status}, socket) do
     order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
 
-    case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
+    case Orders.update_item(order_item, %{status: String.to_atom(status)},
+           actor: socket.assigns.current_user
+         ) do
       {:ok, updated_item} ->
         days_range = socket.assigns.days_range
         production_items = load_production_items(socket, days_range)
@@ -958,6 +965,7 @@ defmodule CraftdayWeb.PlanLive.Index do
 
         overview_tables =
           compute_overview_tables_from(
+            socket,
             build_overview_assigns(
               socket,
               days_range,
@@ -995,6 +1003,7 @@ defmodule CraftdayWeb.PlanLive.Index do
 
     overview_tables =
       compute_overview_tables_from(
+        socket,
         build_overview_assigns(
           socket,
           days_range,
@@ -1041,6 +1050,7 @@ defmodule CraftdayWeb.PlanLive.Index do
 
       overview_tables =
         compute_overview_tables_from(
+          socket,
           build_overview_assigns(
             socket,
             days_range,
@@ -1083,6 +1093,7 @@ defmodule CraftdayWeb.PlanLive.Index do
 
     overview_tables =
       compute_overview_tables_from(
+        socket,
         build_overview_assigns(
           socket,
           days_range,
@@ -1126,14 +1137,18 @@ defmodule CraftdayWeb.PlanLive.Index do
 
   defp load_production_items(socket, days_range) do
     orders =
-      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
+      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range,
+        actor: socket.assigns.current_user
+      )
 
     Production.build_production_items(orders)
   end
 
   defp prepare_materials_requirements(socket, days_range) do
     orders =
-      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
+      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range,
+        actor: socket.assigns.current_user
+      )
 
     InventoryForecasting.prepare_materials_requirements(days_range, orders)
   end
@@ -1362,7 +1377,9 @@ defmodule CraftdayWeb.PlanLive.Index do
             idx ->
               # simulate to index
               {balance, _} =
-                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d}, {_bal, _} ->
+                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d},
+                                                                                           {_bal,
+                                                                                            _} ->
                   # We need initial stock; balance_cells[idx] holds opening balance for that day
                   opening =
                     Enum.at(
@@ -1399,7 +1416,7 @@ defmodule CraftdayWeb.PlanLive.Index do
     }
   end
 
-  defp compute_overview_tables_from(assigns) do
+  defp compute_overview_tables_from(socket, assigns) do
     # Over‑capacity days (any product/day exceeds max)
     over_capacity_rows =
       Enum.flat_map(assigns.days_range, fn day ->
@@ -1438,7 +1455,7 @@ defmodule CraftdayWeb.PlanLive.Index do
               delivery_date_start: start_dt,
               delivery_date_end: end_dt
             },
-            actor: assigns.current_user
+            actor: socket.assigns.current_user
           )
 
         orders_by_day = Enum.group_by(orders, fn o -> DateTime.to_date(o.delivery_date) end)
@@ -1487,7 +1504,7 @@ defmodule CraftdayWeb.PlanLive.Index do
       %{delivery_date_start: start_dt, delivery_date_end: end_dt}
       |> Orders.list_orders!(
         load: [:total_cost, :reference, customer: [:full_name]],
-        actor: assigns.current_user
+        actor: socket.assigns.current_user
       )
       |> Enum.map(fn o ->
         %{reference: o.reference, customer: o.customer.full_name, total: o.total_cost}
@@ -1533,7 +1550,10 @@ defmodule CraftdayWeb.PlanLive.Index do
       compute_week_metrics(socket, days_range, production_items, materials_requirements)
 
     overview_tables =
-      compute_overview_tables_from(build_overview_assigns(socket, days_range, production_items, materials_requirements))
+      compute_overview_tables_from(
+        socket,
+        build_overview_assigns(socket, days_range, production_items, materials_requirements)
+      )
 
     socket
     |> assign(:days_range, days_range)
