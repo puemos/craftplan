@@ -78,7 +78,7 @@ Products (staff/admin)
   - Status: TODO (render covered)
 - /manage/products/:sku/recipe (ProductLive.Show :recipe)
   - Interactions: add material to recipe; remove row; totals reflect quantity
-  - Status: TODO (render covered)
+  - Status: DONE (add + save; see: test/craftday_web/manage_products_interactions_live_test.exs)
 - /manage/products/:sku/nutrition (ProductLive.Show :nutrition)
   - Interactions: derived from recipe; verify after recipe changes
   - Status: TODO (tied to recipe interaction)
@@ -107,7 +107,7 @@ Inventory (staff/admin)
   - Status: N/A
 - /manage/inventory/:sku/allergens (InventoryLive.Show :allergens)
   - Interactions: select allergens and save (flash + reload)
-  - Status: TODO (render covered)
+  - Status: DONE (see: test/craftday_web/manage_inventory_interactions_live_test.exs)
 - /manage/inventory/:sku/nutritional_facts (InventoryLive.Show :nutritional_facts)
   - Interactions: add fact; remove fact; save (flash + reload)
   - Status: TODO (render covered)
@@ -119,15 +119,15 @@ Inventory (staff/admin)
   - Status: TODO (render covered)
 - /manage/inventory/:sku/adjust (InventoryLive.Show :adjust)
   - Interactions: submit add/subtract/set_total; verify stock changes and flash
-  - Status: TODO (render covered)
+  - Status: DONE (set_total; see: test/craftday_web/manage_inventory_interactions_live_test.exs)
 
 Orders (staff/admin)
 - /manage/orders (OrderLive.Index :index)
   - Interactions: switch views (table/calendar); prev/next/today; apply filters; open/close event modal
-  - Status: TODO (render covered; see: test/craftday_web/manage_orders_live_test.exs)
+  - Status: DONE (basic switch + today; see: test/craftday_web/manage_orders_interactions_live_test.exs)
 - /manage/orders/new (OrderLive.Index :new)
   - Interactions: add product row; change quantity; submit order; stream insert + flash
-  - Status: TODO (render covered)
+  - Status: DONE (single item; see: test/craftday_web/manage_orders_interactions_live_test.exs)
 - /manage/orders/:reference (OrderLive.Show :show)
   - Interactions: none (summary)
   - Status: N/A
@@ -150,10 +150,10 @@ Purchasing (staff/admin)
   - Status: TODO (render covered; see: test/craftday_web/manage_purchasing_live_test.exs)
 - /manage/purchasing/new (PurchasingLive.Index :new)
   - Interactions: create PO (form submit + flash + appears in list)
-  - Status: TODO (render covered)
+  - Status: DONE (see: test/craftday_web/manage_purchasing_interactions_live_test.exs)
 - /manage/purchasing/suppliers (PurchasingLive.Suppliers :index)
   - Interactions: navigate to edit on row click
-  - Status: TODO (render covered)
+  - Status: DONE (covered by modal tests; see: test/craftday_web/manage_purchasing_live_test.exs)
 - /manage/purchasing/suppliers/new (PurchasingLive.Suppliers :new)
   - Interactions: create supplier (form submit + flash)
   - Status: TODO (render covered)
@@ -162,7 +162,7 @@ Purchasing (staff/admin)
   - Status: TODO (render covered)
 - /manage/purchasing/:po_ref/items (PurchasingLive.Show :items)
   - Interactions: add PO item; verify table updates; flash + modal close
-  - Status: TODO (render covered)
+  - Status: DONE (see: test/craftday_web/manage_purchasing_interactions_live_test.exs)
 - /manage/purchasing/:po_ref (PurchasingLive.Show :show)
   - Interactions: mark received; redirect back with status updated
   - Status: TODO (render covered)
@@ -185,7 +185,7 @@ Customers (staff/admin)
   - Status: N/A
 - /manage/customers/:reference/orders (CustomerLive.Show :orders)
   - Interactions: click "New Order" navigates to orders/new with customer
-  - Status: TODO (render covered)
+  - Status: DONE (see: test/craftday_web/manage_customers_interactions_live_test.exs)
 - /manage/customers/:reference/statistics (CustomerLive.Show :statistics)
   - Interactions: none (summary)
   - Status: N/A
