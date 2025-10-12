@@ -67,7 +67,8 @@ defmodule CraftdayWeb.OrderLive.Invoice do
           :total,
           customer: [:full_name, shipping_address: [:full_address]],
           items: [:cost, :unit_price, product: [:name]]
-        ]
+        ],
+        actor: socket.assigns[:current_user]
       )
 
     {:ok,

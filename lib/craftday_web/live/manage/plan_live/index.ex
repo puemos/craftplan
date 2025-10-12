@@ -778,11 +778,7 @@ defmodule CraftdayWeb.PlanLive.Index do
   end
 
   @impl true
-  def handle_event(
-        "view_material_details",
-        %{"date" => date_str, "material" => material_id},
-        socket
-      ) do
+  def handle_event("view_material_details", %{"date" => date_str, "material" => material_id}, socket) do
     date = Date.from_iso8601!(date_str)
     material = find_material(socket, material_id)
     {day_quantity, day_balance} = get_material_day_info(socket, material, date)
@@ -902,9 +898,7 @@ defmodule CraftdayWeb.PlanLive.Index do
   def handle_event("update_item_status", %{"item_id" => id, "status" => status}, socket) do
     order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
 
-    case Orders.update_item(order_item, %{status: String.to_atom(status)},
-           actor: socket.assigns.current_user
-         ) do
+    case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
       {:ok, updated_item} ->
         days_range = socket.assigns.days_range
         production_items = load_production_items(socket, days_range)
@@ -1137,18 +1131,14 @@ defmodule CraftdayWeb.PlanLive.Index do
 
   defp load_production_items(socket, days_range) do
     orders =
-      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range,
-        actor: socket.assigns.current_user
-      )
+      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
 
     Production.build_production_items(orders)
   end
 
   defp prepare_materials_requirements(socket, days_range) do
     orders =
-      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range,
-        actor: socket.assigns.current_user
-      )
+      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
 
     InventoryForecasting.prepare_materials_requirements(days_range, orders)
   end
@@ -1377,9 +1367,7 @@ defmodule CraftdayWeb.PlanLive.Index do
             idx ->
               # simulate to index
               {balance, _} =
-                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d},
-                                                                                           {_bal,
-                                                                                            _} ->
+                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d}, {_bal, _} ->
                   # We need initial stock; balance_cells[idx] holds opening balance for that day
                   opening =
                     Enum.at(

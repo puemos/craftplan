@@ -195,15 +195,15 @@ defmodule Craftday.Orders.Changes.ValidateConstraints do
       {sum_by_product(items_arg), changeset}
     else
       case changeset.data do
-        %{id: id} when not is_nil(id) ->
-          order = Craftday.Orders.get_order_by_id!(id, load: [items: [:product]])
-
+        %{items: items} when is_list(items) ->
           mapped =
-            Enum.map(order.items, fn it ->
-              %{product_id: it.product_id, quantity: it.quantity}
-            end)
+            Enum.map(items, fn it -> %{product_id: it.product_id, quantity: it.quantity} end)
 
           {sum_by_product(mapped), changeset}
+
+        %{id: _id} ->
+          # If items are not preloaded, skip capacity validation here to avoid extra authorized reads
+          {%{}, changeset}
 
         _ ->
           {%{}, changeset}

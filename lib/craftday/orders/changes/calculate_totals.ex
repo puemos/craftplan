@@ -25,9 +25,13 @@ defmodule Craftday.Orders.Changes.CalculateTotals do
         _ ->
           # Fallback: load from DB if we have an ID (updates)
           case changeset.data do
-            %{id: id} when not is_nil(id) ->
-              order = Craftday.Orders.get_order_by_id!(id, load: [:items])
-              {sum_items(order.items), changeset}
+            %{items: items} when is_list(items) ->
+              {sum_items(items), changeset}
+
+            %{id: _id} ->
+              # If items are not preloaded, fall back to zero rather than loading from DB
+              # to avoid cross-context authorization issues during form builds.
+              {Decimal.new(0), changeset}
 
             _ ->
               {Decimal.new(0), changeset}

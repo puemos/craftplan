@@ -34,6 +34,7 @@ defmodule Craftday.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:usage_rules, "~> 0.1", only: [:dev]},
       {:ash, "~> 3.0"},
       {:ash_admin, "~> 0.12"},
       {:ash_authentication, "~> 4.1"},

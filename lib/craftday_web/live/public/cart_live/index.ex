@@ -5,8 +5,6 @@ defmodule CraftdayWeb.Public.CartLive.Index do
   alias Craftday.Cart
   alias Craftday.Catalog.Product.Photo
 
-  
-
   @impl true
   def render(assigns) do
     ~H"""

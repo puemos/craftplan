@@ -219,7 +219,10 @@ defmodule CraftdayWeb.OrderLive.Show do
   @impl true
   def handle_params(%{"reference" => reference}, _, socket) do
     order =
-      Orders.get_order_by_reference!(reference, load: @default_order_load)
+      Orders.get_order_by_reference!(reference,
+        load: @default_order_load,
+        actor: socket.assigns[:current_user]
+      )
 
     socket =
       socket
@@ -313,7 +316,10 @@ defmodule CraftdayWeb.OrderLive.Show do
   @impl true
   def handle_info({CraftdayWeb.OrderLive.FormComponentItems, {:saved, _}}, socket) do
     order =
-      Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
+      Orders.get_order_by_id!(socket.assigns.order.id,
+        load: @default_order_load,
+        actor: socket.assigns[:current_user]
+      )
 
     {:noreply,
      socket
@@ -325,7 +331,10 @@ defmodule CraftdayWeb.OrderLive.Show do
   @impl true
   def handle_info({CraftdayWeb.OrderLive.FormComponent, {:saved, _}}, socket) do
     order =
-      Orders.get_order_by_id!(socket.assigns.order.id, load: @default_order_load)
+      Orders.get_order_by_id!(socket.assigns.order.id,
+        load: @default_order_load,
+        actor: socket.assigns[:current_user]
+      )
 
     {:noreply,
      socket

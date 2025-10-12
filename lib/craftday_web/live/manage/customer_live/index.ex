@@ -95,6 +95,18 @@ defmodule CraftdayWeb.CustomerLive.Index do
     )
   end
 
+  defp apply_action(socket, :edit, %{"reference" => reference}) do
+    socket
+    |> assign(:page_title, "Edit Customer")
+    |> assign(
+      :customer,
+      Craftday.CRM.get_customer_by_reference!(reference,
+        actor: socket.assigns.current_user,
+        load: [:billing_address, :shipping_address]
+      )
+    )
+  end
+
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Customer")
