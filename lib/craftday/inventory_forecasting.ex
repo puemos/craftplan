@@ -3,10 +3,14 @@ defmodule Craftday.InventoryForecasting do
   Module for inventory forecasting operations
   """
 
+  alias Craftday.Orders
+
   @doc """
-  Prepares materials requirements for a given date range
+  Prepares materials requirements for a given date range.
+  Uses Ash to efficiently query only orders within the date range.
   """
-  def prepare_materials_requirements(days_range, orders) do
+  def prepare_materials_requirements(days_range, actor \\ nil) when is_list(days_range) do
+    orders = load_orders_for_forecast(days_range, actor)
     materials_by_day_data = load_materials_requirements(days_range, orders)
 
     Enum.map(materials_by_day_data, fn {material, quantities} ->
@@ -21,6 +25,19 @@ defmodule Craftday.InventoryForecasting do
          final_balance: final_balance
        }}
     end)
+  end
+
+  # Loads orders for forecasting using the optimized :for_forecast read action.
+  # Only loads orders within the date range with all necessary relationships.
+  defp load_orders_for_forecast(days_range, actor) when is_list(days_range) do
+    start_date = Enum.min(days_range, Date)
+    end_date = Enum.max(days_range, Date)
+
+    Orders.Order
+    |> Ash.Query.for_read(:for_forecast, %{start_date: start_date, end_date: end_date},
+      actor: actor
+    )
+    |> Ash.read!()
   end
 
   @doc """

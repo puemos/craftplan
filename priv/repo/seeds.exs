@@ -385,7 +385,7 @@ if Mix.env() == :dev do
 
   # Set product availability and per-day capacity to try the feature
   update_product = fn product, attrs ->
-    product |> Ash.Changeset.for_update(:update, attrs) |> Ash.update!()
+    product |> Ash.Changeset.for_update(:update, attrs) |> Ash.update!(authorize?: false)
   end
 
   products = %{
@@ -642,6 +642,151 @@ if Mix.env() == :dev do
         }
       )
   }
+
+  # ------------------------------------------------------------------------------
+  # ✨ Add-on: richer scenarios and edge cases
+  # ------------------------------------------------------------------------------
+
+  # Helper for non-initial stock movements
+  adjust_stock = fn material, quantity, reason, days_from_now ->
+    Ash.Seed.seed!(Inventory.Movement, %{
+      material_id: material.id,
+      occurred_at: DateTime.add(DateTime.utc_now(), days_from_now, :day),
+      quantity: Decimal.new(quantity),
+      reason: reason
+    })
+  end
+
+  # A) New materials to unlock more recipes
+  new_materials = %{
+    blueberries: seed_material.("Blueberries", "FRUIT-001", :gram, "0.010", "500", "3000"),
+    sesame_seeds: seed_material.("Sesame Seeds", "SEED-001", :gram, "0.012", "500", "3000"),
+    peanut_butter: seed_material.("Peanut Butter", "PB-001", :gram, "0.015", "500", "3000")
+  }
+
+  materials = Map.merge(materials, new_materials)
+
+  # Link new materials to allergens
+  link_material_allergen.(materials.sesame_seeds, allergens.sesame)
+  link_material_allergen.(materials.peanut_butter, allergens.peanuts)
+
+  # Nutritional facts for the new materials
+  link_material_nutritional_fact.(materials.blueberries, nutritional_facts.calories, "57", :gram)
+  link_material_nutritional_fact.(materials.blueberries, nutritional_facts.fiber, "2.4", :gram)
+
+  link_material_nutritional_fact.(
+    materials.sesame_seeds,
+    nutritional_facts.calories,
+    "573",
+    :gram
+  )
+
+  link_material_nutritional_fact.(materials.sesame_seeds, nutritional_facts.fat, "50", :gram)
+
+  link_material_nutritional_fact.(
+    materials.peanut_butter,
+    nutritional_facts.calories,
+    "588",
+    :gram
+  )
+
+  link_material_nutritional_fact.(materials.peanut_butter, nutritional_facts.fat, "50", :gram)
+  link_material_nutritional_fact.(materials.peanut_butter, nutritional_facts.protein, "25", :gram)
+
+  # Stock for new materials
+  Enum.each(new_materials, fn {_k, m} -> add_initial_stock.(m, "3000") end)
+
+  # B) Make muffins actually use blueberries
+  link_recipe_material.(recipes.muffins, materials.blueberries, "120")
+
+  # C) New products and recipes
+  new_products = %{
+    sesame_bagel: seed_product.("Sesame Bagel", "BAGEL-001", "2.25"),
+    pb_cookies: seed_product.("Peanut Butter Cookies", "COOK-003", "3.79")
+  }
+
+  products = Map.merge(products, new_products)
+
+  # Availability and caps for new products
+  products =
+    products
+    |> Map.put(:sesame_bagel, update_product.(products.sesame_bagel, %{max_daily_quantity: 120}))
+    |> Map.put(:pb_cookies, update_product.(products.pb_cookies, %{max_daily_quantity: 180}))
+
+  # Recipes for the new products
+  new_recipes = %{
+    sesame_bagel:
+      seed_recipe.(
+        products.sesame_bagel,
+        "Mix flour, yeast, salt; shape, boil briefly, top with sesame; bake at 220°C ~16 min."
+      ),
+    pb_cookies:
+      seed_recipe.(
+        products.pb_cookies,
+        "Cream peanut butter and sugar, add eggs and flour; scoop; bake 180°C ~10–12 min."
+      )
+  }
+
+  recipes = Map.merge(recipes, new_recipes)
+
+  # Link recipe materials
+  # Sesame Bagel
+  link_recipe_material.(recipes.sesame_bagel, materials.flour, "280")
+  link_recipe_material.(recipes.sesame_bagel, materials.yeast, "6")
+  link_recipe_material.(recipes.sesame_bagel, materials.salt, "8")
+  link_recipe_material.(recipes.sesame_bagel, materials.sesame_seeds, "20")
+
+  # Peanut Butter Cookies
+  link_recipe_material.(recipes.pb_cookies, materials.flour, "60")
+  link_recipe_material.(recipes.pb_cookies, materials.peanut_butter, "120")
+  link_recipe_material.(recipes.pb_cookies, materials.sugar, "60")
+  link_recipe_material.(recipes.pb_cookies, materials.eggs, "1")
+
+  # D) Inventory edge cases: spoilage, breakage, low stock and receipts
+  adjust_stock.(materials.milk, "-1000", "Spoilage – fridge failure", -1)
+  adjust_stock.(materials.eggs, "-12", "Breakage – dropped tray", 0)
+  adjust_stock.(materials.yeast, "-400", "Use in production surge", -2)
+  adjust_stock.(materials.yeast, "-300", "Use in production surge", -1)
+
+  supplier_baker = seed_supplier.("Baker Supplies", "orders@bakersup.test")
+  po3 = seed_purchase_order.(supplier_baker, :ordered)
+  seed_purchase_order_item.(po3, materials.butter, "1500", "0.0095")
+  seed_purchase_order_item.(po3, materials.yeast, "1200", "0.048")
+
+  # Receive stock today
+  adjust_stock.(materials.butter, "1500", "PO #{po3.id} receipt", 0)
+  adjust_stock.(materials.yeast, "1200", "PO #{po3.id} receipt", 0)
+
+  # E) Capacity stress test for tomorrow
+  cap1 = seed_order.(customers.john, 1, :confirmed, :pending)
+  seed_order_item.(cap1, products.croissants, "60", :todo)
+  seed_order_item.(cap1, products.muffins, "40", :todo)
+
+  cap2 = seed_order.(customers.jane, 1, :confirmed, :pending)
+  seed_order_item.(cap2, products.sesame_bagel, "50", :todo)
+  seed_order_item.(cap2, products.pb_cookies, "30", :todo)
+
+  # F) Availability off edge case
+  off_case = seed_order.(customers.michael, 9, :unconfirmed, :pending)
+  seed_order_item.(off_case, products.carrot_cake, "1", :todo)
+
+  # G) Long-range history
+  old_q = seed_order.(customers.alice, -90, :delivered, :paid)
+  seed_order_item.(old_q, products.bread, "2", :done)
+  seed_order_item.(old_q, products.oatmeal_cookies, "18", :done)
+
+  old_h = seed_order.(customers.bob, -180, :delivered, :paid)
+  seed_order_item.(old_h, products.rye_loaf, "3", :done)
+  seed_order_item.(old_h, products.choc_cake, "1", :done)
+
+  # H) Allergen-heavy event order
+  allergen_party = seed_order.(customers.grace, 6, :unconfirmed, :pending)
+  # tree nuts
+  seed_order_item.(allergen_party, products.almond_cookies, "24", :todo)
+  # peanuts
+  seed_order_item.(allergen_party, products.pb_cookies, "24", :todo)
+  # sesame
+  seed_order_item.(allergen_party, products.sesame_bagel, "24", :todo)
 
   # ------------------------------------------------------------------------------
   # 4. Create orders for these customers (simulate real bakery operations)

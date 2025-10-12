@@ -521,25 +521,6 @@ defmodule CraftdayWeb.InventoryLive.Index do
   end
 
   defp prepare_materials_requirements(socket, days_range) do
-    first_day = List.first(days_range)
-    last_day = List.last(days_range)
-    time_zone = socket.assigns.time_zone
-
-    orders =
-      Orders.list_orders!(
-        %{
-          delivery_date_start: DateTime.new!(first_day, ~T[00:00:00], time_zone),
-          delivery_date_end: DateTime.new!(last_day, ~T[23:59:59], time_zone)
-        },
-        actor: socket.assigns.current_user,
-        load: [
-          :items,
-          items: [
-            product: [:recipe, recipe: [components: [material: [:current_stock, :unit, :sku]]]]
-          ]
-        ]
-      )
-
-    InventoryForecasting.prepare_materials_requirements(days_range, orders)
+    InventoryForecasting.prepare_materials_requirements(days_range, socket.assigns.current_user)
   end
 end

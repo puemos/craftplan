@@ -26,7 +26,6 @@ Next Up
 - Production Overview: ensure `overview_tables` and `days_range` are always assigned before render; recompute on state changes.
 - Overview rows: click to jump to Schedule (focus a day); add highlight on target day.
 - Schedule Day view: verify prev/next behavior limits to a single day; polish headers.
-- PDF: optional ChromicPDF integration for invoices (server‑side) while keeping HTML fallback.
 - Lint/polish: remove unused helpers in PlanLive; fix quoted atom warning in Checkout; audit print classes.
 - Add Overview tab to other index pages (Products, Inventory, Orders, Customers, Purchasing) with quick metrics.
 
@@ -61,11 +60,11 @@ Legend
 Milestone 1 — Orders & Checkout Essentials (2 weeks)
 Status: [ ] Not started  [x] In progress  [ ] Done
 Goals
-- Create and collect: simple invoices (PDF), mark paid; single tax mode; order-level discounts.
+- Create and collect: simple invoices (HTML print), mark paid; single tax mode; order-level discounts.
 - Delivery vs pickup with lead time and daily capacity; product availability flags.
 
 User Stories (MVP)
-- As a seller, I generate an invoice PDF and mark an order as paid with a method/date.
+- As a seller, I generate an invoice (HTML print) and mark an order as paid with a method/date.
 - As a seller, I set a single tax rate and apply it to orders automatically.
 - As a seller, I apply a simple discount to an order.
 - As a customer, I select pickup or delivery; delivery dates enforce lead time/capacity.
@@ -98,7 +97,7 @@ Requirements
   - [x] Add a note in README/PLAN on running: `mix ecto.reset && mix run priv/repo/seeds.exs` (or `mix ecto.migrate && mix run priv/repo/seeds.exs`).
 
 Acceptance Criteria
-- Can issue invoice for an order: see PDF, status becomes `issued`; marking paid updates totals and `paid_at`.
+- Can issue invoice for an order: print HTML view, status becomes `issued`; marking paid updates totals and `paid_at`.
 - Tax calculation matches Settings: inclusive vs exclusive; discount applied pre- or post-tax per simple rule (exclusive mode: subtotal → discount → tax; inclusive mode: price includes tax, show derived tax component).
 - Checkout enforces delivery date availability and capacity; pickup requires no date if disabled.
 - Products with `selling_availability:off` cannot be added to cart; `preorder` allowed but flagged.
@@ -134,9 +133,8 @@ Implementation Approach (files)
     - `lib/craftday_web/live/public/catalog_live/index.ex`
     - `lib/craftday_web/live/public/catalog_live/show.ex`
       - Hide “Add to cart” for `off`; display “Preorder” badge for `preorder`.
-  - Ops (PDF)
-  - Add `Invoices` module: `lib/craftday/orders/invoices.ex` with functions to render HTML and emit PDF using ChromicPDF (behind config).
-  - Add route to download invoice PDF: `GET /manage/orders/:reference/invoice` (controller or LiveView event streaming binary).
+  - Ops (Invoices)
+  - Invoice HTML printable page already exists; use browser print for PDF generation.
 
 Data & Migration Checklist
 - Orders: add columns for invoice/discount/delivery fields.
@@ -201,12 +199,12 @@ Data & Migration Checklist
 Milestone 3 — Make Sheet & Batches (2 weeks)
 Status: [ ] Not started  [ ] In progress  [ ] Done
 Goals
-- “Today’s Make Sheet” that aggregates quantities; one-click “Consume all”; optional batch code; basic label PDFs.
+- "Today's Make Sheet" that aggregates quantities; one-click "Consume all"; optional batch code; basic label printing (HTML).
 - Public order status page.
 
 User Stories
-- As a maker, I see today’s production quantities per product with order links; I can mark items done and consume materials in one shot.
-- As a maker, I generate batch code automatically for items and print a simple product label with ingredients/allergens.
+- As a maker, I see today's production quantities per product with order links; I can mark items done and consume materials in one shot.
+- As a maker, I generate batch code automatically for items and print a simple product label (HTML) with ingredients/allergens.
 - As a customer, I view my order status by reference without logging in.
 
 Requirements
@@ -222,17 +220,17 @@ Requirements
   - [ ] Ensure `days_range` is always assigned in mount/handle_params; recompute `overview_tables` on relevant state changes to avoid KeyErrors.
   - [ ] Schedule Day view polish: prev/next adjust by 1 day; headers/body limit to single day.
   - Labels
-    - [ ] Product label PDF (ingredients/allergens/batch/date).
+    - [ ] Product label HTML print view (ingredients/allergens/batch/date).
   - Public Order Status
     - [ ] New LV `/o/:reference` shows status, delivery date, items.
 - Ops
-  - [ ] PDF rendering reused from M1.
+  - [ ] HTML print views reused from M1 invoice pattern.
   - [ ] “Consume All” uses existing `Orders.Consumption`.
 
 Acceptance Criteria
-- Make Sheet shows per-product totals for selected day; “Consume All” updates material stocks.
+- Make Sheet shows per-product totals for selected day; "Consume All" updates material stocks.
 - When marking item done, batch code is set (e.g., `B-YYYYMMDD-SKU`); can be edited.
-- Label PDF renders ingredients/allergens from recipe; includes batch code if present.
+- Label HTML print view renders ingredients/allergens from recipe; includes batch code if present.
 - Public status page resolves by order reference with no auth.
 
 Implementation Approach (files)
@@ -240,11 +238,11 @@ Implementation Approach (files)
   - `lib/craftday/orders/order_item.ex`: add `batch_code` attribute; default generator in code when status becomes `:done`.
   - `lib/craftday/orders/consumption.ex`: no change; reuse.
 - UI
-  - `lib/craftday_web/live/manage/plan_live/index.ex`: add “Make Sheet” mode, print view, bulk actions; wire Overview/Schedule tabs; compute and guard assigns.
-  - New controller or LV endpoint for Label PDF: `/manage/products/:sku/label` and `/manage/orders/:ref/label`.
+  - `lib/craftday_web/live/manage/plan_live/index.ex`: add "Make Sheet" mode, print view, bulk actions; wire Overview/Schedule tabs; compute and guard assigns.
+  - New LV endpoint for Label HTML print: `/manage/products/:sku/label` and `/manage/orders/:ref/label`.
   - New LV `CraftdayWeb.Public.OrderStatusLive` (route `/o/:reference`).
 - Ops
-  - Add label templates (HEEx -> PDF via ChromicPDF). Ingredients come from `product.recipe.components`.
+  - Add label HTML templates (HEEx with print CSS). Ingredients come from `product.recipe.components`.
 
 Data & Migration Checklist
 - Add `batch_code` to `orders_items`.
@@ -370,8 +368,8 @@ Cross-Cutting Notes
   - Keep rules simple; document clearly in README and Guides.
 - Internationalization
   - Continue using Money for currency; tax display mirrors mode (inclusive/exclusive).
-- PDFs
-  - Prefer ChromicPDF for reliability; add config guard so app runs without it (fallback to HTML print).
+- Printing
+  - Use browser print for all PDF generation (invoices, labels, make sheets); keep it simple and self-hosted friendly.
 - Security
   - Keep public order status read-only; no PII beyond order items and delivery date.
 - Backward Compatibility
@@ -392,7 +390,7 @@ Task Breakdown (high-level)
   - Orders: fields + CalculateTotals updates (domain)
   - Settings: tax/fulfillment; UI forms
   - Checkout: delivery method/date/tax/discount; capacity checks; invoice issue
-  - PDF: invoice render + download route
+  - Invoice: HTML print view (already complete)
   - Product: availability field + UX
 - M2
   - Variants: resource, product option name, order item variant_id
@@ -400,7 +398,7 @@ Task Breakdown (high-level)
   - Inventory: low stock banner + reorder suggestions tab
 - M3
   - Make Sheet: PlanLive enhancements; print view; bulk consume
-  - Batch code on order items; label PDF
+  - Batch code on order items; label HTML print view
   - Public order status LiveView
 - M4
   - CSV import/export pages + services

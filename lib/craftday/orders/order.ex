@@ -166,6 +166,22 @@ defmodule Craftday.Orders.Order do
                   )
               )
     end
+
+    # Read action for inventory forecasting - loads orders with all necessary relationships
+    read :for_forecast do
+      argument :start_date, :date, allow_nil?: false
+      argument :end_date, :date, allow_nil?: false
+
+      prepare build(
+                sort: [delivery_date: :asc],
+                load: [items: [product: [recipe: [components: [material: :current_stock]]]]],
+                filter:
+                  expr(
+                    fragment("DATE(?)", delivery_date) >= ^arg(:start_date) and
+                      fragment("DATE(?)", delivery_date) <= ^arg(:end_date)
+                  )
+              )
+    end
   end
 
   policies do
@@ -177,6 +193,11 @@ defmodule Craftday.Orders.Order do
     # Public read for day-range listing/count (capacity checks)
     bypass action(:for_day) do
       authorize_if always()
+    end
+
+    # Staff/admin only for forecasting
+    policy action(:for_forecast) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
 
     # Other reads/writes restricted to staff/admin

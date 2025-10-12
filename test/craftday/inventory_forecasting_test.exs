@@ -79,15 +79,8 @@ defmodule Craftday.InventoryForecastingTest do
     _o1 = order!(p, dt1, 1)
     _o2 = order!(p, dt2, 3)
 
-    # Load orders with the needed relationships
-    orders =
-      Orders.list_orders!(%{},
-        actor: staff_user!(),
-        load: [items: [product: [recipe: [components: [material: :current_stock]]]]]
-      )
-
     days_range = [today, Date.add(today, 1)]
-    reqs = InventoryForecasting.prepare_materials_requirements(days_range, orders)
+    reqs = InventoryForecasting.prepare_materials_requirements(days_range, staff_user!())
 
     # Expect two materials
     assert length(reqs) == 2

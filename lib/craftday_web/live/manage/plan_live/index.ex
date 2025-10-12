@@ -29,91 +29,7 @@ defmodule CraftdayWeb.PlanLive.Index do
         path={~p"/manage/production"}
         selected?={@live_action == :index}
       >
-        <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <.stat_card
-            title="Over‑Capacity Days"
-            value={@week_metrics.over_capacity_days}
-            description="This week"
-          />
-          <.stat_card
-            title="Days > Order Cap"
-            value={@week_metrics.over_order_capacity_days}
-            description="This week"
-          />
-          <.stat_card
-            title="Shortage Days"
-            value={@week_metrics.material_shortage_days}
-            description="Forecast"
-          />
-          <.stat_card title="Orders Today" value={@week_metrics.orders_today} description="Scheduled" />
-          <.stat_card
-            title="Outstanding Today"
-            value={@week_metrics.outstanding_today}
-            description="Not completed"
-          />
-        </div>
-
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <.table_card title="Over‑Capacity Details">
-            <.table
-              id="over-capacity-details"
-              rows={@overview_tables.over_capacity}
-              variant={:compact}
-              zebra
-              no_margin
-            >
-              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
-              <:col :let={row} label="Product">{row.product.name}</:col>
-              <:col :let={row} label="Scheduled" align={:right}>{row.qty}</:col>
-              <:col :let={row} label="Max" align={:right}>{row.max}</:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
-
-          <.table_card title="Days Over Order Capacity">
-            <.table
-              id="over-order-capacity"
-              rows={@overview_tables.over_order_capacity}
-              variant={:compact}
-              zebra
-              no_margin
-            >
-              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
-              <:col :let={row} label="Orders" align={:right}>{row.count}</:col>
-              <:col :let={row} label="Cap" align={:right}>{row.cap}</:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
-
-          <.table_card title="Material Shortages" class="lg:col-span-2">
-            <.table
-              id="material-shortages"
-              rows={@overview_tables.shortage}
-              variant={:compact}
-              zebra
-              no_margin
-            >
-              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
-              <:col :let={row} label="Material">{row.material.name}</:col>
-              <:col :let={row} label="Required" align={:right}>
-                {format_amount(row.material.unit, row.required)}
-              </:col>
-              <:col :let={row} label="Opening" align={:right}>
-                {format_amount(row.material.unit, row.opening)}
-              </:col>
-              <:col :let={row} label="End Balance" align={:right}>
-                {format_amount(row.material.unit, row.ending)}
-              </:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
-
           <.table_card title="Orders Today">
             <.table
               id="orders-today"
@@ -146,6 +62,74 @@ defmodule CraftdayWeb.PlanLive.Index do
               <:col :let={row} label="Product">{row.product.name}</:col>
               <:col :let={row} label="Todo Qty" align={:right}>{row.todo}</:col>
               <:col :let={row} label="In Progress Qty" align={:right}>{row.in_progress}</:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
+          <.table_card title="Over‑Capacity Details">
+            <.table
+              id="over-capacity-details"
+              rows={@overview_tables.over_capacity}
+              variant={:compact}
+              zebra
+              no_margin
+              row_click={
+                fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
+              }
+            >
+              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+              <:col :let={row} label="Product">{row.product.name}</:col>
+              <:col :let={row} label="Scheduled" align={:right}>{row.qty}</:col>
+              <:col :let={row} label="Max" align={:right}>{row.max}</:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
+
+          <.table_card title="Days Over Order Capacity">
+            <.table
+              id="over-order-capacity"
+              rows={@overview_tables.over_order_capacity}
+              variant={:compact}
+              zebra
+              no_margin
+              row_click={
+                fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
+              }
+            >
+              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+              <:col :let={row} label="Orders" align={:right}>{row.count}</:col>
+              <:col :let={row} label="Cap" align={:right}>{row.cap}</:col>
+              <:empty>
+                <div class="py-6 text-center text-stone-500">No items</div>
+              </:empty>
+            </.table>
+          </.table_card>
+
+          <.table_card title="Material Shortages" class="lg:col-span-2">
+            <.table
+              id="material-shortages"
+              rows={@overview_tables.shortage}
+              variant={:compact}
+              zebra
+              no_margin
+              row_click={
+                fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
+              }
+            >
+              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+              <:col :let={row} label="Material">{row.material.name}</:col>
+              <:col :let={row} label="Required" align={:right}>
+                {format_amount(row.material.unit, row.required)}
+              </:col>
+              <:col :let={row} label="Opening" align={:right}>
+                {format_amount(row.material.unit, row.opening)}
+              </:col>
+              <:col :let={row} label="End Balance" align={:right}>
+                {format_amount(row.material.unit, row.ending)}
+              </:col>
               <:empty>
                 <div class="py-6 text-center text-stone-500">No items</div>
               </:empty>
@@ -1112,6 +1096,18 @@ defmodule CraftdayWeb.PlanLive.Index do
      |> assign(:pending_consumption_recap, [])}
   end
 
+  @impl true
+  def handle_event("navigate_to_day", %{"date" => date_str}, socket) do
+    date = Date.from_iso8601!(date_str)
+    days_range = generate_week_range(date, 1)
+
+    {:noreply,
+     socket
+     |> assign(:schedule_view, :day)
+     |> update_for_range(days_range)
+     |> push_patch(to: ~p"/manage/production/schedule")}
+  end
+
   defp generate_current_week_range do
     today = Date.utc_today()
     # Get the beginning of week (Monday)
@@ -1137,10 +1133,7 @@ defmodule CraftdayWeb.PlanLive.Index do
   end
 
   defp prepare_materials_requirements(socket, days_range) do
-    orders =
-      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
-
-    InventoryForecasting.prepare_materials_requirements(days_range, orders)
+    InventoryForecasting.prepare_materials_requirements(days_range, socket.assigns.current_user)
   end
 
   defp get_items_for_day(day, production_items) do
