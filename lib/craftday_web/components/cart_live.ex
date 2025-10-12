@@ -11,7 +11,11 @@ defmodule CraftdayWeb.CartLive do
     end
 
     cart =
-      Cart.get_cart_by_id!(session["cart_id"], load: [:total_items])
+      Cart.get_cart_by_id!(
+        session["cart_id"],
+        load: [:total_items],
+        context: %{cart_id: session["cart_id"]}
+      )
 
     {:ok, assign(socket, :cart, cart)}
   end
@@ -19,7 +23,11 @@ defmodule CraftdayWeb.CartLive do
   @impl true
   def handle_info(%Phoenix.Socket.Broadcast{topic: "cart_items"}, socket) do
     cart =
-      Cart.get_cart_by_id!(socket.assigns.cart.id, load: [:total_items])
+      Cart.get_cart_by_id!(
+        socket.assigns.cart.id,
+        load: [:total_items],
+        context: %{cart_id: socket.assigns.cart.id}
+      )
 
     {:noreply, assign(socket, :cart, cart)}
   end

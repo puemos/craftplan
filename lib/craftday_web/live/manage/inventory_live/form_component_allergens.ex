@@ -97,7 +97,7 @@ defmodule CraftdayWeb.InventoryLive.FormComponentAllergens do
   end
 
   defp build_form(material, actor) do
-    material_with_allergens = Ash.load!(material, :allergens)
+    material_with_allergens = Ash.load!(material, :allergens, actor: actor)
 
     material_with_allergens
     |> Form.for_update(:update_allergens,

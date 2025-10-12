@@ -3,7 +3,8 @@ defmodule Craftday.Inventory.Supplier do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Inventory,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "inventory_suppliers"
@@ -24,6 +25,16 @@ defmodule Craftday.Inventory.Supplier do
 
     update :update do
       accept [:name, :contact_name, :contact_email, :contact_phone, :notes]
+    end
+  end
+
+  policies do
+    policy action_type(:read) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

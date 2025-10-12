@@ -7,6 +7,8 @@ defmodule Craftday.ProductionFactsTest do
   alias Craftday.Production
 
   test "quantities_by_product_day and orders_count_by_day produce expected facts" do
+    staff = Craftday.DataCase.staff_actor()
+
     {:ok, c} =
       CRM.Customer
       |> Ash.Changeset.for_create(:create, %{
@@ -26,7 +28,7 @@ defmodule Craftday.ProductionFactsTest do
         sku: "PR-1",
         max_daily_quantity: 4
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     d1 = Date.utc_today()
     d2 = Date.add(d1, 1)
@@ -42,7 +44,7 @@ defmodule Craftday.ProductionFactsTest do
         delivery_date: dt1,
         items: [%{product_id: p.id, quantity: Decimal.new(1), unit_price: p.price}]
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     {:ok, _} =
       Orders.Order
@@ -51,7 +53,7 @@ defmodule Craftday.ProductionFactsTest do
         delivery_date: dt1,
         items: [%{product_id: p.id, quantity: Decimal.new(2), unit_price: p.price}]
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     # Day 2: one order 1x => qty 1
     {:ok, _} =
@@ -61,10 +63,10 @@ defmodule Craftday.ProductionFactsTest do
         delivery_date: dt2,
         items: [%{product_id: p.id, quantity: Decimal.new(1), unit_price: p.price}]
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     range = [d1, d2]
-    orders = Production.fetch_orders_in_range(tz, range)
+    orders = Production.fetch_orders_in_range(tz, range, actor: staff)
     prod_items = Production.build_production_items(orders)
 
     qty_rows = Production.quantities_by_product_day(range, prod_items)

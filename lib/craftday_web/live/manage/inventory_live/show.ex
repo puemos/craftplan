@@ -187,8 +187,14 @@ defmodule CraftdayWeb.InventoryLive.Show do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:allergens_available, list_all_allergens())
-     |> assign(:nutritional_facts_available, list_all_nutritional_facts())}
+     |> assign(
+       :allergens_available,
+       Inventory.list_allergens!(actor: socket.assigns[:current_user])
+     )
+     |> assign(
+       :nutritional_facts_available,
+       Inventory.list_nutritional_facts!(actor: socket.assigns[:current_user])
+     )}
   end
 
   @impl true
@@ -219,13 +225,7 @@ defmodule CraftdayWeb.InventoryLive.Show do
      |> assign(:open_po_items, open_po_items)}
   end
 
-  defp list_all_allergens do
-    Inventory.list_allergens!()
-  end
-
-  defp list_all_nutritional_facts do
-    Inventory.list_nutritional_facts!()
-  end
+  # helper functions removed; calls now pass actor explicitly in mount
 
   @impl true
   def handle_info({:saved_nutritional_facts, material_id}, socket) do

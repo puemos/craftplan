@@ -122,7 +122,10 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    cart = socket.assigns.cart && Ash.load!(socket.assigns.cart, items: [:product])
+    cart =
+      socket.assigns.cart &&
+        Ash.load!(socket.assigns.cart, [items: [:product]], context: %{cart_id: socket.assigns.cart.id})
+
     items = (cart && cart.items) || []
 
     form = new_checkout_form()
@@ -151,11 +154,15 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
       # Clear cart items but keep cart id in session by emptying items
       _ = maybe_clear_cart(socket.assigns.cart)
 
-      # Try to send confirmation email (best effort)
+      # Try to send confirmation email (best effort). Skip for anonymous to avoid policy loads.
       _ =
-        order.id
-        |> Orders.get_order_by_id!(load: [items: [product: [:name]], customer: [:email]])
-        |> Craftday.Orders.Emails.deliver_order_confirmation()
+        if socket.assigns[:current_user] do
+          order
+          |> Ash.load!(items: [product: [:name]], customer: [:email])
+          |> Craftday.Orders.Emails.deliver_order_confirmation()
+        else
+          :ok
+        end
 
       {:noreply,
        socket
@@ -220,7 +227,7 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
   end
 
   defp upsert_customer(%{"email" => email} = params) when is_binary(email) and email != "" do
-    case CRM.get_customer_by_email(email) do
+    case CRM.get_customer_by_email(%{email: email}) do
       {:ok, %Customer{} = customer} -> {:ok, customer}
       {:ok, nil} -> create_or_update_customer(params)
       {:error, _} -> create_or_update_customer(params)
@@ -262,7 +269,7 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
       billing_address: billing
     }
 
-    case email && CRM.get_customer_by_email(email) do
+    case email && CRM.get_customer_by_email(%{email: email}) do
       {:ok, %Customer{} = existing} ->
         # Update addresses if provided and present, keep existing names
         update_attrs = Map.take(base_attrs, [:shipping_address, :billing_address, :phone])
@@ -279,7 +286,9 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
   end
 
   defp create_order(socket, customer, params) do
-    cart = Ash.load!(socket.assigns.cart, items: [:product])
+    cart =
+      Ash.load!(socket.assigns.cart, [items: [:product]], context: %{cart_id: socket.assigns.cart.id})
+
     items = cart.items || []
 
     items_arg =
@@ -336,12 +345,12 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
     # Global daily capacity (orders per day)
     if (socket.assigns.settings.daily_capacity || 0) > 0 do
       day_count =
-        %{
+        Craftday.Orders.Order
+        |> Ash.Query.for_read(:for_day, %{
           delivery_date_start: DateTime.new!(DateTime.to_date(delivery_date), ~T[00:00:00], tz),
           delivery_date_end: DateTime.new!(DateTime.to_date(delivery_date), ~T[23:59:59], tz)
-        }
-        |> Orders.list_orders!()
-        |> length()
+        })
+        |> Ash.count!()
 
       if day_count >= socket.assigns.settings.daily_capacity do
         return_error = {:error, :daily_capacity}
@@ -362,7 +371,7 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
     }
 
     Orders.Order
-    |> Ash.Changeset.for_create(:create, attrs)
+    |> Ash.Changeset.for_create(:public_create, attrs)
     |> Ash.create()
   end
 
@@ -414,15 +423,18 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
       end)
 
     # Load scheduled quantities for the given day
-    start_dt =
-      DateTime.new!(DateTime.to_date(delivery_dt), ~T[00:00:00], socket.assigns.time_zone)
-
-    end_dt = DateTime.new!(DateTime.to_date(delivery_dt), ~T[23:59:59], socket.assigns.time_zone)
+    tz = socket.assigns.time_zone || "Etc/UTC"
+    start_dt = DateTime.new!(DateTime.to_date(delivery_dt), ~T[00:00:00], tz)
+    end_dt = DateTime.new!(DateTime.to_date(delivery_dt), ~T[23:59:59], tz)
 
     scheduled =
-      %{delivery_date_start: start_dt, delivery_date_end: end_dt}
-      |> Orders.list_orders!(load: [:items])
-      |> Enum.flat_map(& &1.items)
+      Craftday.Orders.OrderItem
+      |> Ash.Query.for_read(:in_range, %{
+        start_date: start_dt,
+        end_date: end_dt,
+        product_ids: Map.keys(required_by_product)
+      })
+      |> Ash.read!()
       |> Enum.reduce(%{}, fn item, acc ->
         Map.update(acc, item.product_id, item.quantity, &Decimal.add(&1, item.quantity))
       end)
@@ -463,7 +475,7 @@ defmodule CraftdayWeb.Public.CheckoutLive.Index do
   defp maybe_clear_cart(nil), do: :ok
 
   defp maybe_clear_cart(cart) do
-    case Cart.update_cart(cart, %{items: []}) do
+    case Cart.update_cart(cart, %{items: []}, context: %{cart_id: cart.id}) do
       {:ok, _} -> :ok
       _ -> :ok
     end

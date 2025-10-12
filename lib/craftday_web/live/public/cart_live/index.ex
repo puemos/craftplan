@@ -5,6 +5,8 @@ defmodule CraftdayWeb.Public.CartLive.Index do
   alias Craftday.Cart
   alias Craftday.Catalog.Product.Photo
 
+  
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -58,7 +60,11 @@ defmodule CraftdayWeb.Public.CartLive.Index do
                   </div>
 
                   <div class="mt-4 flex items-baseline space-x-4 sm:mt-0 sm:pr-9">
-                    <form phx-submit="update_item" class="flex items-center space-x-2">
+                    <form
+                      id={"update-item-#{item.id}"}
+                      phx-submit="update_item"
+                      class="flex items-center space-x-2"
+                    >
                       <input type="hidden" name="item_id" value={item.id} />
                       <.input
                         name="quantity"
@@ -126,10 +132,33 @@ defmodule CraftdayWeb.Public.CartLive.Index do
   end
 
   @impl true
-  def mount(_params, _session, socket) do
-    cart = Ash.load!(socket.assigns.cart, items: [:product])
+  def mount(_params, session, socket) do
+    cart_assign = socket.assigns[:cart]
 
-    cart_items = cart.items || []
+    cart =
+      cond do
+        cart_assign ->
+          Ash.load!(cart_assign, [items: [:product]], context: %{cart_id: cart_assign.id})
+
+        is_binary(session["cart_id"]) or is_binary(session[:cart_id]) ->
+          cart_id = session["cart_id"] || session[:cart_id]
+          cart = Cart.get_cart_by_id!(cart_id, context: %{cart_id: cart_id})
+          Ash.load!(cart, [items: [:product]], context: %{cart_id: cart_id})
+
+        true ->
+          nil
+      end
+
+    cart_id = if cart, do: cart.id
+
+    cart_items =
+      if cart_id do
+        [context: %{cart_id: cart_id}]
+        |> Cart.list_cart_items!()
+        |> Ash.load!([:product], context: %{cart_id: cart_id})
+      else
+        []
+      end
 
     {:ok, assign(socket, cart_items: cart_items)}
   end
@@ -139,12 +168,14 @@ defmodule CraftdayWeb.Public.CartLive.Index do
     quantity = String.to_integer(quantity)
 
     if quantity > 0 do
-      cart_item = Cart.get_cart_item_by_id!(item_id)
-      {:ok, _updated_item} = Cart.update_cart_item(cart_item, %{quantity: quantity})
+      cart_item = Cart.get_cart_item_by_id!(item_id, context: %{cart_id: socket.assigns.cart.id})
+
+      {:ok, _updated_item} =
+        Cart.update_cart_item(cart_item, %{quantity: quantity}, context: %{cart_id: socket.assigns.cart.id})
 
       # Refresh the cart items
-      cart = Cart.get_cart_by_id!(cart_item.cart_id)
-      cart = Ash.load!(cart, items: [:product])
+      cart = Cart.get_cart_by_id!(cart_item.cart_id, context: %{cart_id: cart_item.cart_id})
+      cart = Ash.load!(cart, [items: [:product]], context: %{cart_id: cart.id})
 
       {:noreply, assign(socket, cart_items: cart.items || [])}
     else
@@ -154,12 +185,12 @@ defmodule CraftdayWeb.Public.CartLive.Index do
 
   @impl true
   def handle_event("delete_item", %{"item_id" => item_id}, socket) do
-    cart_item = Cart.get_cart_item_by_id!(item_id)
-    :ok = Cart.delete_cart_item(cart_item)
+    cart_item = Cart.get_cart_item_by_id!(item_id, context: %{cart_id: socket.assigns.cart.id})
+    :ok = Cart.delete_cart_item(cart_item, context: %{cart_id: socket.assigns.cart.id})
 
     # Refresh the cart items
-    cart = Cart.get_cart_by_id!(cart_item.cart_id)
-    cart = Ash.load!(cart, items: [:product])
+    cart = Cart.get_cart_by_id!(cart_item.cart_id, context: %{cart_id: cart_item.cart_id})
+    cart = Ash.load!(cart, [items: [:product]], context: %{cart_id: cart.id})
 
     {:noreply, assign(socket, cart_items: cart.items || [])}
   end

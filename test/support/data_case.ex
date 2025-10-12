@@ -16,6 +16,8 @@ defmodule Craftday.DataCase do
 
   use ExUnit.CaseTemplate
 
+  alias AshAuthentication.Strategy.Password
+  alias Craftday.Accounts.User
   alias Ecto.Adapters.SQL.Sandbox
 
   using do
@@ -56,5 +58,59 @@ defmodule Craftday.DataCase do
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
+  end
+
+  @doc """
+  Create a staff user for use as an actor in tests that require authorization.
+  """
+  def staff_actor do
+    email = "staff+test@local"
+
+    case Craftday.Repo.get_by(User, email: email) do
+      %User{} = user ->
+        user
+
+      nil ->
+        User
+        |> Ash.Changeset.for_create(:register_with_password, %{
+          email: email,
+          password: "Passw0rd!!",
+          password_confirmation: "Passw0rd!!",
+          role: :staff
+        })
+        |> Ash.create!(
+          context: %{
+            strategy: Password,
+            private: %{ash_authentication?: true}
+          }
+        )
+    end
+  end
+
+  @doc """
+  Create or fetch an admin user for tests requiring elevated privileges.
+  """
+  def admin_actor do
+    email = "admin+test@local"
+
+    case Craftday.Repo.get_by(User, email: email) do
+      %User{} = user ->
+        user
+
+      nil ->
+        User
+        |> Ash.Changeset.for_create(:register_with_password, %{
+          email: email,
+          password: "Passw0rd!!",
+          password_confirmation: "Passw0rd!!",
+          role: :admin
+        })
+        |> Ash.create!(
+          context: %{
+            strategy: Password,
+            private: %{ash_authentication?: true}
+          }
+        )
+    end
   end
 end

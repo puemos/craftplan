@@ -8,6 +8,8 @@ defmodule Craftday.Orders.ConsumptionTest do
   alias Craftday.Orders.Consumption
 
   defp mk_material(name, sku, unit, price) do
+    actor = Craftday.DataCase.staff_actor()
+
     {:ok, mat} =
       Inventory.Material
       |> Ash.Changeset.for_create(:create, %{
@@ -16,16 +18,19 @@ defmodule Craftday.Orders.ConsumptionTest do
         unit: unit,
         price: Decimal.new(price)
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     # seed initial stock 100
     {:ok, _} =
-      Inventory.adjust_stock(%{material_id: mat.id, quantity: Decimal.new(100), reason: "seed"})
+      Inventory.adjust_stock(%{material_id: mat.id, quantity: Decimal.new(100), reason: "seed"},
+        actor: actor
+      )
 
     mat
   end
 
   test "consumes materials when item marked done (idempotent)" do
+    actor = Craftday.DataCase.staff_actor()
     flour = mk_material("Flour", "F-1", :gram, "0.01")
 
     {:ok, product} =
@@ -36,7 +41,7 @@ defmodule Craftday.Orders.ConsumptionTest do
         price: Decimal.new("5.00"),
         sku: "BREAD-1"
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     # Attach a recipe: 200g flour per piece
     {:ok, _recipe} =
@@ -45,16 +50,16 @@ defmodule Craftday.Orders.ConsumptionTest do
         product_id: product.id,
         notes: ""
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
-    recipe = Catalog.get_product_by_id!(product.id, load: [:recipe]).recipe
+    recipe = Catalog.get_product_by_id!(product.id, load: [:recipe], actor: actor).recipe
 
     {:ok, _} =
       recipe
       |> Ash.Changeset.for_update(:update, %{
         components: [%{material_id: flour.id, quantity: Decimal.new(200)}]
       })
-      |> Ash.update()
+      |> Ash.update(actor: actor)
 
     {:ok, customer} =
       CRM.Customer
@@ -74,23 +79,32 @@ defmodule Craftday.Orders.ConsumptionTest do
           %{product_id: product.id, quantity: Decimal.new(2), unit_price: Decimal.new("5.00")}
         ]
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     item = hd(order.items)
 
     # Mark done -> no consumption yet (semi-automatic)
-    {:ok, item} = Orders.update_item(item, %{status: :done})
-    flour = Ash.load!(Inventory.get_material_by_id!(flour.id), :current_stock)
+    {:ok, item} = Orders.update_item(item, %{status: :done}, actor: actor)
+
+    flour =
+      Ash.load!(Inventory.get_material_by_id!(flour.id, actor: actor), :current_stock, actor: actor)
+
     assert flour.current_stock == Decimal.new(100)
 
     # Explicitly consume
-    {:ok, _} = Consumption.consume_item(item.id)
-    flour = Ash.load!(Inventory.get_material_by_id!(flour.id), :current_stock)
+    {:ok, _} = Consumption.consume_item(item.id, actor: actor)
+
+    flour =
+      Ash.load!(Inventory.get_material_by_id!(flour.id, actor: actor), :current_stock, actor: actor)
+
     assert flour.current_stock == Decimal.new(-300)
 
     # Consume again -> idempotent
-    {:ok, _} = Consumption.consume_item(item.id)
-    flour = Ash.load!(Inventory.get_material_by_id!(flour.id), :current_stock)
+    {:ok, _} = Consumption.consume_item(item.id, actor: actor)
+
+    flour =
+      Ash.load!(Inventory.get_material_by_id!(flour.id, actor: actor), :current_stock, actor: actor)
+
     assert flour.current_stock == Decimal.new(-300)
   end
 end

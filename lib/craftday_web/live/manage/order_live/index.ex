@@ -560,7 +560,7 @@ defmodule CraftdayWeb.OrderLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    order = Orders.get_order_by_id!(id)
+    order = Orders.get_order_by_id!(id, actor: socket.assigns[:current_user])
 
     case Ash.destroy(order, actor: socket.assigns[:current_user]) do
       :ok ->
@@ -610,7 +610,9 @@ defmodule CraftdayWeb.OrderLive.Index do
 
   @impl true
   def handle_info({CraftdayWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
-    order = Ash.load!(order, [:items, :total_cost, customer: [:full_name]])
+    order =
+      Ash.load!(order, [:items, :total_cost, customer: [:full_name]], actor: socket.assigns[:current_user])
+
     orders = [order | socket.assigns.orders || []]
     calendar_events = create_calendar_events(orders, @calendar_event_duration)
 

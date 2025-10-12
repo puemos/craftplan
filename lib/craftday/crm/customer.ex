@@ -3,7 +3,8 @@ defmodule Craftday.CRM.Customer do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.CRM,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   alias Craftday.CRM.Address
 
@@ -17,6 +18,13 @@ defmodule Craftday.CRM.Customer do
   actions do
     default_accept :*
     defaults [:read, :create, :update, :destroy]
+
+    # Narrow read used by checkout
+    read :get_by_email do
+      get? true
+      argument :email, :string, allow_nil?: false
+      filter expr(email == ^arg(:email))
+    end
 
     read :list do
       prepare build(sort: :first_name)
@@ -32,6 +40,32 @@ defmodule Craftday.CRM.Customer do
     read :keyset do
       prepare build(sort: :first_name)
       pagination keyset?: true
+    end
+  end
+
+  policies do
+    # Admin can do anything
+    bypass expr(^actor(:role) == :admin) do
+      authorize_if always()
+    end
+
+    # Allow only targeted email lookup publicly
+    policy action(:get_by_email) do
+      authorize_if always()
+    end
+
+    # Allow public create/update (checkout address upsert). Consider narrowing in future.
+    policy action_type([:create, :update]) do
+      authorize_if always()
+    end
+
+    # Other reads/destroys restricted to staff/admin
+    policy action_type(:read) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
+    end
+
+    policy action_type(:destroy) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

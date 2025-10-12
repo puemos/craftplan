@@ -3,7 +3,8 @@ defmodule Craftday.Settings.Settings do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Settings,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "settings"
@@ -21,6 +22,23 @@ defmodule Craftday.Settings.Settings do
 
     read :get do
       get? true
+    end
+  end
+
+  policies do
+    # Allow read of settings for everyone (used across site)
+    policy action_type(:read) do
+      authorize_if always()
+    end
+
+    # Allow init (bootstrap) without auth
+    policy action(:init) do
+      authorize_if always()
+    end
+
+    # Restrict updates/deletes to admin
+    policy action_type([:update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:admin])
     end
   end
 

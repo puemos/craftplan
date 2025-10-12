@@ -88,7 +88,7 @@ defmodule CraftdayWeb.ProductLive.FormComponent do
   defp assign_form(%{assigns: %{product: product}} = socket) do
     form =
       if product do
-        product = Ash.load!(product, recipe: [:components])
+        product = Ash.load!(product, recipe: [:components], actor: socket.assigns.current_user)
 
         AshPhoenix.Form.for_update(product, :update,
           as: "product",

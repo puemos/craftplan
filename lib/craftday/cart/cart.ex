@@ -3,7 +3,8 @@ defmodule Craftday.Cart.Cart do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Cart,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "cart"
@@ -37,6 +38,27 @@ defmodule Craftday.Cart.Cart do
         offset? true
         countable true
       end
+    end
+  end
+
+  policies do
+    # Admin/staff can do anything
+    bypass expr(^actor(:role) in [:admin, :staff]) do
+      authorize_if always()
+    end
+
+    # Anyone can create a cart
+    policy action_type(:create) do
+      authorize_if always()
+    end
+
+    # Only allow access when session cart matches
+    policy action_type(:read) do
+      authorize_if expr(id == ^context(:cart_id))
+    end
+
+    policy action_type([:update, :destroy]) do
+      authorize_if expr(id == ^context(:cart_id))
     end
   end
 

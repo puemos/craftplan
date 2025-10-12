@@ -136,7 +136,9 @@ defmodule CraftdayWeb.ProductLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case id |> Catalog.get_product_by_id!() |> Ash.destroy(actor: socket.assigns.current_user) do
+    case id
+         |> Catalog.get_product_by_id!(actor: socket.assigns.current_user)
+         |> Ash.destroy(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket
@@ -150,7 +152,8 @@ defmodule CraftdayWeb.ProductLive.Index do
 
   @impl true
   def handle_info({CraftdayWeb.ProductLive.FormComponent, {:saved, product}}, socket) do
-    product = Ash.load!(product, [:materials_cost, :markup_percentage, :gross_profit])
+    product =
+      Ash.load!(product, [:materials_cost, :markup_percentage, :gross_profit], actor: socket.assigns.current_user)
 
     {:noreply, stream_insert(socket, :products, product)}
   end

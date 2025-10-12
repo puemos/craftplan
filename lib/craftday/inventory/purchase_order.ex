@@ -3,7 +3,8 @@ defmodule Craftday.Inventory.PurchaseOrder do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Inventory,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   alias Craftday.Inventory.PurchaseOrder.Types.Status
 
@@ -27,6 +28,16 @@ defmodule Craftday.Inventory.PurchaseOrder do
 
     update :update do
       accept [:supplier_id, :status, :ordered_at, :received_at]
+    end
+  end
+
+  policies do
+    policy action_type(:read) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

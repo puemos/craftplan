@@ -14,7 +14,11 @@ defmodule Craftday.CRM.CustomerLookupTest do
       })
       |> Ash.create()
 
-    assert {:ok, found} = CRM.get_customer_by_email("guest@example.com")
-    assert found.id == customer.id
+    {:ok, found} =
+      Craftday.CRM.Customer
+      |> Ash.Query.for_read(:get_by_email, %{email: "guest@example.com"})
+      |> Ash.read_one(actor: Craftday.DataCase.staff_actor())
+
+    assert found && found.id == customer.id
   end
 end

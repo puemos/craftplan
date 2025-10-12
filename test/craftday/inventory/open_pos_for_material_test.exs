@@ -4,15 +4,19 @@ defmodule Craftday.Inventory.OpenPOsForMaterialTest do
   alias Craftday.Inventory
 
   defp mk_supplier(name) do
+    actor = Craftday.DataCase.staff_actor()
+
     {:ok, s} =
       Inventory.Supplier
       |> Ash.Changeset.for_create(:create, %{name: name})
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     s
   end
 
   defp mk_material(name, sku, unit, price) do
+    actor = Craftday.DataCase.staff_actor()
+
     {:ok, mat} =
       Inventory.Material
       |> Ash.Changeset.for_create(:create, %{
@@ -21,7 +25,7 @@ defmodule Craftday.Inventory.OpenPOsForMaterialTest do
         unit: unit,
         price: Decimal.new(price)
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     mat
   end
@@ -30,10 +34,12 @@ defmodule Craftday.Inventory.OpenPOsForMaterialTest do
     mat = mk_material("Flour", "F-PO", :gram, "0.01")
     s = mk_supplier("ACME")
 
+    actor = Craftday.DataCase.staff_actor()
+
     {:ok, po} =
       Inventory.PurchaseOrder
       |> Ash.Changeset.for_create(:create, %{supplier_id: s.id, status: :ordered})
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     {:ok, _poi} =
       Inventory.PurchaseOrderItem
@@ -42,18 +48,18 @@ defmodule Craftday.Inventory.OpenPOsForMaterialTest do
         material_id: mat.id,
         quantity: Decimal.new(10)
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
-    list = Inventory.list_open_po_items_for_material!(%{material_id: mat.id})
+    list = Inventory.list_open_po_items_for_material!(%{material_id: mat.id}, actor: actor)
     assert length(list) == 1
 
     # Mark PO received -> should disappear from open list
     {:ok, _} =
       po
       |> Ash.Changeset.for_update(:update, %{status: :received, received_at: DateTime.utc_now()})
-      |> Ash.update()
+      |> Ash.update(actor: actor)
 
-    list2 = Inventory.list_open_po_items_for_material!(%{material_id: mat.id})
+    list2 = Inventory.list_open_po_items_for_material!(%{material_id: mat.id}, actor: actor)
     assert list2 == []
   end
 end

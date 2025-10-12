@@ -12,9 +12,11 @@ defmodule CraftdayWeb.LiveCart do
     if socket.assigns[:cart] do
       {:cont, socket}
     else
+      cart_id = session["cart_id"] || session[:cart_id]
+
       cart =
-        if session["cart_id"] do
-          Cart.get_cart_by_id!(session["cart_id"], load: [:items])
+        if cart_id do
+          Cart.get_cart_by_id!(cart_id, load: [:items], context: %{cart_id: cart_id})
         end
 
       socket

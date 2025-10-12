@@ -66,7 +66,7 @@
 
           <ul
             :if={not String.starts_with?(@current_path, "/manage")}
-            id="nav-items"
+            id="nav-items-root"
             class="shadow-xs absolute left-1/2 flex -translate-x-1/2 items-center space-x-4 rounded-lg border border-stone-200 bg-white px-1 py-1"
           >
             <li>
@@ -137,10 +137,12 @@
 
           <div class="flex w-full justify-end">
             <ul class="flex items-center space-x-8">
-              <li :if={not String.starts_with?(@current_path, "/manage")}>
+              <li :if={
+                assigns[:conn] != nil and not String.starts_with?(@current_path, "/manage")
+              }>
                 {live_render(@conn, CraftdayWeb.CartLive,
                   id: "cart_live",
-                  session: %{},
+                  session: %{"cart_id" => Plug.Conn.get_session(@conn, :cart_id)},
                   sticky: true
                 )}
               </li>

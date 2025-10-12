@@ -9,6 +9,8 @@ defmodule Craftday.Orders.EmailsTest do
   alias Craftday.Orders.Emails
 
   test "delivers order confirmation email" do
+    staff = Craftday.DataCase.staff_actor()
+
     {:ok, customer} =
       CRM.Customer
       |> Ash.Changeset.for_create(:create, %{
@@ -27,7 +29,7 @@ defmodule Craftday.Orders.EmailsTest do
         price: Decimal.new("9.99"),
         sku: "EMAIL-1"
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     {:ok, order} =
       Orders.Order
@@ -36,12 +38,15 @@ defmodule Craftday.Orders.EmailsTest do
         delivery_date: DateTime.utc_now(),
         items: [%{product_id: product.id, quantity: Decimal.new(1), unit_price: product.price}]
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
-    order =
-      Orders.get_order_by_id!(order.id, load: [items: [product: [:name]], customer: [:email]])
+    order = Ash.load!(order, [items: [product: [:name]], customer: [:email]], actor: staff)
+    assert order.customer.email == "buyer@example.com"
 
     assert {:ok, _} = Emails.deliver_order_confirmation(order)
+
+    # Drain any prior auth-related email (e.g., staff registration)
+    assert_email_sent()
 
     assert_email_sent(fn email ->
       assert Enum.any?(email.to, fn {_name, addr} -> addr == "buyer@example.com" end)

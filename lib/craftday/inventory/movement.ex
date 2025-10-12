@@ -3,7 +3,8 @@ defmodule Craftday.Inventory.Movement do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Inventory,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "inventory_movements"
@@ -17,6 +18,16 @@ defmodule Craftday.Inventory.Movement do
       accept [:quantity, :reason, :material_id]
 
       change set_attribute(:occurred_at, &DateTime.utc_now/0)
+    end
+  end
+
+  policies do
+    policy action_type(:read) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

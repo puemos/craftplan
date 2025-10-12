@@ -4,6 +4,7 @@ defmodule Craftday.Cart.CartItem do
     otp_app: :craftday,
     domain: Craftday.Cart,
     data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer],
     notifiers: [Ash.Notifier.PubSub]
 
   postgres do
@@ -18,6 +19,27 @@ defmodule Craftday.Cart.CartItem do
       create: [:quantity, :product_id, :price, :cart_id],
       update: [:quantity]
     ]
+  end
+
+  policies do
+    # Admin/staff can do anything
+    bypass expr(^actor(:role) in [:admin, :staff]) do
+      authorize_if always()
+    end
+
+    # Create allowed for anyone (tied to a cart id)
+    policy action_type(:create) do
+      authorize_if always()
+    end
+
+    # Read/update/destroy allowed only for matching cart via context
+    policy action_type(:read) do
+      authorize_if expr(cart_id == ^context(:cart_id))
+    end
+
+    policy action_type([:update, :destroy]) do
+      authorize_if expr(cart_id == ^context(:cart_id))
+    end
   end
 
   pub_sub do

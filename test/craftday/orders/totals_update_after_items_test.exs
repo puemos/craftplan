@@ -16,6 +16,8 @@ defmodule Craftday.Orders.TotalsUpdateAfterItemsTest do
       })
       |> Ash.create()
 
+    staff = Craftday.DataCase.staff_actor()
+
     {:ok, product} =
       Catalog.Product
       |> Ash.Changeset.for_create(:create, %{
@@ -24,7 +26,7 @@ defmodule Craftday.Orders.TotalsUpdateAfterItemsTest do
         price: Decimal.new("3.25"),
         sku: "W-1"
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     {:ok, order} =
       Orders.Order
@@ -32,7 +34,7 @@ defmodule Craftday.Orders.TotalsUpdateAfterItemsTest do
         customer_id: customer.id,
         delivery_date: DateTime.utc_now()
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     assert order.subtotal == Decimal.new(0)
     assert order.total == Decimal.new(0)
@@ -48,9 +50,9 @@ defmodule Craftday.Orders.TotalsUpdateAfterItemsTest do
           }
         ]
       })
-      |> Ash.update()
+      |> Ash.update(actor: staff)
 
-    {:ok, order_after} = Orders.get_order_by_id(order.id)
+    {:ok, order_after} = Orders.get_order_by_id(order.id, actor: staff)
 
     assert order_after.subtotal == Decimal.new("13.00")
     assert order_after.total == Decimal.new("13.00")

@@ -173,7 +173,12 @@ defmodule CraftdayWeb.Public.CatalogLive.Show do
   def handle_event("add_to_cart", %{"product_id" => product_id, "quantity" => quantity}, socket) do
     quantity = String.to_integer(quantity)
 
-    cart = Ash.load!(socket.assigns.cart, items: [:product])
+    cart =
+      Ash.load!(
+        socket.assigns.cart,
+        [items: [:product]],
+        context: %{cart_id: socket.assigns.cart.id}
+      )
 
     cart_items = cart.items || []
 
@@ -189,7 +194,13 @@ defmodule CraftdayWeb.Public.CatalogLive.Show do
       if existing_item do
         # Update existing item
         new_quantity = quantity
-        {:ok, _} = Cart.update_cart_item(existing_item, %{quantity: new_quantity})
+
+        {:ok, _} =
+          Cart.update_cart_item(
+            existing_item,
+            %{quantity: new_quantity},
+            context: %{cart_id: existing_item.cart_id}
+          )
       else
         # Create new item
         {:ok, _} =
@@ -201,7 +212,7 @@ defmodule CraftdayWeb.Public.CatalogLive.Show do
           })
       end
 
-      cart = Ash.reload!(cart, load: [:items])
+      cart = Ash.reload!(cart, load: [items: [:product]], context: %{cart_id: cart.id})
 
       {:noreply,
        socket

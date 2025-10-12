@@ -30,11 +30,14 @@ defmodule Craftday.Inventory.Receiving do
     else
       Enum.each(po.items, fn item ->
         _ =
-          Inventory.adjust_stock(%{
-            material_id: item.material_id,
-            quantity: item.quantity,
-            reason: "Purchase order #{po.reference} received"
-          })
+          Inventory.adjust_stock(
+            %{
+              material_id: item.material_id,
+              quantity: item.quantity,
+              reason: "Purchase order #{po.reference} received"
+            },
+            actor: actor
+          )
       end)
 
       Inventory.update_purchase_order(po, %{status: :received, received_at: DateTime.utc_now()}, actor: actor)

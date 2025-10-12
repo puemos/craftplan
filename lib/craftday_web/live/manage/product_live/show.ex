@@ -216,7 +216,8 @@ defmodule CraftdayWeb.ProductLive.Show do
           :nutritional_facts,
           :allergens,
           recipe: [components: [:material]]
-        ]
+        ],
+        actor: socket.assigns.current_user
       )
 
     {:noreply,
@@ -236,7 +237,8 @@ defmodule CraftdayWeb.ProductLive.Show do
           :nutritional_facts,
           :allergens,
           recipe: [components: [:material]]
-        ]
+        ],
+        actor: socket.assigns.current_user
       )
 
     {:noreply,
@@ -247,7 +249,7 @@ defmodule CraftdayWeb.ProductLive.Show do
 
   @impl true
   def handle_event("product-status-change", %{"_target" => ["status"], "status" => status}, socket) do
-    case Ash.update(socket.assigns.product, %{status: status}) do
+    case Ash.update(socket.assigns.product, %{status: status}, actor: socket.assigns.current_user) do
       {:ok, product} ->
         {:noreply,
          socket

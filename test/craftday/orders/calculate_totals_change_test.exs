@@ -6,6 +6,7 @@ defmodule Craftday.Orders.CalculateTotalsChangeTest do
   alias Craftday.Orders
 
   test "sets subtotal and total from items" do
+    staff = Craftday.DataCase.staff_actor()
     # Create a customer
     {:ok, customer} =
       CRM.Customer
@@ -26,7 +27,7 @@ defmodule Craftday.Orders.CalculateTotalsChangeTest do
         price: Decimal.new("12.50"),
         sku: "TP-001"
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     # Create an order with items
     items = [
@@ -44,7 +45,7 @@ defmodule Craftday.Orders.CalculateTotalsChangeTest do
         delivery_date: DateTime.utc_now(),
         items: items
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     assert order.subtotal == Decimal.new("25.00")
     assert order.total == Decimal.new("25.00")

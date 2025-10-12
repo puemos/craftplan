@@ -17,6 +17,8 @@ defmodule Craftday.Orders.OrderItemInRangeTest do
       })
       |> Ash.create()
 
+    staff = Craftday.DataCase.staff_actor()
+
     {:ok, p1} =
       Catalog.Product
       |> Ash.Changeset.for_create(:create, %{
@@ -25,7 +27,7 @@ defmodule Craftday.Orders.OrderItemInRangeTest do
         price: Decimal.new("5.00"),
         sku: "P-1"
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     {:ok, p2} =
       Catalog.Product
@@ -35,7 +37,7 @@ defmodule Craftday.Orders.OrderItemInRangeTest do
         price: Decimal.new("7.00"),
         sku: "P-2"
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     d1 = Date.utc_today()
     d2 = Date.add(d1, 1)
@@ -52,7 +54,7 @@ defmodule Craftday.Orders.OrderItemInRangeTest do
           %{product_id: p2.id, quantity: Decimal.new(1), unit_price: p2.price}
         ]
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     {:ok, _o2} =
       Orders.Order
@@ -63,7 +65,7 @@ defmodule Craftday.Orders.OrderItemInRangeTest do
           %{product_id: p1.id, quantity: Decimal.new(3), unit_price: p1.price}
         ]
       })
-      |> Ash.create()
+      |> Ash.create(actor: staff)
 
     start_dt1 = DateTime.new!(d1, ~T[00:00:00], "Etc/UTC")
     end_dt1 = DateTime.new!(d1, ~T[23:59:59], "Etc/UTC")

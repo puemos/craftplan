@@ -3,7 +3,8 @@ defmodule Craftday.Orders.Order do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Orders,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   alias Craftday.Orders.Changes.CalculateTotals
   alias Craftday.Orders.Changes.ValidateConstraints
@@ -32,6 +33,22 @@ defmodule Craftday.Orders.Order do
         :discount_type,
         :discount_value,
         :delivery_method
+      ]
+
+      argument :items, {:array, :map}
+
+      change manage_relationship(:items, type: :direct_control)
+      change {CalculateTotals, []}
+      change {ValidateConstraints, []}
+    end
+
+    # Public, minimal create action for checkout
+    create :public_create do
+      accept [
+        :customer_id,
+        :delivery_date,
+        :delivery_method,
+        :shipping_total
       ]
 
       argument :items, {:array, :map}
@@ -133,6 +150,42 @@ defmodule Craftday.Orders.Order do
     read :keyset do
       prepare build(sort: [delivery_date: :asc])
       pagination keyset?: true
+    end
+
+    # Narrow day-range read used for capacity checks
+    read :for_day do
+      argument :delivery_date_start, :utc_datetime, allow_nil?: false
+      argument :delivery_date_end, :utc_datetime, allow_nil?: false
+
+      prepare build(
+                sort: [delivery_date: :asc],
+                filter:
+                  expr(
+                    delivery_date >= ^arg(:delivery_date_start) and
+                      delivery_date <= ^arg(:delivery_date_end)
+                  )
+              )
+    end
+  end
+
+  policies do
+    # Public create for checkout (restricted action)
+    bypass action(:public_create) do
+      authorize_if always()
+    end
+
+    # Public read for day-range listing/count (capacity checks)
+    bypass action(:for_day) do
+      authorize_if always()
+    end
+
+    # Other reads/writes restricted to staff/admin
+    policy action_type(:read) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

@@ -292,7 +292,7 @@ defmodule CraftdayWeb.PlanLive.Index do
                       </div>
                     </div>
                     <div
-                      class="kanban-column min-h-[60vh] space-y-3 rounded-b-lg border border-t-0 border-slate-300 bg-slate-50/50 p-3"
+                      class="kanban-column min-h-[60vh] bg-slate-50/50 space-y-3 rounded-b-lg border border-t-0 border-slate-300 p-3"
                       data-status="todo"
                       phx-hook="KanbanColumn"
                       id="kanban-column-todo"
@@ -313,14 +313,29 @@ defmodule CraftdayWeb.PlanLive.Index do
                             {product.name}
                           </span>
                           <.badge
-                            :if={capacity_status(product, get_product_items_for_day(day, product, @production_items)) == :over}
+                            :if={
+                              capacity_status(
+                                product,
+                                get_product_items_for_day(day, product, @production_items)
+                              ) == :over
+                            }
                             text="Over cap"
                           />
                         </div>
                         <div class="flex items-center justify-between text-sm text-stone-600">
                           <span class="flex items-center">
-                            <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <svg
+                              class="mr-1 h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                              />
                             </svg>
                             {format_amount(:piece, total_quantity(items))}
                           </span>
@@ -352,7 +367,7 @@ defmodule CraftdayWeb.PlanLive.Index do
                       </div>
                     </div>
                     <div
-                      class="kanban-column min-h-[60vh] space-y-3 rounded-b-lg border border-t-0 border-blue-300 bg-blue-50/50 p-3"
+                      class="kanban-column min-h-[60vh] bg-blue-50/50 space-y-3 rounded-b-lg border border-t-0 border-blue-300 p-3"
                       data-status="in_progress"
                       phx-hook="KanbanColumn"
                       id="kanban-column-in-progress"
@@ -373,14 +388,29 @@ defmodule CraftdayWeb.PlanLive.Index do
                             {product.name}
                           </span>
                           <.badge
-                            :if={capacity_status(product, get_product_items_for_day(day, product, @production_items)) == :over}
+                            :if={
+                              capacity_status(
+                                product,
+                                get_product_items_for_day(day, product, @production_items)
+                              ) == :over
+                            }
                             text="Over cap"
                           />
                         </div>
                         <div class="flex items-center justify-between text-sm text-stone-600">
                           <span class="flex items-center">
-                            <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg
+                              class="mr-1 h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
                             </svg>
                             {format_amount(:piece, total_quantity(items))}
                           </span>
@@ -412,7 +442,7 @@ defmodule CraftdayWeb.PlanLive.Index do
                       </div>
                     </div>
                     <div
-                      class="kanban-column min-h-[60vh] space-y-3 rounded-b-lg border border-t-0 border-green-300 bg-green-50/50 p-3"
+                      class="kanban-column min-h-[60vh] bg-green-50/50 space-y-3 rounded-b-lg border border-t-0 border-green-300 p-3"
                       data-status="done"
                       phx-hook="KanbanColumn"
                       id="kanban-column-done"
@@ -433,14 +463,29 @@ defmodule CraftdayWeb.PlanLive.Index do
                             {product.name}
                           </span>
                           <.badge
-                            :if={capacity_status(product, get_product_items_for_day(day, product, @production_items)) == :over}
+                            :if={
+                              capacity_status(
+                                product,
+                                get_product_items_for_day(day, product, @production_items)
+                              ) == :over
+                            }
                             text="Over cap"
                           />
                         </div>
                         <div class="flex items-center justify-between text-sm text-stone-600">
                           <span class="flex items-center">
-                            <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg
+                              class="mr-1 h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
                             </svg>
                             {format_amount(:piece, total_quantity(items))}
                           </span>
@@ -608,7 +653,7 @@ defmodule CraftdayWeb.PlanLive.Index do
             <.button variant={:outline} onclick="window.print()">Print</.button>
           </div>
         </div>
-        <div class="rounded border border-stone-300 p-4 bg-white print:border-black">
+        <div class="rounded border border-stone-300 bg-white p-4 print:border-black">
           <.table id="make-sheet" no_margin rows={make_sheet_rows(@production_items, @today)}>
             <:col :let={row} label="Product">{row.product.name}</:col>
             <:col :let={row} label="Total Qty">{row.total}</:col>
@@ -733,11 +778,7 @@ defmodule CraftdayWeb.PlanLive.Index do
   end
 
   @impl true
-  def handle_event(
-        "view_material_details",
-        %{"date" => date_str, "material" => material_id},
-        socket
-      ) do
+  def handle_event("view_material_details", %{"date" => date_str, "material" => material_id}, socket) do
     date = Date.from_iso8601!(date_str)
     material = find_material(socket, material_id)
     {day_quantity, day_balance} = get_material_day_info(socket, material, date)
@@ -831,22 +872,23 @@ defmodule CraftdayWeb.PlanLive.Index do
         %{"product_id" => product_id, "date" => date_str, "status" => new_status},
         socket
       ) do
-    with {:ok, date} <- Date.from_iso8601(date_str),
-         new_status_atom <- String.to_atom(new_status) do
-      # Get all items for this product on this date
-      items = get_product_items_for_day(date, %{id: product_id}, socket.assigns.production_items)
+    case Date.from_iso8601(date_str) do
+      {:ok, date} ->
+        new_status_atom = String.to_atom(new_status)
+        # Get all items for this product on this date
+        items = get_product_items_for_day(date, %{id: product_id}, socket.assigns.production_items)
 
-      # Update all items to the new status
-      Enum.each(items, fn item ->
-        Orders.update_item(item, %{status: new_status_atom}, actor: socket.assigns.current_user)
-      end)
+        # Update all items to the new status
+        Enum.each(items, fn item ->
+          Orders.update_item(item, %{status: new_status_atom}, actor: socket.assigns.current_user)
+        end)
 
-      # Reload the data
-      days_range = socket.assigns.days_range
-      socket = update_for_range(socket, days_range)
+        # Reload the data
+        days_range = socket.assigns.days_range
+        socket = update_for_range(socket, days_range)
 
-      {:noreply, socket}
-    else
+        {:noreply, socket}
+
       _ ->
         {:noreply, put_flash(socket, :error, "Failed to update status")}
     end
@@ -855,9 +897,7 @@ defmodule CraftdayWeb.PlanLive.Index do
   def handle_event("update_item_status", %{"item_id" => id, "status" => status}, socket) do
     order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
 
-    case Orders.update_item(order_item, %{status: String.to_atom(status)},
-           actor: socket.assigns.current_user
-         ) do
+    case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
       {:ok, updated_item} ->
         days_range = socket.assigns.days_range
         production_items = load_production_items(socket, days_range)
@@ -1085,12 +1125,16 @@ defmodule CraftdayWeb.PlanLive.Index do
   end
 
   defp load_production_items(socket, days_range) do
-    orders = Production.fetch_orders_in_range(socket.assigns.time_zone, days_range)
+    orders =
+      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
+
     Production.build_production_items(orders)
   end
 
   defp prepare_materials_requirements(socket, days_range) do
-    orders = Production.fetch_orders_in_range(socket.assigns.time_zone, days_range)
+    orders =
+      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
+
     InventoryForecasting.prepare_materials_requirements(days_range, orders)
   end
 
@@ -1118,8 +1162,8 @@ defmodule CraftdayWeb.PlanLive.Index do
     |> Enum.flat_map(fn {_, _, items} -> items end)
   end
 
-  defp find_product(_socket, product_id) do
-    Catalog.get_product_by_id!(product_id)
+  defp find_product(socket, product_id) do
+    Catalog.get_product_by_id!(product_id, actor: socket.assigns.current_user)
   end
 
   defp total_quantity(items) do
@@ -1168,8 +1212,8 @@ defmodule CraftdayWeb.PlanLive.Index do
     end
   end
 
-  defp find_material(_socket, material_id) do
-    Inventory.get_material_by_id!(material_id)
+  defp find_material(socket, material_id) do
+    Inventory.get_material_by_id!(material_id, actor: socket.assigns.current_user)
   end
 
   defp get_material_day_info(socket, material, date) do
@@ -1197,6 +1241,7 @@ defmodule CraftdayWeb.PlanLive.Index do
           delivery_date_start: start_datetime,
           delivery_date_end: end_datetime
         },
+        actor: socket.assigns.current_user,
         load: [
           :reference,
           :items,
@@ -1290,7 +1335,10 @@ defmodule CraftdayWeb.PlanLive.Index do
     end_dt = days_range |> List.last() |> DateTime.new!(~T[23:59:59], tz)
 
     orders =
-      Orders.list_orders!(%{delivery_date_start: start_dt, delivery_date_end: end_dt})
+      Orders.list_orders!(
+        %{delivery_date_start: start_dt, delivery_date_end: end_dt},
+        actor: socket.assigns.current_user
+      )
 
     orders_by_day = Enum.group_by(orders, fn o -> DateTime.to_date(o.delivery_date) end)
     cap = socket.assigns.settings.daily_capacity || 0
@@ -1314,9 +1362,7 @@ defmodule CraftdayWeb.PlanLive.Index do
             idx ->
               # simulate to index
               {balance, _} =
-                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d},
-                                                                                           {_bal,
-                                                                                            _} ->
+                Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d}, {_bal, _} ->
                   # We need initial stock; balance_cells[idx] holds opening balance for that day
                   opening =
                     Enum.at(
@@ -1387,10 +1433,13 @@ defmodule CraftdayWeb.PlanLive.Index do
         end_dt = assigns.days_range |> List.last() |> DateTime.new!(~T[23:59:59], tz)
 
         orders =
-          Orders.list_orders!(%{
-            delivery_date_start: start_dt,
-            delivery_date_end: end_dt
-          })
+          Orders.list_orders!(
+            %{
+              delivery_date_start: start_dt,
+              delivery_date_end: end_dt
+            },
+            actor: assigns.current_user
+          )
 
         orders_by_day = Enum.group_by(orders, fn o -> DateTime.to_date(o.delivery_date) end)
 
@@ -1436,7 +1485,10 @@ defmodule CraftdayWeb.PlanLive.Index do
 
     orders_today_rows =
       %{delivery_date_start: start_dt, delivery_date_end: end_dt}
-      |> Orders.list_orders!(load: [:total_cost, :reference, customer: [:full_name]])
+      |> Orders.list_orders!(
+        load: [:total_cost, :reference, customer: [:full_name]],
+        actor: assigns.current_user
+      )
       |> Enum.map(fn o ->
         %{reference: o.reference, customer: o.customer.full_name, total: o.total_cost}
       end)
@@ -1481,9 +1533,7 @@ defmodule CraftdayWeb.PlanLive.Index do
       compute_week_metrics(socket, days_range, production_items, materials_requirements)
 
     overview_tables =
-      compute_overview_tables_from(
-        build_overview_assigns(socket, days_range, production_items, materials_requirements)
-      )
+      compute_overview_tables_from(build_overview_assigns(socket, days_range, production_items, materials_requirements))
 
     socket
     |> assign(:days_range, days_range)

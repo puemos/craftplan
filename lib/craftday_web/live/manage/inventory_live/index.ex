@@ -404,7 +404,7 @@ defmodule CraftdayWeb.InventoryLive.Index do
   @impl true
   def handle_event("view_material_details", %{"date" => date_str, "material" => material_id}, socket) do
     date = Date.from_iso8601!(date_str)
-    material = Inventory.get_material_by_id!(material_id)
+    material = Inventory.get_material_by_id!(material_id, actor: socket.assigns.current_user)
 
     # Get material day quantity
     {day_quantity, day_balance} =
@@ -421,6 +421,7 @@ defmodule CraftdayWeb.InventoryLive.Index do
     orders =
       Orders.list_orders!(
         %{delivery_date_start: start_time, delivery_date_end: end_time},
+        actor: socket.assigns.current_user,
         load: [
           :reference,
           items: [
@@ -484,7 +485,7 @@ defmodule CraftdayWeb.InventoryLive.Index do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     case id
-         |> Inventory.get_material_by_id!()
+         |> Inventory.get_material_by_id!(actor: socket.assigns.current_user)
          |> Ash.destroy(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
@@ -499,7 +500,7 @@ defmodule CraftdayWeb.InventoryLive.Index do
 
   @impl true
   def handle_info({:saved, material}, socket) do
-    material = Ash.load!(material, :current_stock)
+    material = Ash.load!(material, :current_stock, actor: socket.assigns.current_user)
 
     {:noreply, stream_insert(socket, :materials, material)}
   end
@@ -530,6 +531,7 @@ defmodule CraftdayWeb.InventoryLive.Index do
           delivery_date_start: DateTime.new!(first_day, ~T[00:00:00], time_zone),
           delivery_date_end: DateTime.new!(last_day, ~T[23:59:59], time_zone)
         },
+        actor: socket.assigns.current_user,
         load: [
           :items,
           items: [

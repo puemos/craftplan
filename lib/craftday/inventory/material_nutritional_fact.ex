@@ -3,7 +3,8 @@ defmodule Craftday.Inventory.MaterialNutritionalFact do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Inventory,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "inventory_material_nutritional_fact"
@@ -16,6 +17,17 @@ defmodule Craftday.Inventory.MaterialNutritionalFact do
     create :create do
       primary? true
       accept [:nutritional_fact_id, :material_id, :amount, :unit]
+    end
+  end
+
+  policies do
+    # Public read (used for storefront nutritional facts)
+    policy action_type(:read) do
+      authorize_if always()
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

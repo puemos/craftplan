@@ -46,11 +46,14 @@ defmodule Craftday.Orders.Consumption do
 
       Enum.each(movements, fn mv ->
         _ =
-          Inventory.adjust_stock(%{
-            material_id: mv.material_id,
-            quantity: mv.quantity,
-            reason: mv.reason
-          })
+          Inventory.adjust_stock(
+            %{
+              material_id: mv.material_id,
+              quantity: mv.quantity,
+              reason: mv.reason
+            },
+            actor: actor
+          )
       end)
 
       Orders.update_item(item, %{status: item.status, consumed_at: DateTime.utc_now()}, actor: actor)

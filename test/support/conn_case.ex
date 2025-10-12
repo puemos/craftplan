@@ -33,6 +33,14 @@ defmodule CraftdayWeb.ConnCase do
 
   setup tags do
     Craftday.DataCase.setup_sandbox(tags)
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+    conn = Phoenix.ConnTest.build_conn()
+    metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(Craftday.Repo, self())
+
+    conn =
+      conn
+      |> Plug.Test.init_test_session(%{})
+      |> Plug.Conn.put_session(:phoenix_ecto_sandbox, metadata)
+
+    {:ok, conn: conn}
   end
 end

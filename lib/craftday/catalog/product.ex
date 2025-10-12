@@ -3,7 +3,8 @@ defmodule Craftday.Catalog.Product do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Catalog,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "catalog_products"
@@ -57,6 +58,24 @@ defmodule Craftday.Catalog.Product do
     read :keyset do
       prepare build(sort: :name)
       pagination keyset?: true
+    end
+  end
+
+  policies do
+    # Admin can do anything
+    bypass expr(^actor(:role) == :admin) do
+      authorize_if always()
+    end
+
+    # Public read for active/available products; staff/admin read everything
+    policy action_type(:read) do
+      authorize_if expr(status == :active or selling_availability != :off)
+      authorize_if expr(^actor(:role) in [:staff, :admin])
+    end
+
+    # Writes restricted to staff/admin
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

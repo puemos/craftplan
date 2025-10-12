@@ -31,7 +31,7 @@ defmodule CraftdayWeb.Router do
           cart
 
         cart_id ->
-          case Cart.get_cart_by_id(cart_id) do
+          case Cart.get_cart_by_id(cart_id, context: %{cart_id: cart_id}) do
             {:ok, nil} ->
               {:ok, cart} = Cart.create_cart(%{items: []})
               cart
@@ -45,6 +45,7 @@ defmodule CraftdayWeb.Router do
           end
       end
 
+    # Ensure subsequent cart resource accesses have context to satisfy policies
     put_session(conn, :cart_id, cart.id)
   end
 
@@ -114,7 +115,8 @@ defmodule CraftdayWeb.Router do
         CraftdayWeb.LiveCurrentPath,
         CraftdayWeb.LiveNav,
         CraftdayWeb.LiveSettings,
-        CraftdayWeb.LiveCart
+        CraftdayWeb.LiveCart,
+        {CraftdayWeb.LiveUserAuth, :live_user_optional}
       ] do
       live "/catalog", Public.CatalogLive.Index, :index
       live "/catalog/:sku", Public.CatalogLive.Show, :show

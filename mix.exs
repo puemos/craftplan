@@ -49,6 +49,7 @@ defmodule Craftday.MixProject do
       {:ex_money_sql, "~> 1.0"},
       {:finch, "~> 0.13"},
       {:floki, ">= 0.30.0", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:gettext, "~> 0.26"},
       {:heroicons,
        github: "tailwindlabs/heroicons", tag: "v2.2.0", sparse: "optimized", app: false, compile: false, depth: 1},

@@ -3,7 +3,8 @@ defmodule Craftday.Orders.OrderItem do
   use Ash.Resource,
     otp_app: :craftday,
     domain: Craftday.Orders,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "orders_items"
@@ -55,6 +56,22 @@ defmodule Craftday.Orders.OrderItem do
 
       # optionally exclude items from a given order (useful during updates)
       filter expr(is_nil(^arg(:exclude_order_id)) or order_id != ^arg(:exclude_order_id))
+    end
+  end
+
+  policies do
+    # Public read allowed for `:in_range` (capacity checks)
+    bypass action(:in_range) do
+      authorize_if always()
+    end
+
+    # Other reads/writes restricted to staff/admin
+    policy action_type(:read) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if expr(^actor(:role) in [:staff, :admin])
     end
   end
 

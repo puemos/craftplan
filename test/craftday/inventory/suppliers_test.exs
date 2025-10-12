@@ -4,13 +4,15 @@ defmodule Craftday.Inventory.SuppliersTest do
   alias Craftday.Inventory
 
   test "create, list (sorted), and update supplier" do
+    actor = Craftday.DataCase.staff_actor()
+
     {:ok, s1} =
       Inventory.Supplier
       |> Ash.Changeset.for_create(:create, %{
         name: "Zeta Foods",
         contact_email: "hello@zeta.test"
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     {:ok, s2} =
       Inventory.Supplier
@@ -18,17 +20,17 @@ defmodule Craftday.Inventory.SuppliersTest do
         name: "Alpha Ingredients",
         contact_email: "hi@alpha.test"
       })
-      |> Ash.create()
+      |> Ash.create(actor: actor)
 
     # list is sorted by name asc
-    list = Inventory.list_suppliers!()
+    list = Inventory.list_suppliers!(actor: actor)
     assert Enum.map(list, & &1.id) == Enum.map(Enum.sort_by([s2, s1], & &1.name), & &1.id)
 
     # update supplier
     {:ok, s2u} =
       s2
       |> Ash.Changeset.for_update(:update, %{contact_phone: "+123"})
-      |> Ash.update()
+      |> Ash.update(actor: actor)
 
     assert s2u.contact_phone == "+123"
   end

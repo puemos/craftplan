@@ -96,11 +96,12 @@ defmodule Craftday.Orders.Changes.ValidateConstraints do
         end_dt = DateTime.new!(day, ~T[23:59:59], "Etc/UTC")
 
         count =
-          %{
+          Craftday.Orders.Order
+          |> Ash.Query.for_read(:for_day, %{
             delivery_date_start: start_dt,
             delivery_date_end: end_dt
-          }
-          |> Craftday.Orders.list_orders!()
+          })
+          |> Ash.read!()
           |> length()
 
         if count >= cap do

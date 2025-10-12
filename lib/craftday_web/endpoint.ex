@@ -49,5 +49,7 @@ defmodule CraftdayWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  # Enable Ecto SQL Sandbox for LiveView tests to share the DB connection
+  # SQL Sandbox plug not needed with LiveViewTest server: false
   plug CraftdayWeb.Router
 end

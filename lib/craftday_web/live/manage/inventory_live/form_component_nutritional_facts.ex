@@ -303,10 +303,14 @@ defmodule CraftdayWeb.InventoryLive.FormComponentNutritionalFacts do
 
   defp build_form(material, actor) do
     material_with_nutritional_facts =
-      Ash.load!(material, [
-        :nutritional_facts,
-        material_nutritional_facts: [:nutritional_fact]
-      ])
+      Ash.load!(
+        material,
+        [
+          :nutritional_facts,
+          material_nutritional_facts: [:nutritional_fact]
+        ],
+        actor: actor
+      )
 
     material_with_nutritional_facts
     |> Form.for_update(:update_nutritional_facts,

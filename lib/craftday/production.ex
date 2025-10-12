@@ -38,7 +38,8 @@ defmodule Craftday.Production do
 
     Orders.list_orders!(
       %{delivery_date_start: start_dt, delivery_date_end: end_dt},
-      load: Keyword.get(opts, :load, default_load)
+      load: Keyword.get(opts, :load, default_load),
+      actor: Keyword.get(opts, :actor)
     )
   end
 
