@@ -245,6 +245,42 @@ defmodule CraftdayWeb.InventoryLive.Show do
     {:noreply, assign(socket, :material, material)}
   end
 
+  @impl true
+  def handle_info({:saved_allergens, material_id}, socket) do
+    material =
+      Inventory.get_material_by_id!(material_id,
+        actor: socket.assigns[:current_user],
+        load: [
+          :current_stock,
+          :movements,
+          :allergens,
+          :material_allergens,
+          :nutritional_facts,
+          material_nutritional_facts: [:nutritional_fact]
+        ]
+      )
+
+    {:noreply, assign(socket, :material, material)}
+  end
+
+  @impl true
+  def handle_info({:saved, %Inventory.Movement{material_id: material_id}}, socket) do
+    material =
+      Inventory.get_material_by_id!(material_id,
+        actor: socket.assigns[:current_user],
+        load: [
+          :current_stock,
+          :movements,
+          :allergens,
+          :material_allergens,
+          :nutritional_facts,
+          material_nutritional_facts: [:nutritional_fact]
+        ]
+      )
+
+    {:noreply, assign(socket, :material, material)}
+  end
+
   defp page_title(:show), do: "Show Material"
   defp page_title(:adjust), do: "Adjust Material"
   defp page_title(:edit), do: "Edit Material"

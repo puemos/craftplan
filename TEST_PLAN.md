@@ -1,11 +1,12 @@
-E2E LiveView Test Plan
+E2E LiveView Interaction Test Plan
 
-This plan covers end-to-end page flows at the LiveView boundary using Phoenix.LiveViewTest only (no browser drivers). It enumerates every LiveView route, the minimum happy-path interactions to verify, and tracks status for each.
+This plan focuses on end-to-end interaction tests at the LiveView boundary using Phoenix.LiveViewTest (no browser drivers). It enumerates key user actions to validate, expected outcomes, and tracks interaction coverage per route.
 
 Scope & Approach
 - Framework: `Phoenix.LiveViewTest` via `CraftdayWeb.ConnCase` and SQL sandbox.
-- Goal: For every LiveView route, assert it renders for the correct role, enforces auth, and exercises one core interaction when applicable.
+- Goal: Validate interactive behaviors (submissions, events, navigation) and outcomes (flashes, patches, stream updates, persisted data).
 - Out of scope: Real browser automation (Playwright/Wallaby/Hound/etc.) and non-LiveView controller pages.
+- Note: Render coverage already exists; this pass prioritizes interactions.
 
 Status Legend
 - TODO — not implemented yet
@@ -13,26 +14,19 @@ Status Legend
 - BLOCKED — waiting on dependency or clarification
 - DONE — implemented and passing
 
-Conventions
-- Public pages: `conn = Plug.Conn.assign(conn, :current_user, nil)`.
-- Staff pages: `conn = Plug.Conn.assign(conn, :current_user, Craftday.DataCase.staff_actor())`.
-- Admin pages: `conn = Plug.Conn.assign(conn, :current_user, Craftday.DataCase.admin_actor())`.
+Conventions (Interactions)
+- Auth: store session via `AshAuthentication.Phoenix.Plug.store_in_session/2`; set `timezone` cookie when views rely on it.
 - Use verified routes `~p"..."` and `live(conn, path, on_error: :warn)`.
-- Seed minimal domain data with Ash resources (using staff/admin actor as required).
-- Cart-backed pages: create a cart and set `conn = init_test_session(conn, %{cart_id: cart.id})`.
-- Place shared helpers in `test/support` as needed (e.g., product/order factories).
+- Prefer element-driven testing: `element/2`, `has_element?/2`, `render_change/2`, `render_submit/2`.
+- Assert navigation with `assert_patch/2`; verify effects with `render/1` and DB reads when needed.
+- Seed minimal resources via Ash (suppliers, materials, customers, products) to satisfy preconditions.
 
 Implementation Phases
-- [DONE] Draft plan and route coverage
-- [TODO] Add common fixtures/helpers in `test/support`
-- [DONE] Cover public LiveViews (fill any gaps)
-- [DONE] Cover admin Settings LiveViews
-- [DONE] Cover Products LiveViews
-- [DONE] Cover Inventory LiveViews
-- [TODO] Cover Orders LiveViews (incl. invoice)
-- [TODO] Cover Purchasing LiveViews
-- [TODO] Cover Customers LiveViews
-- [TODO] Cover Production LiveViews
+- [DONE] Render coverage + minimal flows
+- [DONE] Session helpers and fixtures
+- [IN_PROGRESS] Interaction coverage for staff/admin views
+- [TODO] Edge cases (invalid input, boundary conditions)
+- [TODO] Negative-path auth checks (blocked actions)
 
 File Layout (proposed)
 - `test/craftday_web/public_*_live_test.exs`
@@ -43,175 +37,175 @@ Route Coverage & Status
 
 Public LiveViews (no auth required)
 - /catalog (CraftdayWeb.Public.CatalogLive.Index :index)
-  - Verify: renders list; shows active product name when one exists
-  - Status: DONE (see: test/craftday_web/public_catalog_live_test.exs)
+  - Interactions: navigate to product; verify active products present when seeded
+  - Status: DONE (basic; see: test/craftday_web/public_catalog_live_test.exs)
 - /catalog/:sku (CraftdayWeb.Public.CatalogLive.Show :show)
-  - Verify: renders; submit add-to-cart updates flash
+  - Interactions: add-to-cart updates flash and cart state
   - Status: DONE (see: test/craftday_web/public_catalog_live_test.exs)
 - /cart (CraftdayWeb.Public.CartLive.Index :index)
-  - Verify: renders existing cart; quantity update persists
+  - Interactions: change quantity; remove item; clear cart via controller
   - Status: DONE (see: test/craftday_web/public_cart_live_test.exs)
 - /checkout (CraftdayWeb.Public.CheckoutLive.Index :index)
-  - Verify: checkout form submission places order; clears cart feedback
+  - Interactions: submit checkout (creates order), clears cart, flash shown
   - Status: DONE (see: test/craftday_web/public_checkout_live_test.exs)
 
 Admin Settings (admin only)
 - /manage/settings (CraftdayWeb.SettingsLive.Index :index)
-  - Verify: renders for admin; unauthenticated redirects to /sign-in
-  - Status: DONE (see: test/craftday_web/manage_settings_live_test.exs)
+  - Interactions: update general settings; flash + persistence
+  - Status: TODO (render covered; see: test/craftday_web/manage_settings_live_test.exs)
 - /manage/settings/general (SettingsLive.Index :general)
-  - Verify: renders tab; basic save interaction if present
-  - Status: DONE (see: test/craftday_web/manage_settings_live_test.exs)
+  - Interactions: submit general form; assert patch + values updated
+  - Status: TODO (render covered)
 - /manage/settings/allergens (SettingsLive.Index :allergens)
-  - Verify: renders allergens UI; basic update interaction
-  - Status: DONE (see: test/craftday_web/manage_settings_live_test.exs)
+  - Interactions: add allergen; delete allergen; list refreshes
+  - Status: TODO (render covered)
 - /manage/settings/nutritional_facts (SettingsLive.Index :nutritional_facts)
-  - Verify: renders nutrition settings; basic update interaction
-  - Status: DONE (see: test/craftday_web/manage_settings_live_test.exs)
+  - Interactions: add nutritional fact; delete; list refreshes
+  - Status: TODO (render covered)
 
 Products (staff/admin)
 - /manage/products (ProductLive.Index :index)
-  - Verify: renders list; unauthenticated redirects (covered generically); minimal filter/search if present
-  - Status: DONE (see: test/craftday_web/manage_products_live_test.exs)
+  - Interactions: delete product (stream delete + flash); row click navigates to show
+  - Status: TODO (render covered; see: test/craftday_web/manage_products_live_test.exs)
 - /manage/products/new (ProductLive.Index :new)
-  - Verify: new product form shows; create minimal product
+  - Interactions: create product (form submit + stream insert)
   - Status: DONE (see: test/craftday_web/manage_products_live_test.exs)
 - /manage/products/:sku (ProductLive.Show :show)
-  - Verify: loads product; shows key details
-  - Status: DONE (see: test/craftday_web/manage_products_live_test.exs)
+  - Interactions: change status via select; flash + persistence
+  - Status: TODO (render covered)
 - /manage/products/:sku/details (ProductLive.Show :details)
-  - Verify: details tab renders
-  - Status: DONE (see: test/craftday_web/manage_products_live_test.exs)
+  - Interactions: edit via modal; save updates details
+  - Status: TODO (render covered)
 - /manage/products/:sku/recipe (ProductLive.Show :recipe)
-  - Verify: recipe tab renders; add an ingredient if present
-  - Status: DONE (render only; see: test/craftday_web/manage_products_live_test.exs)
+  - Interactions: add material to recipe; remove row; totals reflect quantity
+  - Status: TODO (render covered)
 - /manage/products/:sku/nutrition (ProductLive.Show :nutrition)
-  - Verify: nutrition tab renders; update if present
-  - Status: DONE (see: test/craftday_web/manage_products_live_test.exs)
+  - Interactions: derived from recipe; verify after recipe changes
+  - Status: TODO (tied to recipe interaction)
 - /manage/products/:sku/photos (ProductLive.Show :photos)
-  - Verify: photos tab renders
-  - Status: DONE (see: test/craftday_web/manage_products_live_test.exs)
+  - Interactions: set featured; remove photo (upload interactions optional/mock)
+  - Status: TODO (render covered)
 - /manage/products/:sku/edit (ProductLive.Show :edit)
-  - Verify: edit form renders; submit minimal change
-  - Status: DONE (render only; see: test/craftday_web/manage_products_live_test.exs)
+  - Interactions: submit edit form; assert patch + flash
+  - Status: TODO (render covered)
 
 Inventory (staff/admin)
 - /manage/inventory (InventoryLive.Index :index)
-  - Verify: renders list; minimal filter/search if present
-  - Status: DONE (see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: delete material (stream delete + flash); row click navigates to show
+  - Status: TODO (render covered; see: test/craftday_web/manage_inventory_live_test.exs)
 - /manage/inventory/forecast (InventoryLive.Index :forecast)
-  - Verify: forecast tab renders
-  - Status: DONE (covered by index render with tabs)
+  - Interactions: change week via controls; assert updates
+  - Status: TODO (render covered)
 - /manage/inventory/new (InventoryLive.Index :new)
-  - Verify: new material form renders; create minimal material
+  - Interactions: create material (form submit + stream insert)
   - Status: DONE (see: test/craftday_web/manage_inventory_live_test.exs)
 - /manage/inventory/:sku (InventoryLive.Show :show)
-  - Verify: shows material/product inventory
-  - Status: DONE (see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: from show, navigate to edit and save minimal change
+  - Status: TODO (render covered)
 - /manage/inventory/:sku/details (InventoryLive.Show :details)
-  - Verify: details tab renders
-  - Status: DONE (see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: none (summary)
+  - Status: N/A
 - /manage/inventory/:sku/allergens (InventoryLive.Show :allergens)
-  - Verify: allergens tab renders; basic update
-  - Status: DONE (render only; see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: select allergens and save (flash + reload)
+  - Status: TODO (render covered)
 - /manage/inventory/:sku/nutritional_facts (InventoryLive.Show :nutritional_facts)
-  - Verify: nutrition tab renders; basic update
-  - Status: DONE (render only; see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: add fact; remove fact; save (flash + reload)
+  - Status: TODO (render covered)
 - /manage/inventory/:sku/stock (InventoryLive.Show :stock)
-  - Verify: stock tab renders
-  - Status: DONE (see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: none (read-only)
+  - Status: N/A
 - /manage/inventory/:sku/edit (InventoryLive.Show :edit)
-  - Verify: edit form renders; submit minimal change
-  - Status: DONE (render only; see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: submit edit form; assert patch + flash
+  - Status: TODO (render covered)
 - /manage/inventory/:sku/adjust (InventoryLive.Show :adjust)
-  - Verify: adjustment form renders; submit minimal adjustment
-  - Status: DONE (render only; see: test/craftday_web/manage_inventory_live_test.exs)
+  - Interactions: submit add/subtract/set_total; verify stock changes and flash
+  - Status: TODO (render covered)
 
 Orders (staff/admin)
 - /manage/orders (OrderLive.Index :index)
-  - Verify: renders list; unauthenticated redirects (generic coverage exists)
-  - Status: DONE (see: test/craftday_web/manage_orders_live_test.exs)
+  - Interactions: switch views (table/calendar); prev/next/today; apply filters; open/close event modal
+  - Status: TODO (render covered; see: test/craftday_web/manage_orders_live_test.exs)
 - /manage/orders/new (OrderLive.Index :new)
-  - Verify: new order form renders; create minimal order
-  - Status: DONE (render only; see: test/craftday_web/manage_orders_live_test.exs)
+  - Interactions: add product row; change quantity; submit order; stream insert + flash
+  - Status: TODO (render covered)
 - /manage/orders/:reference (OrderLive.Show :show)
-  - Verify: shows order header
-  - Status: DONE (see: test/craftday_web/manage_orders_live_test.exs)
+  - Interactions: none (summary)
+  - Status: N/A
 - /manage/orders/:reference/details (OrderLive.Show :details)
-  - Verify: details tab renders; edit detail
-  - Status: DONE (render only; see: test/craftday_web/manage_orders_live_test.exs)
+  - Interactions: edit order (modal); save; flash + persistence
+  - Status: TODO (render covered)
 - /manage/orders/:reference/items (OrderLive.Show :items)
-  - Verify: items tab renders; add/remove line item
-  - Status: DONE (render only; see: test/craftday_web/manage_orders_live_test.exs)
+  - Interactions: change item status to done; assert consume confirmation modal; confirm consume; flash + stock changes
+  - Status: TODO (render covered)
 - /manage/orders/:reference/edit (OrderLive.Show :edit)
-  - Verify: edit form renders; submit minimal change
-  - Status: DONE (render only; see: test/craftday_web/manage_orders_live_test.exs)
+  - Interactions: submit edit; patch + flash
+  - Status: TODO (render covered)
 - /manage/orders/:reference/invoice (OrderLive.Invoice :show)
-  - Verify: invoice renders
-  - Status: DONE (see: test/craftday_web/manage_orders_live_test.exs)
+  - Interactions: none (read-only)
+  - Status: N/A
 
 Purchasing (staff/admin)
 - /manage/purchasing (PurchasingLive.Index :index)
-  - Verify: renders list
-  - Status: DONE (see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: receive PO (button click) updates status + inventory; flash
+  - Status: TODO (render covered; see: test/craftday_web/manage_purchasing_live_test.exs)
 - /manage/purchasing/new (PurchasingLive.Index :new)
-  - Verify: new PO form renders; create minimal PO
-  - Status: DONE (render only; see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: create PO (form submit + flash + appears in list)
+  - Status: TODO (render covered)
 - /manage/purchasing/suppliers (PurchasingLive.Suppliers :index)
-  - Verify: suppliers list renders
-  - Status: DONE (see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: navigate to edit on row click
+  - Status: TODO (render covered)
 - /manage/purchasing/suppliers/new (PurchasingLive.Suppliers :new)
-  - Verify: new supplier form; create minimal supplier
-  - Status: DONE (render only; see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: create supplier (form submit + flash)
+  - Status: TODO (render covered)
 - /manage/purchasing/suppliers/:id/edit (PurchasingLive.Suppliers :edit)
-  - Verify: edit supplier form
-  - Status: DONE (render only; see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: edit supplier and save (flash)
+  - Status: TODO (render covered)
 - /manage/purchasing/:po_ref/items (PurchasingLive.Show :items)
-  - Verify: PO items tab; add item
-  - Status: DONE (render only; see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: add PO item; verify table updates; flash + modal close
+  - Status: TODO (render covered)
 - /manage/purchasing/:po_ref (PurchasingLive.Show :show)
-  - Verify: PO summary renders
-  - Status: DONE (see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: mark received; redirect back with status updated
+  - Status: TODO (render covered)
 - /manage/purchasing/:po_ref/add_item (PurchasingLive.Show :add_item)
-  - Verify: add-item screen renders
-  - Status: DONE (render only; see: test/craftday_web/manage_purchasing_live_test.exs)
+  - Interactions: add item form submit
+  - Status: TODO (render covered)
 
 Customers (staff/admin)
 - /manage/customers (CustomerLive.Index :index)
-  - Verify: renders list
-  - Status: DONE (see: test/craftday_web/manage_customers_live_test.exs)
+  - Interactions: navigate to show on row click
+  - Status: TODO (render covered; see: test/craftday_web/manage_customers_live_test.exs)
 - /manage/customers/new (CustomerLive.Index :new)
-  - Verify: new customer form; create minimal customer
-  - Status: DONE (render only; see: test/craftday_web/manage_customers_live_test.exs)
+  - Interactions: create customer (form submit + stream insert)
+  - Status: TODO (render covered)
 - /manage/customers/:reference (CustomerLive.Show :show)
-  - Verify: customer details render
-  - Status: DONE (see: test/craftday_web/manage_customers_live_test.exs)
+  - Interactions: none (summary)
+  - Status: N/A
 - /manage/customers/:reference/details (CustomerLive.Show :details)
-  - Verify: details tab renders
-  - Status: DONE (see: test/craftday_web/manage_customers_live_test.exs)
+  - Interactions: none (summary)
+  - Status: N/A
 - /manage/customers/:reference/orders (CustomerLive.Show :orders)
-  - Verify: orders tab renders
-  - Status: DONE (see: test/craftday_web/manage_customers_live_test.exs)
+  - Interactions: click "New Order" navigates to orders/new with customer
+  - Status: TODO (render covered)
 - /manage/customers/:reference/statistics (CustomerLive.Show :statistics)
-  - Verify: statistics tab renders
-  - Status: DONE (see: test/craftday_web/manage_customers_live_test.exs)
+  - Interactions: none (summary)
+  - Status: N/A
 - /manage/customers/:reference/edit (CustomerLive.Index :edit)
-  - Verify: edit form renders; submit minimal change
-  - Status: DONE (render only; see: test/craftday_web/manage_customers_live_test.exs)
+  - Interactions: submit edit; assert patch + flash
+  - Status: TODO (render covered)
 
 Production (staff/admin)
 - /manage/production (PlanLive.Index :index)
-  - Verify: schedule/plan overview renders
-  - Status: DONE (see: test/craftday_web/manage_production_live_test.exs)
+  - Interactions: table links navigate; metrics reflect seeds
+  - Status: TODO (render covered; see: test/craftday_web/manage_production_live_test.exs)
 - /manage/production/schedule (PlanLive.Index :schedule)
-  - Verify: schedule tab renders
-  - Status: DONE (see: test/craftday_web/manage_production_live_test.exs)
+  - Interactions: change schedule view (week/day); prev/next/today update
+  - Status: TODO (render covered)
 - /manage/production/make_sheet (PlanLive.Index :make_sheet)
-  - Verify: make sheet tab renders
-  - Status: DONE (see: test/craftday_web/manage_production_live_test.exs)
+  - Interactions: "Consume All Completed" performs consumption (flash)
+  - Status: TODO (render covered)
 - /manage/production/materials (PlanLive.Index :materials)
-  - Verify: materials tab renders
-  - Status: DONE (see: test/craftday_web/manage_production_live_test.exs)
+  - Interactions: open material details modal; verify quantities
+  - Status: TODO (render covered)
 
 Notes & Risks
 - Role enforcement is implemented via `CraftdayWeb.LiveUserAuth` `on_mount`; tests set `:current_user` on the conn to satisfy guards.
@@ -220,4 +214,10 @@ Notes & Risks
 
 Execution
 - Run all: `mix test`.
-- Run subset: `mix test test/craftday_web/manage_products_live_test.exs` (or specific file).
+- Run subset by area while iterating on interactions:
+  - Products: `mix test test/craftday_web/manage_products_live_test.exs`
+  - Inventory: `mix test test/craftday_web/manage_inventory_live_test.exs`
+  - Orders: `mix test test/craftday_web/manage_orders_live_test.exs`
+  - Purchasing: `mix test test/craftday_web/manage_purchasing_live_test.exs`
+  - Customers: `mix test test/craftday_web/manage_customers_live_test.exs`
+  - Production: `mix test test/craftday_web/manage_production_live_test.exs`
