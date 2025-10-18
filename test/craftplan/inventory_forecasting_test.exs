@@ -7,10 +7,6 @@ defmodule Craftplan.InventoryForecastingTest do
   alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
   defp material!(name) do
     Material
     |> Ash.Changeset.for_create(:create, %{
@@ -21,7 +17,7 @@ defmodule Craftplan.InventoryForecastingTest do
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp product_with_recipe!(m1, m2) do
@@ -33,7 +29,7 @@ defmodule Craftplan.InventoryForecastingTest do
         price: Decimal.new("3.00"),
         status: :active
       })
-      |> Ash.create!(actor: staff_user!())
+      |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
 
     _recipe =
       Recipe
@@ -65,7 +61,7 @@ defmodule Craftplan.InventoryForecastingTest do
       delivery_date: dt,
       items: [%{"product_id" => product.id, "quantity" => qty, "unit_price" => product.price}]
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   test "prepare_materials_requirements aggregates by day and material" do
@@ -81,7 +77,7 @@ defmodule Craftplan.InventoryForecastingTest do
     _o2 = order!(p, dt2, 3)
 
     days_range = [today, Date.add(today, 1)]
-    reqs = InventoryForecasting.prepare_materials_requirements(days_range, staff_user!())
+    reqs = InventoryForecasting.prepare_materials_requirements(days_range, Craftplan.DataCase.staff_actor())
 
     # Expect two materials
     assert length(reqs) == 2

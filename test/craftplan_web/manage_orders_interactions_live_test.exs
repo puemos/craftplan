@@ -6,17 +6,6 @@ defmodule CraftplanWeb.ManageOrdersInteractionsLiveTest do
   alias Craftplan.Catalog.Product
   alias Craftplan.CRM.Customer
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
   defp create_product! do
     Product
     |> Ash.Changeset.for_create(:create, %{
@@ -25,7 +14,7 @@ defmodule CraftplanWeb.ManageOrdersInteractionsLiveTest do
       price: Decimal.new("4.50"),
       status: :active
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp create_customer! do
@@ -39,8 +28,8 @@ defmodule CraftplanWeb.ManageOrdersInteractionsLiveTest do
     |> Ash.create!()
   end
 
+  @tag role: :staff
   test "orders index switch to calendar and today", %{conn: conn} do
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/orders")
 
     # Switch to calendar via tab link
@@ -58,11 +47,11 @@ defmodule CraftplanWeb.ManageOrdersInteractionsLiveTest do
     assert render(view)
   end
 
+  @tag role: :staff
   test "create new order with one item", %{conn: conn} do
     product = create_product!()
     customer = create_customer!()
 
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/orders/new")
 
     params = %{

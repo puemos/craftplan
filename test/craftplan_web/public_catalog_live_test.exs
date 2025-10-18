@@ -3,30 +3,13 @@ defmodule CraftplanWeb.PublicCatalogLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias Craftplan.Accounts.User
   alias Craftplan.Catalog.Product
-
-  defp staff_user! do
-    User
-    |> Ash.Changeset.for_create(:register_with_password, %{
-      email: "staff+test@ex.com",
-      password: "Passw0rd!!",
-      password_confirmation: "Passw0rd!!",
-      role: :staff
-    })
-    |> Ash.create!(
-      context: %{
-        strategy: AshAuthentication.Strategy.Password,
-        private: %{ash_authentication?: true}
-      }
-    )
-  end
 
   defp create_product!(attrs \\ %{}) do
     sku = attrs[:sku] || Base.encode16("SKU-" <> :crypto.strong_rand_bytes(4), case: :lower)
     name = attrs[:name] || "Test Product"
     price = attrs[:price] || Decimal.new("12.34")
-    staff = staff_user!()
+    staff = Craftplan.DataCase.staff_actor()
 
     Product
     |> Ash.Changeset.for_create(:create, %{name: name, sku: sku, status: :active, price: price})
