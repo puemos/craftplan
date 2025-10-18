@@ -7,22 +7,12 @@ defmodule CraftplanWeb.PurchasingLive.Index do
 
   @impl true
   def render(assigns) do
-    ~H"""
-    <.header>
-      <.breadcrumb>
-        <:crumb label="Purchasing" path={~p"/manage/purchasing"} current?={false} />
-        <:crumb label="Purchase Orders" path={~p"/manage/purchasing"} current?={true} />
-      </.breadcrumb>
-      <:actions>
-        <.link :if={@live_action == :index} patch={~p"/manage/purchasing/new"}>
-          <.button variant={:primary}>New Purchase Order</.button>
-        </.link>
-        <.link navigate={~p"/manage/purchasing/suppliers"}>
-          <.button variant={:outline}>Suppliers</.button>
-        </.link>
-      </:actions>
-    </.header>
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
 
+    ~H"""
     <div class="mt-4">
       <.table id="purchase-orders" rows={@purchase_orders}>
         <:col :let={po} label="Reference">
@@ -100,7 +90,8 @@ defmodule CraftplanWeb.PurchasingLive.Index do
        selected_po: nil,
        purchasing_tab: :purchase_orders
      )
-     |> assign(:nav_sub_links, purchasing_sub_links(:purchase_orders))}
+     |> assign(:nav_sub_links, purchasing_sub_links(:purchase_orders))
+     |> assign(:breadcrumbs, purchasing_breadcrumbs(%{live_action: :index}))}
   end
 
   @impl true
@@ -122,7 +113,7 @@ defmodule CraftplanWeb.PurchasingLive.Index do
           assign(socket, :selected_po, nil)
       end
 
-    {:noreply, socket}
+    {:noreply, assign(socket, :breadcrumbs, purchasing_breadcrumbs(socket.assigns))}
   end
 
   @impl true
@@ -154,6 +145,30 @@ defmodule CraftplanWeb.PurchasingLive.Index do
       }
     ]
   end
+
+  defp purchasing_breadcrumbs(%{live_action: :index}) do
+    [
+      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: true}
+    ]
+  end
+
+  defp purchasing_breadcrumbs(%{live_action: :new}) do
+    [
+      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
+      %{label: "New Purchase Order", path: ~p"/manage/purchasing/new", current?: true}
+    ]
+  end
+
+  defp purchasing_breadcrumbs(%{live_action: :add_item, selected_po: %{} = po}) do
+    [
+      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
+      %{label: po.reference, path: ~p"/manage/purchasing/#{po.reference}", current?: true}
+    ]
+  end
+
+  defp purchasing_breadcrumbs(%{live_action: :add_item}), do: purchasing_breadcrumbs(%{live_action: :index})
+
+  defp purchasing_breadcrumbs(_), do: purchasing_breadcrumbs(%{live_action: :index})
 
   @impl true
   def handle_info({:po_item_saved, _item}, socket) do

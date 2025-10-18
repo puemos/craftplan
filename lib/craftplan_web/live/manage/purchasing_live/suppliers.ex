@@ -6,19 +6,12 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
 
   @impl true
   def render(assigns) do
-    ~H"""
-    <.header>
-      <.breadcrumb>
-        <:crumb label="Purchasing" path={~p"/manage/purchasing"} current?={false} />
-        <:crumb label="Suppliers" path={~p"/manage/purchasing/suppliers"} current?={true} />
-      </.breadcrumb>
-      <:actions>
-        <.link :if={@live_action == :index} patch={~p"/manage/purchasing/suppliers/new"}>
-          <.button variant={:primary}>New Supplier</.button>
-        </.link>
-      </:actions>
-    </.header>
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
 
+    ~H"""
     <div class="mt-4">
       <.table
         id="suppliers"
@@ -62,7 +55,8 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
     {:ok,
      socket
      |> assign(suppliers: suppliers, supplier: nil, purchasing_tab: :suppliers)
-     |> assign(:nav_sub_links, purchasing_sub_links(:suppliers))}
+     |> assign(:nav_sub_links, purchasing_sub_links(:suppliers))
+     |> assign(:breadcrumbs, suppliers_breadcrumbs(%{live_action: :index}))}
   end
 
   @impl true
@@ -82,7 +76,7 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
           assign(socket, :supplier, nil)
       end
 
-    {:noreply, socket}
+    {:noreply, assign(socket, :breadcrumbs, suppliers_breadcrumbs(socket.assigns))}
   end
 
   @impl true
@@ -108,4 +102,35 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
       }
     ]
   end
+
+  defp suppliers_breadcrumbs(%{live_action: :index}) do
+    [
+      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
+      %{label: "Suppliers", path: ~p"/manage/purchasing/suppliers", current?: true}
+    ]
+  end
+
+  defp suppliers_breadcrumbs(%{live_action: :new}) do
+    [
+      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
+      %{label: "Suppliers", path: ~p"/manage/purchasing/suppliers", current?: false},
+      %{label: "New Supplier", path: ~p"/manage/purchasing/suppliers/new", current?: true}
+    ]
+  end
+
+  defp suppliers_breadcrumbs(%{live_action: :edit, supplier: %{} = supplier}) do
+    [
+      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
+      %{label: "Suppliers", path: ~p"/manage/purchasing/suppliers", current?: false},
+      %{
+        label: supplier.name,
+        path: ~p"/manage/purchasing/suppliers/#{supplier.id}/edit",
+        current?: true
+      }
+    ]
+  end
+
+  defp suppliers_breadcrumbs(%{live_action: :edit}), do: suppliers_breadcrumbs(%{live_action: :new})
+
+  defp suppliers_breadcrumbs(_), do: suppliers_breadcrumbs(%{live_action: :index})
 end

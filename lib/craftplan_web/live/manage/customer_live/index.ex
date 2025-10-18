@@ -6,15 +6,8 @@ defmodule CraftplanWeb.CustomerLive.Index do
   def render(assigns) do
     ~H"""
     <.header>
-      <.breadcrumb>
-        <:crumb label="All Customers" path={~p"/manage/customers"} current?={true} />
-      </.breadcrumb>
-
-      <:actions>
-        <.link patch={~p"/manage/customers/new"}>
-          <.button variant={:primary}>New Customer</.button>
-        </.link>
-      </:actions>
+      Customers
+      <:subtitle>Manage your customer records</:subtitle>
     </.header>
 
     <.table
@@ -68,6 +61,9 @@ defmodule CraftplanWeb.CustomerLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
+     |> assign(:breadcrumbs, [
+       %{label: "Customers", path: ~p"/manage/customers", current?: true}
+     ])
      |> stream(
        :customers,
        Ash.read!(Craftplan.CRM.Customer,

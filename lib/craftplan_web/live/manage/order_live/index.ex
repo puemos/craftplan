@@ -32,20 +32,16 @@ defmodule CraftplanWeb.OrderLive.Index do
 
   @impl true
   def render(assigns) do
-    assigns = assign_new(assigns, :calendar_event_duration, fn -> @calendar_event_duration end)
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
+      |> assign_new(:calendar_event_duration, fn -> @calendar_event_duration end)
 
     ~H"""
     <.header>
-      <.breadcrumb>
-        <:crumb label="All Orders" path={~p"/manage/orders"} current?={true} />
-      </.breadcrumb>
-      <:actions>
-        <.link patch={~p"/manage/orders/new"}>
-          <.button variant={:primary}>New Order</.button>
-        </.link>
-      </:actions>
+      Orders
     </.header>
-
     <form id="filters-form" phx-change="apply_filters" class="mb-6">
       <div class="flex w-full space-x-4">
         <.input
@@ -457,8 +453,9 @@ defmodule CraftplanWeb.OrderLive.Index do
       |> assign(:calendar_events, calendar_events)
       |> assign(:days_range, days_range)
       |> assign(:nav_sub_links, nav_sub_links)
+      |> apply_action(socket.assigns.live_action, params)
 
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    {:noreply, assign(socket, :breadcrumbs, order_breadcrumbs(socket.assigns))}
   end
 
   @impl true
@@ -679,6 +676,21 @@ defmodule CraftplanWeb.OrderLive.Index do
     |> assign(:page_title, "Orders")
     |> assign(:order, nil)
   end
+
+  defp order_breadcrumbs(%{live_action: :new}) do
+    [
+      %{label: "Orders", path: ~p"/manage/orders", current?: false},
+      %{label: "New Order", path: ~p"/manage/orders/new", current?: true}
+    ]
+  end
+
+  defp order_breadcrumbs(%{live_action: :index}) do
+    [
+      %{label: "Orders", path: ~p"/manage/orders", current?: true}
+    ]
+  end
+
+  defp order_breadcrumbs(_), do: order_breadcrumbs(%{live_action: :index})
 
   @spec parse_filters(map()) :: filter_options()
   defp parse_filters(filters) do

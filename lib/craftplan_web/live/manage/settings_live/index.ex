@@ -7,16 +7,15 @@ defmodule CraftplanWeb.SettingsLive.Index do
 
   @impl true
   def render(assigns) do
-    ~H"""
-    <.header>
-      <.breadcrumb>
-        <:crumb label="Settings" path={~p"/manage/settings"} current?={true} />
-      </.breadcrumb>
-    </.header>
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
 
+    ~H"""
     <div class="mt-4 space-y-6">
       <div :if={@live_action in [:general, :index]}>
-        <div class="max-w-lg">
+        <div class="max-w-lg rounded-md border border-gray-200 bg-white p-4">
           <.live_component
             module={CraftplanWeb.SettingsLive.FormComponent}
             id="settings-form"
@@ -136,6 +135,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
     socket =
       socket
       |> assign(:nav_sub_links, nav_sub_links)
+      |> assign(:breadcrumbs, settings_breadcrumbs(live_action))
       |> apply_action(live_action, params)
 
     {:noreply, socket}
@@ -193,6 +193,42 @@ defmodule CraftplanWeb.SettingsLive.Index do
       }
     ]
   end
+
+  defp settings_breadcrumbs(:index) do
+    [
+      %{label: "Settings", path: ~p"/manage/settings", current?: true}
+    ]
+  end
+
+  defp settings_breadcrumbs(:general) do
+    [
+      %{label: "Settings", path: ~p"/manage/settings", current?: false},
+      %{label: "General Settings", path: ~p"/manage/settings/general", current?: true}
+    ]
+  end
+
+  defp settings_breadcrumbs(:allergens) do
+    [
+      %{label: "Settings", path: ~p"/manage/settings", current?: false},
+      %{label: "Allergens", path: ~p"/manage/settings/allergens", current?: true}
+    ]
+  end
+
+  defp settings_breadcrumbs(:nutritional_facts) do
+    [
+      %{label: "Settings", path: ~p"/manage/settings", current?: false},
+      %{label: "Nutritional Facts", path: ~p"/manage/settings/nutritional_facts", current?: true}
+    ]
+  end
+
+  defp settings_breadcrumbs(:csv) do
+    [
+      %{label: "Settings", path: ~p"/manage/settings", current?: false},
+      %{label: "Import & Export", path: ~p"/manage/settings/csv", current?: true}
+    ]
+  end
+
+  defp settings_breadcrumbs(_), do: settings_breadcrumbs(:index)
 
   def handle_event("csv_export", _params, socket) do
     {:noreply, put_flash(socket, :info, "Export started (not yet implemented)")}

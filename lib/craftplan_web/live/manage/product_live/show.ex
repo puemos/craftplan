@@ -6,19 +6,22 @@ defmodule CraftplanWeb.ProductLive.Show do
 
   @impl true
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
+
     ~H"""
     <.header>
-      <.breadcrumb>
-        <:crumb label="All Products" path={~p"/manage/products"} current?={false} />
-        <:crumb label={@product.name} path={~p"/manage/products/#{@product.sku}"} current?={true} />
-      </.breadcrumb>
-
+      {@product.name}
       <:actions>
         <.link patch={~p"/manage/products/#{@product.sku}/edit"} phx-click={JS.push_focus()}>
           <.button variant={:primary}>Edit product</.button>
         </.link>
       </:actions>
     </.header>
+
+    <.sub_nav links={@tabs_links} />
 
     <div class="mt-6 space-y-6">
       <div :if={@live_action in [:details, :show]}>
@@ -162,7 +165,7 @@ defmodule CraftplanWeb.ProductLive.Show do
 
     live_action = socket.assigns.live_action
 
-    nav_sub_links = [
+    tabs_links = [
       %{
         label: "Details",
         navigate: ~p"/manage/products/#{product.sku}/details",
@@ -190,7 +193,8 @@ defmodule CraftplanWeb.ProductLive.Show do
       |> assign(:page_title, page_title(live_action))
       |> assign(:product, product)
       |> assign(:status_form, to_form(%{"status" => product.status}))
-      |> assign(:nav_sub_links, nav_sub_links)
+      |> assign(:tabs_links, tabs_links)
+      |> assign(:breadcrumbs, product_breadcrumbs(product, live_action))
 
     {:noreply, socket}
   end
@@ -276,6 +280,44 @@ defmodule CraftplanWeb.ProductLive.Show do
   defp page_title(:recipe), do: "Product Recipe"
   defp page_title(:details), do: "Product"
   defp page_title(_), do: "Product"
+
+  defp product_breadcrumbs(product, live_action) do
+    base = [
+      %{label: "Products", path: ~p"/manage/products", current?: false},
+      %{
+        label: product.name,
+        path: ~p"/manage/products/#{product.sku}",
+        current?: live_action in [:show, :details]
+      }
+    ]
+
+    case live_action do
+      :recipe ->
+        base ++
+          [
+            %{label: "Recipe", path: ~p"/manage/products/#{product.sku}/recipe", current?: true}
+          ]
+
+      :nutrition ->
+        base ++
+          [
+            %{
+              label: "Nutrition",
+              path: ~p"/manage/products/#{product.sku}/nutrition",
+              current?: true
+            }
+          ]
+
+      :photos ->
+        base ++
+          [
+            %{label: "Photos", path: ~p"/manage/products/#{product.sku}/photos", current?: true}
+          ]
+
+      _ ->
+        List.update_at(base, 1, &Map.put(&1, :current?, true))
+    end
+  end
 
   defp list_available_materials do
     Inventory.list_materials!()

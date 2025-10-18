@@ -7,12 +7,12 @@ defmodule CraftplanWeb.ProductLive.Index do
 
   @impl true
   def render(assigns) do
+    assigns =
+      assign_new(assigns, :breadcrumbs, fn -> [] end)
+
     ~H"""
     <.header>
-      <.breadcrumb>
-        <:crumb label="All Products" path={~p"/manage/products"} current?={true} />
-      </.breadcrumb>
-
+      Products
       <:actions>
         <.link patch={~p"/manage/products/new"}>
           <.button variant={:primary}>New Product</.button>
@@ -114,7 +114,14 @@ defmodule CraftplanWeb.ProductLive.Index do
         load: [:materials_cost, :markup_percentage, :gross_profit]
       )
 
-    {:ok, stream(socket, :products, products)}
+    socket =
+      socket
+      |> assign(:breadcrumbs, [
+        %{label: "Products", path: ~p"/manage/products", current?: true}
+      ])
+      |> stream(:products, products)
+
+    {:ok, socket}
   end
 
   @impl true

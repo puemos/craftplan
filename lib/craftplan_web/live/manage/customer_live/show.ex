@@ -6,25 +6,17 @@ defmodule CraftplanWeb.CustomerLive.Show do
 
   @impl true
   def render(assigns) do
+    assigns =
+      assign_new(assigns, :breadcrumbs, fn -> [] end)
+
     ~H"""
     <.header>
-      <.breadcrumb>
-        <:crumb label="All Customers" path={~p"/manage/customers"} current?={false} />
-        <:crumb
-          label={"#{@customer.full_name}"}
-          path={~p"/manage/customers/#{@customer.reference}"}
-          current?={true}
-        />
-      </.breadcrumb>
-
-      <:actions>
-        <.link patch={~p"/manage/customers/#{@customer.reference}/edit"}>
-          <.button variant={:primary}>Edit customer</.button>
-        </.link>
-      </:actions>
+      {@customer.full_name}
     </.header>
 
-    <div class="mt-4 space-y-6">
+    <.sub_nav links={@tabs_links} />
+
+    <div class="p mt-4 space-y-6">
       <div :if={@live_action in [:details, :show]}>
         <div class="mt-8 space-y-8">
           <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -118,7 +110,7 @@ defmodule CraftplanWeb.CustomerLive.Show do
 
     live_action = socket.assigns.live_action
 
-    nav_sub_links = [
+    tabs_links = [
       %{
         label: "Details",
         navigate: ~p"/manage/customers/#{customer.reference}/details",
@@ -140,11 +132,48 @@ defmodule CraftplanWeb.CustomerLive.Show do
      socket
      |> assign(:page_title, page_title(live_action))
      |> assign(:customer, customer)
-     |> assign(:nav_sub_links, nav_sub_links)}
+     |> assign(:tabs_links, tabs_links)
+     |> assign(:breadcrumbs, customer_breadcrumbs(customer, live_action))}
   end
 
   defp page_title(:show), do: "Customer Details"
   defp page_title(:details), do: "Customer Details"
   defp page_title(:orders), do: "Customer Orders"
   defp page_title(:statistics), do: "Customer Statistics"
+
+  defp customer_breadcrumbs(customer, live_action) do
+    base = [
+      %{label: "Customers", path: ~p"/manage/customers", current?: false},
+      %{
+        label: customer.full_name,
+        path: ~p"/manage/customers/#{customer.reference}",
+        current?: live_action in [:show, :details]
+      }
+    ]
+
+    case live_action do
+      :orders ->
+        base ++
+          [
+            %{
+              label: "Orders",
+              path: ~p"/manage/customers/#{customer.reference}/orders",
+              current?: true
+            }
+          ]
+
+      :statistics ->
+        base ++
+          [
+            %{
+              label: "Statistics",
+              path: ~p"/manage/customers/#{customer.reference}/statistics",
+              current?: true
+            }
+          ]
+
+      _ ->
+        List.update_at(base, 1, &Map.put(&1, :current?, true))
+    end
+  end
 end

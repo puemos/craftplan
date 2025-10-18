@@ -7,25 +7,23 @@ defmodule CraftplanWeb.PurchasingLive.Show do
 
   @impl true
   def render(assigns) do
+    assigns =
+      assign_new(assigns, :breadcrumbs, fn -> [] end)
+
     ~H"""
-    <.header>
-      <.breadcrumb>
-        <:crumb label="Purchasing" path={~p"/manage/purchasing"} current?={false} />
-        <:crumb label={@po.reference} path={~p"/manage/purchasing/#{@po.reference}"} current?={true} />
-      </.breadcrumb>
-      <:actions>
-        <.link patch={~p"/manage/purchasing/#{@po.reference}/add_item"}>
-          <.button variant={:outline}>Add Item</.button>
-        </.link>
-        <.link :if={@po.status != :received} phx-click={JS.push("receive", value: %{id: @po.id})}>
-          <.button variant={:primary}>Mark Received</.button>
-        </.link>
-      </:actions>
-    </.header>
+    <.sub_nav links={@tabs_links} />
 
     <div class="mt-4 space-y-4">
       <%= if @live_action == :show do %>
         <.list>
+          <:item title="Actions">
+            <.link patch={~p"/manage/purchasing/#{@po.reference}/add_item"}>
+              <.button size={:sm} variant={:outline}>Add Item</.button>
+            </.link>
+            <.link :if={@po.status != :received} phx-click={JS.push("receive", value: %{id: @po.id})}>
+              <.button size={:sm} variant={:primary}>Mark Received</.button>
+            </.link>
+          </:item>
           <:item title="Reference">
             <.kbd>{@po.reference}</.kbd>
           </:item>
@@ -97,7 +95,7 @@ defmodule CraftplanWeb.PurchasingLive.Show do
       {:ok, po} ->
         live_action = socket.assigns.live_action
 
-        nav_sub_links = [
+        tabs_links = [
           %{
             label: "Overview",
             navigate: ~p"/manage/purchasing/#{po.reference}",
@@ -110,10 +108,25 @@ defmodule CraftplanWeb.PurchasingLive.Show do
           }
         ]
 
+        nav_sub_links = [
+          %{
+            label: "Purchase Orders",
+            navigate: ~p"/manage/purchasing",
+            active: false
+          },
+          %{
+            label: "Suppliers",
+            navigate: ~p"/manage/purchasing/suppliers",
+            active: false
+          }
+        ]
+
         {:noreply,
          socket
          |> assign(:po, po)
-         |> assign(:nav_sub_links, nav_sub_links)}
+         |> assign(:nav_sub_links, nav_sub_links)
+         |> assign(:tabs_links, tabs_links)
+         |> assign(:breadcrumbs, purchasing_po_breadcrumbs(po, live_action))}
 
       {:error, _} ->
         {:noreply,
@@ -142,5 +155,36 @@ defmodule CraftplanWeb.PurchasingLive.Show do
      |> assign(:po, po)
      |> put_flash(:info, "Item added to PO")
      |> push_event("close-modal", %{id: "po-item-modal"})}
+  end
+
+  defp purchasing_po_breadcrumbs(po, live_action) do
+    base = [
+      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
+      %{label: "Orders", path: ~p"/manage/purchasing", current?: false},
+      %{
+        label: po.reference,
+        path: ~p"/manage/purchasing/#{po.reference}",
+        current?: live_action == :show
+      }
+    ]
+
+    case live_action do
+      :items ->
+        base ++
+          [%{label: "Items", path: ~p"/manage/purchasing/#{po.reference}/items", current?: true}]
+
+      :add_item ->
+        base ++
+          [
+            %{
+              label: "Add Item",
+              path: ~p"/manage/purchasing/#{po.reference}/add_item",
+              current?: true
+            }
+          ]
+
+      _ ->
+        List.update_at(base, 1, &Map.put(&1, :current?, true))
+    end
   end
 end

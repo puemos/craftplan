@@ -6,26 +6,25 @@ defmodule CraftplanWeb.InventoryLive.Show do
 
   @impl true
   def render(assigns) do
-    ~H"""
-    <.header>
-      <.breadcrumb>
-        <:crumb label="Inventory" path={~p"/manage/inventory"} current?={false} />
-        <:crumb label={@material.name} path={~p"/manage/inventory/#{@material.sku}"} current?={true} />
-      </.breadcrumb>
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
 
-      <:actions>
-        <.link patch={~p"/manage/inventory/#{@material.sku}/adjust"} phx-click={JS.push_focus()}>
-          <.button variant={:primary}>Adjust Stock</.button>
-        </.link>
-        <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
-          <.button variant={:primary}>Edit</.button>
-        </.link>
-      </:actions>
-    </.header>
+    ~H"""
+    <.sub_nav links={@nav_sub_links} />
 
     <div class="mt-4 space-y-6">
       <div :if={@live_action in [:details, :show]}>
         <.list>
+          <:item title="Actions">
+            <.link patch={~p"/manage/inventory/#{@material.sku}/adjust"} phx-click={JS.push_focus()}>
+              <.button size={:sm} variant={:primary}>Adjust Stock</.button>
+            </.link>
+            <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
+              <.button size={:sm} variant={:primary}>Edit</.button>
+            </.link>
+          </:item>
           <:item title="Name">{@material.name}</:item>
           <:item title="SKU">
             <.kbd>
@@ -232,7 +231,8 @@ defmodule CraftplanWeb.InventoryLive.Show do
      |> assign(:page_title, page_title(live_action))
      |> assign(:material, material)
      |> assign(:open_po_items, open_po_items)
-     |> assign(:nav_sub_links, nav_sub_links)}
+     |> assign(:nav_sub_links, nav_sub_links)
+     |> assign(:breadcrumbs, material_breadcrumbs(material, live_action))}
   end
 
   # helper functions removed; calls now pass actor explicitly in mount
@@ -316,4 +316,50 @@ defmodule CraftplanWeb.InventoryLive.Show do
   defp page_title(:allergens), do: "Material Allergens"
   defp page_title(:nutritional_facts), do: "Material Nutrition"
   defp page_title(:stock), do: "Material Stock"
+
+  defp material_breadcrumbs(material, live_action) do
+    base = [
+      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
+      %{
+        label: material.name,
+        path: ~p"/manage/inventory/#{material.sku}",
+        current?: live_action in [:show, :details]
+      }
+    ]
+
+    case live_action do
+      :allergens ->
+        base ++
+          [
+            %{
+              label: "Allergens",
+              path: ~p"/manage/inventory/#{material.sku}/allergens",
+              current?: true
+            }
+          ]
+
+      :nutritional_facts ->
+        base ++
+          [
+            %{
+              label: "Nutrition",
+              path: ~p"/manage/inventory/#{material.sku}/nutritional_facts",
+              current?: true
+            }
+          ]
+
+      :stock ->
+        base ++
+          [
+            %{
+              label: "Stock",
+              path: ~p"/manage/inventory/#{material.sku}/stock",
+              current?: true
+            }
+          ]
+
+      _ ->
+        List.update_at(base, 1, &Map.put(&1, :current?, true))
+    end
+  end
 end

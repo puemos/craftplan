@@ -8,18 +8,22 @@ defmodule CraftplanWeb.InventoryLive.Index do
 
   @impl true
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
+
     ~H"""
     <.header>
-      <.breadcrumb>
-        <:crumb label="Inventory" path={~p"/manage/inventory"} current?={true} />
-      </.breadcrumb>
-
+      Materials
       <:actions>
-        <.link :if={@live_action == :index} patch={~p"/manage/inventory/new"}>
+        <.link patch={~p"/manage/inventory/new"}>
           <.button variant={:primary}>New Material</.button>
         </.link>
       </:actions>
     </.header>
+
+    <.sub_nav links={@nav_sub_links} />
 
     <div :if={@live_action == :index}>
       <.table
@@ -355,7 +359,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
       |> assign(:nav_sub_links, nav_sub_links)
       |> apply_action(live_action, params)
 
-    {:noreply, socket}
+    {:noreply, assign(socket, :breadcrumbs, inventory_breadcrumbs(socket.assigns))}
   end
 
   defp apply_action(socket, :new, _params) do
@@ -488,7 +492,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
   defp inventory_sub_links(live_action) do
     [
       %{
-        label: "All materials",
+        label: "Materials",
         navigate: ~p"/manage/inventory",
         active: live_action in [:index, :new, :edit]
       },
@@ -498,6 +502,37 @@ defmodule CraftplanWeb.InventoryLive.Index do
         active: live_action == :forecast
       }
     ]
+  end
+
+  defp inventory_breadcrumbs(%{live_action: :index}) do
+    [
+      %{label: "Inventory", path: ~p"/manage/inventory", current?: true}
+    ]
+  end
+
+  defp inventory_breadcrumbs(%{live_action: :new}) do
+    [
+      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
+      %{label: "New Material", path: ~p"/manage/inventory/new", current?: true}
+    ]
+  end
+
+  defp inventory_breadcrumbs(%{live_action: :forecast}) do
+    [
+      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
+      %{label: "Forecast", path: ~p"/manage/inventory/forecast", current?: true}
+    ]
+  end
+
+  defp inventory_breadcrumbs(%{live_action: :edit, material: material}) when not is_nil(material) do
+    [
+      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
+      %{label: material.name, path: ~p"/manage/inventory/#{material.sku}", current?: true}
+    ]
+  end
+
+  defp inventory_breadcrumbs(assigns) do
+    inventory_breadcrumbs(%{assigns | live_action: :index})
   end
 
   @impl true

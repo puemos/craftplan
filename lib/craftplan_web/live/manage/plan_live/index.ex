@@ -11,6 +11,11 @@ defmodule CraftplanWeb.PlanLive.Index do
 
   @impl true
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:breadcrumbs, fn -> [] end)
+
     ~H"""
     <.header>
       <.breadcrumb>
@@ -783,9 +788,8 @@ defmodule CraftplanWeb.PlanLive.Index do
       |> maybe_assign_schedule_view(live_action, schedule_view)
       |> assign(:page_title, page_title(live_action))
       |> assign(:nav_sub_links, plan_nav_sub_links(live_action, schedule_view))
-      |> assign(:nav_sub_label, "Plan")
 
-    {:noreply, socket}
+    {:noreply, assign(socket, :breadcrumbs, plan_breadcrumbs(socket.assigns))}
   end
 
   @impl true
@@ -814,6 +818,35 @@ defmodule CraftplanWeb.PlanLive.Index do
      |> assign(:material_day_quantity, nil)
      |> assign(:material_day_balance, nil)}
   end
+
+  defp plan_breadcrumbs(%{live_action: :index}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(%{live_action: :schedule}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: false},
+      %{label: "Schedule", path: ~p"/manage/production/schedule", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(%{live_action: :make_sheet}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: false},
+      %{label: "Make Sheet", path: ~p"/manage/production/make_sheet", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(%{live_action: :materials}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: false},
+      %{label: "Materials", path: ~p"/manage/production/materials", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(_), do: plan_breadcrumbs(%{live_action: :index})
 
   @impl true
   def handle_event("previous_week", _params, socket) do

@@ -15,17 +15,12 @@ defmodule CraftplanWeb.OrderLive.Show do
 
   @impl true
   def render(assigns) do
+    assigns =
+      assign_new(assigns, :breadcrumbs, fn -> [] end)
+
     ~H"""
     <.header>
-      <.breadcrumb>
-        <:crumb label="All Orders" path={~p"/manage/orders"} current?={false} />
-        <:crumb
-          label={format_reference(@order.reference)}
-          path={~p"/manage/orders/#{@order.reference}"}
-          current?={true}
-        />
-      </.breadcrumb>
-
+      {@order.reference}
       <:actions>
         <.link patch={~p"/manage/orders/#{@order.reference}/edit"} phx-click={JS.push_focus()}>
           <.button variant={:primary}>Edit order</.button>
@@ -36,8 +31,10 @@ defmodule CraftplanWeb.OrderLive.Show do
       </:actions>
     </.header>
 
+    <.sub_nav links={@tabs_links} />
+
     <div class="mt-4 space-y-6">
-      <div :if={@live_action in [:details, :show]}>
+      <div :if={@live_action in [:details, :show, :edit]}>
         <.list>
           <:item title="Reference">
             <.kbd>
@@ -216,7 +213,7 @@ defmodule CraftplanWeb.OrderLive.Show do
 
     live_action = socket.assigns.live_action
 
-    nav_sub_links = [
+    tabs_links = [
       %{
         label: "Details",
         navigate: ~p"/manage/orders/#{order.reference}/details",
@@ -233,7 +230,8 @@ defmodule CraftplanWeb.OrderLive.Show do
       socket
       |> assign(:page_title, page_title(live_action))
       |> assign(:order, order)
-      |> assign(:nav_sub_links, nav_sub_links)
+      |> assign(:tabs_links, tabs_links)
+      |> assign(:breadcrumbs, order_breadcrumbs(order, live_action))
 
     {:noreply, socket}
   end
@@ -361,4 +359,30 @@ defmodule CraftplanWeb.OrderLive.Show do
   defp page_title(:edit), do: "Edit Order"
   defp page_title(:details), do: "Order Details"
   defp page_title(:items), do: "Order Items"
+
+  defp order_breadcrumbs(order, live_action) do
+    base = [
+      %{label: "Orders", path: ~p"/manage/orders", current?: false},
+      %{
+        label: format_reference(order.reference),
+        path: ~p"/manage/orders/#{order.reference}",
+        current?: live_action in [:show, :details]
+      }
+    ]
+
+    case live_action do
+      :items ->
+        base ++
+          [
+            %{
+              label: "Items",
+              path: ~p"/manage/orders/#{order.reference}/items",
+              current?: true
+            }
+          ]
+
+      _ ->
+        List.update_at(base, 1, &Map.put(&1, :current?, true))
+    end
+  end
 end

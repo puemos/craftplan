@@ -34,7 +34,7 @@ defmodule CraftplanWeb.ManageOrdersInteractionsLiveTest do
 
     # Switch to calendar via tab link
     view
-    |> element("a[href='/manage/orders?view=calendar']")
+    |> element("[role=tablist] a[href='/manage/orders?view=calendar']")
     |> render_click()
 
     assert_patch(view, ~p"/manage/orders?view=calendar")

@@ -473,6 +473,34 @@ defmodule CraftplanWeb.Components.Core do
     """
   end
 
+  attr :links, :list, default: []
+  attr :class, :string, default: nil
+
+  def sub_nav(assigns) do
+    links =
+      assigns.links
+      |> List.wrap()
+      |> Enum.map(fn link ->
+        navigate = Map.get(link, :navigate) || Map.get(link, :path)
+
+        link
+        |> Map.put(:navigate, navigate)
+        |> Map.put_new(:active, false)
+      end)
+
+    assigns = assign(assigns, :links, links)
+
+    ~H"""
+    <div :if={Enum.any?(@links)} class={["mb-6", @class]}>
+      <.tabs_nav>
+        <:tab :for={link <- @links}>
+          <.tab_link label={link.label} path={link.navigate} selected?={link.active} />
+        </:tab>
+      </.tabs_nav>
+    </div>
+    """
+  end
+
   @doc """
   Renders a navigation breadcrumb trail.
 
@@ -564,27 +592,49 @@ defmodule CraftplanWeb.Components.Core do
   end
 
   @doc """
-  Renders a header with title.
+  Renders a page header with optional heading, subtitle, and actions.
   """
   attr :class, :string, default: nil
 
-  slot :inner_block, required: true
+  slot :inner_block
   slot :subtitle
   slot :actions
 
   def header(assigns) do
+    has_heading? = not Enum.empty?(assigns.inner_block)
+    has_subtitle? = not Enum.empty?(assigns.subtitle)
+    has_actions? = not Enum.empty?(assigns.actions)
+
+    assigns =
+      assigns
+      |> assign(:has_heading?, has_heading?)
+      |> assign(:has_subtitle?, has_subtitle?)
+      |> assign(:has_actions?, has_actions?)
+
     ~H"""
-    <header class={["min-h-10 mb-4 flex items-center justify-between gap-6", @class]}>
-      <div>
-        <h1 class="text-lg font-semibold leading-8 text-stone-800">
-          {render_slot(@inner_block)}
-        </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-stone-600">
-          {render_slot(@subtitle)}
-        </p>
-      </div>
-      <div class="flex-none print:hidden">{render_slot(@actions)}</div>
-    </header>
+    <%= if @has_heading? or @has_subtitle? do %>
+      <header class={["mb-4 flex items-center justify-between gap-6", @class]}>
+        <div class="min-w-0 flex-1">
+          <div :if={@has_heading?} class="min-w-0">
+            <h1 class="truncate text-lg font-semibold leading-8 text-stone-800">
+              {render_slot(@inner_block)}
+            </h1>
+          </div>
+          <p :if={@has_subtitle?} class="mt-2 text-sm leading-6 text-stone-600">
+            {render_slot(@subtitle)}
+          </p>
+        </div>
+        <div :if={@has_actions?} class="flex-none print:hidden">
+          {render_slot(@actions)}
+        </div>
+      </header>
+    <% else %>
+      <%= if @has_actions? do %>
+        <div class={["mb-4 flex items-center justify-end gap-3", @class]}>
+          {render_slot(@actions)}
+        </div>
+      <% end %>
+    <% end %>
     """
   end
 

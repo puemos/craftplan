@@ -22,6 +22,7 @@ defmodule CraftplanWeb.Layouts do
   attr :page_title, :string, default: nil
   attr :nav_sub_links, :list, default: []
   attr :nav_sub_label, :string, default: nil
+  attr :breadcrumbs, :list, default: []
   slot :inner_block, required: true
 
   def sidebar_layout(assigns) do
@@ -58,6 +59,7 @@ defmodule CraftplanWeb.Layouts do
       |> assign(:shop_links, shop_links)
       |> assign(:nav_sub_links, nav_sub_links)
       |> assign(:nav_sub_label, nav_sub_label)
+      |> assign(:breadcrumbs, Map.get(assigns, :breadcrumbs, []))
 
     ~H"""
     <div>
@@ -102,7 +104,7 @@ defmodule CraftplanWeb.Layouts do
           class="bg-stone-50/90 hidden border-r border-stone-200 backdrop-blur md:fixed md:inset-y-0 md:flex md:w-72 md:flex-col"
           aria-label="Primary navigation"
         >
-          <div class="flex h-16 items-center border-b border-stone-200 px-6">
+          <div class="min-h-14 flex items-center border-b border-stone-200 px-6">
             <.logo_link />
           </div>
 
@@ -117,7 +119,7 @@ defmodule CraftplanWeb.Layouts do
         </aside>
 
         <div class="flex w-full flex-col md:pl-72">
-          <header class="bg-white/90 sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-stone-200 px-4 backdrop-blur md:px-6">
+          <header class="bg-stone-50/90 min-h-14 flex items-center gap-3 border-b border-stone-200 sm:px-6 lg:px-8">
             <button
               type="button"
               class="rounded-md border border-stone-200 bg-white p-2 text-stone-600 shadow-sm transition hover:text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 md:hidden"
@@ -129,8 +131,9 @@ defmodule CraftplanWeb.Layouts do
 
             <div class="flex flex-1 items-center justify-between gap-4">
               <div class="min-w-0">
+                <.layout_breadcrumbs :if={!Enum.empty?(@breadcrumbs)} breadcrumbs={@breadcrumbs} />
                 <h1
-                  :if={@page_title}
+                  :if={Enum.empty?(@breadcrumbs) and @page_title}
                   class="truncate text-base font-semibold text-stone-800 sm:text-lg"
                 >
                   {@page_title}
@@ -604,6 +607,35 @@ defmodule CraftplanWeb.Layouts do
 
   defp show_cart?(conn, current_path) do
     conn && not String.starts_with?(current_path, "/manage")
+  end
+
+  attr :breadcrumbs, :list, required: true
+
+  defp layout_breadcrumbs(assigns) do
+    assigns = assign(assigns, :count, Enum.count(assigns.breadcrumbs))
+
+    ~H"""
+    <nav class="flex items-center text-sm text-stone-500" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center gap-2">
+        <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)} class="flex items-center gap-2">
+          <.link
+            :if={!Map.get(crumb, :current?, index == @count - 1)}
+            navigate={Map.get(crumb, :path) || Map.get(crumb, :navigate)}
+            class="transition hover:text-stone-900 hover:underline"
+          >
+            {crumb.label}
+          </.link>
+          <span
+            :if={Map.get(crumb, :current?, index == @count - 1)}
+            class="text-stone-900"
+          >
+            {crumb.label}
+          </span>
+          <span :if={index < @count - 1} class="text-stone-300">/</span>
+        </li>
+      </ol>
+    </nav>
+    """
   end
 
   defp compute_sub_links(_current_path, links, _nav_section) when not is_list(links), do: []
