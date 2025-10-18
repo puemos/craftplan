@@ -20,117 +20,100 @@ defmodule CraftplanWeb.ProductLive.Show do
       </:actions>
     </.header>
 
-    <div class="mt-4">
-      <.tabs id="product-tabs">
-        <:tab
-          label="Details"
-          path={~p"/manage/products/#{@product.sku}/details"}
-          selected?={@live_action == :details || @live_action == :show}
-        >
-          <.list>
-            <:item title="Status">
-              <.badge
-                text={@product.status}
-                colors={[
-                  {@product.status,
-                   "#{product_status_color(@product.status)} #{product_status_bg(@product.status)}"}
-                ]}
-              />
-            </:item>
-            <:item title="Availability">
-              <.badge text={@product.selling_availability} />
-            </:item>
-            <:item title="Name">{@product.name}</:item>
+    <div class="mt-6 space-y-6">
+      <div :if={@live_action in [:details, :show]}>
+        <.list>
+          <:item title="Status">
+            <.badge
+              text={@product.status}
+              colors={[
+                {@product.status,
+                 "#{product_status_color(@product.status)} #{product_status_bg(@product.status)}"}
+              ]}
+            />
+          </:item>
+          <:item title="Availability">
+            <.badge text={@product.selling_availability} />
+          </:item>
+          <:item title="Name">{@product.name}</:item>
 
-            <:item title="SKU">
-              <.kbd>
-                {@product.sku}
-              </.kbd>
-            </:item>
+          <:item title="SKU">
+            <.kbd>
+              {@product.sku}
+            </.kbd>
+          </:item>
 
-            <:item title="Allergens">
-              <div class="flex-inline items-center space-x-1">
-                <.badge :for={allergen <- Enum.map(@product.allergens, & &1.name)} text={allergen} />
-                <span :if={Enum.empty?(@product.allergens)}>None</span>
-              </div>
-            </:item>
+          <:item title="Allergens">
+            <div class="flex-inline items-center space-x-1">
+              <.badge :for={allergen <- Enum.map(@product.allergens, & &1.name)} text={allergen} />
+              <span :if={Enum.empty?(@product.allergens)}>None</span>
+            </div>
+          </:item>
 
-            <:item title="Price">
-              {format_money(@settings.currency, @product.price)}
-            </:item>
+          <:item title="Price">
+            {format_money(@settings.currency, @product.price)}
+          </:item>
 
-            <:item title="Materials cost">
-              {format_money(@settings.currency, @product.materials_cost)}
-            </:item>
+          <:item title="Materials cost">
+            {format_money(@settings.currency, @product.materials_cost)}
+          </:item>
 
-            <:item title="Gross profit">
-              {format_money(@settings.currency, @product.gross_profit)}
-            </:item>
+          <:item title="Gross profit">
+            {format_money(@settings.currency, @product.gross_profit)}
+          </:item>
 
-            <:item title="Markup percentage">
-              {format_percentage(@product.markup_percentage)}%
-            </:item>
+          <:item title="Markup percentage">
+            {format_percentage(@product.markup_percentage)}%
+          </:item>
 
-            <:item
-              :if={@product.max_daily_quantity && @product.max_daily_quantity > 0}
-              title="Max units per day"
-            >
-              {@product.max_daily_quantity}
-            </:item>
-          </.list>
-        </:tab>
+          <:item
+            :if={@product.max_daily_quantity && @product.max_daily_quantity > 0}
+            title="Max units per day"
+          >
+            {@product.max_daily_quantity}
+          </:item>
+        </.list>
+      </div>
 
-        <:tab
-          label="Recipe"
-          path={~p"/manage/products/#{@product.sku}/recipe"}
-          selected?={@live_action == :recipe}
-        >
-          <.live_component
-            module={CraftplanWeb.ProductLive.FormComponentRecipe}
-            id="material-form"
-            product={@product}
-            recipe={@product.recipe || nil}
-            current_user={@current_user}
-            settings={@settings}
-            materials={@materials_available}
-            patch={~p"/manage/products/#{@product.sku}/recipe"}
-            on_cancel={hide_modal("product-material-modal")}
-          />
-        </:tab>
+      <div :if={@live_action == :recipe}>
+        <.live_component
+          module={CraftplanWeb.ProductLive.FormComponentRecipe}
+          id="material-form"
+          product={@product}
+          recipe={@product.recipe || nil}
+          current_user={@current_user}
+          settings={@settings}
+          materials={@materials_available}
+          patch={~p"/manage/products/#{@product.sku}/recipe"}
+          on_cancel={hide_modal("product-material-modal")}
+        />
+      </div>
 
-        <:tab
-          label="Nutrition"
-          path={~p"/manage/products/#{@product.sku}/nutrition"}
-          selected?={@live_action == :nutrition}
-        >
-          <div>
-            <h3 class="my-4 text-lg font-medium">Nutritional Facts</h3>
-            <p class="mb-4 text-sm text-stone-500">
-              The nutritional information is automatically calculated from your recipe components.
-            </p>
-          </div>
-          <.table id="nutritional-facts" rows={@product.nutritional_facts}>
-            <:col :let={fact} label="Nutrient">{fact.name}</:col>
-            <:col :let={fact} label="Amount">{format_amount(fact.unit, fact.amount)}</:col>
-          </.table>
-        </:tab>
-        <:tab
-          label="Photos"
-          path={~p"/manage/products/#{@product.sku}/photos"}
-          selected?={@live_action == :photos}
-        >
-          <.live_component
-            module={CraftplanWeb.ProductLive.FormComponentPhotos}
-            id={@product.id}
-            title={@page_title}
-            action={@live_action}
-            current_user={@current_user}
-            product={@product}
-            settings={@settings}
-            patch={~p"/manage/products/#{@product.sku}"}
-          />
-        </:tab>
-      </.tabs>
+      <div :if={@live_action == :nutrition}>
+        <div>
+          <h3 class="my-4 text-lg font-medium">Nutritional Facts</h3>
+          <p class="mb-4 text-sm text-stone-500">
+            The nutritional information is automatically calculated from your recipe components.
+          </p>
+        </div>
+        <.table id="nutritional-facts" rows={@product.nutritional_facts}>
+          <:col :let={fact} label="Nutrient">{fact.name}</:col>
+          <:col :let={fact} label="Amount">{format_amount(fact.unit, fact.amount)}</:col>
+        </.table>
+      </div>
+
+      <div :if={@live_action == :photos}>
+        <.live_component
+          module={CraftplanWeb.ProductLive.FormComponentPhotos}
+          id={@product.id}
+          title={@page_title}
+          action={@live_action}
+          current_user={@current_user}
+          product={@product}
+          settings={@settings}
+          patch={~p"/manage/products/#{@product.sku}"}
+        />
+      </div>
     </div>
 
     <.modal
@@ -177,11 +160,37 @@ defmodule CraftplanWeb.ProductLive.Show do
         ]
       )
 
+    live_action = socket.assigns.live_action
+
+    nav_sub_links = [
+      %{
+        label: "Details",
+        navigate: ~p"/manage/products/#{product.sku}/details",
+        active: live_action in [:details, :show]
+      },
+      %{
+        label: "Recipe",
+        navigate: ~p"/manage/products/#{product.sku}/recipe",
+        active: live_action == :recipe
+      },
+      %{
+        label: "Nutrition",
+        navigate: ~p"/manage/products/#{product.sku}/nutrition",
+        active: live_action == :nutrition
+      },
+      %{
+        label: "Photos",
+        navigate: ~p"/manage/products/#{product.sku}/photos",
+        active: live_action == :photos
+      }
+    ]
+
     socket =
       socket
-      |> assign(:page_title, page_title(socket.assigns.live_action))
+      |> assign(:page_title, page_title(live_action))
       |> assign(:product, product)
       |> assign(:status_form, to_form(%{"status" => product.status}))
+      |> assign(:nav_sub_links, nav_sub_links)
 
     {:noreply, socket}
   end

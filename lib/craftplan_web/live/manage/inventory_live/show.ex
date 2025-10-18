@@ -23,12 +23,8 @@ defmodule CraftplanWeb.InventoryLive.Show do
       </:actions>
     </.header>
 
-    <.tabs id="material-tabs">
-      <:tab
-        label="Details"
-        path={~p"/manage/inventory/#{@material.sku}/details"}
-        selected?={@live_action == :details || @live_action == :show}
-      >
+    <div class="mt-4 space-y-6">
+      <div :if={@live_action in [:details, :show]}>
         <.list>
           <:item title="Name">{@material.name}</:item>
           <:item title="SKU">
@@ -84,13 +80,9 @@ defmodule CraftplanWeb.InventoryLive.Show do
             <:col :let={poi} label="Status">{poi.purchase_order.status}</:col>
           </.table>
         </div>
-      </:tab>
+      </div>
 
-      <:tab
-        label="Allergens"
-        path={~p"/manage/inventory/#{@material.sku}/allergens"}
-        selected?={@live_action == :allergens}
-      >
+      <div :if={@live_action == :allergens}>
         <.live_component
           module={CraftplanWeb.InventoryLive.FormComponentAllergens}
           id="material-allergens-form"
@@ -100,13 +92,9 @@ defmodule CraftplanWeb.InventoryLive.Show do
           patch={~p"/manage/inventory/#{@material.sku}/allergens"}
           allergens={@allergens_available}
         />
-      </:tab>
+      </div>
 
-      <:tab
-        label="Nutrition"
-        path={~p"/manage/inventory/#{@material.sku}/nutritional_facts"}
-        selected?={@live_action == :nutritional_facts}
-      >
+      <div :if={@live_action == :nutritional_facts}>
         <.live_component
           module={CraftplanWeb.InventoryLive.FormComponentNutritionalFacts}
           id="material-nutritional-facts-form"
@@ -116,13 +104,9 @@ defmodule CraftplanWeb.InventoryLive.Show do
           patch={~p"/manage/inventory/#{@material.sku}/nutritional_facts"}
           nutritional_facts={@nutritional_facts_available}
         />
-      </:tab>
+      </div>
 
-      <:tab
-        label="Stock"
-        path={~p"/manage/inventory/#{@material.sku}/stock"}
-        selected?={@live_action == :stock}
-      >
+      <div :if={@live_action == :stock}>
         <div>
           <.table id="inventory_movements" no_margin rows={@material.movements}>
             <:empty>
@@ -143,8 +127,8 @@ defmodule CraftplanWeb.InventoryLive.Show do
             <:col :let={entry} label="Reason">{entry.reason}</:col>
           </.table>
         </div>
-      </:tab>
-    </.tabs>
+      </div>
+    </div>
 
     <.modal
       :if={@live_action == :edit}
@@ -218,11 +202,37 @@ defmodule CraftplanWeb.InventoryLive.Show do
         actor: socket.assigns[:current_user]
       )
 
+    live_action = socket.assigns.live_action
+
+    nav_sub_links = [
+      %{
+        label: "Details",
+        navigate: ~p"/manage/inventory/#{material.sku}/details",
+        active: live_action in [:details, :show]
+      },
+      %{
+        label: "Allergens",
+        navigate: ~p"/manage/inventory/#{material.sku}/allergens",
+        active: live_action == :allergens
+      },
+      %{
+        label: "Nutrition",
+        navigate: ~p"/manage/inventory/#{material.sku}/nutritional_facts",
+        active: live_action == :nutritional_facts
+      },
+      %{
+        label: "Stock",
+        navigate: ~p"/manage/inventory/#{material.sku}/stock",
+        active: live_action == :stock
+      }
+    ]
+
     {:noreply,
      socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
+     |> assign(:page_title, page_title(live_action))
      |> assign(:material, material)
-     |> assign(:open_po_items, open_po_items)}
+     |> assign(:open_po_items, open_po_items)
+     |> assign(:nav_sub_links, nav_sub_links)}
   end
 
   # helper functions removed; calls now pass actor explicitly in mount

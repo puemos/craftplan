@@ -36,121 +36,111 @@ defmodule CraftplanWeb.OrderLive.Show do
       </:actions>
     </.header>
 
-    <div class="mt-4">
-      <.tabs id="order-tabs">
-        <:tab
-          label="Details"
-          path={~p"/manage/orders/#{@order.reference}/details"}
-          selected?={@live_action == :details || @live_action == :show}
-        >
-          <.list>
-            <:item title="Reference">
-              <.kbd>
-                {format_reference(@order.reference)}
-              </.kbd>
-            </:item>
+    <div class="mt-4 space-y-6">
+      <div :if={@live_action in [:details, :show]}>
+        <.list>
+          <:item title="Reference">
+            <.kbd>
+              {format_reference(@order.reference)}
+            </.kbd>
+          </:item>
 
-            <:item title="Status">
-              <.badge
-                text={@order.status}
-                colors={[
-                  {@order.status,
-                   "#{order_status_color(@order.status)} #{order_status_bg(@order.status)}"}
+          <:item title="Status">
+            <.badge
+              text={@order.status}
+              colors={[
+                {@order.status,
+                 "#{order_status_color(@order.status)} #{order_status_bg(@order.status)}"}
+              ]}
+            />
+          </:item>
+
+          <:item title="Customer">
+            <.link
+              class="hover:text-blue-800 hover:underline"
+              navigate={~p"/manage/customers/#{@order.customer.reference}"}
+            >
+              {@order.customer.full_name}
+            </.link>
+          </:item>
+          <:item title="Shipping Address">
+            {if @order.customer.shipping_address do
+              @order.customer.shipping_address.full_address
+            else
+              "N/A"
+            end}
+          </:item>
+
+          <:item title="Total">
+            {format_money(@settings.currency, @order.total_cost)}
+          </:item>
+
+          <:item title="Delivery Date">
+            {format_time(@order.delivery_date, @time_zone)}
+          </:item>
+
+          <:item title="Created At">
+            {format_time(@order.inserted_at, @time_zone)}
+          </:item>
+        </.list>
+      </div>
+
+      <div :if={@live_action == :items}>
+        <.table id="order-items" rows={@order.items}>
+          <:col :let={item} label="Product">
+            <.link
+              class="hover:text-blue-800 hover:underline"
+              navigate={~p"/manage/products/#{item.product.sku}"}
+            >
+              <div class="flex items-center space-x-2">
+                <img
+                  :if={item.product.featured_photo != nil}
+                  src={Photo.url({item.product.featured_photo, item.product}, :thumb, signed: true)}
+                  alt={item.product.name}
+                  class="h-5 w-5"
+                />
+                <span>
+                  {item.product.name}
+                </span>
+              </div>
+            </.link>
+          </:col>
+          <:col :let={item} label="Quantity">{item.quantity}</:col>
+          <:col :let={item} label="Unit Price">
+            {format_money(@settings.currency, item.product.price)}
+          </:col>
+          <:col :let={item} label="Total">
+            {format_money(@settings.currency, item.cost)}
+          </:col>
+          <:col :let={item} label="Status">
+            <form phx-change="update_item_status">
+              <input type="hidden" name="item_id" value={item.id} />
+              <.input
+                name="status"
+                type="badge-select"
+                value={item.status}
+                options={[
+                  {"To Do", "todo"},
+                  {"In Progress", "in_progress"},
+                  {"Completed", "done"}
+                ]}
+                badge_colors={[
+                  {:todo, "#{order_item_status_bg(:todo)} #{order_item_status_color(:todo)}"},
+                  {:in_progress,
+                   "#{order_item_status_bg(:in_progress)} #{order_item_status_color(:in_progress)}"},
+                  {:done, "#{order_item_status_bg(:done)} #{order_item_status_color(:done)}"}
                 ]}
               />
-            </:item>
-
-            <:item title="Customer">
-              <.link
-                class="hover:text-blue-800 hover:underline"
-                navigate={~p"/manage/customers/#{@order.customer.reference}"}
-              >
-                {@order.customer.full_name}
-              </.link>
-            </:item>
-            <:item title="Shipping Address">
-              {if @order.customer.shipping_address do
-                @order.customer.shipping_address.full_address
-              else
-                "N/A"
-              end}
-            </:item>
-
-            <:item title="Total">
-              {format_money(@settings.currency, @order.total_cost)}
-            </:item>
-
-            <:item title="Delivery Date">
-              {format_time(@order.delivery_date, @time_zone)}
-            </:item>
-
-            <:item title="Created At">
-              {format_time(@order.inserted_at, @time_zone)}
-            </:item>
-          </.list>
-        </:tab>
-
-        <:tab
-          label="Items"
-          path={~p"/manage/orders/#{@order.reference}/items"}
-          selected?={@live_action == :items}
-        >
-          <.table id="order-items" rows={@order.items}>
-            <:col :let={item} label="Product">
-              <.link
-                class="hover:text-blue-800 hover:underline"
-                navigate={~p"/manage/products/#{item.product.sku}"}
-              >
-                <div class="flex items-center space-x-2">
-                  <img
-                    :if={item.product.featured_photo != nil}
-                    src={Photo.url({item.product.featured_photo, item.product}, :thumb, signed: true)}
-                    alt={item.product.name}
-                    class="h-5 w-5"
-                  />
-                  <span>
-                    {item.product.name}
-                  </span>
-                </div>
-              </.link>
-            </:col>
-            <:col :let={item} label="Quantity">{item.quantity}</:col>
-            <:col :let={item} label="Unit Price">
-              {format_money(@settings.currency, item.product.price)}
-            </:col>
-            <:col :let={item} label="Total">
-              {format_money(@settings.currency, item.cost)}
-            </:col>
-            <:col :let={item} label="Status">
-              <form phx-change="update_item_status">
-                <input type="hidden" name="item_id" value={item.id} />
-                <.input
-                  name="status"
-                  type="badge-select"
-                  value={item.status}
-                  options={[
-                    {"To Do", "todo"},
-                    {"In Progress", "in_progress"},
-                    {"Completed", "done"}
-                  ]}
-                  badge_colors={[
-                    {:todo, "#{order_item_status_bg(:todo)} #{order_item_status_color(:todo)}"},
-                    {:in_progress,
-                     "#{order_item_status_bg(:in_progress)} #{order_item_status_color(:in_progress)}"},
-                    {:done, "#{order_item_status_bg(:done)} #{order_item_status_color(:done)}"}
-                  ]}
-                />
-              </form>
-              <span
-                :if={item.status == :done && not is_nil(item.consumed_at)}
-                class="ml-2 text-xs text-stone-500"
-              >
-                Consumed
-              </span>
-            </:col>
-          </.table>
-        </:tab>
-      </.tabs>
+            </form>
+            <span
+              :if={item.status == :done && not is_nil(item.consumed_at)}
+              class="ml-2 text-xs text-stone-500"
+            >
+              Consumed
+            </span>
+          </:col>
+        </.table>
+      </div>
     </div>
 
     <.modal
@@ -224,10 +214,26 @@ defmodule CraftplanWeb.OrderLive.Show do
         actor: socket.assigns[:current_user]
       )
 
+    live_action = socket.assigns.live_action
+
+    nav_sub_links = [
+      %{
+        label: "Details",
+        navigate: ~p"/manage/orders/#{order.reference}/details",
+        active: live_action in [:details, :show]
+      },
+      %{
+        label: "Items",
+        navigate: ~p"/manage/orders/#{order.reference}/items",
+        active: live_action == :items
+      }
+    ]
+
     socket =
       socket
-      |> assign(:page_title, page_title(socket.assigns.live_action))
+      |> assign(:page_title, page_title(live_action))
       |> assign(:order, order)
+      |> assign(:nav_sub_links, nav_sub_links)
 
     {:noreply, socket}
   end

@@ -5,6 +5,6 @@ defmodule CraftplanWeb.PageController do
     # The home page is often custom made,
     # so skip the default app layout.
     conn = assign(conn, :current_path, "/")
-    render(conn, :home, layout: false)
+    render(conn, :home)
   end
 end

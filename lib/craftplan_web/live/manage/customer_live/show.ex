@@ -24,87 +24,73 @@ defmodule CraftplanWeb.CustomerLive.Show do
       </:actions>
     </.header>
 
-    <div class="mt-4">
-      <.tabs id="customer-tabs">
-        <:tab
-          label="Details"
-          path={~p"/manage/customers/#{@customer.reference}/details"}
-          selected?={@live_action == :details || @live_action == :show}
-        >
-          <div class="mt-8 space-y-8">
-            <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-              <.list>
-                <:item title="Type"><.badge text={@customer.type} /></:item>
-                <:item title="Name">{@customer.full_name}</:item>
-                <:item title="Email">{@customer.email}</:item>
-                <:item title="Phone">{@customer.phone}</:item>
-                <:item title="Billing Address">{@customer.billing_address.full_address}</:item>
-                <:item title="Shipping Address">{@customer.shipping_address.full_address}</:item>
-              </.list>
-            </div>
+    <div class="mt-4 space-y-6">
+      <div :if={@live_action in [:details, :show]}>
+        <div class="mt-8 space-y-8">
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <.list>
+              <:item title="Type"><.badge text={@customer.type} /></:item>
+              <:item title="Name">{@customer.full_name}</:item>
+              <:item title="Email">{@customer.email}</:item>
+              <:item title="Phone">{@customer.phone}</:item>
+              <:item title="Billing Address">{@customer.billing_address.full_address}</:item>
+              <:item title="Shipping Address">{@customer.shipping_address.full_address}</:item>
+            </.list>
           </div>
-        </:tab>
+        </div>
+      </div>
 
-        <:tab
-          label="Orders"
-          path={~p"/manage/customers/#{@customer.reference}/orders"}
-          selected?={@live_action == :orders}
-        >
-          <div class="mt-6 space-y-4">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold">Orders History</h3>
-              <.link navigate={~p"/manage/orders/new?customer_id=#{@customer.reference}"}>
-                <.button variant={:primary}>New Order</.button>
-              </.link>
-            </div>
-
-            <.table
-              id="customer_orders"
-              rows={@customer.orders}
-              row_click={fn order -> JS.navigate(~p"/manage/orders/#{order.reference}") end}
-            >
-              <:col :let={order} label="Reference">
-                <.kbd>{order.reference}</.kbd>
-              </:col>
-              <:col :let={order} label="Status">
-                <.badge
-                  text={order.status}
-                  colors={[
-                    {order.status,
-                     "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
-                  ]}
-                />
-              </:col>
-              <:col :let={order} label="Created at">
-                {format_time(order.inserted_at, @time_zone)}
-              </:col>
-              <:col :let={order} label="Delivery Date">
-                {format_time(order.delivery_date, @time_zone)}
-              </:col>
-              <:col :let={order} label="Total">
-                {format_money(@settings.currency, order.total_cost)}
-              </:col>
-            </.table>
+      <div :if={@live_action == :orders}>
+        <div class="mt-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Orders History</h3>
+            <.link navigate={~p"/manage/orders/new?customer_id=#{@customer.reference}"}>
+              <.button variant={:primary}>New Order</.button>
+            </.link>
           </div>
-        </:tab>
 
-        <:tab
-          label="Statistics"
-          path={~p"/manage/customers/#{@customer.reference}/statistics"}
-          selected?={@live_action == :statistics}
-        >
-          <div class="mt-6 space-y-8">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <.stat_card title="Total Orders" value={@customer.total_orders} />
-
-              <.stat_card
-                title="Total Spent"
-                value={format_money(@settings.currency, @customer.total_orders_value)}
+          <.table
+            id="customer_orders"
+            rows={@customer.orders}
+            row_click={fn order -> JS.navigate(~p"/manage/orders/#{order.reference}") end}
+          >
+            <:col :let={order} label="Reference">
+              <.kbd>{order.reference}</.kbd>
+            </:col>
+            <:col :let={order} label="Status">
+              <.badge
+                text={order.status}
+                colors={[
+                  {order.status,
+                   "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
+                ]}
               />
-            </div>
+            </:col>
+            <:col :let={order} label="Created at">
+              {format_time(order.inserted_at, @time_zone)}
+            </:col>
+            <:col :let={order} label="Delivery Date">
+              {format_time(order.delivery_date, @time_zone)}
+            </:col>
+            <:col :let={order} label="Total">
+              {format_money(@settings.currency, order.total_cost)}
+            </:col>
+          </.table>
+        </div>
+      </div>
+
+      <div :if={@live_action == :statistics}>
+        <div class="mt-6 space-y-8">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <.stat_card title="Total Orders" value={@customer.total_orders} />
+
+            <.stat_card
+              title="Total Spent"
+              value={format_money(@settings.currency, @customer.total_orders_value)}
+            />
           </div>
-        </:tab>
-      </.tabs>
+        </div>
+      </div>
     </div>
     """
   end
@@ -130,10 +116,31 @@ defmodule CraftplanWeb.CustomerLive.Show do
         ]
       )
 
+    live_action = socket.assigns.live_action
+
+    nav_sub_links = [
+      %{
+        label: "Details",
+        navigate: ~p"/manage/customers/#{customer.reference}/details",
+        active: live_action in [:details, :show]
+      },
+      %{
+        label: "Orders",
+        navigate: ~p"/manage/customers/#{customer.reference}/orders",
+        active: live_action == :orders
+      },
+      %{
+        label: "Statistics",
+        navigate: ~p"/manage/customers/#{customer.reference}/statistics",
+        active: live_action == :statistics
+      }
+    ]
+
     {:noreply,
      socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:customer, customer)}
+     |> assign(:page_title, page_title(live_action))
+     |> assign(:customer, customer)
+     |> assign(:nav_sub_links, nav_sub_links)}
   end
 
   defp page_title(:show), do: "Customer Details"

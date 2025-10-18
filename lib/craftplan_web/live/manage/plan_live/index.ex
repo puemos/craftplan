@@ -23,622 +23,609 @@ defmodule CraftplanWeb.PlanLive.Index do
       </:actions>
     </.header>
 
-    <.tabs id="production-tabs">
-      <:tab
-        label="Overview"
-        path={~p"/manage/production"}
-        selected?={@live_action == :index}
-      >
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <.table_card title="Orders Today">
-            <.table
-              id="orders-today"
-              rows={@overview_tables.orders_today}
-              variant={:compact}
-              zebra
-              no_margin
-            >
-              <:col :let={row} label="Reference">
-                <.kbd>{row.reference}</.kbd>
-              </:col>
-              <:col :let={row} label="Customer">{row.customer}</:col>
-              <:col :let={row} label="Total" align={:right}>
-                {format_money(@settings.currency, row.total)}
-              </:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
+    <div :if={@live_action == :index} class="">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <.table_card title="Orders Today">
+          <.table
+            id="orders-today"
+            rows={@overview_tables.orders_today}
+            variant={:compact}
+            zebra
+            no_margin
+          >
+            <:col :let={row} label="Reference">
+              <.kbd>{row.reference}</.kbd>
+            </:col>
+            <:col :let={row} label="Customer">{row.customer}</:col>
+            <:col :let={row} label="Total" align={:right}>
+              {format_money(@settings.currency, row.total)}
+            </:col>
+            <:empty>
+              <div class="py-6 text-center text-stone-500">No items</div>
+            </:empty>
+          </.table>
+        </.table_card>
 
-          <.table_card title="Outstanding Today">
-            <.table
-              id="outstanding-today"
-              rows={@overview_tables.outstanding_today}
-              variant={:compact}
-              zebra
-              no_margin
-            >
-              <:col :let={row} label="Product">{row.product.name}</:col>
-              <:col :let={row} label="Todo Qty" align={:right}>{row.todo}</:col>
-              <:col :let={row} label="In Progress Qty" align={:right}>{row.in_progress}</:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
-          <.table_card title="Over-Capacity Details">
-            <.table
-              id="over-capacity-details"
-              rows={@overview_tables.over_capacity}
-              variant={:compact}
-              zebra
-              no_margin
-              row_click={
-                fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
-              }
-            >
-              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
-              <:col :let={row} label="Product">{row.product.name}</:col>
-              <:col :let={row} label="Scheduled" align={:right}>{row.qty}</:col>
-              <:col :let={row} label="Max" align={:right}>{row.max}</:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
+        <.table_card title="Outstanding Today">
+          <.table
+            id="outstanding-today"
+            rows={@overview_tables.outstanding_today}
+            variant={:compact}
+            zebra
+            no_margin
+          >
+            <:col :let={row} label="Product">{row.product.name}</:col>
+            <:col :let={row} label="Todo Qty" align={:right}>{row.todo}</:col>
+            <:col :let={row} label="In Progress Qty" align={:right}>{row.in_progress}</:col>
+            <:empty>
+              <div class="py-6 text-center text-stone-500">No items</div>
+            </:empty>
+          </.table>
+        </.table_card>
+        <.table_card title="Over-Capacity Details">
+          <.table
+            id="over-capacity-details"
+            rows={@overview_tables.over_capacity}
+            variant={:compact}
+            zebra
+            no_margin
+            row_click={
+              fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
+            }
+          >
+            <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+            <:col :let={row} label="Product">{row.product.name}</:col>
+            <:col :let={row} label="Scheduled" align={:right}>{row.qty}</:col>
+            <:col :let={row} label="Max" align={:right}>{row.max}</:col>
+            <:empty>
+              <div class="py-6 text-center text-stone-500">No items</div>
+            </:empty>
+          </.table>
+        </.table_card>
 
-          <.table_card title="Days Over Order Capacity">
-            <.table
-              id="over-order-capacity"
-              rows={@overview_tables.over_order_capacity}
-              variant={:compact}
-              zebra
-              no_margin
-              row_click={
-                fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
-              }
-            >
-              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
-              <:col :let={row} label="Orders" align={:right}>{row.count}</:col>
-              <:col :let={row} label="Cap" align={:right}>{row.cap}</:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
+        <.table_card title="Days Over Order Capacity">
+          <.table
+            id="over-order-capacity"
+            rows={@overview_tables.over_order_capacity}
+            variant={:compact}
+            zebra
+            no_margin
+            row_click={
+              fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
+            }
+          >
+            <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+            <:col :let={row} label="Orders" align={:right}>{row.count}</:col>
+            <:col :let={row} label="Cap" align={:right}>{row.cap}</:col>
+            <:empty>
+              <div class="py-6 text-center text-stone-500">No items</div>
+            </:empty>
+          </.table>
+        </.table_card>
 
-          <.table_card title="Material Shortages" class="lg:col-span-2">
-            <.table
-              id="material-shortages"
-              rows={@overview_tables.shortage}
-              variant={:compact}
-              zebra
-              no_margin
-              row_click={
-                fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
-              }
-            >
-              <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
-              <:col :let={row} label="Material">{row.material.name}</:col>
-              <:col :let={row} label="Required" align={:right}>
-                {format_amount(row.material.unit, row.required)}
-              </:col>
-              <:col :let={row} label="Opening" align={:right}>
-                {format_amount(row.material.unit, row.opening)}
-              </:col>
-              <:col :let={row} label="End Balance" align={:right}>
-                {format_amount(row.material.unit, row.ending)}
-              </:col>
-              <:empty>
-                <div class="py-6 text-center text-stone-500">No items</div>
-              </:empty>
-            </.table>
-          </.table_card>
-        </div>
-      </:tab>
+        <.table_card title="Material Shortages" class="lg:col-span-2">
+          <.table
+            id="material-shortages"
+            rows={@overview_tables.shortage}
+            variant={:compact}
+            zebra
+            no_margin
+            row_click={
+              fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
+            }
+          >
+            <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+            <:col :let={row} label="Material">{row.material.name}</:col>
+            <:col :let={row} label="Required" align={:right}>
+              {format_amount(row.material.unit, row.required)}
+            </:col>
+            <:col :let={row} label="Opening" align={:right}>
+              {format_amount(row.material.unit, row.opening)}
+            </:col>
+            <:col :let={row} label="End Balance" align={:right}>
+              {format_amount(row.material.unit, row.ending)}
+            </:col>
+            <:empty>
+              <div class="py-6 text-center text-stone-500">No items</div>
+            </:empty>
+          </.table>
+        </.table_card>
+      </div>
+    </div>
 
-      <:tab
-        label="Schedule"
-        path={~p"/manage/production/schedule"}
-        selected?={@live_action == :schedule}
-      >
-        <div class="mt-4">
-          <div class="mt-8">
-            <div
-              id="controls"
-              class="border-gray-200/70 flex items-center justify-between border-b pb-4"
-            >
-              <div></div>
-              <div class="flex items-center space-x-4">
-                <!-- View toggle -->
-                <div class="mr-2 hidden items-center sm:flex">
-                  <button
-                    phx-click="set_schedule_view"
-                    phx-value-view="week"
-                    aria-pressed={@schedule_view == :week}
-                    class={[
-                      "rounded-l-md border border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
-                      (@schedule_view == :week && "border-blue-300 bg-blue-100 text-blue-700") ||
-                        "bg-white text-stone-700 hover:bg-blue-50"
-                    ]}
-                  >
-                    Week
-                  </button>
-                  <button
-                    phx-click="set_schedule_view"
-                    phx-value-view="day"
-                    aria-pressed={@schedule_view == :day}
-                    class={[
-                      "rounded-r-md border border-l-0 border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
-                      (@schedule_view == :day && "border-blue-300 bg-blue-100 text-blue-700") ||
-                        "bg-white text-stone-700 hover:bg-blue-50"
-                    ]}
-                  >
-                    Day
-                  </button>
-                </div>
-                
+    <div :if={@live_action == :schedule} class="mt-4">
+      <div class="mt-8">
+        <div
+          id="controls"
+          class="border-gray-200/70 flex items-center justify-between border-b pb-4"
+        >
+          <div></div>
+          <div class="flex items-center space-x-4">
+            <!-- View toggle -->
+            <div class="mr-2 hidden items-center sm:flex">
+              <button
+                phx-click="set_schedule_view"
+                phx-value-view="week"
+                aria-pressed={@schedule_view == :week}
+                class={[
+                  "rounded-l-md border border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
+                  (@schedule_view == :week && "border-blue-300 bg-blue-100 text-blue-700") ||
+                    "bg-white text-stone-700 hover:bg-blue-50"
+                ]}
+              >
+                Week
+              </button>
+              <button
+                phx-click="set_schedule_view"
+                phx-value-view="day"
+                aria-pressed={@schedule_view == :day}
+                class={[
+                  "rounded-r-md border border-l-0 border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
+                  (@schedule_view == :day && "border-blue-300 bg-blue-100 text-blue-700") ||
+                    "bg-white text-stone-700 hover:bg-blue-50"
+                ]}
+              >
+                Day
+              </button>
+            </div>
+            
     <!-- Prev / Today / Next segmented control -->
-                <div class="flex items-center">
-                  <button
-                    phx-click="previous_week"
-                    size={:sm}
-                    title="Previous"
-                    class="px-[6px] cursor-pointer rounded-l-md border border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M11 17l-5-5m0 0l5-5m-5 5h12"
-                      />
-                    </svg>
-                  </button>
+            <div class="flex items-center">
+              <button
+                phx-click="previous_week"
+                size={:sm}
+                title="Previous"
+                class="px-[6px] cursor-pointer rounded-l-md border border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M11 17l-5-5m0 0l5-5m-5 5h12"
+                  />
+                </svg>
+              </button>
 
-                  <button
-                    phx-click="today"
-                    size={:sm}
-                    variant={:outline}
-                    aria-pressed={@is_today}
-                    title="Jump to today"
-                    class={[
-                      "flex cursor-pointer items-center border-y border-r border-l-0 border-stone-300 bg-white px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-default disabled:bg-stone-100 disabled:text-stone-400",
-                      (@is_today && "border-blue-300 bg-blue-100 text-blue-700") ||
-                        "text-stone-700 hover:bg-blue-50"
-                    ]}
-                    disabled={@is_today}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="mr-1 h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    Today
-                  </button>
+              <button
+                phx-click="today"
+                size={:sm}
+                variant={:outline}
+                aria-pressed={@is_today}
+                title="Jump to today"
+                class={[
+                  "flex cursor-pointer items-center border-y border-r border-l-0 border-stone-300 bg-white px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-default disabled:bg-stone-100 disabled:text-stone-400",
+                  (@is_today && "border-blue-300 bg-blue-100 text-blue-700") ||
+                    "text-stone-700 hover:bg-blue-50"
+                ]}
+                disabled={@is_today}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mr-1 h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Today
+              </button>
 
-                  <button
-                    phx-click="next_week"
-                    size={:sm}
-                    title="Next"
-                    class="px-[6px] cursor-pointer rounded-r-md border border-l-0 border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <% day = List.first(@days_range) %>
+              <button
+                phx-click="next_week"
+                size={:sm}
+                title="Next"
+                class="px-[6px] cursor-pointer rounded-r-md border border-l-0 border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <% day = List.first(@days_range) %>
 
-              <div class="absolute left-1/2 -translate-x-1/2 transform">
-                <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
-                  <span class="">
-                    {Calendar.strftime(List.first(@days_range), "%B %Y")}
-                  </span>
-                  <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
-                    <span class="">
-                      //
-                    </span>
-                    <span class="">
-                      {format_day_name(day)}
-                    </span>
-                    <span class="">
-                      {format_short_date(day, @time_zone)}
-                    </span>
-                  </div>
+          <div class="absolute left-1/2 -translate-x-1/2 transform">
+            <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
+              <span class="">
+                {Calendar.strftime(List.first(@days_range), "%B %Y")}
+              </span>
+              <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
+                <span class="">
+                  //
+                </span>
+                <span class="">
+                  {format_day_name(day)}
+                </span>
+                <span class="">
+                  {format_short_date(day, @time_zone)}
                 </span>
               </div>
-            </div>
+            </span>
+          </div>
+        </div>
 
-            <%= if @schedule_view == :day do %>
-              <%!-- Kanban View for Daily Schedule --%>
-              <div class="mt-4" phx-hook="KanbanDragDrop" id="kanban-board">
-                <% kanban = get_kanban_columns_for_day(day, @production_items) %>
-                <div class="grid grid-cols-3 gap-4">
-                  <%!-- To Do Column --%>
-                  <div class="flex flex-col">
-                    <div class="rounded-t-lg border border-slate-300 bg-slate-50 px-4 py-3">
-                      <div class="flex items-center justify-between">
-                        <h3 class="font-semibold text-slate-700">To Do</h3>
-                        <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
-                          {length(kanban.todo)}
-                        </span>
-                      </div>
+        <%= if @schedule_view == :day do %>
+          <%!-- Kanban View for Daily Schedule --%>
+          <div class="mt-4" phx-hook="KanbanDragDrop" id="kanban-board">
+            <% kanban = get_kanban_columns_for_day(day, @production_items) %>
+            <div class="grid grid-cols-3 gap-4">
+              <%!-- To Do Column --%>
+              <div class="flex flex-col">
+                <div class="rounded-t-lg border border-slate-300 bg-slate-50 px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-semibold text-slate-700">To Do</h3>
+                    <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+                      {length(kanban.todo)}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="kanban-column min-h-[60vh] bg-slate-50/50 space-y-3 rounded-b-lg border border-t-0 border-slate-300 p-3"
+                  data-status="todo"
+                  phx-hook="KanbanColumn"
+                  id="kanban-column-todo"
+                >
+                  <div
+                    :for={{product, items} <- kanban.todo}
+                    phx-click="view_details"
+                    phx-value-date={Date.to_iso8601(day)}
+                    phx-value-product={product.id}
+                    class="kanban-card group cursor-move rounded-lg border border-slate-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+                    draggable="true"
+                    data-product-id={product.id}
+                    data-date={Date.to_iso8601(day)}
+                    data-status="todo"
+                  >
+                    <div class="mb-2 flex items-start justify-between gap-2">
+                      <span class="font-medium text-stone-800" title={product.name}>
+                        {product.name}
+                      </span>
+                      <.badge
+                        :if={
+                          capacity_status(
+                            product,
+                            get_product_items_for_day(day, product, @production_items)
+                          ) == :over
+                        }
+                        text="Over cap"
+                      />
                     </div>
-                    <div
-                      class="kanban-column min-h-[60vh] bg-slate-50/50 space-y-3 rounded-b-lg border border-t-0 border-slate-300 p-3"
-                      data-status="todo"
-                      phx-hook="KanbanColumn"
-                      id="kanban-column-todo"
-                    >
-                      <div
-                        :for={{product, items} <- kanban.todo}
-                        phx-click="view_details"
-                        phx-value-date={Date.to_iso8601(day)}
-                        phx-value-product={product.id}
-                        class="kanban-card group cursor-move rounded-lg border border-slate-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
-                        draggable="true"
-                        data-product-id={product.id}
-                        data-date={Date.to_iso8601(day)}
-                        data-status="todo"
-                      >
-                        <div class="mb-2 flex items-start justify-between gap-2">
-                          <span class="font-medium text-stone-800" title={product.name}>
-                            {product.name}
-                          </span>
-                          <.badge
-                            :if={
-                              capacity_status(
-                                product,
-                                get_product_items_for_day(day, product, @production_items)
-                              ) == :over
-                            }
-                            text="Over cap"
+                    <div class="flex items-center justify-between text-sm text-stone-600">
+                      <span class="flex items-center">
+                        <svg
+                          class="mr-1 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                           />
-                        </div>
-                        <div class="flex items-center justify-between text-sm text-stone-600">
-                          <span class="flex items-center">
-                            <svg
-                              class="mr-1 h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                              />
-                            </svg>
-                            {format_amount(:piece, total_quantity(items))}
-                          </span>
-                          <span
-                            :if={(product.max_daily_quantity || 0) > 0}
-                            class="text-xs text-stone-400"
-                          >
-                            / {product.max_daily_quantity}
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        :if={Enum.empty?(kanban.todo)}
-                        class="flex items-center justify-center py-8 text-sm text-stone-400"
+                        </svg>
+                        {format_amount(:piece, total_quantity(items))}
+                      </span>
+                      <span
+                        :if={(product.max_daily_quantity || 0) > 0}
+                        class="text-xs text-stone-400"
                       >
-                        No items
-                      </div>
+                        / {product.max_daily_quantity}
+                      </span>
                     </div>
                   </div>
-
-                  <%!-- In Progress Column --%>
-                  <div class="flex flex-col">
-                    <div class="rounded-t-lg border border-blue-300 bg-blue-50 px-4 py-3">
-                      <div class="flex items-center justify-between">
-                        <h3 class="font-semibold text-blue-700">In Progress</h3>
-                        <span class="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
-                          {length(kanban.in_progress)}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      class="kanban-column min-h-[60vh] bg-blue-50/50 space-y-3 rounded-b-lg border border-t-0 border-blue-300 p-3"
-                      data-status="in_progress"
-                      phx-hook="KanbanColumn"
-                      id="kanban-column-in-progress"
-                    >
-                      <div
-                        :for={{product, items} <- kanban.in_progress}
-                        phx-click="view_details"
-                        phx-value-date={Date.to_iso8601(day)}
-                        phx-value-product={product.id}
-                        class="kanban-card group cursor-move rounded-lg border border-blue-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
-                        draggable="true"
-                        data-product-id={product.id}
-                        data-date={Date.to_iso8601(day)}
-                        data-status="in_progress"
-                      >
-                        <div class="mb-2 flex items-start justify-between gap-2">
-                          <span class="font-medium text-stone-800" title={product.name}>
-                            {product.name}
-                          </span>
-                          <.badge
-                            :if={
-                              capacity_status(
-                                product,
-                                get_product_items_for_day(day, product, @production_items)
-                              ) == :over
-                            }
-                            text="Over cap"
-                          />
-                        </div>
-                        <div class="flex items-center justify-between text-sm text-stone-600">
-                          <span class="flex items-center">
-                            <svg
-                              class="mr-1 h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            {format_amount(:piece, total_quantity(items))}
-                          </span>
-                          <span
-                            :if={(product.max_daily_quantity || 0) > 0}
-                            class="text-xs text-stone-400"
-                          >
-                            / {product.max_daily_quantity}
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        :if={Enum.empty?(kanban.in_progress)}
-                        class="flex items-center justify-center py-8 text-sm text-stone-400"
-                      >
-                        No items
-                      </div>
-                    </div>
-                  </div>
-
-                  <%!-- Done Column --%>
-                  <div class="flex flex-col">
-                    <div class="rounded-t-lg border border-green-300 bg-green-50 px-4 py-3">
-                      <div class="flex items-center justify-between">
-                        <h3 class="font-semibold text-green-700">Done</h3>
-                        <span class="rounded-full bg-green-200 px-2 py-0.5 text-xs font-medium text-green-700">
-                          {length(kanban.done)}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      class="kanban-column min-h-[60vh] bg-green-50/50 space-y-3 rounded-b-lg border border-t-0 border-green-300 p-3"
-                      data-status="done"
-                      phx-hook="KanbanColumn"
-                      id="kanban-column-done"
-                    >
-                      <div
-                        :for={{product, items} <- kanban.done}
-                        phx-click="view_details"
-                        phx-value-date={Date.to_iso8601(day)}
-                        phx-value-product={product.id}
-                        class="kanban-card group cursor-move rounded-lg border border-green-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
-                        draggable="true"
-                        data-product-id={product.id}
-                        data-date={Date.to_iso8601(day)}
-                        data-status="done"
-                      >
-                        <div class="mb-2 flex items-start justify-between gap-2">
-                          <span class="font-medium text-stone-800" title={product.name}>
-                            {product.name}
-                          </span>
-                          <.badge
-                            :if={
-                              capacity_status(
-                                product,
-                                get_product_items_for_day(day, product, @production_items)
-                              ) == :over
-                            }
-                            text="Over cap"
-                          />
-                        </div>
-                        <div class="flex items-center justify-between text-sm text-stone-600">
-                          <span class="flex items-center">
-                            <svg
-                              class="mr-1 h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            {format_amount(:piece, total_quantity(items))}
-                          </span>
-                          <span
-                            :if={(product.max_daily_quantity || 0) > 0}
-                            class="text-xs text-stone-400"
-                          >
-                            / {product.max_daily_quantity}
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        :if={Enum.empty?(kanban.done)}
-                        class="flex items-center justify-center py-8 text-sm text-stone-400"
-                      >
-                        No items
-                      </div>
-                    </div>
+                  <div
+                    :if={Enum.empty?(kanban.todo)}
+                    class="flex items-center justify-center py-8 text-sm text-stone-400"
+                  >
+                    No items
                   </div>
                 </div>
               </div>
-            <% else %>
-              <%!-- Week View --%>
-              <div class="min-w-[1000px]">
-                <table class="w-full table-fixed border-collapse">
-                  <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
-                    <tr>
-                      <th
-                        :for={
-                          {day, index} <-
-                            Enum.with_index(
-                              @days_range
-                              |> Enum.take((@schedule_view == :day && 1) || 7)
-                            )
-                        }
-                        class={
-                          [
-                            "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
-                            index > 0 && "pl-4",
-                            is_today?(day) && "border border-stone-300 bg-stone-200",
-                            is_today?(Date.add(day, 1)) && "border-r border-r-stone-300"
-                          ]
-                          |> Enum.filter(& &1)
-                          |> Enum.join("  ")
-                        }
-                      >
-                        <div class={["flex items-center justify-center"]}>
-                          <div class={[
-                            "inline-flex items-center justify-center space-x-1 rounded px-2",
-                            is_today?(day) && "bg-stone-500 text-white"
-                          ]}>
-                            <div>{format_day_name(day)}</div>
-                            <div>{format_short_date(day, @time_zone)}</div>
-                          </div>
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="h-[60vh]">
-                      <td
-                        :for={
-                          {day, index} <-
-                            Enum.with_index(
-                              @days_range
-                              |> Enum.take((@schedule_view == :day && 1) || 7)
-                            )
-                        }
-                        class={
-                          [
-                            "border-t border-t-stone-200",
-                            index > 0 && "border-l",
-                            index < 6 && "border-r",
-                            is_today?(day) && "border border-stone-300 bg-stone-200",
-                            is_today?(Date.add(day, 1)) && "border-r border-r-stone-300",
-                            "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
-                          ]
-                          |> Enum.filter(& &1)
-                          |> Enum.join("  ")
-                        }
-                      >
-                        <div class="h-full overflow-y-auto">
-                          <div
-                            :for={{product, items} <- get_items_for_day(day, @production_items)}
-                            phx-click="view_details"
-                            phx-value-date={Date.to_iso8601(day)}
-                            phx-value-product={product.id}
-                            class={[
-                              "group mb-2 cursor-pointer border p-2",
-                              capacity_cell_class(product, items),
-                              "hover:bg-stone-100"
-                            ]}
-                          >
-                            <div class="mb-1.5 flex items-center justify-between gap-2">
-                              <span class="truncate text-sm font-medium" title={product.name}>
-                                {product.name}
-                              </span>
-                              <.badge
-                                :if={capacity_status(product, items) == :over}
-                                text="Over capacity"
-                              />
-                            </div>
-                            <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
-                              <span>
-                                {format_amount(:piece, total_quantity(items))}
-                                <span
-                                  :if={(product.max_daily_quantity || 0) > 0}
-                                  class="ml-1 text-stone-400"
-                                >
-                                  / {product.max_daily_quantity}
-                                </span>
-                              </span>
-                            </div>
-                            <div class="mt-1.5 h-1.5 w-full rounded-full bg-stone-200 group-hover:bg-stone-200">
-                              <div class="relative h-1.5 w-full">
-                                <div
-                                  class="absolute h-1.5 bg-green-500"
-                                  style={"width: calc(#{progress_by_status(items, :done)}%)"}
-                                >
-                                </div>
-                              </div>
-                            </div>
-                            <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
-                              <span>
-                                {format_percentage(
-                                  Decimal.div(
-                                    Decimal.new(progress_by_status(items, :done)),
-                                    Decimal.new(100)
-                                  )
-                                )}% complete
-                              </span>
-                            </div>
-                          </div>
 
-                          <div
-                            :if={get_items_for_day(day, @production_items) |> Enum.empty?()}
-                            class="flex h-full pt-2 text-sm text-stone-400"
-                          >
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <%!-- In Progress Column --%>
+              <div class="flex flex-col">
+                <div class="rounded-t-lg border border-blue-300 bg-blue-50 px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-semibold text-blue-700">In Progress</h3>
+                    <span class="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {length(kanban.in_progress)}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="kanban-column min-h-[60vh] bg-blue-50/50 space-y-3 rounded-b-lg border border-t-0 border-blue-300 p-3"
+                  data-status="in_progress"
+                  phx-hook="KanbanColumn"
+                  id="kanban-column-in-progress"
+                >
+                  <div
+                    :for={{product, items} <- kanban.in_progress}
+                    phx-click="view_details"
+                    phx-value-date={Date.to_iso8601(day)}
+                    phx-value-product={product.id}
+                    class="kanban-card group cursor-move rounded-lg border border-blue-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+                    draggable="true"
+                    data-product-id={product.id}
+                    data-date={Date.to_iso8601(day)}
+                    data-status="in_progress"
+                  >
+                    <div class="mb-2 flex items-start justify-between gap-2">
+                      <span class="font-medium text-stone-800" title={product.name}>
+                        {product.name}
+                      </span>
+                      <.badge
+                        :if={
+                          capacity_status(
+                            product,
+                            get_product_items_for_day(day, product, @production_items)
+                          ) == :over
+                        }
+                        text="Over cap"
+                      />
+                    </div>
+                    <div class="flex items-center justify-between text-sm text-stone-600">
+                      <span class="flex items-center">
+                        <svg
+                          class="mr-1 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        {format_amount(:piece, total_quantity(items))}
+                      </span>
+                      <span
+                        :if={(product.max_daily_quantity || 0) > 0}
+                        class="text-xs text-stone-400"
+                      >
+                        / {product.max_daily_quantity}
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    :if={Enum.empty?(kanban.in_progress)}
+                    class="flex items-center justify-center py-8 text-sm text-stone-400"
+                  >
+                    No items
+                  </div>
+                </div>
               </div>
-            <% end %>
-          </div>
-        </div>
-      </:tab>
-    </.tabs>
 
+              <%!-- Done Column --%>
+              <div class="flex flex-col">
+                <div class="rounded-t-lg border border-green-300 bg-green-50 px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-semibold text-green-700">Done</h3>
+                    <span class="rounded-full bg-green-200 px-2 py-0.5 text-xs font-medium text-green-700">
+                      {length(kanban.done)}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="kanban-column min-h-[60vh] bg-green-50/50 space-y-3 rounded-b-lg border border-t-0 border-green-300 p-3"
+                  data-status="done"
+                  phx-hook="KanbanColumn"
+                  id="kanban-column-done"
+                >
+                  <div
+                    :for={{product, items} <- kanban.done}
+                    phx-click="view_details"
+                    phx-value-date={Date.to_iso8601(day)}
+                    phx-value-product={product.id}
+                    class="kanban-card group cursor-move rounded-lg border border-green-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+                    draggable="true"
+                    data-product-id={product.id}
+                    data-date={Date.to_iso8601(day)}
+                    data-status="done"
+                  >
+                    <div class="mb-2 flex items-start justify-between gap-2">
+                      <span class="font-medium text-stone-800" title={product.name}>
+                        {product.name}
+                      </span>
+                      <.badge
+                        :if={
+                          capacity_status(
+                            product,
+                            get_product_items_for_day(day, product, @production_items)
+                          ) == :over
+                        }
+                        text="Over cap"
+                      />
+                    </div>
+                    <div class="flex items-center justify-between text-sm text-stone-600">
+                      <span class="flex items-center">
+                        <svg
+                          class="mr-1 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        {format_amount(:piece, total_quantity(items))}
+                      </span>
+                      <span
+                        :if={(product.max_daily_quantity || 0) > 0}
+                        class="text-xs text-stone-400"
+                      >
+                        / {product.max_daily_quantity}
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    :if={Enum.empty?(kanban.done)}
+                    class="flex items-center justify-center py-8 text-sm text-stone-400"
+                  >
+                    No items
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% else %>
+          <%!-- Week View --%>
+          <div class="min-w-[1000px]">
+            <table class="w-full table-fixed border-collapse">
+              <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
+                <tr>
+                  <th
+                    :for={
+                      {day, index} <-
+                        Enum.with_index(
+                          @days_range
+                          |> Enum.take((@schedule_view == :day && 1) || 7)
+                        )
+                    }
+                    class={
+                      [
+                        "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
+                        index > 0 && "pl-4",
+                        is_today?(day) && "border border-stone-300 bg-stone-200",
+                        is_today?(Date.add(day, 1)) && "border-r border-r-stone-300"
+                      ]
+                      |> Enum.filter(& &1)
+                      |> Enum.join("  ")
+                    }
+                  >
+                    <div class={["flex items-center justify-center"]}>
+                      <div class={[
+                        "inline-flex items-center justify-center space-x-1 rounded px-2",
+                        is_today?(day) && "bg-stone-500 text-white"
+                      ]}>
+                        <div>{format_day_name(day)}</div>
+                        <div>{format_short_date(day, @time_zone)}</div>
+                      </div>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="h-[60vh]">
+                  <td
+                    :for={
+                      {day, index} <-
+                        Enum.with_index(
+                          @days_range
+                          |> Enum.take((@schedule_view == :day && 1) || 7)
+                        )
+                    }
+                    class={
+                      [
+                        "border-t border-t-stone-200",
+                        index > 0 && "border-l",
+                        index < 6 && "border-r",
+                        is_today?(day) && "border border-stone-300 bg-stone-200",
+                        is_today?(Date.add(day, 1)) && "border-r border-r-stone-300",
+                        "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
+                      ]
+                      |> Enum.filter(& &1)
+                      |> Enum.join("  ")
+                    }
+                  >
+                    <div class="h-full overflow-y-auto">
+                      <div
+                        :for={{product, items} <- get_items_for_day(day, @production_items)}
+                        phx-click="view_details"
+                        phx-value-date={Date.to_iso8601(day)}
+                        phx-value-product={product.id}
+                        class={[
+                          "group mb-2 cursor-pointer border p-2",
+                          capacity_cell_class(product, items),
+                          "hover:bg-stone-100"
+                        ]}
+                      >
+                        <div class="mb-1.5 flex items-center justify-between gap-2">
+                          <span class="truncate text-sm font-medium" title={product.name}>
+                            {product.name}
+                          </span>
+                          <.badge
+                            :if={capacity_status(product, items) == :over}
+                            text="Over capacity"
+                          />
+                        </div>
+                        <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
+                          <span>
+                            {format_amount(:piece, total_quantity(items))}
+                            <span
+                              :if={(product.max_daily_quantity || 0) > 0}
+                              class="ml-1 text-stone-400"
+                            >
+                              / {product.max_daily_quantity}
+                            </span>
+                          </span>
+                        </div>
+                        <div class="mt-1.5 h-1.5 w-full rounded-full bg-stone-200 group-hover:bg-stone-200">
+                          <div class="relative h-1.5 w-full">
+                            <div
+                              class="absolute h-1.5 bg-green-500"
+                              style={"width: calc(#{progress_by_status(items, :done)}%)"}
+                            >
+                            </div>
+                          </div>
+                        </div>
+                        <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
+                          <span>
+                            {format_percentage(
+                              Decimal.div(
+                                Decimal.new(progress_by_status(items, :done)),
+                                Decimal.new(100)
+                              )
+                            )}% complete
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        :if={get_items_for_day(day, @production_items) |> Enum.empty?()}
+                        class="flex h-full pt-2 text-sm text-stone-400"
+                      >
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </div>
+    </div>
     <.modal
       :if={@live_action == :make_sheet}
       id="make-sheet-modal"
@@ -776,8 +763,29 @@ defmodule CraftplanWeb.PlanLive.Index do
   end
 
   @impl true
-  def handle_params(_, _, socket) do
-    {:noreply, assign(socket, :page_title, page_title(socket.assigns.live_action))}
+  def handle_params(params, _url, socket) do
+    live_action = socket.assigns.live_action
+    current_view = socket.assigns[:schedule_view] || :day
+
+    schedule_view =
+      if live_action in [:schedule, :make_sheet] do
+        case Map.get(params, "view") do
+          "week" -> :week
+          "day" -> :day
+          _ -> current_view
+        end
+      else
+        current_view
+      end
+
+    socket =
+      socket
+      |> maybe_assign_schedule_view(live_action, schedule_view)
+      |> assign(:page_title, page_title(live_action))
+      |> assign(:nav_sub_links, plan_nav_sub_links(live_action, schedule_view))
+      |> assign(:nav_sub_label, "Plan")
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -860,6 +868,7 @@ defmodule CraftplanWeb.PlanLive.Index do
     {:noreply,
      socket
      |> assign(:schedule_view, schedule_view)
+     |> assign(:nav_sub_links, plan_nav_sub_links(socket.assigns.live_action, schedule_view))
      |> update_for_range(days_range)}
   end
 
@@ -1135,6 +1144,7 @@ defmodule CraftplanWeb.PlanLive.Index do
     {:noreply,
      socket
      |> assign(:schedule_view, :day)
+     |> assign(:nav_sub_links, plan_nav_sub_links(socket.assigns.live_action, :day))
      |> update_for_range(days_range)
      |> push_patch(to: ~p"/manage/production/schedule")}
   end
@@ -1309,6 +1319,32 @@ defmodule CraftplanWeb.PlanLive.Index do
   defp page_title(:materials), do: "Plan: Inventory Forecast"
   defp page_title(:make_sheet), do: "Plan: Make Sheet"
   defp page_title(_), do: "Plan: Overview"
+
+  defp maybe_assign_schedule_view(socket, live_action, schedule_view) do
+    if live_action in [:schedule, :make_sheet] do
+      assign(socket, :schedule_view, schedule_view)
+    else
+      socket
+    end
+  end
+
+  defp plan_nav_sub_links(live_action, schedule_view) do
+    normalized_view = schedule_view || :day
+
+    [
+      %{label: "Overview", navigate: ~p"/manage/production", active: live_action == :index},
+      %{
+        label: "Weekly",
+        navigate: ~p"/manage/production/schedule?view=week",
+        active: live_action in [:schedule, :make_sheet] and normalized_view == :week
+      },
+      %{
+        label: "Daily",
+        navigate: ~p"/manage/production/schedule?view=day",
+        active: live_action in [:schedule, :make_sheet] and normalized_view == :day
+      }
+    ]
+  end
 
   defp progress_by_status(items, status) do
     zero = Decimal.new(0)

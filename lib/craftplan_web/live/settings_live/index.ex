@@ -14,12 +14,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
       </.breadcrumb>
     </.header>
 
-    <.tabs id="settings-tabs">
-      <:tab
-        label="General"
-        path={~p"/manage/settings/general"}
-        selected?={@live_action == :general || @live_action == :index}
-      >
+    <div class="mt-4 space-y-6">
+      <div :if={@live_action in [:general, :index]}>
         <div class="max-w-lg">
           <.live_component
             module={CraftplanWeb.SettingsLive.FormComponent}
@@ -31,13 +27,9 @@ defmodule CraftplanWeb.SettingsLive.Index do
             patch={~p"/manage/settings/general"}
           />
         </div>
-      </:tab>
+      </div>
 
-      <:tab
-        label="Allergens"
-        path={~p"/manage/settings/allergens"}
-        selected?={@live_action == :allergens}
-      >
+      <div :if={@live_action == :allergens}>
         <div class="">
           <.live_component
             module={CraftplanWeb.SettingsLive.AllergensComponent}
@@ -46,13 +38,9 @@ defmodule CraftplanWeb.SettingsLive.Index do
             allergens={@allergens}
           />
         </div>
-      </:tab>
+      </div>
 
-      <:tab
-        label="Nutritional Facts"
-        path={~p"/manage/settings/nutritional_facts"}
-        selected?={@live_action == :nutritional_facts}
-      >
+      <div :if={@live_action == :nutritional_facts}>
         <div class="">
           <.live_component
             module={CraftplanWeb.SettingsLive.NutritionalFactsComponent}
@@ -61,13 +49,9 @@ defmodule CraftplanWeb.SettingsLive.Index do
             nutritional_facts={@nutritional_facts}
           />
         </div>
-      </:tab>
+      </div>
 
-      <:tab
-        label="Import & Export"
-        path={~p"/manage/settings/csv"}
-        selected?={@live_action == :csv}
-      >
+      <div :if={@live_action == :csv}>
         <div class="max-w-2xl">
           <h2 class="mb-2 text-lg font-medium">Import & Export</h2>
           <p class="mb-4 text-sm text-stone-700">Click on the entity you wish to import.</p>
@@ -111,8 +95,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
             current_user={@current_user}
           />
         </div>
-      </:tab>
-    </.tabs>
+      </div>
+    </div>
     """
   end
 
@@ -145,7 +129,16 @@ defmodule CraftplanWeb.SettingsLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    live_action = socket.assigns.live_action
+
+    nav_sub_links = settings_sub_links(live_action)
+
+    socket =
+      socket
+      |> assign(:nav_sub_links, nav_sub_links)
+      |> apply_action(live_action, params)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -174,6 +167,31 @@ defmodule CraftplanWeb.SettingsLive.Index do
 
   defp apply_action(socket, :csv, _params) do
     assign(socket, :page_title, "Import & Export")
+  end
+
+  defp settings_sub_links(live_action) do
+    [
+      %{
+        label: "General",
+        navigate: ~p"/manage/settings/general",
+        active: live_action in [:general, :index]
+      },
+      %{
+        label: "Allergens",
+        navigate: ~p"/manage/settings/allergens",
+        active: live_action == :allergens
+      },
+      %{
+        label: "Nutritional Facts",
+        navigate: ~p"/manage/settings/nutritional_facts",
+        active: live_action == :nutritional_facts
+      },
+      %{
+        label: "Import & Export",
+        navigate: ~p"/manage/settings/csv",
+        active: live_action == :csv
+      }
+    ]
   end
 
   def handle_event("csv_export", _params, socket) do

@@ -23,25 +23,6 @@ defmodule CraftplanWeb.PurchasingLive.Index do
       </:actions>
     </.header>
 
-    <div class="mt-2">
-      <.tabs_nav>
-        <:tab>
-          <.tab_link
-            label="Purchase Orders"
-            path={~p"/manage/purchasing"}
-            selected?={@purchasing_tab == :purchase_orders}
-          />
-        </:tab>
-        <:tab>
-          <.tab_link
-            label="Suppliers"
-            path={~p"/manage/purchasing/suppliers"}
-            selected?={@purchasing_tab == :suppliers}
-          />
-        </:tab>
-      </.tabs_nav>
-    </div>
-
     <div class="mt-4">
       <.table id="purchase-orders" rows={@purchase_orders}>
         <:col :let={po} label="Reference">
@@ -111,13 +92,15 @@ defmodule CraftplanWeb.PurchasingLive.Index do
     pos = load_purchase_orders(socket)
 
     {:ok,
-     assign(socket,
+     socket
+     |> assign(
        suppliers: suppliers,
        materials: materials,
        purchase_orders: pos,
        selected_po: nil,
        purchasing_tab: :purchase_orders
-     )}
+     )
+     |> assign(:nav_sub_links, purchasing_sub_links(:purchase_orders))}
   end
 
   @impl true
@@ -155,6 +138,21 @@ defmodule CraftplanWeb.PurchasingLive.Index do
      |> assign(:purchase_orders, load_purchase_orders(socket))
      |> put_flash(:info, "Purchase order created")
      |> push_event("close-modal", %{id: "po-new-modal"})}
+  end
+
+  defp purchasing_sub_links(active) do
+    [
+      %{
+        label: "Purchase Orders",
+        navigate: ~p"/manage/purchasing",
+        active: active == :purchase_orders
+      },
+      %{
+        label: "Suppliers",
+        navigate: ~p"/manage/purchasing/suppliers",
+        active: active == :suppliers
+      }
+    ]
   end
 
   @impl true

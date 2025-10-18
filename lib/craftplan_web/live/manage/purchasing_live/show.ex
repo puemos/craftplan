@@ -23,25 +23,6 @@ defmodule CraftplanWeb.PurchasingLive.Show do
       </:actions>
     </.header>
 
-    <div class="mt-2">
-      <.tabs_nav>
-        <:tab>
-          <.tab_link
-            label="Overview"
-            path={~p"/manage/purchasing/#{@po.reference}"}
-            selected?={@live_action == :show}
-          />
-        </:tab>
-        <:tab>
-          <.tab_link
-            label="Items"
-            path={~p"/manage/purchasing/#{@po.reference}/items"}
-            selected?={@live_action in [:items, :add_item]}
-          />
-        </:tab>
-      </.tabs_nav>
-    </div>
-
     <div class="mt-4 space-y-4">
       <%= if @live_action == :show do %>
         <.list>
@@ -114,7 +95,25 @@ defmodule CraftplanWeb.PurchasingLive.Show do
          |> push_navigate(to: ~p"/manage/purchasing")}
 
       {:ok, po} ->
-        {:noreply, assign(socket, po: po)}
+        live_action = socket.assigns.live_action
+
+        nav_sub_links = [
+          %{
+            label: "Overview",
+            navigate: ~p"/manage/purchasing/#{po.reference}",
+            active: live_action == :show
+          },
+          %{
+            label: "Items",
+            navigate: ~p"/manage/purchasing/#{po.reference}/items",
+            active: live_action in [:items, :add_item]
+          }
+        ]
+
+        {:noreply,
+         socket
+         |> assign(:po, po)
+         |> assign(:nav_sub_links, nav_sub_links)}
 
       {:error, _} ->
         {:noreply,

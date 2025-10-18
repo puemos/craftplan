@@ -21,233 +21,227 @@ defmodule CraftplanWeb.InventoryLive.Index do
       </:actions>
     </.header>
 
-    <.tabs id="inventory-tabs">
-      <:tab label="All Materials" path={~p"/manage/inventory"} selected?={@live_action == :index}>
-        <.table
-          id="materials"
-          rows={@streams.materials}
-          row_id={fn {dom_id, _} -> dom_id end}
-          row_click={fn {_, material} -> JS.navigate(~p"/manage/inventory/#{material.sku}") end}
-        >
-          <:empty>
-            <div class="block py-4 pr-6">
-              <span class={["relative"]}>
-                No materials found
+    <div :if={@live_action == :index}>
+      <.table
+        id="materials"
+        rows={@streams.materials}
+        row_id={fn {dom_id, _} -> dom_id end}
+        row_click={fn {_, material} -> JS.navigate(~p"/manage/inventory/#{material.sku}") end}
+      >
+        <:empty>
+          <div class="block py-4 pr-6">
+            <span class={["relative"]}>
+              No materials found
+            </span>
+          </div>
+        </:empty>
+        <:col :let={{_, material}} label="Material">{material.name}</:col>
+        <:col :let={{_, material}} label="SKU">
+          <.kbd>
+            {material.sku}
+          </.kbd>
+        </:col>
+        <:col :let={{_, material}} label="Current Stock">
+          {format_amount(material.unit, material.current_stock)}
+        </:col>
+        <:col :let={{_, material}} label="Price">
+          {format_money(@settings.currency, material.price)} per {material.unit}
+        </:col>
+
+        <:action :let={{_, material}}>
+          <div class="sr-only">
+            <.link navigate={~p"/manage/inventory/#{material.sku}"}>Show</.link>
+          </div>
+        </:action>
+        <:action :let={{_, material}}>
+          <.link
+            phx-click={JS.push("delete", value: %{id: material.id}) |> hide("##{material.sku}")}
+            data-confirm="Are you sure?"
+          >
+            <.button size={:sm} variant={:danger}>
+              Delete
+            </.button>
+          </.link>
+        </:action>
+      </.table>
+    </div>
+
+    <div :if={@live_action == :forecast}>
+      <div class="mt-4">
+        <div class="mt-8">
+          <div
+            id="controls"
+            class="border-gray-200/70 flex items-center justify-between border-b pb-4"
+          >
+            <div class="flex items-center space-x-2">
+              <span class="text-xl font-medium text-stone-700">
+                {Calendar.strftime(List.first(@days_range), "%B %Y")}
               </span>
             </div>
-          </:empty>
-          <:col :let={{_, material}} label="Material">{material.name}</:col>
-          <:col :let={{_, material}} label="SKU">
-            <.kbd>
-              {material.sku}
-            </.kbd>
-          </:col>
-          <:col :let={{_, material}} label="Current Stock">
-            {format_amount(material.unit, material.current_stock)}
-          </:col>
-          <:col :let={{_, material}} label="Price">
-            {format_money(@settings.currency, material.price)} per {material.unit}
-          </:col>
-
-          <:action :let={{_, material}}>
-            <div class="sr-only">
-              <.link navigate={~p"/manage/inventory/#{material.sku}"}>Show</.link>
-            </div>
-          </:action>
-          <:action :let={{_, material}}>
-            <.link
-              phx-click={JS.push("delete", value: %{id: material.id}) |> hide("##{material.sku}")}
-              data-confirm="Are you sure?"
-            >
-              <.button size={:sm} variant={:danger}>
-                Delete
-              </.button>
-            </.link>
-          </:action>
-        </.table>
-      </:tab>
-
-      <:tab
-        label="Forecast"
-        path={~p"/manage/inventory/forecast"}
-        selected?={@live_action == :forecast}
-      >
-        <div class="mt-4">
-          <div class="mt-8">
-            <div
-              id="controls"
-              class="border-gray-200/70 flex items-center justify-between border-b pb-4"
-            >
-              <div class="flex items-center space-x-2">
-                <span class="text-xl font-medium text-stone-700">
-                  {Calendar.strftime(List.first(@days_range), "%B %Y")}
-                </span>
-              </div>
-              <div class="flex items-center">
-                <button
-                  phx-click="today"
-                  size={:sm}
-                  variant={:outline}
-                  class="flex cursor-pointer items-center rounded-l-md border-y border-l border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
+            <div class="flex items-center">
+              <button
+                phx-click="today"
+                size={:sm}
+                variant={:outline}
+                class="flex cursor-pointer items-center rounded-l-md border-y border-l border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mr-1 h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mr-1 h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Today
-                </button>
-                <button
-                  phx-click="next_week"
-                  size={:sm}
-                  class="px-[6px] cursor-pointer rounded-r-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Today
+              </button>
+              <button
+                phx-click="next_week"
+                size={:sm}
+                class="px-[6px] cursor-pointer rounded-r-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="min-w-[1000px]">
-              <table class="w-full table-fixed border-collapse">
-                <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
-                  <tr>
-                    <th class={[
-                      "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 text-left font-normal"
-                    ]}>
-                      Material
-                    </th>
-                    <th
-                      :for={{day, _index} <- Enum.with_index(@days_range)}
-                      class={
-                        [
-                          "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 pl-4 font-normal last:border-r-0"
-                        ]
-                        |> Enum.filter(& &1)
-                        |> Enum.join("  ")
-                      }
-                    >
-                      <div class={["flex items-center justify-center"]}>
-                        <div class={[
-                          "inline-flex items-center justify-center space-x-1 rounded px-2",
-                          is_today?(day) && "bg-stone-500 text-white"
-                        ]}>
-                          <div>{format_day_name(day)}</div>
-                          <div>{format_short_date(day, @time_zone)}</div>
-                        </div>
-                      </div>
-                    </th>
-                    <th class="w-1/7 border-stone-200 p-0 pt-4 pb-4 pl-2 font-normal">
-                      Weekly total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="text-sm leading-6 text-stone-700">
-                  <tr :for={{material, material_data} <- @materials_requirements}>
-                    <td class="border-t border-r border-t-stone-200 border-r-stone-200 py-2 pr-2 text-left font-medium">
-                      {material.name}
-                    </td>
-                    <td
-                      :for={
-                        {
-                          {day_quantity, day},
-                          index
-                        } <- Enum.with_index(material_data.quantities)
-                      }
-                      phx-click={
-                        Decimal.compare(day_quantity, Decimal.new(0)) == :gt &&
-                          "view_material_details"
-                      }
-                      phx-value-date={
-                        Decimal.compare(day_quantity, Decimal.new(0)) == :gt && Date.to_iso8601(day)
-                      }
-                      phx-value-material={
-                        Decimal.compare(day_quantity, Decimal.new(0)) == :gt && material.id
-                      }
-                      class={[
-                        "relative border-t border-r border-t-stone-200 border-r-stone-200 p-2 text-center text-sm",
-                        (Decimal.lt?(Enum.at(material_data.balance_cells, index), day_quantity) and
-                           Decimal.compare(day_quantity, Decimal.new(0)) != :eq) && "bg-red-50",
-                        Decimal.compare(day_quantity, Decimal.new(0)) == :gt &&
-                          "cursor-pointer hover:bg-stone-100"
-                      ]}
-                    >
-                      <.icon
-                        :if={
-                          Decimal.lt?(Enum.at(material_data.balance_cells, index), day_quantity) and
-                            Decimal.compare(day_quantity, Decimal.new(0)) != :eq
-                        }
-                        name="hero-exclamation-triangle"
-                        class="absolute top-2 left-1/2 h-5 w-5 -translate-x-1/2 text-red-300"
-                      />
-                      <div
-                        :if={Decimal.compare(day_quantity, Decimal.new(0)) == :gt}
-                        class="space-y-1.5 py-0.5 text-center"
-                      >
-                        <div class={[
-                          "text-center font-medium",
-                          Decimal.lt?(Enum.at(material_data.balance_cells, index), day_quantity) &&
-                            "underline decoration-red-300 decoration-2 underline-offset-4"
-                        ]}>
-                          {format_amount(material.unit, day_quantity)}
-                        </div>
-                      </div>
-                      <div
-                        :if={Decimal.compare(day_quantity, Decimal.new(0)) != :gt}
-                        class="py-4 text-center text-stone-400"
-                      >
-                      </div>
-                    </td>
-                    <td class={["border-t border-t-stone-200 p-2 text-sm"]}>
-                      <div class="space-y-1.5 py-0.5">
-                        <div>
-                          <div class="text-xs text-stone-500">Total need:</div>
-                          <div class={["font-medium"]}>
-                            {format_amount(material.unit, material_data.total_quantity)}
-                          </div>
-                        </div>
-                        <div>
-                          <div class="text-xs text-stone-500">Final balance:</div>
-                          <div class={[
-                            "font-medium",
-                            Decimal.lt?(material_data.final_balance, Decimal.new(0)) &&
-                              "underline decoration-red-300 decoration-2 underline-offset-4"
-                          ]}>
-                            {format_amount(material.unit, material_data.final_balance)}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-
-                  <tr :if={@materials_requirements |> Enum.empty?()}>
-                    <td colspan="9" class="border-t border-t-stone-200 p-4 text-center text-stone-500">
-                      No materials requirements for this period
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
             </div>
           </div>
+          <div class="min-w-[1000px]">
+            <table class="w-full table-fixed border-collapse">
+              <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
+                <tr>
+                  <th class={[
+                    "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 text-left font-normal"
+                  ]}>
+                    Material
+                  </th>
+                  <th
+                    :for={{day, _index} <- Enum.with_index(@days_range)}
+                    class={
+                      [
+                        "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 pl-4 font-normal last:border-r-0"
+                      ]
+                      |> Enum.filter(& &1)
+                      |> Enum.join("  ")
+                    }
+                  >
+                    <div class={["flex items-center justify-center"]}>
+                      <div class={[
+                        "inline-flex items-center justify-center space-x-1 rounded px-2",
+                        is_today?(day) && "bg-stone-500 text-white"
+                      ]}>
+                        <div>{format_day_name(day)}</div>
+                        <div>{format_short_date(day, @time_zone)}</div>
+                      </div>
+                    </div>
+                  </th>
+                  <th class="w-1/7 border-stone-200 p-0 pt-4 pb-4 pl-2 font-normal">
+                    Weekly total
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="text-sm leading-6 text-stone-700">
+                <tr :for={{material, material_data} <- @materials_requirements}>
+                  <td class="border-t border-r border-t-stone-200 border-r-stone-200 py-2 pr-2 text-left font-medium">
+                    {material.name}
+                  </td>
+                  <td
+                    :for={
+                      {
+                        {day_quantity, day},
+                        index
+                      } <- Enum.with_index(material_data.quantities)
+                    }
+                    phx-click={
+                      Decimal.compare(day_quantity, Decimal.new(0)) == :gt &&
+                        "view_material_details"
+                    }
+                    phx-value-date={
+                      Decimal.compare(day_quantity, Decimal.new(0)) == :gt && Date.to_iso8601(day)
+                    }
+                    phx-value-material={
+                      Decimal.compare(day_quantity, Decimal.new(0)) == :gt && material.id
+                    }
+                    class={[
+                      "relative border-t border-r border-t-stone-200 border-r-stone-200 p-2 text-center text-sm",
+                      (Decimal.lt?(Enum.at(material_data.balance_cells, index), day_quantity) and
+                         Decimal.compare(day_quantity, Decimal.new(0)) != :eq) && "bg-red-50",
+                      Decimal.compare(day_quantity, Decimal.new(0)) == :gt &&
+                        "cursor-pointer hover:bg-stone-100"
+                    ]}
+                  >
+                    <.icon
+                      :if={
+                        Decimal.lt?(Enum.at(material_data.balance_cells, index), day_quantity) and
+                          Decimal.compare(day_quantity, Decimal.new(0)) != :eq
+                      }
+                      name="hero-exclamation-triangle"
+                      class="absolute top-2 left-1/2 h-5 w-5 -translate-x-1/2 text-red-300"
+                    />
+                    <div
+                      :if={Decimal.compare(day_quantity, Decimal.new(0)) == :gt}
+                      class="space-y-1.5 py-0.5 text-center"
+                    >
+                      <div class={[
+                        "text-center font-medium",
+                        Decimal.lt?(Enum.at(material_data.balance_cells, index), day_quantity) &&
+                          "underline decoration-red-300 decoration-2 underline-offset-4"
+                      ]}>
+                        {format_amount(material.unit, day_quantity)}
+                      </div>
+                    </div>
+                    <div
+                      :if={Decimal.compare(day_quantity, Decimal.new(0)) != :gt}
+                      class="py-4 text-center text-stone-400"
+                    >
+                    </div>
+                  </td>
+                  <td class={["border-t border-t-stone-200 p-2 text-sm"]}>
+                    <div class="space-y-1.5 py-0.5">
+                      <div>
+                        <div class="text-xs text-stone-500">Total need:</div>
+                        <div class={["font-medium"]}>
+                          {format_amount(material.unit, material_data.total_quantity)}
+                        </div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-stone-500">Final balance:</div>
+                        <div class={[
+                          "font-medium",
+                          Decimal.lt?(material_data.final_balance, Decimal.new(0)) &&
+                            "underline decoration-red-300 decoration-2 underline-offset-4"
+                        ]}>
+                          {format_amount(material.unit, material_data.final_balance)}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr :if={@materials_requirements |> Enum.empty?()}>
+                  <td colspan="9" class="border-t border-t-stone-200 p-4 text-center text-stone-500">
+                    No materials requirements for this period
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </:tab>
-    </.tabs>
+      </div>
+    </div>
 
     <.modal
       :if={@live_action in [:new, :edit]}
@@ -352,7 +346,16 @@ defmodule CraftplanWeb.InventoryLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    live_action = socket.assigns.live_action
+
+    nav_sub_links = inventory_sub_links(live_action)
+
+    socket =
+      socket
+      |> assign(:nav_sub_links, nav_sub_links)
+      |> apply_action(live_action, params)
+
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :new, _params) do
@@ -480,6 +483,21 @@ defmodule CraftplanWeb.InventoryLive.Index do
      |> assign(:today, today)
      |> assign(:days_range, days_range)
      |> assign(:materials_requirements, materials_requirements)}
+  end
+
+  defp inventory_sub_links(live_action) do
+    [
+      %{
+        label: "All materials",
+        navigate: ~p"/manage/inventory",
+        active: live_action in [:index, :new, :edit]
+      },
+      %{
+        label: "Forecast",
+        navigate: ~p"/manage/inventory/forecast",
+        active: live_action == :forecast
+      }
+    ]
   end
 
   @impl true

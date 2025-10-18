@@ -433,7 +433,9 @@ defmodule CraftplanWeb.ImportModalComponent do
     importer = cfg.importer
 
     if importer && function_exported?(importer, :dry_run, 2) do
-      {:ok, %{rows: rows, errors: errors}} = importer.dry_run(csv, delimiter: delimiter, mapping: mapping)
+      {:ok, %{rows: rows, errors: errors}} =
+        importer.dry_run(csv, delimiter: delimiter, mapping: mapping)
+
       msg = "Dry run: #{length(rows)} rows valid, #{length(errors)} errors"
 
       {:noreply,

@@ -19,25 +19,6 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
       </:actions>
     </.header>
 
-    <div class="mt-2">
-      <.tabs_nav>
-        <:tab>
-          <.tab_link
-            label="Purchase Orders"
-            path={~p"/manage/purchasing"}
-            selected?={@purchasing_tab == :purchase_orders}
-          />
-        </:tab>
-        <:tab>
-          <.tab_link
-            label="Suppliers"
-            path={~p"/manage/purchasing/suppliers"}
-            selected?={@purchasing_tab == :suppliers}
-          />
-        </:tab>
-      </.tabs_nav>
-    </div>
-
     <div class="mt-4">
       <.table
         id="suppliers"
@@ -77,7 +58,11 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
   @impl true
   def mount(_params, _session, socket) do
     suppliers = Inventory.list_suppliers!(actor: socket.assigns[:current_user])
-    {:ok, assign(socket, suppliers: suppliers, supplier: nil, purchasing_tab: :suppliers)}
+
+    {:ok,
+     socket
+     |> assign(suppliers: suppliers, supplier: nil, purchasing_tab: :suppliers)
+     |> assign(:nav_sub_links, purchasing_sub_links(:suppliers))}
   end
 
   @impl true
@@ -107,5 +92,20 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
      |> assign(:suppliers, Inventory.list_suppliers!(actor: socket.assigns.current_user))
      |> put_flash(:info, "Supplier saved")
      |> push_event("close-modal", %{id: "supplier-modal"})}
+  end
+
+  defp purchasing_sub_links(active) do
+    [
+      %{
+        label: "Purchase Orders",
+        navigate: ~p"/manage/purchasing",
+        active: active == :purchase_orders
+      },
+      %{
+        label: "Suppliers",
+        navigate: ~p"/manage/purchasing/suppliers",
+        active: active == :suppliers
+      }
+    ]
   end
 end
