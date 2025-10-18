@@ -2,55 +2,18 @@ defmodule CraftplanWeb.ManageInventoryLiveTest do
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-
-  alias Craftplan.Inventory.Material
-
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp unique_sku do
-    "mat-" <> Ecto.UUID.generate()
-  end
-
-  defp create_material!(attrs \\ %{}) do
-    staff = staff_user!()
-    name = Map.get(attrs, :name, "Test Material")
-    sku = Map.get(attrs, :sku, unique_sku())
-    price = Map.get(attrs, :price, Decimal.new("1.23"))
-    unit = Map.get(attrs, :unit, :gram)
-
-    Material
-    |> Ash.Changeset.for_create(:create, %{
-      name: name,
-      sku: sku,
-      price: price,
-      unit: unit,
-      minimum_stock: Decimal.new(0),
-      maximum_stock: Decimal.new(0)
-    })
-    |> Ash.create!(actor: staff)
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
+  alias Craftplan.Test.Factory
 
   describe "index and new" do
+    @tag role: :staff
     test "renders inventory index for staff", %{conn: conn} do
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory")
       assert has_element?(view, "#materials")
     end
 
+    @tag role: :staff
     test "renders new material modal and creates material", %{conn: conn} do
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/new")
       assert has_element?(view, "#material-form")
@@ -58,7 +21,7 @@ defmodule CraftplanWeb.ManageInventoryLiveTest do
       params = %{
         "material" => %{
           "name" => "New Material",
-          "sku" => unique_sku(),
+          "sku" => "mat-" <> Ecto.UUID.generate(),
           "price" => "2.50",
           "unit" => "gram",
           "minimum_stock" => "0",
@@ -76,59 +39,53 @@ defmodule CraftplanWeb.ManageInventoryLiveTest do
   end
 
   describe "show tabs" do
+    @tag role: :staff
     test "renders material details tab for staff", %{conn: conn} do
-      material = create_material!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      material = Factory.create_material!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/#{material.sku}")
       assert has_element?(view, "[role=tablist]")
       assert has_element?(view, "kbd")
     end
 
+    @tag role: :staff
     test "renders allergens tab for staff", %{conn: conn} do
-      material = create_material!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      material = Factory.create_material!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/#{material.sku}/allergens")
       assert has_element?(view, "[role=tablist]")
       assert has_element?(view, "#material-allergen-form-2")
     end
 
+    @tag role: :staff
     test "renders nutritional facts tab for staff", %{conn: conn} do
-      material = create_material!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      material = Factory.create_material!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/#{material.sku}/nutritional_facts")
       assert has_element?(view, "[role=tablist]")
       assert has_element?(view, "#material-nutritional-facts-form")
     end
 
+    @tag role: :staff
     test "renders stock tab for staff", %{conn: conn} do
-      material = create_material!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      material = Factory.create_material!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/#{material.sku}/stock")
       assert has_element?(view, "[role=tablist]")
       assert has_element?(view, "#inventory_movements")
     end
 
+    @tag role: :staff
     test "renders edit modal for staff", %{conn: conn} do
-      material = create_material!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      material = Factory.create_material!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/#{material.sku}/edit")
       assert has_element?(view, "#material-form")
     end
 
+    @tag role: :staff
     test "renders adjust modal for staff", %{conn: conn} do
-      material = create_material!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      material = Factory.create_material!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/#{material.sku}/adjust")
       assert has_element?(view, "#movement-movment-form")

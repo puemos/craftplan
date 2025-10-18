@@ -3,8 +3,8 @@ defmodule CraftplanWeb.ManageOrdersFiltersCalendarInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias Craftplan.CRM.Customer
   alias Craftplan.Catalog.Product
+  alias Craftplan.CRM.Customer
   alias Craftplan.Orders.Order
 
   defp staff_user! do
@@ -83,4 +83,3 @@ defmodule CraftplanWeb.ManageOrdersFiltersCalendarInteractionsLiveTest do
     refute prev == next
   end
 end
-

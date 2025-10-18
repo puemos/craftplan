@@ -44,4 +44,3 @@ defmodule CraftplanWeb.ManageInventoryEditInteractionsLiveTest do
     assert render(view) =~ "Material updated successfully"
   end
 end
-

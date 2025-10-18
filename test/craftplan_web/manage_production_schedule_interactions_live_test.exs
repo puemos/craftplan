@@ -45,4 +45,3 @@ defmodule CraftplanWeb.ManageProductionScheduleInteractionsLiveTest do
     refute after_today == after_next
   end
 end
-

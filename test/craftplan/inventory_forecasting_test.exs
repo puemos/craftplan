@@ -1,9 +1,10 @@
 defmodule Craftplan.InventoryForecastingTest do
   use Craftplan.DataCase, async: true
 
-  alias Craftplan.InventoryForecasting
+  alias Craftplan.Catalog.Product
+  alias Craftplan.Catalog.Recipe
   alias Craftplan.Inventory.Material
-  alias Craftplan.Catalog.{Product, Recipe}
+  alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
 
   defp staff_user! do
@@ -88,8 +89,8 @@ defmodule Craftplan.InventoryForecastingTest do
     {flour, flour_data} = Enum.find(reqs, fn {mat, _} -> mat.name == "Flour" end)
     assert flour.name == "Flour"
     # quantities per day: day1 2*1=2, day2 2*3=6
-    assert Enum.at(flour_data.quantities, 0) |> elem(0) == Decimal.new(2)
-    assert Enum.at(flour_data.quantities, 1) |> elem(0) == Decimal.new(6)
+    assert flour_data.quantities |> Enum.at(0) |> elem(0) == Decimal.new(2)
+    assert flour_data.quantities |> Enum.at(1) |> elem(0) == Decimal.new(6)
     # total = 8
     assert flour_data.total_quantity == Decimal.new(8)
   end

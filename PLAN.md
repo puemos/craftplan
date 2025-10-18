@@ -94,9 +94,9 @@ Requirements
     - [x] Click rows in Overview to jump to Schedule day and highlight target day.
     - [x] Ensure `days_range` is assigned; prev/next in Day view adjusts by 1 day.
   - Labels
-    - [ ] Product label HTML print view (ingredients/allergens/batch/date).
+    - [x] Product label HTML print view (ingredients/allergens/batch/date).
   - Public Order Status
-    - [ ] New LV `/o/:reference` shows status, delivery date, items.
+    - [x] New LV `/o/:reference` shows status, delivery date, items.
   - Checkout (optional for v0.1)
     - [x] Delivery method and date validator (lead time, per‑product and global capacity).
     - [ ] Discount line UI (logic in place; UI pending).

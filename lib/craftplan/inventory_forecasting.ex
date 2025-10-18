@@ -34,9 +34,7 @@ defmodule Craftplan.InventoryForecasting do
     end_date = Enum.max(days_range, Date)
 
     Orders.Order
-    |> Ash.Query.for_read(:for_forecast, %{start_date: start_date, end_date: end_date},
-      actor: actor
-    )
+    |> Ash.Query.for_read(:for_forecast, %{start_date: start_date, end_date: end_date}, actor: actor)
     |> Ash.read!()
   end
 

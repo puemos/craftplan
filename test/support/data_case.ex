@@ -64,53 +64,41 @@ defmodule Craftplan.DataCase do
   Create a staff user for use as an actor in tests that require authorization.
   """
   def staff_actor do
-    email = "staff+test@local"
+    email = "staff+#{System.unique_integer([:positive])}@local"
 
-    case Craftplan.Repo.get_by(User, email: email) do
-      %User{} = user ->
-        user
-
-      nil ->
-        User
-        |> Ash.Changeset.for_create(:register_with_password, %{
-          email: email,
-          password: "Passw0rd!!",
-          password_confirmation: "Passw0rd!!",
-          role: :staff
-        })
-        |> Ash.create!(
-          context: %{
-            strategy: Password,
-            private: %{ash_authentication?: true}
-          }
-        )
-    end
+    User
+    |> Ash.Changeset.for_create(:register_with_password, %{
+      email: email,
+      password: "Passw0rd!!",
+      password_confirmation: "Passw0rd!!",
+      role: :staff
+    })
+    |> Ash.create!(
+      context: %{
+        strategy: Password,
+        private: %{ash_authentication?: true}
+      }
+    )
   end
 
   @doc """
   Create or fetch an admin user for tests requiring elevated privileges.
   """
   def admin_actor do
-    email = "admin+test@local"
+    email = "admin+#{System.unique_integer([:positive])}@local"
 
-    case Craftplan.Repo.get_by(User, email: email) do
-      %User{} = user ->
-        user
-
-      nil ->
-        User
-        |> Ash.Changeset.for_create(:register_with_password, %{
-          email: email,
-          password: "Passw0rd!!",
-          password_confirmation: "Passw0rd!!",
-          role: :admin
-        })
-        |> Ash.create!(
-          context: %{
-            strategy: Password,
-            private: %{ash_authentication?: true}
-          }
-        )
-    end
+    User
+    |> Ash.Changeset.for_create(:register_with_password, %{
+      email: email,
+      password: "Passw0rd!!",
+      password_confirmation: "Passw0rd!!",
+      role: :admin
+    })
+    |> Ash.create!(
+      context: %{
+        strategy: Password,
+        private: %{ash_authentication?: true}
+      }
+    )
   end
 end

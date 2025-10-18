@@ -28,4 +28,3 @@ defmodule Craftplan.Types.UnitTest do
     assert Unit.abbreviation(:piece, 3) =~ "pieces"
   end
 end
-

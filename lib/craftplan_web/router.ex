@@ -118,6 +118,7 @@ defmodule CraftplanWeb.Router do
         CraftplanWeb.LiveCart,
         {CraftplanWeb.LiveUserAuth, :live_user_optional}
       ] do
+      live "/o/:reference", Public.OrderStatusLive.Show, :show
       live "/catalog", Public.CatalogLive.Index, :index
       live "/catalog/:sku", Public.CatalogLive.Show, :show
       live "/cart", Public.CartLive.Index, :index
@@ -166,6 +167,7 @@ defmodule CraftplanWeb.Router do
       live "/manage/products/:sku/nutrition", ProductLive.Show, :nutrition
       live "/manage/products/:sku/photos", ProductLive.Show, :photos
       live "/manage/products/:sku/edit", ProductLive.Show, :edit
+      live "/manage/products/:sku/label", ProductLive.Label, :label
 
       # Inventory
       live "/manage/inventory", InventoryLive.Index, :index

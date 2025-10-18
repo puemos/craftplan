@@ -40,4 +40,3 @@ defmodule CraftplanWeb.ManageCustomersInteractionsLiveTest do
     assert_redirect(view, ~p"/manage/orders/new?customer_id=#{c.reference}")
   end
 end
-

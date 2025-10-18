@@ -3,7 +3,9 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias Craftplan.Inventory.{Material, Allergen, NutritionalFact}
+  alias Craftplan.Inventory.Allergen
+  alias Craftplan.Inventory.Material
+  alias Craftplan.Inventory.NutritionalFact
 
   defp staff_user! do
     Craftplan.DataCase.staff_actor()

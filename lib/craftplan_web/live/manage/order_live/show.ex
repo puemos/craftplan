@@ -238,10 +238,11 @@ defmodule CraftplanWeb.OrderLive.Show do
 
     case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
       {:ok, updated_item} ->
-        order = Orders.get_order_by_id!(order_item.order_id,
-          load: @default_order_load,
-          actor: socket.assigns[:current_user]
-        )
+        order =
+          Orders.get_order_by_id!(order_item.order_id,
+            load: @default_order_load,
+            actor: socket.assigns[:current_user]
+          )
 
         socket =
           socket
@@ -296,10 +297,11 @@ defmodule CraftplanWeb.OrderLive.Show do
           actor: socket.assigns.current_user
         )
 
-      order = Orders.get_order_by_id!(socket.assigns.order.id,
-        load: @default_order_load,
-        actor: socket.assigns[:current_user]
-      )
+      order =
+        Orders.get_order_by_id!(socket.assigns.order.id,
+          load: @default_order_load,
+          actor: socket.assigns[:current_user]
+        )
 
       {:noreply,
        socket

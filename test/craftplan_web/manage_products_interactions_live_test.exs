@@ -74,11 +74,18 @@ defmodule CraftplanWeb.ManageProductsInteractionsLiveTest do
     # Set quantity for the added material then save
     view
     |> element("#recipe-form")
-    |> render_change(%{"recipe" => %{"components" => %{"0" => %{"material_id" => material.id, "quantity" => "1"}}}})
+    |> render_change(%{
+      "recipe" => %{"components" => %{"0" => %{"material_id" => material.id, "quantity" => "1"}}}
+    })
 
     view
     |> element("#recipe-form")
-    |> render_submit(%{"recipe" => %{"product_id" => product.id, "components" => %{"0" => %{"material_id" => material.id, "quantity" => "1"}}}})
+    |> render_submit(%{
+      "recipe" => %{
+        "product_id" => product.id,
+        "components" => %{"0" => %{"material_id" => material.id, "quantity" => "1"}}
+      }
+    })
 
     assert render(view) =~ "Recipe updated successfully"
   end

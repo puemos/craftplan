@@ -42,4 +42,3 @@ defmodule CraftplanWeb.ManageProductsEditInteractionsLiveTest do
     assert render(view) =~ "Product updated successfully"
   end
 end
-

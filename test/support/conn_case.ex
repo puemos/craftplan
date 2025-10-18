@@ -40,7 +40,14 @@ defmodule CraftplanWeb.ConnCase do
       conn
       |> Plug.Test.init_test_session(%{})
       |> Plug.Conn.put_session(:phoenix_ecto_sandbox, metadata)
+      |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
 
-    {:ok, conn: conn}
+    case tags[:role] do
+      nil -> {:ok, conn: conn}
+      role ->
+        user = Craftplan.Test.AuthHelpers.register_user!(role: role) |> Craftplan.Test.AuthHelpers.ensure_token!()
+        conn = Craftplan.Test.AuthHelpers.sign_in(conn, user)
+        {:ok, conn: conn, user: user}
+    end
   end
 end

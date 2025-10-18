@@ -36,4 +36,3 @@ defmodule CraftplanWeb.ManageInventoryForecastNavLiveTest do
     refute after_today == after_next
   end
 end
-

@@ -3,8 +3,8 @@ defmodule CraftplanWeb.ManageOrdersInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias Craftplan.CRM.Customer
   alias Craftplan.Catalog.Product
+  alias Craftplan.CRM.Customer
 
   defp staff_user! do
     Craftplan.DataCase.staff_actor()
@@ -83,4 +83,3 @@ defmodule CraftplanWeb.ManageOrdersInteractionsLiveTest do
     assert render(view) =~ "Order saved successfully"
   end
 end
-

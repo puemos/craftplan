@@ -152,6 +152,16 @@ defmodule Craftplan.Orders.Order do
       pagination keyset?: true
     end
 
+    # Public, minimal read for showing an order by reference
+    read :public_show do
+      argument :reference, :string, allow_nil?: false
+
+      prepare build(
+                load: [items: [product: [:name, :sku]]],
+                filter: expr(reference == ^arg(:reference))
+              )
+    end
+
     # Narrow day-range read used for capacity checks
     read :for_day do
       argument :delivery_date_start, :utc_datetime, allow_nil?: false
@@ -192,6 +202,11 @@ defmodule Craftplan.Orders.Order do
 
     # Public read for day-range listing/count (capacity checks)
     bypass action(:for_day) do
+      authorize_if always()
+    end
+
+    # Public read for order status by reference
+    bypass action(:public_show) do
       authorize_if always()
     end
 

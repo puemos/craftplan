@@ -3,7 +3,8 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias Craftplan.Catalog.{Product, Recipe}
+  alias Craftplan.Catalog.Product
+  alias Craftplan.Catalog.Recipe
   alias Craftplan.Inventory.Material
   alias Craftplan.Orders.Order
 
@@ -56,14 +57,15 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
   defp create_order_with_item!(product) do
     Order
     |> Ash.Changeset.for_create(:create, %{
-      customer_id: Craftplan.CRM.Customer
-                   |> Ash.Changeset.for_create(:create, %{
-                     type: :individual,
-                     first_name: "Ada",
-                     last_name: "Lovelace"
-                   })
-                   |> Ash.create!()
-                   |> Map.fetch!(:id),
+      customer_id:
+        Craftplan.CRM.Customer
+        |> Ash.Changeset.for_create(:create, %{
+          type: :individual,
+          first_name: "Ada",
+          last_name: "Lovelace"
+        })
+        |> Ash.create!()
+        |> Map.fetch!(:id),
       delivery_date: DateTime.utc_now(),
       items: [%{"product_id" => product.id, "quantity" => 1, "unit_price" => product.price}]
     })
@@ -96,4 +98,3 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
     assert render(view) =~ "Materials consumed"
   end
 end
-
