@@ -184,17 +184,12 @@ defmodule CraftplanWeb.SettingsLive.Index do
       |> assign(:csv_errors, [])
       |> assign_new(:current_user, fn -> nil end)
 
+    # Always configure CSV upload; harmless on other tabs and avoids missing @uploads
     socket =
-      case socket.assigns.live_action do
-        :csv ->
-          allow_upload(socket, :csv,
-            accept: [".csv", "text/csv"],
-            max_entries: 1
-          )
-
-        _ ->
-          socket
-      end
+      allow_upload(socket, :csv,
+        accept: [".csv", "text/csv"],
+        max_entries: 1
+      )
 
     {:ok, socket}
   end
@@ -286,8 +281,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
   end
 
   defp do_csv_dry_run("products", csv, delimiter, mapping, socket) do
-    mapping_opt = %{mapping: mapping}
-    case Craftplan.CSV.Importers.Products.dry_run(csv, Keyword.merge([delimiter: delimiter], [mapping: mapping])) do
+    case Craftplan.CSV.Importers.Products.dry_run(csv, delimiter: delimiter, mapping: mapping) do
       {:ok, %{rows: rows, errors: errors}} ->
         msg = "Dry run: #{length(rows)} rows valid, #{length(errors)} errors"
         {:noreply, socket |> put_flash(:info, msg) |> assign(:csv_errors, errors)}
