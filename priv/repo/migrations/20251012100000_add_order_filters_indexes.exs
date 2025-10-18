@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddOrderFiltersIndexes do
+defmodule Craftplan.Repo.Migrations.AddOrderFiltersIndexes do
   use Ecto.Migration
 
   def up do

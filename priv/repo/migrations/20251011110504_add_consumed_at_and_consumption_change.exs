@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddConsumedAtAndConsumptionChange do
+defmodule Craftplan.Repo.Migrations.AddConsumedAtAndConsumptionChange do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

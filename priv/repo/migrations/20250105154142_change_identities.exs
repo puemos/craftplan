@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.ChangeIdentities do
+defmodule Craftplan.Repo.Migrations.ChangeIdentities do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

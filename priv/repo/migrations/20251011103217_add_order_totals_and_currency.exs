@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddOrderTotalsAndCurrency do
+defmodule Craftplan.Repo.Migrations.AddOrderTotalsAndCurrency do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

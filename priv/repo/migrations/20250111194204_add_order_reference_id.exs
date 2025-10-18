@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddOrderReferenceId do
+defmodule Craftplan.Repo.Migrations.AddOrderReferenceId do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

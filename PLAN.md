@@ -1,4 +1,4 @@
-Craftday Product Plan — Bakery Operations (Self‑Hosted)
+Craftplan Product Plan — Bakery Operations (Self‑Hosted)
 
 Last updated: 2025‑10‑18
 
@@ -35,7 +35,7 @@ How To Track
 - Optionally add completion dates, e.g., [x] … (2025‑10‑11).
 
 Purpose
-- Keep Craftday incredibly simple for small bakeries: Operate → Make → Stock.
+- Keep Craftplan incredibly simple for small bakeries: Operate → Make → Stock.
 - Optimize the back‑office: production planning, materials consumption, reordering, labeling.
 - Ship small, durable primitives; avoid configuration sprawl. Self‑host first.
 
@@ -116,13 +116,13 @@ Acceptance Criteria
 
 Implementation Approach (files)
 - Domain
-  - `lib/craftday/orders/order.ex`: ensure invoice/discount/delivery fields accept lists; add `batch_code` on order items.
-  - `lib/craftday/orders/changes/calculate_totals.ex`: totals logic as implemented; add discount UI later.
-  - `lib/craftday/orders/consumption.ex`: reuse for “Consume All”.
+  - `lib/craftplan/orders/order.ex`: ensure invoice/discount/delivery fields accept lists; add `batch_code` on order items.
+  - `lib/craftplan/orders/changes/calculate_totals.ex`: totals logic as implemented; add discount UI later.
+  - `lib/craftplan/orders/consumption.ex`: reuse for “Consume All”.
 - UI
-  - `lib/craftday_web/live/manage/plan_live/index.ex`: Make Sheet/Overview/Schedule wiring, bulk actions, guards.
+  - `lib/craftplan_web/live/manage/plan_live/index.ex`: Make Sheet/Overview/Schedule wiring, bulk actions, guards.
   - New LV endpoint(s) for Label print: `/manage/products/:sku/label` and/or `/manage/orders/:ref/label`.
-  - New LV `CraftdayWeb.Public.OrderStatusLive` (route `/o/:reference`).
+  - New LV `CraftplanWeb.Public.OrderStatusLive` (route `/o/:reference`).
 - Data & Migration Checklist
   - Orders: add invoice/discount/delivery fields; add `batch_code` to order items.
 
@@ -153,7 +153,7 @@ Acceptance Criteria
 
 Implementation Approach (files)
 - UI
-  - `lib/craftday_web/live/manage/inventory_live/index.ex`: compute low stock server‑side and show banner.
+  - `lib/craftplan_web/live/manage/inventory_live/index.ex`: compute low stock server‑side and show banner.
   - New LV/tab: Reorder Suggestions under Inventory using `InventoryForecasting`.
 - Services
   - Extend `InventoryForecasting` to compute shortages vs min/max and upcoming orders.
@@ -183,8 +183,8 @@ Requirements
 
 Implementation Approach (files)
 - CSV
-  - New LiveViews under Settings or a `CraftdayWeb.CSVController` for import/export pages.
-  - Services: `lib/craftday/csv/importers/*.ex` and `exporters/*.ex` using NimbleCSV.
+  - New LiveViews under Settings or a `CraftplanWeb.CSVController` for import/export pages.
+  - Services: `lib/craftplan/csv/importers/*.ex` and `exporters/*.ex` using NimbleCSV.
 - Seeds
   - Expand `priv/repo/seeds.exs` to include bakery‑specific products/recipes/orders.
 
@@ -230,7 +230,7 @@ Requirements
   - [ ] Add `/manage/reports` LiveView grouping these tiles/tables (reuse DataVis components).
   - [ ] Date range picker; default last 30 days.
 - Data
-  - [ ] Query functions in a `Craftday.Insights` context (no persistence) or use SQL with aggregates.
+  - [ ] Query functions in a `Craftplan.Insights` context (no persistence) or use SQL with aggregates.
   - [ ] Capacity pulls from Orders+Products; Sales from Orders; Inventory from Inventory+Forecasting.
  - Interactions
    - [ ] Each metric tile/table row is clickable to drill into detail (consistent with Overview behavior).
@@ -240,9 +240,9 @@ Acceptance Criteria
 - Over‑capacity days are clearly highlighted.
 
 Implementation Approach (files)
-- New context: `lib/craftday/insights.ex` for query helpers.
-- New LV: `lib/craftday_web/live/manage/reports_live/index.ex` and routes under `/manage`.
-- Reuse `CraftdayWeb.Components.DataVis` for stat cards and tables.
+- New context: `lib/craftplan/insights.ex` for query helpers.
+- New LV: `lib/craftplan_web/live/manage/reports_live/index.ex` and routes under `/manage`.
+- Reuse `CraftplanWeb.Components.DataVis` for stat cards and tables.
 
 --------------------------------------------------------------------
 Milestone 6 — Overview Tabs Across Index Pages (1–2 weeks)
@@ -264,11 +264,11 @@ Requirements
 - [ ] Make rows/tiles clickable to navigate to the relevant filtered list.
 
 Implementation Approach (files)
-- Products: `lib/craftday_web/live/manage/product_live/index.ex`
-- Inventory: `lib/craftday_web/live/manage/inventory_live/index.ex`
-- Orders: `lib/craftday_web/live/manage/order_live/index.ex`
-- Customers: `lib/craftday_web/live/manage/customer_live/index.ex`
-- Purchasing: `lib/craftday_web/live/manage/purchasing_live/index.ex`
+- Products: `lib/craftplan_web/live/manage/product_live/index.ex`
+- Inventory: `lib/craftplan_web/live/manage/inventory_live/index.ex`
+- Orders: `lib/craftplan_web/live/manage/order_live/index.ex`
+- Customers: `lib/craftplan_web/live/manage/customer_live/index.ex`
+- Purchasing: `lib/craftplan_web/live/manage/purchasing_live/index.ex`
 
 Acceptance Criteria
 - All listed pages have an Overview tab with fast‑loading metrics; clicking navigates to the correct filtered list.
@@ -293,10 +293,10 @@ Acceptance Criteria
 
 Implementation Approach (files)
 - CSV
-  - New controllers: `CraftdayWeb.CSVController` (or LiveViews under Settings) for import/export pages.
-  - Services: `lib/craftday/csv/importers/*.ex` and `exporters/*.ex` using NimbleCSV.
+  - New controllers: `CraftplanWeb.CSVController` (or LiveViews under Settings) for import/export pages.
+  - Services: `lib/craftplan/csv/importers/*.ex` and `exporters/*.ex` using NimbleCSV.
 - Payments
-  - `lib/craftday_web/live/public/checkout_live/index.ex`: branch to Stripe session creation (use `stripity_stripe`) when enabled.
+  - `lib/craftplan_web/live/public/checkout_live/index.ex`: branch to Stripe session creation (use `stripity_stripe`) when enabled.
 - Settings
   - Extend Settings resource and UI with Stripe keys and gating flag.
 
@@ -318,7 +318,7 @@ Cross-Cutting Notes
   - New fields defaulted; migrations written with safe defaults; ensure existing data loads.
 
 Polish & Cleanup
-- [ ] Remove unused helpers in `lib/craftday_web/live/manage/plan_live/index.ex` (e.g., `get_previous_week_range/1`, `get_next_week_range/1`) if no longer used.
+- [ ] Remove unused helpers in `lib/craftplan_web/live/manage/plan_live/index.ex` (e.g., `get_previous_week_range/1`, `get_next_week_range/1`) if no longer used.
 - [ ] Audit print view classes (`print:hidden`, `print:block`) across invoice and make sheet to ensure clean output.
 
 Open Questions

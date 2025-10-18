@@ -1,4 +1,4 @@
-defmodule Craftday.DataCase do
+defmodule Craftplan.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -10,29 +10,29 @@ defmodule Craftday.DataCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use Craftday.DataCase, async: true`, although
+  by setting `use Craftplan.DataCase, async: true`, although
   this option is not recommended for other databases.
   """
 
   use ExUnit.CaseTemplate
 
   alias AshAuthentication.Strategy.Password
-  alias Craftday.Accounts.User
+  alias Craftplan.Accounts.User
   alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
-      import Craftday.DataCase
+      import Craftplan.DataCase
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
 
-      alias Craftday.Repo
+      alias Craftplan.Repo
     end
   end
 
   setup tags do
-    Craftday.DataCase.setup_sandbox(tags)
+    Craftplan.DataCase.setup_sandbox(tags)
     :ok
   end
 
@@ -40,7 +40,7 @@ defmodule Craftday.DataCase do
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do
-    pid = Sandbox.start_owner!(Craftday.Repo, shared: not tags[:async])
+    pid = Sandbox.start_owner!(Craftplan.Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 
@@ -66,7 +66,7 @@ defmodule Craftday.DataCase do
   def staff_actor do
     email = "staff+test@local"
 
-    case Craftday.Repo.get_by(User, email: email) do
+    case Craftplan.Repo.get_by(User, email: email) do
       %User{} = user ->
         user
 
@@ -93,7 +93,7 @@ defmodule Craftday.DataCase do
   def admin_actor do
     email = "admin+test@local"
 
-    case Craftday.Repo.get_by(User, email: email) do
+    case Craftplan.Repo.get_by(User, email: email) do
       %User{} = user ->
         user
 

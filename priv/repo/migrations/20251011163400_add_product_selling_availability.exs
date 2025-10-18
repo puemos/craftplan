@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddProductSellingAvailability do
+defmodule Craftplan.Repo.Migrations.AddProductSellingAvailability do
   @moduledoc """
   Adds selling_availability to products.
   """

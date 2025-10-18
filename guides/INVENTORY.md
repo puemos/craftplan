@@ -1,6 +1,6 @@
 # Inventory Control
 
-The Inventory module in Craftday helps you track and manage raw materials, monitor stock levels, maintain movement history, and plan materials needs. This guide reflects the features available today.
+The Inventory module in Craftplan helps you track and manage raw materials, monitor stock levels, maintain movement history, and plan materials needs. This guide reflects the features available today.
 
 ## Accessing Inventory Management
 

@@ -15,8 +15,8 @@ config :ash,
   known_types: [AshMoney.Types.Money],
   custom_types: [
     money: Money,
-    currency: Craftday.Types.Currency,
-    unit: Craftday.Types.Unit
+    currency: Craftplan.Types.Currency,
+    unit: Craftplan.Types.Unit
   ]
 
 # Configures the mailer
@@ -26,30 +26,30 @@ config :ash,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :craftday, Craftday.Mailer, adapter: Swoosh.Adapters.Local
+config :craftplan, Craftplan.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configures the endpoint
-config :craftday, CraftdayWeb.Endpoint,
+config :craftplan, CraftplanWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: CraftdayWeb.ErrorHTML, json: CraftdayWeb.ErrorJSON],
+    formats: [html: CraftplanWeb.ErrorHTML, json: CraftplanWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Craftday.PubSub,
+  pubsub_server: Craftplan.PubSub,
   live_view: [signing_salt: "vNk6HzXn"]
 
-config :craftday,
-  ecto_repos: [Craftday.Repo],
+config :craftplan,
+  ecto_repos: [Craftplan.Repo],
   generators: [timestamp_type: :utc_datetime],
   ash_domains: [
-    Craftday.Settings,
-    Craftday.CRM,
-    Craftday.Orders,
-    Craftday.Inventory,
-    Craftday.Catalog,
-    Craftday.Accounts,
-    Craftday.Cart
+    Craftplan.Settings,
+    Craftplan.CRM,
+    Craftplan.Orders,
+    Craftplan.Inventory,
+    Craftplan.Catalog,
+    Craftplan.Accounts,
+    Craftplan.Cart
   ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
@@ -63,7 +63,7 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
-config :ex_cldr, default_backend: Craftday.Cldr
+config :ex_cldr, default_backend: Craftplan.Cldr
 
 # Configures Elixir's Logger
 config :logger, :console,

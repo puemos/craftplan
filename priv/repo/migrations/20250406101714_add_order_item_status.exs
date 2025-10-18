@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddOrderItemStatus do
+defmodule Craftplan.Repo.Migrations.AddOrderItemStatus do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

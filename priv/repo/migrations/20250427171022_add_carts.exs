@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddCarts do
+defmodule Craftplan.Repo.Migrations.AddCarts do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

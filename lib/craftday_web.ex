@@ -1,12 +1,12 @@
-defmodule CraftdayWeb do
+defmodule CraftplanWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, components, channels, and so on.
 
   This can be used in your application as:
 
-      use CraftdayWeb, :controller
-      use CraftdayWeb, :html
+      use CraftplanWeb, :controller
+      use CraftplanWeb, :html
 
   The definitions below will be executed for every controller,
   component, etc, so keep them short and clean, focused
@@ -41,9 +41,9 @@ defmodule CraftdayWeb do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: CraftdayWeb.Layouts]
+        layouts: [html: CraftplanWeb.Layouts]
 
-      use Gettext, backend: CraftdayWeb.Gettext
+      use Gettext, backend: CraftplanWeb.Gettext
 
       import Plug.Conn
 
@@ -54,7 +54,7 @@ defmodule CraftdayWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {CraftdayWeb.Layouts, :app}
+        layout: {CraftplanWeb.Layouts, :app}
 
       unquote(html_helpers())
     end
@@ -92,10 +92,10 @@ defmodule CraftdayWeb do
   defp html_helpers do
     quote do
       # Translation
-      use Gettext, backend: CraftdayWeb.Gettext
-      use CraftdayWeb.Components
+      use Gettext, backend: CraftplanWeb.Gettext
+      use CraftplanWeb.Components
 
-      import CraftdayWeb.HtmlHelpers
+      import CraftplanWeb.HtmlHelpers
 
       # HTML escaping functionality
       import Phoenix.HTML
@@ -112,9 +112,9 @@ defmodule CraftdayWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: CraftdayWeb.Endpoint,
-        router: CraftdayWeb.Router,
-        statics: CraftdayWeb.static_paths()
+        endpoint: CraftplanWeb.Endpoint,
+        router: CraftplanWeb.Router,
+        statics: CraftplanWeb.static_paths()
     end
   end
 

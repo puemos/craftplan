@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.ChangeAllergensName do
+defmodule Craftplan.Repo.Migrations.ChangeAllergensName do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

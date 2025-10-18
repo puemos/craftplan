@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddSettings do
+defmodule Craftplan.Repo.Migrations.AddSettings do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddNutritionalFact do
+defmodule Craftplan.Repo.Migrations.AddNutritionalFact do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

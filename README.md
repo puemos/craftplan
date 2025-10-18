@@ -2,19 +2,19 @@
 
 ## Overview
 
-Craftday is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Craftday provides everything you need to manage your entire production process and make data-driven decisions as you grow.
+Craftplan is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Craftplan provides everything you need to manage your entire production process and make data-driven decisions as you grow.
 
 ## User Guides
 
-For detailed instructions on using Craftday, check out our user guides:
+For detailed instructions on using Craftplan, check out our user guides:
 
-- [Overview](guides/OVERVIEW.md) - Introduction to Craftday
+- [Overview](guides/OVERVIEW.md) - Introduction to Craftplan
 - [Catalog Management](guides/CATALOG.md) - Managing products and pricing
 - [Inventory Control](guides/INVENTORY.md) - Tracking raw materials and stock
 - [Order Management](guides/ORDERS.md) - Processing customer orders
 - [Customer Management](guides/CUSTOMERS.md) - Managing your customer database
 - [Business Intelligence](guides/REPORTS.md) - Reports and analytics
-- [Settings](guides/SETTINGS.md) - Configuring your Craftday installation
+- [Settings](guides/SETTINGS.md) - Configuring your Craftplan installation
 
 ## Features
 
@@ -104,8 +104,8 @@ For detailed instructions on using Craftday, check out our user guides:
 1. Clone the repository
 
    ```bash
-   git clone https://github.com/puemos/craftday.git
-   cd craftday
+   git clone https://github.com/puemos/craftplan.git
+   cd craftplan
    ```
 
 2. Install dependencies

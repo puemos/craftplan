@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddOrderInvoiceDiscountAndDeliveryFields do
+defmodule Craftplan.Repo.Migrations.AddOrderInvoiceDiscountAndDeliveryFields do
   @moduledoc """
   Adds invoice, discount, and delivery fields to orders.
   """

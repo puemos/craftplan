@@ -142,7 +142,7 @@
     "global": null,
     "strategy": null
   },
-  "repo": "Elixir.Craftday.Repo",
+  "repo": "Elixir.Craftplan.Repo",
   "schema": null,
   "table": "crm_customers"
 }

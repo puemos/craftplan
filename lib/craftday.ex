@@ -1,6 +1,6 @@
-defmodule Craftday do
+defmodule Craftplan do
   @moduledoc """
-  Craftday keeps the contexts that define your domain
+  Craftplan keeps the contexts that define your domain
   and business logic.
 
   Contexts are also responsible for managing your data, regardless

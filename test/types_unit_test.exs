@@ -1,7 +1,7 @@
-defmodule Craftday.Types.UnitTest do
+defmodule Craftplan.Types.UnitTest do
   use ExUnit.Case, async: true
 
-  alias Craftday.Types.Unit
+  alias Craftplan.Types.Unit
 
   test "gram to kg and mg conversions" do
     assert Unit.abbreviation(:gram, 1000) =~ "kg"

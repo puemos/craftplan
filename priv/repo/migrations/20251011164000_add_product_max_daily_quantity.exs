@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddProductMaxDailyQuantity do
+defmodule Craftplan.Repo.Migrations.AddProductMaxDailyQuantity do
   @moduledoc """
   Adds max_daily_quantity to catalog_products.
   """

@@ -1,13 +1,13 @@
 # seeds.exs
 
-alias Craftday.Accounts
-alias Craftday.Cart
-alias Craftday.Catalog
-alias Craftday.CRM
-alias Craftday.Inventory
-alias Craftday.Orders
-alias Craftday.Repo
-alias Craftday.Settings
+alias Craftplan.Accounts
+alias Craftplan.Cart
+alias Craftplan.Catalog
+alias Craftplan.CRM
+alias Craftplan.Inventory
+alias Craftplan.Orders
+alias Craftplan.Repo
+alias Craftplan.Settings
 
 # ------------------------------------------------------------------------------
 # 1. Define helper functions for readability and code organization

@@ -135,7 +135,7 @@
     "global": null,
     "strategy": null
   },
-  "repo": "Elixir.Craftday.Repo",
+  "repo": "Elixir.Craftplan.Repo",
   "schema": null,
   "table": "inventory_purchase_order_items"
 }

@@ -1,6 +1,6 @@
 # Business Intelligence & Insights
 
-Craftday includes a set of built-in views that surface key operational insights. A full report builder and scheduled exports are not yet available.
+Craftplan includes a set of built-in views that surface key operational insights. A full report builder and scheduled exports are not yet available.
 
 ## Product Margins
 

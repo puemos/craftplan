@@ -1,6 +1,6 @@
 import Config
 
-config :craftday, Craftday.Repo,
+config :craftplan, Craftplan.Repo,
   # For development, we disable any cache and enable
   # debugging and code reloading.
   #
@@ -12,13 +12,13 @@ config :craftday, Craftday.Repo,
   # Watch static and templates for browser reloading.
   password: "postgres",
   hostname: "localhost",
-  database: "craftday_dev",
+  database: "craftplan_dev",
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-config :craftday, CraftdayWeb.Endpoint,
+config :craftplan, CraftplanWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
   # ## SSL Support
@@ -46,12 +46,12 @@ config :craftday, CraftdayWeb.Endpoint,
     tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
-config :craftday, CraftdayWeb.Endpoint,
+config :craftplan, CraftplanWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/craftday_web/(controllers|live|components)/.*(ex|heex)$",
+      ~r"lib/craftplan_web/(controllers|live|components)/.*(ex|heex)$",
       ~r"storybook/.*(exs)$"
     ]
 
@@ -70,7 +70,7 @@ config :craftday, CraftdayWeb.Endpoint,
 # configured to run both http and https servers on
 #
 # different ports.
-config :craftday, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIrtiyGZ+A0eBS9"
+config :craftplan, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIrtiyGZ+A0eBS9"
 
 config :ex_aws,
   json_codec: Jason,
@@ -99,8 +99,8 @@ config :swoosh, :api_client, false
 
 config :waffle,
   storage: Waffle.Storage.S3,
-  bucket: "craftday",
-  asset_host: "http://localhost:9000/craftday"
+  bucket: "craftplan",
+  asset_host: "http://localhost:9000/craftplan"
 
 # Set a higher stacktrace during development. Avoid configuring such
 # Disable swoosh api client as it is only required for production adapters.

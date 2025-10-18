@@ -1,4 +1,4 @@
-defmodule CraftdayWeb.ConnCase do
+defmodule CraftplanWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,7 +11,7 @@ defmodule CraftdayWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use CraftdayWeb.ConnCase, async: true`, although
+  by setting `use CraftplanWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -19,22 +19,22 @@ defmodule CraftdayWeb.ConnCase do
 
   using do
     quote do
-      use CraftdayWeb, :verified_routes
+      use CraftplanWeb, :verified_routes
 
-      import CraftdayWeb.ConnCase
+      import CraftplanWeb.ConnCase
       import Phoenix.ConnTest
       import Plug.Conn
       # The default endpoint for testing
-      @endpoint CraftdayWeb.Endpoint
+      @endpoint CraftplanWeb.Endpoint
 
       # Import conveniences for testing with connections
     end
   end
 
   setup tags do
-    Craftday.DataCase.setup_sandbox(tags)
+    Craftplan.DataCase.setup_sandbox(tags)
     conn = Phoenix.ConnTest.build_conn()
-    metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(Craftday.Repo, self())
+    metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(Craftplan.Repo, self())
 
     conn =
       conn

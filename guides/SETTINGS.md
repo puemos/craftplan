@@ -1,6 +1,6 @@
 # Settings & Configuration
 
-The Settings module in Craftday lets you configure global options used across the app. Today, this focuses on currency, allergens, and nutritional facts.
+The Settings module in Craftplan lets you configure global options used across the app. Today, this focuses on currency, allergens, and nutritional facts.
 
 ## Accessing Settings
 

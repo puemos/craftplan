@@ -1,4 +1,4 @@
-defmodule Craftday.Repo.Migrations.AddTaxAndFulfillmentSettings do
+defmodule Craftplan.Repo.Migrations.AddTaxAndFulfillmentSettings do
   @moduledoc """
   Adds tax/fulfillment fields to settings.
   """

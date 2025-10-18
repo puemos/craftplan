@@ -1,6 +1,6 @@
 # Catalog Management
 
-The Catalog module in Craftday helps you manage your products from concept to production. This guide covers what’s available today in the product catalog, including recipes/BOM, costs, allergens, and nutrition.
+The Catalog module in Craftplan helps you manage your products from concept to production. This guide covers what’s available today in the product catalog, including recipes/BOM, costs, allergens, and nutrition.
 
 ## Accessing the Catalog
 
@@ -39,7 +39,7 @@ Products are listed alphabetically by name.
 
 ## Cost and Margin Analysis
 
-Craftday provides detailed cost and margin analysis for each product:
+Craftplan provides detailed cost and margin analysis for each product:
 
 1. Navigate to the product detail page
 2. Click on the **Costs** tab
@@ -65,7 +65,7 @@ For food products, nutritional information is automatically calculated from your
 
 ## Currency
 
-Craftday supports setting a default currency in Settings. Prices and totals are formatted in this currency throughout the app. Per-currency price lists are not yet supported.
+Craftplan supports setting a default currency in Settings. Prices and totals are formatted in this currency throughout the app. Per-currency price lists are not yet supported.
 
 ## Recipes (BOM)
 
