@@ -57,7 +57,7 @@ config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.0",
-  default: [
+  craftplan: [
     args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
@@ -102,7 +102,7 @@ config :spark,
 
 config :tailwind,
   version: "4.1.3",
-  default: [
+  craftplan: [
     args: ~w(
         --input=assets/css/app.css
         --output=priv/static/assets/app.css

@@ -42,8 +42,8 @@ config :craftplan, CraftplanWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "NlbIq9/9aO9+5xxg8ESxxFI7ay172FlEI5IVJvhLx50ZcZbWLjV1L1ito7aZ0fiM",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:craftplan, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:craftplan, ~w(--watch)]}
   ]
 
 config :craftplan, CraftplanWeb.Endpoint,

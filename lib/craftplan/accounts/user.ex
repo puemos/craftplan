@@ -11,6 +11,8 @@ defmodule Craftplan.Accounts.User do
   alias AshAuthentication.Strategy.Password.PasswordConfirmationValidation
 
   authentication do
+    session_identifier :unsafe
+
     tokens do
       enabled? true
       token_resource Craftplan.Accounts.Token
