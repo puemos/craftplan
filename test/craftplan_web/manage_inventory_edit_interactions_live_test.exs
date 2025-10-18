@@ -2,6 +2,7 @@ defmodule CraftplanWeb.ManageInventoryEditInteractionsLiveTest do
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+
   alias Craftplan.Inventory.Material
 
   defp create_material! do

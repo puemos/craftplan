@@ -4,9 +4,12 @@ defmodule Craftplan.Test.Factory do
   Uses Ash actions and passes a default staff actor when needed.
   """
 
+  alias Craftplan.Catalog.Product
+  alias Craftplan.Catalog.Recipe
   alias Craftplan.CRM.Customer
-  alias Craftplan.Catalog.{Product, Recipe}
-  alias Craftplan.Inventory.{Material, Allergen, MaterialAllergen}
+  alias Craftplan.Inventory.Allergen
+  alias Craftplan.Inventory.Material
+  alias Craftplan.Inventory.MaterialAllergen
   alias Craftplan.Orders.Order
 
   defp staff_actor, do: Craftplan.DataCase.staff_actor()
@@ -44,7 +47,8 @@ defmodule Craftplan.Test.Factory do
   end
 
   def add_allergen!(material, name \\ "Gluten", actor \\ staff_actor()) do
-    allergen = Allergen |> Ash.Changeset.for_create(:create, %{name: name}) |> Ash.create!(actor: actor)
+    allergen =
+      Allergen |> Ash.Changeset.for_create(:create, %{name: name}) |> Ash.create!(actor: actor)
 
     _ =
       MaterialAllergen
@@ -97,4 +101,3 @@ defmodule Craftplan.Test.Factory do
 
   defp unique_code(prefix), do: String.downcase(prefix) <> "-" <> Ecto.UUID.generate()
 end
-

@@ -17,6 +17,8 @@ defmodule CraftplanWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  alias Craftplan.Test.AuthHelpers
+
   using do
     quote do
       use CraftplanWeb, :verified_routes
@@ -43,10 +45,16 @@ defmodule CraftplanWeb.ConnCase do
       |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
 
     case tags[:role] do
-      nil -> {:ok, conn: conn}
+      nil ->
+        {:ok, conn: conn}
+
       role ->
-        user = Craftplan.Test.AuthHelpers.register_user!(role: role) |> Craftplan.Test.AuthHelpers.ensure_token!()
-        conn = Craftplan.Test.AuthHelpers.sign_in(conn, user)
+        user =
+          [role: role]
+          |> AuthHelpers.register_user!()
+          |> AuthHelpers.ensure_token!()
+
+        conn = AuthHelpers.sign_in(conn, user)
         {:ok, conn: conn, user: user}
     end
   end

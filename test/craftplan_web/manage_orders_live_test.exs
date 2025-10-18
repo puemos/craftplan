@@ -8,7 +8,6 @@ defmodule CraftplanWeb.ManageOrdersLiveTest do
   describe "index and new" do
     @tag role: :staff
     test "renders orders index for staff", %{conn: conn} do
-
       {:ok, view, _html} = live(conn, ~p"/manage/orders")
       assert has_element?(view, "#orders")
     end
@@ -29,7 +28,11 @@ defmodule CraftplanWeb.ManageOrdersLiveTest do
     test "renders order details for staff", %{conn: conn} do
       product = Factory.create_product!()
       customer = Factory.create_customer!()
-      order = Factory.create_order_with_items!(customer, [%{product_id: product.id, quantity: 2, unit_price: product.price}])
+
+      order =
+        Factory.create_order_with_items!(customer, [
+          %{product_id: product.id, quantity: 2, unit_price: product.price}
+        ])
 
       {:ok, view, _html} = live(conn, ~p"/manage/orders/#{order.reference}")
       assert has_element?(view, "[role=tablist]")
@@ -40,7 +43,11 @@ defmodule CraftplanWeb.ManageOrdersLiveTest do
     test "renders items tab for staff", %{conn: conn} do
       product = Factory.create_product!()
       customer = Factory.create_customer!()
-      order = Factory.create_order_with_items!(customer, [%{product_id: product.id, quantity: 2, unit_price: product.price}])
+
+      order =
+        Factory.create_order_with_items!(customer, [
+          %{product_id: product.id, quantity: 2, unit_price: product.price}
+        ])
 
       {:ok, view, _html} = live(conn, ~p"/manage/orders/#{order.reference}/items")
       assert has_element?(view, "#order-items")
@@ -50,7 +57,11 @@ defmodule CraftplanWeb.ManageOrdersLiveTest do
     test "renders edit modal for staff", %{conn: conn} do
       product = Factory.create_product!()
       customer = Factory.create_customer!()
-      order = Factory.create_order_with_items!(customer, [%{product_id: product.id, quantity: 2, unit_price: product.price}])
+
+      order =
+        Factory.create_order_with_items!(customer, [
+          %{product_id: product.id, quantity: 2, unit_price: product.price}
+        ])
 
       {:ok, view, _html} = live(conn, ~p"/manage/orders/#{order.reference}/edit")
       assert has_element?(view, "#order-item-form")
@@ -60,7 +71,11 @@ defmodule CraftplanWeb.ManageOrdersLiveTest do
     test "renders invoice for staff", %{conn: conn} do
       product = Factory.create_product!()
       customer = Factory.create_customer!()
-      order = Factory.create_order_with_items!(customer, [%{product_id: product.id, quantity: 2, unit_price: product.price}])
+
+      order =
+        Factory.create_order_with_items!(customer, [
+          %{product_id: product.id, quantity: 2, unit_price: product.price}
+        ])
 
       {:ok, view, _html} = live(conn, ~p"/manage/orders/#{order.reference}/invoice")
       assert has_element?(view, "#invoice-items")

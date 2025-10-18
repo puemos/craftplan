@@ -77,7 +77,12 @@ defmodule Craftplan.InventoryForecastingTest do
     _o2 = order!(p, dt2, 3)
 
     days_range = [today, Date.add(today, 1)]
-    reqs = InventoryForecasting.prepare_materials_requirements(days_range, Craftplan.DataCase.staff_actor())
+
+    reqs =
+      InventoryForecasting.prepare_materials_requirements(
+        days_range,
+        Craftplan.DataCase.staff_actor()
+      )
 
     # Expect two materials
     assert length(reqs) == 2

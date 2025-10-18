@@ -20,8 +20,9 @@ defmodule CraftplanWeb.PrintViewsTest do
     |> Ash.create!(actor: staff())
   end
 
-  defp create_order_with_item!() do
+  defp create_order_with_item! do
     prod = create_product!()
+
     cust =
       Customer
       |> Ash.Changeset.for_create(:create, %{
@@ -80,4 +81,3 @@ defmodule CraftplanWeb.PrintViewsTest do
     assert html =~ "print:hidden"
   end
 end
-

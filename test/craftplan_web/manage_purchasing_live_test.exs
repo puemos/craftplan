@@ -1,12 +1,12 @@
 defmodule CraftplanWeb.ManagePurchasingLiveTest do
+  @moduledoc false
+
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
   alias Craftplan.Inventory.PurchaseOrder
   alias Craftplan.Inventory.Supplier
-
-  @moduledoc false
 
   defp create_supplier!(attrs \\ %{}) do
     staff = Craftplan.DataCase.staff_actor()
@@ -36,7 +36,6 @@ defmodule CraftplanWeb.ManagePurchasingLiveTest do
   describe "purchase orders index and modals" do
     @tag role: :staff
     test "renders purchase orders index for staff", %{conn: conn} do
-
       {:ok, view, _html} = live(conn, ~p"/manage/purchasing")
       assert has_element?(view, "#purchase-orders")
     end

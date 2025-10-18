@@ -29,4 +29,3 @@ defmodule Craftplan.Test.AshHelpers do
     |> Ash.read!(actor: actor)
   end
 end
-

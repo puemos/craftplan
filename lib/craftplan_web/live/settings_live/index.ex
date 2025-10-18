@@ -93,11 +93,13 @@ defmodule CraftplanWeb.SettingsLive.Index do
             </div>
             <div class="mt-6 flex gap-2">
               <.button id="csv-import-submit">Import</.button>
-              <.button variant={:outline} id="csv-template-download" type="button">Download Template</.button>
+              <.button variant={:outline} id="csv-template-download" type="button">
+                Download Template
+              </.button>
             </div>
           </.form>
 
-          <h2 class="mb-4 mt-8 text-lg font-medium">CSV Export</h2>
+          <h2 class="mt-8 mb-4 text-lg font-medium">CSV Export</h2>
           <.form for={@csv_export_form} id="csv-export-form" phx-submit="csv_export">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <.input

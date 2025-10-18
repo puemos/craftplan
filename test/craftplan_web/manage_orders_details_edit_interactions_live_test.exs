@@ -1,4 +1,6 @@
 defmodule CraftplanWeb.ManageOrdersDetailsEditInteractionsLiveTest do
+  @moduledoc false
+
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
@@ -6,8 +8,6 @@ defmodule CraftplanWeb.ManageOrdersDetailsEditInteractionsLiveTest do
   alias Craftplan.Catalog.Product
   alias Craftplan.CRM.Customer
   alias Craftplan.Orders.Order
-
-  @moduledoc false
 
   defp create_customer! do
     Customer

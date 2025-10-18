@@ -67,7 +67,7 @@ defmodule CraftplanWeb.PlanLive.Index do
               </:empty>
             </.table>
           </.table_card>
-          <.table_card title="Over‑Capacity Details">
+          <.table_card title="Over-Capacity Details">
             <.table
               id="over-capacity-details"
               rows={@overview_tables.over_capacity}
@@ -151,14 +151,16 @@ defmodule CraftplanWeb.PlanLive.Index do
             >
               <div></div>
               <div class="flex items-center space-x-4">
-                <div class="mr-2 hidden items-center space-x-1 sm:flex">
+                <!-- View toggle -->
+                <div class="mr-2 hidden items-center sm:flex">
                   <button
                     phx-click="set_schedule_view"
                     phx-value-view="week"
+                    aria-pressed={@schedule_view == :week}
                     class={[
-                      "border px-2 py-1 text-xs",
-                      (@schedule_view == :week && "border-stone-300 bg-stone-200") ||
-                        "border-stone-300 bg-white"
+                      "rounded-l-md border border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
+                      (@schedule_view == :week && "border-blue-300 bg-blue-100 text-blue-700") ||
+                        "bg-white text-stone-700 hover:bg-blue-50"
                     ]}
                   >
                     Week
@@ -166,20 +168,24 @@ defmodule CraftplanWeb.PlanLive.Index do
                   <button
                     phx-click="set_schedule_view"
                     phx-value-view="day"
+                    aria-pressed={@schedule_view == :day}
                     class={[
-                      "border px-2 py-1 text-xs",
-                      (@schedule_view == :day && "border-stone-300 bg-stone-200") ||
-                        "border-stone-300 bg-white"
+                      "rounded-r-md border border-l-0 border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
+                      (@schedule_view == :day && "border-blue-300 bg-blue-100 text-blue-700") ||
+                        "bg-white text-stone-700 hover:bg-blue-50"
                     ]}
                   >
                     Day
                   </button>
                 </div>
+                
+    <!-- Prev / Today / Next segmented control -->
                 <div class="flex items-center">
                   <button
                     phx-click="previous_week"
                     size={:sm}
-                    class="px-[6px] cursor-pointer rounded-l-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+                    title="Previous"
+                    class="px-[6px] cursor-pointer rounded-l-md border border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -196,11 +202,19 @@ defmodule CraftplanWeb.PlanLive.Index do
                       />
                     </svg>
                   </button>
+
                   <button
                     phx-click="today"
                     size={:sm}
                     variant={:outline}
-                    class="flex cursor-pointer items-center border-y border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
+                    aria-pressed={@is_today}
+                    title="Jump to today"
+                    class={[
+                      "flex cursor-pointer items-center border-y border-r border-l-0 border-stone-300 bg-white px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-default disabled:bg-stone-100 disabled:text-stone-400",
+                      (@is_today && "border-blue-300 bg-blue-100 text-blue-700") ||
+                        "text-stone-700 hover:bg-blue-50"
+                    ]}
+                    disabled={@is_today}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -218,10 +232,12 @@ defmodule CraftplanWeb.PlanLive.Index do
                     </svg>
                     Today
                   </button>
+
                   <button
                     phx-click="next_week"
                     size={:sm}
-                    class="px-[6px] cursor-pointer rounded-r-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+                    title="Next"
+                    class="px-[6px] cursor-pointer rounded-r-md border border-l-0 border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -240,10 +256,24 @@ defmodule CraftplanWeb.PlanLive.Index do
                   </button>
                 </div>
               </div>
+              <% day = List.first(@days_range) %>
 
               <div class="absolute left-1/2 -translate-x-1/2 transform">
-                <span class="font-medium text-stone-700">
-                  {Calendar.strftime(List.first(@days_range), "%B %Y")}
+                <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
+                  <span class="">
+                    {Calendar.strftime(List.first(@days_range), "%B %Y")}
+                  </span>
+                  <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
+                    <span class="">
+                      //
+                    </span>
+                    <span class="">
+                      {format_day_name(day)}
+                    </span>
+                    <span class="">
+                      {format_short_date(day, @time_zone)}
+                    </span>
+                  </div>
                 </span>
               </div>
             </div>
@@ -251,23 +281,11 @@ defmodule CraftplanWeb.PlanLive.Index do
             <%= if @schedule_view == :day do %>
               <%!-- Kanban View for Daily Schedule --%>
               <div class="mt-4" phx-hook="KanbanDragDrop" id="kanban-board">
-                <% day = List.first(@days_range) %>
-                <div class="mb-4 text-center">
-                  <div class="inline-flex items-center space-x-2 rounded-lg bg-stone-100 px-4 py-2">
-                    <span class="text-lg font-semibold text-stone-700">
-                      {format_day_name(day)}
-                    </span>
-                    <span class="text-lg text-stone-600">
-                      {format_short_date(day, @time_zone)}
-                    </span>
-                  </div>
-                </div>
-
                 <% kanban = get_kanban_columns_for_day(day, @production_items) %>
                 <div class="grid grid-cols-3 gap-4">
                   <%!-- To Do Column --%>
                   <div class="flex flex-col">
-                    <div class="mb-3 rounded-t-lg border border-slate-300 bg-slate-50 px-4 py-3">
+                    <div class="rounded-t-lg border border-slate-300 bg-slate-50 px-4 py-3">
                       <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-slate-700">To Do</h3>
                         <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
@@ -342,7 +360,7 @@ defmodule CraftplanWeb.PlanLive.Index do
 
                   <%!-- In Progress Column --%>
                   <div class="flex flex-col">
-                    <div class="mb-3 rounded-t-lg border border-blue-300 bg-blue-50 px-4 py-3">
+                    <div class="rounded-t-lg border border-blue-300 bg-blue-50 px-4 py-3">
                       <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-blue-700">In Progress</h3>
                         <span class="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
@@ -417,7 +435,7 @@ defmodule CraftplanWeb.PlanLive.Index do
 
                   <%!-- Done Column --%>
                   <div class="flex flex-col">
-                    <div class="mb-3 rounded-t-lg border border-green-300 bg-green-50 px-4 py-3">
+                    <div class="rounded-t-lg border border-green-300 bg-green-50 px-4 py-3">
                       <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-green-700">Done</h3>
                         <span class="rounded-full bg-green-200 px-2 py-0.5 text-xs font-medium text-green-700">
@@ -740,8 +758,9 @@ defmodule CraftplanWeb.PlanLive.Index do
     socket =
       socket
       |> assign(:today, today)
-      |> update_for_range(days_range)
+      # set before computing is_today
       |> assign(:schedule_view, :day)
+      |> update_for_range(days_range)
       |> assign(:selected_date, nil)
       |> assign(:selected_product, nil)
       |> assign(:selected_details, nil)
@@ -812,7 +831,7 @@ defmodule CraftplanWeb.PlanLive.Index do
 
     days_range =
       case socket.assigns.schedule_view do
-        :day -> generate_week_range(today)
+        :day -> generate_week_range(today, 1)
         _ -> generate_current_week_range()
       end
 
@@ -825,7 +844,23 @@ defmodule CraftplanWeb.PlanLive.Index do
   @impl true
   def handle_event("set_schedule_view", %{"view" => view}, socket) do
     schedule_view = if view == "day", do: :day, else: :week
-    {:noreply, assign(socket, :schedule_view, schedule_view)}
+
+    anchor = List.first(socket.assigns.days_range)
+
+    days_range =
+      case schedule_view do
+        :day ->
+          generate_week_range(anchor, 1)
+
+        :week ->
+          monday = Date.add(anchor, -(Date.day_of_week(anchor) - 1))
+          generate_week_range(monday, 7)
+      end
+
+    {:noreply,
+     socket
+     |> assign(:schedule_view, schedule_view)
+     |> update_for_range(days_range)}
   end
 
   @impl true
@@ -859,16 +894,14 @@ defmodule CraftplanWeb.PlanLive.Index do
     case Date.from_iso8601(date_str) do
       {:ok, date} ->
         new_status_atom = String.to_atom(new_status)
-        # Get all items for this product on this date
+
         items =
           get_product_items_for_day(date, %{id: product_id}, socket.assigns.production_items)
 
-        # Update all items to the new status
         Enum.each(items, fn item ->
           Orders.update_item(item, %{status: new_status_atom}, actor: socket.assigns.current_user)
         end)
 
-        # Reload the data
         days_range = socket.assigns.days_range
         socket = update_for_range(socket, days_range)
 
@@ -908,7 +941,6 @@ defmodule CraftplanWeb.PlanLive.Index do
           |> assign(:selected_details, selected_details)
           |> put_flash(:info, "Item status updated")
 
-        # If just marked completed, prepare confirmation recap
         socket =
           if String.to_atom(status) == :done do
             item =
@@ -1064,7 +1096,6 @@ defmodule CraftplanWeb.PlanLive.Index do
       _ = Consumption.consume_item(item.id, actor: socket.assigns.current_user)
     end)
 
-    # refresh
     days_range = socket.assigns.days_range
     production_items = load_production_items(socket, days_range)
     materials_requirements = prepare_materials_requirements(socket, days_range)
@@ -1110,7 +1141,6 @@ defmodule CraftplanWeb.PlanLive.Index do
 
   defp generate_current_week_range do
     today = Date.utc_today()
-    # Get the beginning of week (Monday)
     monday = Date.add(today, -(Date.day_of_week(today) - 1))
     Enum.map(0..6, &Date.add(monday, &1))
   end
@@ -1121,7 +1151,6 @@ defmodule CraftplanWeb.PlanLive.Index do
 
   defp format_day_name(date) do
     day_names = ~w(Mon Tue Wed Thu Fri Sat Sun)
-
     Enum.at(day_names, Date.day_of_week(date) - 1)
   end
 
@@ -1309,7 +1338,6 @@ defmodule CraftplanWeb.PlanLive.Index do
   end
 
   defp compute_week_metrics(socket, days_range, production_items, materials_requirements) do
-    # Over‑capacity days (any product/day exceeds max)
     over_capacity_days =
       Enum.count(days_range, fn day ->
         production_items
@@ -1327,7 +1355,6 @@ defmodule CraftplanWeb.PlanLive.Index do
         end)
       end)
 
-    # Over daily capacity by orders count (if configured)
     tz = socket.assigns.time_zone
     start_dt = days_range |> List.first() |> DateTime.new!(~T[00:00:00], tz)
     end_dt = days_range |> List.last() |> DateTime.new!(~T[23:59:59], tz)
@@ -1348,20 +1375,16 @@ defmodule CraftplanWeb.PlanLive.Index do
         0
       end
 
-    # Materials shortage days (any material balance < 0 on any day)
     material_shortage_days =
       Enum.count(days_range, fn day ->
         Enum.any?(materials_requirements, fn {_material, data} ->
-          # iterate running balance and detect if new balance goes negative on this day
           case Enum.find_index(data.quantities, fn {_, d} -> Date.compare(d, day) == :eq end) do
             nil ->
               false
 
             idx ->
-              # simulate to index
               {balance, _} =
                 Enum.reduce(Enum.take(data.quantities, idx + 1), {Decimal.new(0), nil}, fn {q, _d}, {_bal, _} ->
-                  # We need initial stock; balance_cells[idx] holds opening balance for that day
                   opening =
                     Enum.at(
                       data.balance_cells,
@@ -1377,7 +1400,6 @@ defmodule CraftplanWeb.PlanLive.Index do
         end)
       end)
 
-    # Today metrics
     today = Date.utc_today()
     orders_today = length(Map.get(orders_by_day, today, []))
 
@@ -1398,7 +1420,6 @@ defmodule CraftplanWeb.PlanLive.Index do
   end
 
   defp compute_overview_tables_from(socket, assigns) do
-    # Over‑capacity days (any product/day exceeds max)
     over_capacity_rows =
       Enum.flat_map(assigns.days_range, fn day ->
         assigns.production_items
@@ -1421,7 +1442,6 @@ defmodule CraftplanWeb.PlanLive.Index do
         end)
       end)
 
-    # Over daily capacity by orders count (if configured)
     tz = assigns.time_zone
     cap = assigns.settings.daily_capacity || 0
 
@@ -1449,7 +1469,6 @@ defmodule CraftplanWeb.PlanLive.Index do
         []
       end
 
-    # Materials shortage days (any material balance < 0 on any day)
     shortage_rows =
       assigns.materials_requirements
       |> Enum.flat_map(fn {material, data} ->
@@ -1476,7 +1495,6 @@ defmodule CraftplanWeb.PlanLive.Index do
       end)
       |> Enum.sort_by(fn r -> {r.day, r.material.name} end)
 
-    # Orders today
     today = Date.utc_today()
     start_dt = DateTime.new!(today, ~T[00:00:00], tz)
     end_dt = DateTime.new!(today, ~T[23:59:59], tz)
@@ -1491,7 +1509,6 @@ defmodule CraftplanWeb.PlanLive.Index do
         %{reference: o.reference, customer: o.customer.full_name, total: o.total_cost}
       end)
 
-    # Outstanding today
     outstanding_today_rows =
       assigns.production_items
       |> Enum.filter(fn {d, _p, _i} -> Date.compare(d, today) == :eq end)
@@ -1536,12 +1553,22 @@ defmodule CraftplanWeb.PlanLive.Index do
         build_overview_assigns(socket, days_range, production_items, materials_requirements)
       )
 
+    today = socket.assigns.today
+
+    is_today =
+      case socket.assigns.schedule_view do
+        :day -> List.first(days_range) == today
+        :week -> Enum.any?(days_range, &(&1 == today))
+        _ -> false
+      end
+
     socket
     |> assign(:days_range, days_range)
     |> assign(:production_items, production_items)
     |> assign(:materials_requirements, materials_requirements)
     |> assign(:week_metrics, week_metrics)
     |> assign(:overview_tables, overview_tables)
+    |> assign(:is_today, is_today)
   end
 
   defp get_kanban_columns_for_day(day, production_items) do

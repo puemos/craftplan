@@ -2,19 +2,18 @@ defmodule CraftplanWeb.ManageInventoryLiveTest do
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+
   alias Craftplan.Test.Factory
 
   describe "index and new" do
     @tag role: :staff
     test "renders inventory index for staff", %{conn: conn} do
-
       {:ok, view, _html} = live(conn, ~p"/manage/inventory")
       assert has_element?(view, "#materials")
     end
 
     @tag role: :staff
     test "renders new material modal and creates material", %{conn: conn} do
-
       {:ok, view, _html} = live(conn, ~p"/manage/inventory/new")
       assert has_element?(view, "#material-form")
 

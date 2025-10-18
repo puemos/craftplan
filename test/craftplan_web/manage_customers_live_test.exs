@@ -25,14 +25,12 @@ defmodule CraftplanWeb.ManageCustomersLiveTest do
   describe "index and new" do
     @tag role: :staff
     test "renders customers index for staff", %{conn: conn} do
-
       {:ok, view, _html} = live(conn, ~p"/manage/customers")
       assert has_element?(view, "#customers")
     end
 
     @tag role: :staff
     test "renders new customer modal", %{conn: conn} do
-
       {:ok, view, _html} = live(conn, ~p"/manage/customers/new")
       assert has_element?(view, "#customer-modal")
     end

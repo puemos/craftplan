@@ -2,6 +2,7 @@ defmodule CraftplanWeb.ManageProductsIndexInteractionsLiveTest do
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+
   alias Craftplan.Catalog.Product
 
   defp create_product!(attrs \\ %{}) do

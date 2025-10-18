@@ -12,4 +12,3 @@ defmodule CraftplanWeb.ManageSettingsCSVLiveTest do
     assert has_element?(view, "#csv-export-form")
   end
 end
-

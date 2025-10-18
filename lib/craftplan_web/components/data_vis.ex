@@ -197,7 +197,7 @@ defmodule CraftplanWeb.Components.DataVis do
 
   def stat_card(assigns) do
     ~H"""
-    <div class="rounded-lg border border-stone-200 bg-stone-100 p-3">
+    <div class="rounded border border-stone-200 bg-white p-3">
       <dt :if={@title} class="mb-5 text-base font-medium text-stone-600">{@title}</dt>
       <dd class="mt-1">
         <div class="text-xl font-semibold text-stone-900">{@value}</div>
@@ -232,7 +232,7 @@ defmodule CraftplanWeb.Components.DataVis do
 
   def table_card(assigns) do
     ~H"""
-    <div class={["rounded-lg border border-stone-200 p-4", @class]}>
+    <div class={["rounded border border-stone-200 bg-white p-4", @class]}>
       <h3 class="mb-5 text-base font-medium text-stone-600">{@title}</h3>
       <div>
         {render_slot(@inner_block)}

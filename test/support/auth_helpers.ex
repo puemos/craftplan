@@ -55,10 +55,9 @@ defmodule Craftplan.Test.AuthHelpers do
   Returns `{conn, user}`.
   """
   def sign_in_as(conn, role) do
-    user = register_user!(role: role) |> ensure_token!()
+    user = [role: role] |> register_user!() |> ensure_token!()
     {sign_in(conn, user), user}
   end
 
   defp unique_email(role), do: "#{role}+#{System.unique_integer([:positive])}@local"
 end
-
