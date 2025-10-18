@@ -97,6 +97,8 @@ Requirements
     - [x] Product label HTML print view (ingredients/allergens/batch/date).
   - Public Order Status
     - [x] New LV `/o/:reference` shows status, delivery date, items.
+  - Printing
+    - [x] Audit print classes across Make Sheet, Invoice, Label, and Order Status; added tests.
   - Checkout (optional for v0.1)
     - [x] Delivery method and date validator (lead time, per‑product and global capacity).
     - [ ] Discount line UI (logic in place; UI pending).
