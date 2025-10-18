@@ -3,18 +3,8 @@ defmodule CraftplanWeb.ManageSettingsInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  defp admin_user! do
-    Craftplan.DataCase.admin_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
+  @tag role: :admin
   test "general settings can be saved", %{conn: conn} do
-    conn = sign_in(conn, admin_user!())
     {:ok, view, _html} = live(conn, ~p"/manage/settings/general")
 
     params = %{"settings" => %{"tax_rate" => "0.05"}}
@@ -26,8 +16,8 @@ defmodule CraftplanWeb.ManageSettingsInteractionsLiveTest do
     assert render(view) =~ "Settings updated successfully"
   end
 
+  @tag role: :admin
   test "add and delete allergen in settings", %{conn: conn} do
-    conn = sign_in(conn, admin_user!())
     {:ok, view, _html} = live(conn, ~p"/manage/settings/allergens")
 
     view
@@ -45,8 +35,8 @@ defmodule CraftplanWeb.ManageSettingsInteractionsLiveTest do
     # Optional: delete interactions are covered elsewhere; keep add-only here
   end
 
+  @tag role: :admin
   test "add and delete nutritional fact in settings", %{conn: conn} do
-    conn = sign_in(conn, admin_user!())
     {:ok, view, _html} = live(conn, ~p"/manage/settings/nutritional_facts")
 
     view

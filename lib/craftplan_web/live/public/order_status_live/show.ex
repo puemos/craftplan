@@ -60,13 +60,8 @@ defmodule CraftplanWeb.Public.OrderStatusLive.Show do
 
   @impl true
   def mount(%{"reference" => reference}, _session, socket) do
-    order =
-      case Orders.public_get_order_by_reference(reference,
-             load: [items: [product: [:name, :sku]]]
-           ) do
-        {:ok, nil} -> nil
-        {:ok, order} -> order
-      end
+    {:ok, order} =
+      Orders.public_get_order_by_reference(reference, load: [items: [product: [:name, :sku]]])
 
     {:ok,
      socket
