@@ -1,14 +1,14 @@
-Craftday Product Plan — D2C Micro Manufacturing (Self‑Hosted)
+Craftday Product Plan — Bakery Operations (Self‑Hosted)
 
-Last updated: 2025‑10‑11
+Last updated: 2025‑10‑18
 
 Progress
 - Overall: [ ] Not started / [x] In progress / [ ] Done
 - Milestones
-  - [ ] M1: Orders & Checkout Essentials (in progress)
-  - [ ] M2: Catalog & Inventory Basics
-  - [ ] M3: Make Sheet & Batches (in progress)
-  - [ ] M4: Data IO & Payments
+  - [ ] M1: Bakery Ops Essentials (in progress)
+  - [ ] M2: Inventory & Purchasing Basics
+  - [ ] M3: Data IO & Onboarding
+  - [ ] M4: Storefront & Payments (Optional)
   - [ ] M5: BI & Insights
   - [ ] M6: Overview Tabs Across Index Pages
 
@@ -23,20 +23,24 @@ Recently Completed
 - Seeds updated for settings, capacities, availability; FK ordering fixed.
 
 Next Up
-- Production Overview: ensure `overview_tables` and `days_range` are always assigned before render; recompute on state changes.
-- Overview rows: click to jump to Schedule (focus a day); add highlight on target day.
-- Schedule Day view: verify prev/next behavior limits to a single day; polish headers.
-- Lint/polish: remove unused helpers in PlanLive; fix quoted atom warning in Checkout; audit print classes.
-- Add Overview tab to other index pages (Products, Inventory, Orders, Customers, Purchasing) with quick metrics.
+- Finish operational polish for bakery:
+  - Public Order Status page at `/o/:reference` with reference, delivery/pickup date, and items.
+  - Product Label print view (ingredients/allergens/batch/date) leveraging invoice print pattern.
+  - Audit print classes across Make Sheet and Invoice.
+- Cleanup: remove unused helpers in PlanLive; confirm navigation/highlight behaviors.
+- Prep onboarding: scaffold CSV import (Products/Materials/Customers) with dry‑run and errors.
 
 How To Track
 - Check off tasks below as you complete them. Keep milestone checkboxes in sync.
 - Optionally add completion dates, e.g., [x] … (2025‑10‑11).
 
 Purpose
-- Keep Craftday incredibly simple for D2C micro manufacturers: Sell → Make → Stock.
-- Ship small, durable primitives; avoid configuration sprawl.
-- Optimize for solo/small teams, mobile-friendly flows, and clarity over features.
+- Keep Craftday incredibly simple for small bakeries: Operate → Make → Stock.
+- Optimize the back‑office: production planning, materials consumption, reordering, labeling.
+- Ship small, durable primitives; avoid configuration sprawl. Self‑host first.
+
+Vertical Focus
+- Primary: Bakery (preorders/pickups, daily capacity, recipe/batch workflows).
 
 Guiding Principles
 - One obvious way to do things; defaults on; minimal toggles.
@@ -44,10 +48,10 @@ Guiding Principles
 - Self-hosted friendly: works offline/manual; integrations are optional.
 
 Milestones Overview
-- M1: Orders & Checkout Essentials (invoices, tax mode, discounts, delivery/pickup, availability)
-- M2: Catalog & Inventory Basics (variants, simple unit conversions, low stock + reorders)
-- M3: Make Sheet & Batches (daily production, consume all, batch code, labels, order status page)
-- M4: Data IO & Payments (CSV import/export, optional Stripe, stock gating)
+- M1: Bakery Ops Essentials (production planner, make sheet, consume, labels, invoices)
+- M2: Inventory & Purchasing Basics (low stock + reorders, forecasting surface)
+- M3: Data IO & Onboarding (CSV import/export, seeded bakery demo)
+- M4: Storefront & Payments (Optional: basic checkout, Stripe)
 - M5: BI & Insights (capacity utilization, sales trends, inventory KPIs)
 - M6: Overview Tabs Across Index Pages (consistent Overview for key sections)
 
@@ -57,218 +61,153 @@ Legend
 - Ops = Services/Emails/PDF/CSV/etc.
 
 --------------------------------------------------------------------
-Milestone 1 — Orders & Checkout Essentials (2 weeks)
+Milestone 1 — Bakery Ops Essentials (2 weeks)
 Status: [ ] Not started  [x] In progress  [ ] Done
 Goals
-- Create and collect: simple invoices (HTML print), mark paid; single tax mode; order-level discounts.
-- Delivery vs pickup with lead time and daily capacity; product availability flags.
+- Operate the bakery day‑to‑day: plan production, make, consume materials, label batches, and reconcile orders.
+- Keep checkout optional; prioritize back‑office order entry and fulfillment.
 
 User Stories (MVP)
-- As a seller, I generate an invoice (HTML print) and mark an order as paid with a method/date.
-- As a seller, I set a single tax rate and apply it to orders automatically.
-- As a seller, I apply a simple discount to an order.
-- As a customer, I select pickup or delivery; delivery dates enforce lead time/capacity.
-- As a seller, I toggle product availability (available/preorder/off) without complexity.
+- As a maker, I see today’s production quantities and can mark items done, then “Consume All Completed”.
+- As a maker, I print simple product labels (HTML) with ingredients/allergens and optional batch code.
+- As an operator, I generate an invoice (HTML print) and mark an order as paid with a method/date.
+- As an operator, I set a single tax rate and daily capacity; lead time applies to deliveries.
+- As a customer, I can view my order status by reference (no login).
 
 Requirements
 - Domain
   - Orders
     - [ ] Add attributes: `invoice_number`, `invoice_status`, `invoiced_at`, `payment_method`, `discount_type`, `discount_value`, `delivery_method`.
     - [x] Calculate totals: compute `discount_total` and `tax_total` from Settings (logic in place; discount UI pending).
+    - [ ] Add optional `batch_code` on `OrderItem` (auto‑generate when marking done: `B-YYYYMMDD-SKU`).
   - Settings
     - [x] Add `tax_mode`, `tax_rate`, `offers_pickup`, `offers_delivery`, `lead_time_days`, `daily_capacity`, `shipping_flat`.
   - Catalog
     - [x] Add `selling_availability` on `Catalog.Product`.
 - Product Capacity
   - [x] Add `max_daily_quantity` (0 = unlimited) to `Catalog.Product`.
-  - [x] Enforce per‑product capacity at checkout for the selected delivery date.
-  - [ ] Optionally show capacity hint on product page (earliest available date is future scope).
-- UI
-  - [x] Checkout: delivery method and date validator (lead time, per‑product and global capacity).
-  - [ ] Checkout: tax and discount lines UI (logic wired; discount UI pending).
-  - [x] Settings: extend General tab for tax/fulfillment/capacity/lead time/shipping.
-  - [x] Product: availability control in form/show.
-  - [x] Product: input for `max_daily_quantity` and surface on details when > 0.
-- Ops
-  - [x] Invoice HTML printable page (browser print).
-- Seeds
-  - [x] Update `priv/repo/seeds.exs` to set Settings (tax_mode, tax_rate, lead_time_days, daily_capacity, shipping_flat).
-  - [x] Update product seeds to set `selling_availability` and `max_daily_quantity` for a few items.
-  - [x] Add a note in README/PLAN on running: `mix ecto.reset && mix run priv/repo/seeds.exs` (or `mix ecto.migrate && mix run priv/repo/seeds.exs`).
-
-Acceptance Criteria
-- Can issue invoice for an order: print HTML view, status becomes `issued`; marking paid updates totals and `paid_at`.
-- Tax calculation matches Settings: inclusive vs exclusive; discount applied pre- or post-tax per simple rule (exclusive mode: subtotal → discount → tax; inclusive mode: price includes tax, show derived tax component).
-- Checkout enforces delivery date availability and capacity; pickup requires no date if disabled.
-- Products with `selling_availability:off` cannot be added to cart; `preorder` allowed but flagged.
-
-Implementation Approach (files)
-- Domain (Ash)
-  - Orders
-    - `lib/craftday/orders/order.ex`
-      - Add attributes listed above; wire to `create`/`update` `accept` lists.
-      - Keep `reference` logic as-is.
-    - `lib/craftday/orders/changes/calculate_totals.ex`
-      - Extend to include discount and tax per Settings; populate `discount_total`, `tax_total`, `total` consistently.
-  - Settings
-    - `lib/craftday/settings/settings.ex`
-      - Add new attributes; expose via General Settings UI.
-  - Catalog Product
-    - `lib/craftday/catalog/product.ex`
-      - Add `selling_availability` attribute with default `:available`.
-- UI
-  - Settings
-    - `lib/craftday_web/live/settings_live/index.ex`
-    - `lib/craftday_web/live/settings_live/form_component.ex`
-      - Add fields for tax and fulfillment options.
-  - Product
-    - `lib/craftday_web/live/manage/product_live/form_component.ex`
-    - `lib/craftday_web/live/manage/product_live/show.ex`
-      - Add selling availability control and display.
-  - Checkout
-    - `lib/craftday_web/live/public/checkout_live/index.ex`
-      - Form: `delivery_method`, date picker constraints; show tax/discount lines (UI pending for discount); trigger invoice issue on place order when configured.
-      - Implement capacity check by counting orders with `delivery_date` per day and comparing to `Settings.daily_capacity` and product `max_daily_quantity`.
-  - Storefront Catalog/Cart
-    - `lib/craftday_web/live/public/catalog_live/index.ex`
-    - `lib/craftday_web/live/public/catalog_live/show.ex`
-      - Hide “Add to cart” for `off`; display “Preorder” badge for `preorder`.
-  - Ops (Invoices)
-  - Invoice HTML printable page already exists; use browser print for PDF generation.
-
-Data & Migration Checklist
-- Orders: add columns for invoice/discount/delivery fields.
-- Settings: add tax/fulfillment/capacity fields.
-- Catalog products: add selling_availability.
-
-
---------------------------------------------------------------------
-Milestone 2 — Catalog & Inventory Basics (2 weeks)
-Status: [ ] Not started  [ ] In progress  [ ] Done
-Goals
-- Single-dimension variants; simple unit conversion UX; low-stock and reorder suggestions.
-
-User Stories
-- As a seller, I offer one option per product (e.g., size) with price delta and auto-SKU.
-- As a seller, I input quantities in kg/l UI but store in g/ml; see readable units.
-- As a seller, I get a low-stock list and a simple reorder suggestion list.
-
-Requirements
-- Domain
-  - Variants
-    - [ ] New resource: `Catalog.ProductVariant` (fields: `product_id`, `value`, `sku`, `price_delta`, `active`).
-    - [ ] Product carries `option_name` (e.g., “Size”).
-  - Inventory
-    - [x] No change to units storage (base units: gram/ml/piece). Conversions are a UI concern.
-  - Purchasing
-    - [x] Reorder suggestions are computed, not persisted.
-- UI
-  - [ ] Product Show/Forms: Variants tab with CRUD.
-  - [ ] Storefront product page: choose variant; price = base + delta.
-  - [ ] Inventory Index: low-stock banner and “Reorder Suggestions” view.
-- Ops
-  - None required beyond recomputations.
-
-Acceptance Criteria
-- Creating variants generates default SKU suggestions (`<SKU>-<VALUE>`), editable.
-- Storefront correctly prices by variant and uses variant SKU in cart/order items.
-- Low-stock banner shows materials where `current_stock < minimum_stock`.
-- Reorder list shows suggested quantity and link to create PO (navigates to Purchasing with supplier selection).
-
-Implementation Approach (files)
-- Domain
-  - `lib/craftday/catalog/product.ex`: add `option_name`.
-  - Add `lib/craftday/catalog/product_variant.ex` + wire into `lib/craftday/catalog.ex` domain.
-  - Orders: `lib/craftday/orders/order_item.ex`: add optional `variant_id` and store `unit_price` as base + delta.
-- UI
-  - Product Variants
-    - New LV(s): `lib/craftday_web/live/manage/product_live/variants_component.ex` used under Product Show.
-  - Storefront
-    - `lib/craftday_web/live/public/catalog_live/show.ex`: variant selector; add-to-cart carries variant.
-  - Inventory
-    - `lib/craftday_web/live/manage/inventory_live/index.ex`: compute low stock server-side and show banner.
-    - New LV: `ReorderLive.Index` or a tab under Inventory to show suggestions using `InventoryForecasting`.
-- Services
-  - Extend `InventoryForecasting` to compute shortages vs min/max and upcoming orders.
-
-Data & Migration Checklist
-- Add `catalog_product_variants` table; add `option_name` to products; add `variant_id` to order items.
-
-
---------------------------------------------------------------------
-Milestone 3 — Make Sheet & Batches (2 weeks)
-Status: [ ] Not started  [ ] In progress  [ ] Done
-Goals
-- "Today's Make Sheet" that aggregates quantities; one-click "Consume all"; optional batch code; basic label printing (HTML).
-- Public order status page.
-
-User Stories
-- As a maker, I see today's production quantities per product with order links; I can mark items done and consume materials in one shot.
-- As a maker, I generate batch code automatically for items and print a simple product label (HTML) with ingredients/allergens.
-- As a customer, I view my order status by reference without logging in.
-
-Requirements
-- Domain
-  - Orders
-    - [ ] Add optional `batch_code` on `OrderItem`.
-- UI
-  - [x] Production: add “Make Sheet” print‑friendly view.
-  - [ ] Production: add “Consume All”.
-  - [x] Capacity: highlight product/day cells that exceed `max_daily_quantity` in planner.
-  - [x] Remove metrics and details modal from Schedule tab (Overview only).
-  - [ ] Click row in Overview to jump to Schedule for that day (and highlight target day).
-  - [ ] Ensure `days_range` is always assigned in mount/handle_params; recompute `overview_tables` on relevant state changes to avoid KeyErrors.
-  - [ ] Schedule Day view polish: prev/next adjust by 1 day; headers/body limit to single day.
+  - [x] Enforce per‑product capacity at checkout/day scheduling.
+- UI (Back‑office focus)
+  - Production Planner / Make Sheet
+    - [x] “Make Sheet” print‑friendly view.
+    - [x] “Consume All Completed” action.
+    - [x] Click rows in Overview to jump to Schedule day and highlight target day.
+    - [x] Ensure `days_range` is assigned; prev/next in Day view adjusts by 1 day.
   - Labels
     - [ ] Product label HTML print view (ingredients/allergens/batch/date).
   - Public Order Status
     - [ ] New LV `/o/:reference` shows status, delivery date, items.
+  - Checkout (optional for v0.1)
+    - [x] Delivery method and date validator (lead time, per‑product and global capacity).
+    - [ ] Discount line UI (logic in place; UI pending).
+  - Settings & Product
+    - [x] General tab for tax/fulfillment/capacity/lead time/shipping.
+    - [x] Product: availability control and `max_daily_quantity` input.
 - Ops
-  - [ ] HTML print views reused from M1 invoice pattern.
-  - [ ] “Consume All” uses existing `Orders.Consumption`.
+  - [x] Invoice HTML printable page (browser print).
+- Seeds
+  - [x] Update settings, capacities, availability; include bakery‑specific samples.
 
 Acceptance Criteria
-- Make Sheet shows per-product totals for selected day; "Consume All" updates material stocks.
-- When marking item done, batch code is set (e.g., `B-YYYYMMDD-SKU`); can be edited.
-- Label HTML print view renders ingredients/allergens from recipe; includes batch code if present.
-- Public status page resolves by order reference with no auth.
+- Make Sheet shows per‑product totals for selected day; “Consume All Completed” updates stocks.
+- Invoice print view; marking paid updates `paid_at` and payment method.
+- Delivery dates enforce lead time/capacity; pickup/delivery aligned to Settings.
+- Public order status resolves by reference with no auth.
 
 Implementation Approach (files)
 - Domain
-  - `lib/craftday/orders/order_item.ex`: add `batch_code` attribute; default generator in code when status becomes `:done`.
-  - `lib/craftday/orders/consumption.ex`: no change; reuse.
+  - `lib/craftday/orders/order.ex`: ensure invoice/discount/delivery fields accept lists; add `batch_code` on order items.
+  - `lib/craftday/orders/changes/calculate_totals.ex`: totals logic as implemented; add discount UI later.
+  - `lib/craftday/orders/consumption.ex`: reuse for “Consume All”.
 - UI
-  - `lib/craftday_web/live/manage/plan_live/index.ex`: add "Make Sheet" mode, print view, bulk actions; wire Overview/Schedule tabs; compute and guard assigns.
-  - New LV endpoint for Label HTML print: `/manage/products/:sku/label` and `/manage/orders/:ref/label`.
+  - `lib/craftday_web/live/manage/plan_live/index.ex`: Make Sheet/Overview/Schedule wiring, bulk actions, guards.
+  - New LV endpoint(s) for Label print: `/manage/products/:sku/label` and/or `/manage/orders/:ref/label`.
   - New LV `CraftdayWeb.Public.OrderStatusLive` (route `/o/:reference`).
-- Ops
-  - Add label HTML templates (HEEx with print CSS). Ingredients come from `product.recipe.components`.
-
-Data & Migration Checklist
-- Add `batch_code` to `orders_items`.
+- Data & Migration Checklist
+  - Orders: add invoice/discount/delivery fields; add `batch_code` to order items.
 
 
 --------------------------------------------------------------------
-Milestone 4 — Data IO & Payments (2 weeks)
+Milestone 2 — Inventory & Purchasing Basics (2 weeks)
 Status: [ ] Not started  [ ] In progress  [ ] Done
 Goals
-- CSV import/export for key entities; optional Stripe checkout link; storefront stock gating.
+- Low‑stock awareness and simple reordering; surface materials requirements from upcoming orders.
 
 User Stories
-- As a seller, I import products/materials/recipes/customers via CSV; I export orders/customers/movements.
+- As a maker, I see low‑stock materials and a reorder suggestion list.
+- As an operator, I can raise POs and receive into stock to unblock production.
+
+Requirements
+- Inventory
+  - [x] No change to units storage (base units: gram/ml/piece). Conversions are a UI concern.
+  - [ ] Inventory Index: low‑stock banner and “Reorder Suggestions” view.
+- Purchasing
+  - [x] Reorder suggestions are computed, not persisted.
+  - [ ] Quick create PO flow from suggestions (navigates to Purchasing with supplier selection).
+- Variants
+  - [ ] Defer or implement only if needed for bakery (single‑dimension). Not required for v0.1 operations.
+
+Acceptance Criteria
+- Low‑stock banner shows materials where `current_stock < minimum_stock`.
+- Reorder list shows suggested quantity and link to create PO.
+
+Implementation Approach (files)
+- UI
+  - `lib/craftday_web/live/manage/inventory_live/index.ex`: compute low stock server‑side and show banner.
+  - New LV/tab: Reorder Suggestions under Inventory using `InventoryForecasting`.
+- Services
+  - Extend `InventoryForecasting` to compute shortages vs min/max and upcoming orders.
+
+Data & Migration Checklist
+- None beyond UI/services; leverage existing inventory/purchasing resources.
+
+
+--------------------------------------------------------------------
+Milestone 3 — Data IO & Onboarding (2 weeks)
+Status: [ ] Not started  [ ] In progress  [ ] Done
+Goals
+- Painless onboarding for bakeries: CSV import/export for key entities and a seeded demo.
+
+User Stories
+- As an operator, I import products/materials/recipes/customers via CSV with dry‑run and clear errors.
+- As an operator, I export orders/customers/movements for bookkeeping.
+- As a prospect, I can run a seeded bakery demo and see the full Operate → Make → Stock loop.
+
+Requirements
+- CSV
+  - Import endpoints for Products, Materials, Recipes (2‑phase: create products/materials first; recipes reference by SKU), Customers.
+  - Exports for Orders, Customers, Inventory Movements.
+  - Use NimbleCSV; show dry‑run and errors.
+- Demo
+  - Seeded bakery dataset; screenshots and quick video script.
+
+Implementation Approach (files)
+- CSV
+  - New LiveViews under Settings or a `CraftdayWeb.CSVController` for import/export pages.
+  - Services: `lib/craftday/csv/importers/*.ex` and `exporters/*.ex` using NimbleCSV.
+- Seeds
+  - Expand `priv/repo/seeds.exs` to include bakery‑specific products/recipes/orders.
+
+Data & Migration Checklist
+- None beyond seeds and CSV services.
+
+
+--------------------------------------------------------------------
+Milestone 4 — Storefront & Payments (Optional, 2 weeks)
+Status: [ ] Not started  [ ] In progress  [ ] Done
+Goals
+- Optional public checkout flow and Stripe redirect for teams that sell online.
+
+User Stories
 - As a seller, I enable Stripe and redirect to a secure checkout link after order creation.
 - As a seller, I optionally block orders for products marked unavailable or over capacity.
 
 Requirements
-- CSV
-  - Import endpoints for Products, Materials, Recipes (2-phase: create products/materials first; recipes reference by SKU), Customers.
-  - Exports for Orders, Customers, Inventory Movements.
-  - Use NimbleCSV; show dry-run and errors.
 - Payments (optional)
   - [ ] Settings: `stripe_public_key`, `stripe_secret_key`, `stripe_enabled`.
   - [ ] Checkout: create Stripe Checkout Session and redirect when enabled.
 - Stock Gating
-  - [ ] Gate by `daily_capacity` and `selling_availability`.
+  - [ ] Gate by `daily_capacity` and `selling_availability` on the storefront.
 
 --------------------------------------------------------------------
 Milestone 5 — BI & Insights (2 weeks)
@@ -342,12 +281,15 @@ Seeding & Local Run
 - Seeds configure:
   - Settings: currency USD, tax 10% exclusive, pickup/delivery on, lead time 1 day, daily capacity 25, flat shipping 5.00.
   - Products: sample capacities and availability (some preorder/off) to exercise gating.
-  - Orders: past, current, and future delivery dates for planner and forecasting.
+- Orders: past, current, and future delivery dates for planner and forecasting.
+
+Setup & Packaging
+- Add Dockerfile and `docker-compose` app service for one‑command setup in self‑hosted environments.
 
 Acceptance Criteria
 - CSV import validates and provides a preview; successful rows create/update records; errors listed.
-- Order creation can redirect to Stripe when enabled; payment success webhook can be added later (out of scope for MVP).
-- Enabling stock gating prevents choosing unavailable dates.
+- If enabled, order creation can redirect to Stripe; payment success webhook can be added later (out of scope for MVP).
+- Storefront gating (if used) prevents choosing unavailable dates.
 
 Implementation Approach (files)
 - CSV
@@ -377,13 +319,13 @@ Cross-Cutting Notes
 
 Polish & Cleanup
 - [ ] Remove unused helpers in `lib/craftday_web/live/manage/plan_live/index.ex` (e.g., `get_previous_week_range/1`, `get_next_week_range/1`) if no longer used.
-- [ ] Fix quoted atom warning in `lib/craftday_web/live/public/checkout_live/index.ex` (replace `form[:"delivery_method"]` with `form[:delivery_method]`).
 - [ ] Audit print view classes (`print:hidden`, `print:block`) across invoice and make sheet to ensure clean output.
 
 Open Questions
-- Do we need per-item tax override now or later? (Recommend later.)
-- Do we want to persist invoice PDFs or generate on demand? (Recommend on-demand for simplicity.)
-- For variants, do we track inventory by variant? (Out of scope; product-level only for now.)
+- Do we need per‑item tax override now or later? (Recommend later.)
+- Do we want to persist invoice PDFs or generate on demand? (Recommend on‑demand for simplicity.)
+- For variants, do we track inventory by variant? (Out of scope; product‑level only for now.)
+- Should public storefront ship in v0.1 for bakeries, or remain optional behind config?
 
 Task Breakdown (high-level)
 - M1
@@ -393,17 +335,12 @@ Task Breakdown (high-level)
   - Invoice: HTML print view (already complete)
   - Product: availability field + UX
 - M2
-  - Variants: resource, product option name, order item variant_id
-  - Product UI: variants CRUD; storefront selector
   - Inventory: low stock banner + reorder suggestions tab
+  - Optional: variants only if needed for bakery
 - M3
-  - Make Sheet: PlanLive enhancements; print view; bulk consume
-  - Batch code on order items; label HTML print view
-  - Public order status LiveView
-- M4
-  - CSV import/export pages + services
-  - Optional Stripe toggle and redirect
-  - Stock gating enforcement
+  - CSV import/export pages + services; seeded bakery demo
+- M4 (Optional)
+  - Stripe toggle and redirect; storefront gating
 
 Validation Plan
 - Add targeted tests where patterns exist (domain changes and CalculateTotals logic).
