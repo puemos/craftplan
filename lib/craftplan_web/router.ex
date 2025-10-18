@@ -147,6 +147,7 @@ defmodule CraftplanWeb.Router do
       live "/manage/settings/general", SettingsLive.Index, :general
       live "/manage/settings/allergens", SettingsLive.Index, :allergens
       live "/manage/settings/nutritional_facts", SettingsLive.Index, :nutritional_facts
+      live "/manage/settings/csv", SettingsLive.Index, :csv
     end
 
     # Staff Routes

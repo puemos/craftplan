@@ -62,6 +62,63 @@ defmodule CraftplanWeb.SettingsLive.Index do
           />
         </div>
       </:tab>
+
+      <:tab
+        label="CSV"
+        path={~p"/manage/settings/csv"}
+        selected?={@live_action == :csv}
+      >
+        <div class="max-w-2xl">
+          <h2 class="mb-4 text-lg font-medium">CSV Import</h2>
+          <.form for={@csv_form} id="csv-import-form" phx-submit="csv_import">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <.input
+                type="select"
+                name="entity"
+                label="Entity"
+                options={[
+                  {"Products", "products"},
+                  {"Materials", "materials"},
+                  {"Customers", "customers"}
+                ]}
+                value="products"
+                required
+              />
+              <.input type="text" name="delimiter" label="Delimiter" value="," />
+              <.input type="checkbox" name="dry_run" label="Dry run" checked />
+              <div>
+                <label class="mb-1 block text-sm font-medium text-stone-700">CSV File</label>
+                <input type="file" name="csv" class="block w-full text-sm" />
+              </div>
+            </div>
+            <div class="mt-6 flex gap-2">
+              <.button id="csv-import-submit">Import</.button>
+              <.button variant={:outline} id="csv-template-download" type="button">Download Template</.button>
+            </div>
+          </.form>
+
+          <h2 class="mb-4 mt-8 text-lg font-medium">CSV Export</h2>
+          <.form for={@csv_export_form} id="csv-export-form" phx-submit="csv_export">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <.input
+                type="select"
+                name="entity"
+                label="Entity"
+                options={[
+                  {"Orders", "orders"},
+                  {"Customers", "customers"},
+                  {"Inventory Movements", "movements"}
+                ]}
+                value="orders"
+                required
+              />
+            </div>
+            <div class="mt-6 flex gap-2">
+              <.button id="csv-export-submit">Export</.button>
+            </div>
+          </.form>
+        </div>
+      </:tab>
     </.tabs>
     """
   end
@@ -77,6 +134,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
      |> assign(:settings, settings)
      |> assign(:allergens, allergens)
      |> assign(:nutritional_facts, nutritional_facts)
+     |> assign(:csv_form, to_form(%{}))
+     |> assign(:csv_export_form, to_form(%{}))
      |> assign_new(:current_user, fn -> nil end)}
   end
 
@@ -99,6 +158,10 @@ defmodule CraftplanWeb.SettingsLive.Index do
 
   defp apply_action(socket, :nutritional_facts, _params) do
     assign(socket, :page_title, "Nutritional Facts Settings")
+  end
+
+  defp apply_action(socket, :csv, _params) do
+    assign(socket, :page_title, "CSV Import/Export")
   end
 
   @impl true
