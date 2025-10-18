@@ -147,6 +147,8 @@ defmodule CraftplanWeb.Public.CartLive.Index do
           nil
       end
 
+    dbg(cart)
+
     cart_id = if cart, do: cart.id
 
     cart_items =

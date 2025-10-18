@@ -13,10 +13,11 @@ defmodule CraftplanWeb.CartLive do
     cart =
       Cart.get_cart_by_id!(
         session["cart_id"],
-        load: [:total_items],
         context: %{cart_id: session["cart_id"]}
       )
 
+    cart = Ash.load!(cart, [:total_items], context: %{cart_id: cart.id})
+    dbg(cart)
     {:ok, assign(socket, :cart, cart)}
   end
 

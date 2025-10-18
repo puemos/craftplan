@@ -110,7 +110,7 @@ defmodule CraftplanWeb.Router do
                 ]
 
     # Public LiveView Routes
-    live_session :public,
+    ash_authentication_live_session :public,
       on_mount: [
         CraftplanWeb.LiveCurrentPath,
         CraftplanWeb.LiveNav,

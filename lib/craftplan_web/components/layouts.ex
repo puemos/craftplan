@@ -17,7 +17,7 @@ defmodule CraftplanWeb.Layouts do
   attr :current_path, :string, default: ""
   attr :nav_section, :atom, default: nil
   attr :current_user, :any, default: nil
-  attr :conn, :any, default: nil
+  attr :cart, :any, default: nil
   attr :flash, :map, default: %{}
   attr :page_title, :string, default: nil
   attr :nav_sub_links, :list, default: []
@@ -141,14 +141,12 @@ defmodule CraftplanWeb.Layouts do
               </div>
 
               <div class="flex items-center gap-4">
-                <div :if={show_cart?(@conn, @current_path)} class="relative">
-                  <%= if @conn do %>
-                    {live_render(@conn, CraftplanWeb.CartLive,
-                      id: "cart_live",
-                      session: %{"cart_id" => Plug.Conn.get_session(@conn, :cart_id)},
-                      sticky: true
-                    )}
-                  <% end %>
+                <div :if={@cart} class="relative">
+                  {live_render(@socket, CraftplanWeb.CartLive,
+                    id: "cart_live",
+                    session: %{"cart_id" => @cart.id},
+                    sticky: true
+                  )}
                 </div>
 
                 <div :if={@current_user} class="relative">
@@ -606,7 +604,7 @@ defmodule CraftplanWeb.Layouts do
   defp nav_active?(_, _, _), do: false
 
   defp show_cart?(conn, current_path) do
-    conn && not String.starts_with?(current_path, "/manage")
+    not String.starts_with?(current_path, "/manage")
   end
 
   attr :breadcrumbs, :list, required: true

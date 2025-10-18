@@ -23,8 +23,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
       </:actions>
     </.header>
 
-    <.sub_nav links={@nav_sub_links} />
-
     <div :if={@live_action == :index}>
       <.table
         id="materials"
