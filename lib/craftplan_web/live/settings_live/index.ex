@@ -72,9 +72,18 @@ defmodule CraftplanWeb.SettingsLive.Index do
           <h2 class="mb-2 text-lg font-medium">Import & Export</h2>
           <p class="mb-4 text-sm text-stone-700">Click on the entity you wish to import.</p>
           <div class="mb-8 flex gap-3">
-            <.button phx-click="open_import" phx-value-entity="products">Products</.button>
-            <.button variant={:outline} phx-click="open_import" phx-value-entity="materials">Materials</.button>
-            <.button variant={:outline} phx-click="open_import" phx-value-entity="customers">Customers</.button>
+            <.button phx-click="open_import" phx-value-entity="products">
+              <.icon name="hero-cube-solid" class="h-4 w-4" />
+              Products
+            </.button>
+            <.button variant={:outline} phx-click="open_import" phx-value-entity="materials">
+              <.icon name="hero-archive-box-solid" class="h-4 w-4" />
+              Materials
+            </.button>
+            <.button variant={:outline} phx-click="open_import" phx-value-entity="customers">
+              <.icon name="hero-user-group-solid" class="h-4 w-4" />
+              Customers
+            </.button>
           </div>
 
           <h2 class="mt-10 mb-4 text-lg font-medium">Export</h2>
@@ -97,8 +106,9 @@ defmodule CraftplanWeb.SettingsLive.Index do
               <.button id="csv-export-submit">Export</.button>
             </div>
           </.form>
-          <.modal id="csv-mapping-modal" title={"Import " <> String.capitalize(@selected_entity || "")} show={@show_mapping_modal}>
-            <div>
+          <.modal :if={@show_mapping_modal} id="csv-mapping-modal" title={"Import " <> String.capitalize(@selected_entity || "")} show={true}>
+            <div class="min-h-[520px]">
+              <.stepper steps={["Provide CSV", "Mapping", "Verify", "Import"]} current={wizard_label(@wizard_step)} />
               <div class="mb-4 text-sm text-stone-700">
                 <div class="font-medium">Here’s the format:</div>
                 <div :if={@selected_entity == "products"}>Required: name, sku, price. Optional: status.</div>
@@ -109,7 +119,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
                 </div>
               </div>
 
-              <.form for={@csv_form} id="csv-select-form" phx-submit="csv_import">
+              <.form :if={@wizard_step == :provide} for={@csv_form} id="csv-select-form" phx-submit="csv_import">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <.input type="text" name="delimiter" label="Delimiter" value={@csv_delimiter || ","} />
                   <.input type="checkbox" name="dry_run" label="Dry run (preview)" checked />
@@ -126,9 +136,9 @@ defmodule CraftplanWeb.SettingsLive.Index do
                 </div>
               </.form>
 
-              <div class="mt-6">
+              <div class="mt-6" :if={@wizard_step in [:map, :verify, :import]}>
                 <h4 class="mb-2 font-medium">Mapping</h4>
-                <.form :if={@csv_headers != []} for={to_form(@csv_mapping)} id="csv-mapping-form" phx-submit="csv_validate">
+                <.form :if={@csv_headers != [] and @wizard_step in [:map, :verify, :import]} for={to_form(@csv_mapping)} id="csv-mapping-form" phx-submit="csv_validate">
                   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <.input type="select" name="mapping[name]" label="Name" options={@csv_headers} value={@csv_mapping["name"]} />
                     <.input type="select" name="mapping[sku]" label="SKU" options={@csv_headers} value={@csv_mapping["sku"]} />
@@ -137,7 +147,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
                   </div>
                   <div class="mt-4 flex gap-2">
                     <.button id="csv-validate-submit">Validate</.button>
-                    <.button variant={:outline} id="csv-import-final" type="button">Import</.button>
+                    <.button :if={@wizard_step == :verify} variant={:outline} id="csv-import-final" type="button" phx-click="csv_import_final">Import</.button>
+                    <.button :if={@wizard_step == :import} variant={:outline} disabled>Importing…</.button>
                   </div>
                 </.form>
 
@@ -154,7 +165,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
                 </table>
               </div>
 
-              <div :if={@csv_errors && @csv_errors != []} class="mt-4">
+              <div :if={@csv_errors && @csv_errors != [] and @wizard_step in [:verify, :import]} class="mt-4">
                 <h4 class="mb-2 font-medium">Errors</h4>
                 <ul class="list-disc pl-6 text-sm text-red-700">
                   <li :for={e <- @csv_errors}>Row {e.row}: {e.message}</li>
@@ -189,6 +200,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
       |> assign(:show_mapping_modal, false)
       |> assign(:csv_delimiter, ",")
       |> assign(:selected_entity, nil)
+      |> assign(:wizard_step, :provide)
       |> assign_new(:current_user, fn -> nil end)
 
     # Always configure CSV upload; harmless on other tabs and avoids missing @uploads
@@ -217,6 +229,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
      |> assign(:csv_mapping, %{})
      |> assign(:csv_errors, [])
      |> assign(:csv_delimiter, ",")
+     |> assign(:wizard_step, :provide)
      |> assign(:show_mapping_modal, true)}
   end
 
@@ -299,6 +312,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
      |> assign(:csv_mapping, mapping)
      |> assign(:csv_entity, entity)
      |> assign(:csv_delimiter, delimiter)
+     |> assign(:wizard_step, :map)
      |> assign(:show_mapping_modal, true)}
   end
 
@@ -306,12 +320,34 @@ defmodule CraftplanWeb.SettingsLive.Index do
     case Craftplan.CSV.Importers.Products.dry_run(csv, delimiter: delimiter, mapping: mapping) do
       {:ok, %{rows: rows, errors: errors}} ->
         msg = "Dry run: #{length(rows)} rows valid, #{length(errors)} errors"
-        {:noreply, socket |> put_flash(:info, msg) |> assign(:csv_errors, errors)}
+        {:noreply,
+         socket
+         |> put_flash(:info, msg)
+         |> assign(:csv_errors, errors)
+         |> assign(:wizard_step, :verify)}
     end
   end
 
   defp do_csv_dry_run(_, _csv, _delim, _mapping, socket) do
     {:noreply, put_flash(socket, :error, "Only products dry-run supported yet")}
+  end
+
+  @impl true
+  def handle_event("csv_import_final", _params, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "Import not implemented yet")
+     |> assign(:wizard_step, :import)}
+  end
+
+  defp wizard_label(step) do
+    case step do
+      :provide -> "Provide CSV"
+      :map -> "Mapping"
+      :verify -> "Verify"
+      :import -> "Import"
+      _ -> "Provide CSV"
+    end
   end
 
   defp consume_uploaded_csv(socket) do

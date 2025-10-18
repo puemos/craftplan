@@ -363,6 +363,39 @@ defmodule CraftplanWeb.Components.Core do
     """
   end
 
+  @doc """
+  Renders a simple horizontal stepper.
+
+  Attributes:
+  - `:steps` - list of step labels in order
+  - `:current` - current step as string or atom matching one of the labels (case-insensitive)
+  """
+  attr :steps, :list, required: true
+  attr :current, :string, required: true
+  attr :class, :string, default: nil
+
+  def stepper(assigns) do
+    ~H"""
+    <div class={["mb-4 flex items-center gap-3", @class]}>
+      <%= for {step, idx} <- Enum.with_index(@steps) do %>
+        <% current? = String.downcase(to_string(@current)) == String.downcase(to_string(step)) %>
+        <div class="flex items-center gap-2">
+          <div class={["flex h-6 w-6 items-center justify-center rounded-full text-xs",
+            current? && "bg-stone-800 text-white",
+            not current? && "bg-stone-200 text-stone-700"
+          ]}>
+            <%= idx + 1 %>
+          </div>
+          <div class={["text-sm", current? && "font-medium text-stone-900" || "text-stone-600"]}>
+            <%= step %>
+          </div>
+        </div>
+        <div :if={idx < length(@steps) - 1} class="h-px w-8 bg-stone-300"></div>
+      <% end %>
+    </div>
+    """
+  end
+
   attr :label, :string, required: true
   attr :path, :string, required: true
   attr :selected?, :boolean, required: true
