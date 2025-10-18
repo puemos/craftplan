@@ -377,7 +377,7 @@ defmodule CraftplanWeb.ImportModalComponent do
     %{
       key: "materials",
       label: "Materials",
-      importer: nil,
+      importer: Craftplan.CSV.Importers.Materials,
       instructions: ["Required: name, sku, unit, price."],
       fields: [
         %{name: "name", label: "Name", required: true},
