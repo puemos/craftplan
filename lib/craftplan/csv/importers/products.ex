@@ -13,6 +13,7 @@ defmodule Craftplan.CSV.Importers.Products do
   @spec dry_run(String.t(), keyword) :: {:ok, %{rows: [row()], errors: [error()]}}
   def dry_run(content, opts \\ []) when is_binary(content) do
     delimiter = Keyword.get(opts, :delimiter, ",")
+    mapping = normalize_mapping(Keyword.get(opts, :mapping, %{}))
 
     parsed =
       content
@@ -22,7 +23,10 @@ defmodule Craftplan.CSV.Importers.Products do
     case parsed do
       [] -> {:ok, %{rows: [], errors: []}}
       [headers | data_rows] ->
-        header_map = header_index_map(headers)
+        header_map =
+          headers
+          |> header_index_map()
+          |> apply_mapping(mapping)
 
         {rows, errors} =
           data_rows
@@ -42,6 +46,28 @@ defmodule Craftplan.CSV.Importers.Products do
     headers
     |> Enum.with_index()
     |> Enum.into(%{}, fn {h, i} -> {String.downcase(String.trim(to_string(h))), i} end)
+  end
+
+  defp normalize_mapping(mapping) when is_map(mapping) do
+    mapping
+    |> Enum.into(%{}, fn {k, v} -> {to_string(k), (is_binary(v) && String.downcase(String.trim(v))) || nil} end)
+  end
+
+  # Transform the header map to resolve target field names to actual column indices
+  # mapping: %{"name" => "product name", "sku" => "code", ...}
+  defp apply_mapping(header_map, mapping) when mapping == %{}, do: header_map
+  defp apply_mapping(header_map, mapping) do
+    # For each known field, if a mapped header exists, point the key to that index too
+    Enum.reduce(["name", "sku", "price", "status"], header_map, fn field, acc ->
+      case Map.get(mapping, field) do
+        nil -> acc
+        mapped_header ->
+          case Map.fetch(header_map, mapped_header) do
+            {:ok, idx} -> Map.put(acc, field, idx)
+            :error -> acc
+          end
+      end
+    end)
   end
 
   defp fetch_field(fields, header_map, key) do
