@@ -37,6 +37,7 @@ defmodule CraftplanWeb.Components.Core do
 
   """
   attr :class, :string, default: nil
+  attr :goto_event, :string, default: nil
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -294,7 +295,7 @@ defmodule CraftplanWeb.Components.Core do
   # For full width/height
   attr :expanding, :boolean, default: false
   attr :size, :atom, default: :base, values: [:sm, :base, :lg]
-  attr :variant, :atom, default: :default, values: [:default, :danger, :outline]
+  attr :variant, :atom, default: :default, values: [:default, :danger, :outline, :primary]
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -316,6 +317,11 @@ defmodule CraftplanWeb.Components.Core do
     </button>
     """
   end
+
+  defp button_variant_classes(:primary), do: "bg-indigo-600 text-white border border-indigo-600 shadow-xs
+       hover:bg-indigo-500 active:bg-indigo-700
+       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2
+       disabled:opacity-50 disabled:pointer-events-none"
 
   defp button_variant_classes(:default),
     do: "bg-stone-200/50 border border-stone-300 shadow-xs hover:bg-stone-200 hover:text-gray-800"
@@ -369,26 +375,44 @@ defmodule CraftplanWeb.Components.Core do
   Attributes:
   - `:steps` - list of step labels in order
   - `:current` - current step as string or atom matching one of the labels (case-insensitive)
+  - `:goto_event` - optional LiveView event to emit when clicking a prior step
   """
   attr :steps, :list, required: true
   attr :current, :string, required: true
   attr :class, :string, default: nil
+  attr :goto_event, :string, default: nil
 
   def stepper(assigns) do
     ~H"""
     <div class={["mb-4 flex items-center gap-3", @class]}>
+      <% current_idx = Enum.find_index(@steps, fn s -> String.downcase(to_string(s)) == String.downcase(to_string(@current)) end) || 0 %>
       <%= for {step, idx} <- Enum.with_index(@steps) do %>
         <% current? = String.downcase(to_string(@current)) == String.downcase(to_string(step)) %>
         <div class="flex items-center gap-2">
-          <div class={["flex h-6 w-6 items-center justify-center rounded-full text-xs",
+          <div class={[
+            "flex h-6 w-6 items-center justify-center rounded-full text-xs",
             current? && "bg-stone-800 text-white",
             not current? && "bg-stone-200 text-stone-700"
           ]}>
-            <%= idx + 1 %>
+            {idx + 1}
           </div>
-          <div class={["text-sm", current? && "font-medium text-stone-900" || "text-stone-600"]}>
-            <%= step %>
-          </div>
+          <%= if @goto_event && not current? && idx < current_idx do %>
+            <button
+              type="button"
+              phx-click={@goto_event}
+              phx-value-step={step}
+              class={[
+                "text-sm underline-offset-2 hover:underline",
+                (current? && "font-medium text-stone-900") || "text-stone-700"
+              ]}
+            >
+              {step}
+            </button>
+          <% else %>
+            <div class={["text-sm", (current? && "font-medium text-stone-900") || "text-stone-600"]}>
+              {step}
+            </div>
+          <% end %>
         </div>
         <div :if={idx < length(@steps) - 1} class="h-px w-8 bg-stone-300"></div>
       <% end %>

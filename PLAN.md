@@ -21,6 +21,7 @@ Recently Completed
 - Settings extended for tax/fulfillment/lead‑time/daily capacity/shipping; checkout totals preview uses Settings.
 - Invoice printable page (HTML) scaffold; browser print supported.
 - Seeds updated for settings, capacities, availability; FK ordering fixed.
+- CSV Import UI modularized: Import modal extracted into reusable LiveComponent with sticky stepper, Mapping/Preview/Errors tabs, footer actions; wired into Settings > Import/Export. Added LiveView tests for wizard flow and preserved existing tests. Refactored the component to use static per-entity configs (fields, instructions, default mapping candidates, importer module) to reduce conditionals and make it reusable across entities.
 
 Next Up
 - Finish operational polish for bakery:
@@ -28,7 +29,7 @@ Next Up
   - Product Label print view (ingredients/allergens/batch/date) leveraging invoice print pattern.
   - Audit print classes across Make Sheet and Invoice.
 - Cleanup: remove unused helpers in PlanLive; confirm navigation/highlight behaviors.
-- Prep onboarding: scaffold CSV import (Products/Materials/Customers) with dry‑run and errors.
+- Prep onboarding: wire actual CSV importers (Products/Materials/Customers) to the Import step; keep dry‑run verification; add exporters for Orders/Customers/Movements.
 
 How To Track
 - Check off tasks below as you complete them. Keep milestone checkboxes in sync.

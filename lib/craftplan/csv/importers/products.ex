@@ -42,6 +42,76 @@ defmodule Craftplan.CSV.Importers.Products do
     end
   end
 
+  @doc """
+  Import products from CSV content. Returns counts and errors.
+  Options:
+  - :delimiter - CSV delimiter (default ",")
+  - :mapping - map of target fields to header names
+  - :actor - Ash actor for authorization
+  """
+  @spec import(String.t(), keyword) :: {:ok, %{inserted: non_neg_integer(), updated: non_neg_integer(), errors: [error()]}} | {:error, term}
+  def import(content, opts \\ []) when is_binary(content) do
+    delimiter = Keyword.get(opts, :delimiter, ",")
+    mapping = normalize_mapping(Keyword.get(opts, :mapping, %{}))
+    actor = Keyword.get(opts, :actor)
+
+    parsed =
+      content
+      |> String.trim()
+      |> CSV.parse_string(skip_headers: false, separator: delimiter)
+
+    case parsed do
+      [] -> {:ok, %{inserted: 0, updated: 0, errors: []}}
+      [headers | data_rows] ->
+        header_map =
+          headers
+          |> header_index_map()
+          |> apply_mapping(mapping)
+
+        {ins, upd, errs} =
+          data_rows
+          |> Enum.with_index(2)
+          |> Enum.reduce({0, 0, []}, fn {fields, line}, {acc_i, acc_u, acc_e} ->
+            case cast_row(fields, header_map) do
+              {:ok, row} ->
+                attrs = %{
+                  name: row.name,
+                  sku: row.sku,
+                  price: row.price,
+                  status: row.status
+                }
+
+                case upsert_product(attrs, actor) do
+                  {:ok, :inserted} -> {acc_i + 1, acc_u, acc_e}
+                  {:ok, :updated} -> {acc_i, acc_u + 1, acc_e}
+                  {:error, reason} -> {acc_i, acc_u, [%{row: line, message: inspect(reason)} | acc_e]}
+                end
+
+              {:error, msg} -> {acc_i, acc_u, [%{row: line, message: msg} | acc_e]}
+            end
+          end)
+
+        {:ok, %{inserted: ins, updated: upd, errors: Enum.reverse(errs)}}
+    end
+  end
+
+  defp upsert_product(attrs, actor) do
+    # Try to get by SKU and update; otherwise create
+    case Craftplan.Catalog.get_product_by_sku(attrs.sku, actor: actor) do
+      {:ok, product} ->
+        case Ash.update(product, attrs, actor: actor) do
+          {:ok, _} -> {:ok, :updated}
+          {:error, reason} -> {:error, reason}
+        end
+
+      {:error, _} ->
+        case Ash.create(Craftplan.Catalog.Product, attrs, actor: actor) do
+          {:ok, _} -> {:ok, :inserted}
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  end
+
   defp header_index_map(headers) do
     headers
     |> Enum.with_index()
