@@ -69,40 +69,13 @@ defmodule CraftplanWeb.SettingsLive.Index do
         selected?={@live_action == :csv}
       >
         <div class="max-w-2xl">
-          <h2 class="mb-4 text-lg font-medium">Import</h2>
-          <div class="mb-3 text-sm text-stone-600">Step 1: Choose entity</div>
-          <.form for={@csv_form} id="csv-import-form" phx-submit="csv_import">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <.input
-                type="select"
-                name="entity"
-                label="Entity"
-                options={[
-                  {"Products", "products"},
-                  {"Materials", "materials"},
-                  {"Customers", "customers"}
-                ]}
-                value="products"
-                required
-              />
-              <.input type="text" name="delimiter" label="Delimiter" value="," />
-              <.input type="checkbox" name="dry_run" label="Dry run (preview)" checked />
-              <div class="sm:col-span-2 text-sm text-stone-600">Step 2: Provide CSV (paste or upload file)</div>
-              <div class="sm:col-span-2">
-                <.input type="textarea" name="csv_content" label="Paste CSV (dry run)" value="" />
-              </div>
-              <div class="sm:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-stone-700">CSV File</label>
-                <.live_file_input upload={@uploads[:csv]} class="block w-full text-sm" />
-              </div>
-            </div>
-            <div class="mt-6 flex gap-2">
-              <.button id="csv-import-submit">Preview / Next</.button>
-              <.button variant={:outline} id="csv-template-download" type="button">
-                Download Template
-              </.button>
-            </div>
-          </.form>
+          <h2 class="mb-2 text-lg font-medium">Import & Export</h2>
+          <p class="mb-4 text-sm text-stone-700">Click on the entity you wish to import.</p>
+          <div class="mb-8 flex gap-3">
+            <.button phx-click="open_import" phx-value-entity="products">Products</.button>
+            <.button variant={:outline} phx-click="open_import" phx-value-entity="materials">Materials</.button>
+            <.button variant={:outline} phx-click="open_import" phx-value-entity="customers">Customers</.button>
+          </div>
 
           <h2 class="mt-10 mb-4 text-lg font-medium">Export</h2>
           <.form for={@csv_export_form} id="csv-export-form" phx-submit="csv_export">
@@ -124,23 +97,51 @@ defmodule CraftplanWeb.SettingsLive.Index do
               <.button id="csv-export-submit">Export</.button>
             </div>
           </.form>
-          <.modal id="csv-mapping-modal" title="Step 3: Map Columns" show={@show_mapping_modal}>
+          <.modal id="csv-mapping-modal" title={"Import " <> String.capitalize(@selected_entity || "")} show={@show_mapping_modal}>
             <div>
-              <.form for={to_form(@csv_mapping)} id="csv-mapping-form" phx-submit="csv_validate">
+              <div class="mb-4 text-sm text-stone-700">
+                <div class="font-medium">Here’s the format:</div>
+                <div :if={@selected_entity == "products"}>Required: name, sku, price. Optional: status.</div>
+                <div :if={@selected_entity == "materials"}>Required: name, sku, unit, price.</div>
+                <div :if={@selected_entity == "customers"}>Required: type, first_name, last_name, email.</div>
+                <div class="mt-2">
+                  <.button variant={:outline} id="csv-template-download" type="button">Download template</.button>
+                </div>
+              </div>
+
+              <.form for={@csv_form} id="csv-select-form" phx-submit="csv_import">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <.input type="select" name="mapping[name]" label="Name" options={@csv_headers} value={@csv_mapping["name"]} />
-                  <.input type="select" name="mapping[sku]" label="SKU" options={@csv_headers} value={@csv_mapping["sku"]} />
-                  <.input type="select" name="mapping[price]" label="Price" options={@csv_headers} value={@csv_mapping["price"]} />
-                  <.input type="select" name="mapping[status]" label="Status" options={["" | @csv_headers]} value={@csv_mapping["status"]} />
+                  <.input type="text" name="delimiter" label="Delimiter" value={@csv_delimiter || ","} />
+                  <.input type="checkbox" name="dry_run" label="Dry run (preview)" checked />
+                  <div class="sm:col-span-2">
+                    <.input type="textarea" name="csv_content" label="Paste raw CSV" value="" />
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="mb-1 block text-sm font-medium text-stone-700">Or choose file…</label>
+                    <.live_file_input upload={@uploads[:csv]} class="block w-full text-sm" />
+                  </div>
                 </div>
                 <div class="mt-4 flex gap-2">
-                  <.button id="csv-validate-submit">Validate</.button>
-                  <.button variant={:outline} id="csv-import-final" type="button">Import</.button>
+                  <.button id="csv-verify">Verify</.button>
                 </div>
               </.form>
 
               <div class="mt-6">
-                <h4 class="mb-2 font-medium">Preview</h4>
+                <h4 class="mb-2 font-medium">Mapping</h4>
+                <.form :if={@csv_headers != []} for={to_form(@csv_mapping)} id="csv-mapping-form" phx-submit="csv_validate">
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <.input type="select" name="mapping[name]" label="Name" options={@csv_headers} value={@csv_mapping["name"]} />
+                    <.input type="select" name="mapping[sku]" label="SKU" options={@csv_headers} value={@csv_mapping["sku"]} />
+                    <.input :if={@selected_entity == "products"} type="select" name="mapping[price]" label="Price" options={@csv_headers} value={@csv_mapping["price"]} />
+                    <.input :if={@selected_entity == "products"} type="select" name="mapping[status]" label="Status" options={["" | @csv_headers]} value={@csv_mapping["status"]} />
+                  </div>
+                  <div class="mt-4 flex gap-2">
+                    <.button id="csv-validate-submit">Validate</.button>
+                    <.button variant={:outline} id="csv-import-final" type="button">Import</.button>
+                  </div>
+                </.form>
+
+                <h4 class="mt-6 mb-2 font-medium">Preview</h4>
                 <table class="min-w-full divide-y divide-stone-200 border">
                   <thead><tr>
                     <th :for={h <- @csv_headers} class="px-2 py-1 text-left text-xs font-medium text-stone-600">{h}</th>
@@ -186,6 +187,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
       |> assign(:csv_mapping, %{})
       |> assign(:csv_errors, [])
       |> assign(:show_mapping_modal, false)
+      |> assign(:csv_delimiter, ",")
+      |> assign(:selected_entity, nil)
       |> assign_new(:current_user, fn -> nil end)
 
     # Always configure CSV upload; harmless on other tabs and avoids missing @uploads
@@ -201,6 +204,20 @@ defmodule CraftplanWeb.SettingsLive.Index do
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  @impl true
+  def handle_event("open_import", %{"entity" => entity}, socket) do
+    {:noreply,
+     socket
+     |> assign(:selected_entity, entity)
+     |> assign(:csv_preview, nil)
+     |> assign(:csv_headers, [])
+     |> assign(:csv_rows, [])
+     |> assign(:csv_mapping, %{})
+     |> assign(:csv_errors, [])
+     |> assign(:csv_delimiter, ",")
+     |> assign(:show_mapping_modal, true)}
   end
 
   defp apply_action(socket, :index, _params) do
@@ -225,7 +242,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
 
   @impl true
   def handle_event("csv_import", params, socket) do
-    entity = params["entity"] || "products"
+    entity = params["entity"] || socket.assigns.selected_entity || "products"
     delimiter = params["delimiter"] || ","
     dry_run? = params["dry_run"] in [true, "true", "on", "1"]
     content = params["csv_content"] || ""
