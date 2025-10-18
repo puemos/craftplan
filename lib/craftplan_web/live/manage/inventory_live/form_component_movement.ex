@@ -106,7 +106,7 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMovement do
         </div>
 
         <:actions>
-          <.button phx-disable-with="Saving...">
+          <.button variant={:primary} phx-disable-with="Saving...">
             Save
           </.button>
         </:actions>

@@ -40,7 +40,7 @@ defmodule CraftplanWeb.ProductLive.Label do
       </div>
 
       <div class="mt-6 flex justify-end print:hidden">
-        <.button onclick="window.print()">Print</.button>
+        <.button variant={:primary} onclick="window.print()">Print</.button>
       </div>
     </div>
     """

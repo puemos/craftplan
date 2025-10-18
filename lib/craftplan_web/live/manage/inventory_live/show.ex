@@ -15,10 +15,10 @@ defmodule CraftplanWeb.InventoryLive.Show do
 
       <:actions>
         <.link patch={~p"/manage/inventory/#{@material.sku}/adjust"} phx-click={JS.push_focus()}>
-          <.button>Adjust Stock</.button>
+          <.button variant={:primary}>Adjust Stock</.button>
         </.link>
         <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
-          <.button>Edit</.button>
+          <.button variant={:primary}>Edit</.button>
         </.link>
       </:actions>
     </.header>

@@ -145,7 +145,7 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
         </div>
 
         <:actions>
-          <.button type="submit" phx-disable-with="Saving...">
+          <.button type="submit" variant={:primary} phx-disable-with="Saving...">
             Save Nutritional Facts
           </.button>
         </:actions>

@@ -75,7 +75,11 @@ defmodule CraftplanWeb.Public.CheckoutLive.Index do
           </div>
 
           <:actions>
-            <.button phx-disable-with="Placing..." disabled={Enum.empty?(@cart_items)}>
+            <.button
+              variant={:primary}
+              phx-disable-with="Placing..."
+              disabled={Enum.empty?(@cart_items)}
+            >
               Place Order
             </.button>
           </:actions>

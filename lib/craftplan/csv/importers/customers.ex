@@ -25,7 +25,9 @@ defmodule Craftplan.CSV.Importers.Customers do
       |> CSV.parse_string(skip_headers: false, separator: delimiter)
 
     case parsed do
-      [] -> {:ok, %{rows: [], errors: []}}
+      [] ->
+        {:ok, %{rows: [], errors: []}}
+
       [headers | data_rows] ->
         header_map =
           headers
@@ -50,7 +52,9 @@ defmodule Craftplan.CSV.Importers.Customers do
   Import customers from CSV content. Options: :delimiter, :mapping, :actor.
   Returns {:ok, %{inserted: n, updated: n, errors: errors}}.
   """
-  @spec import(String.t(), keyword) :: {:ok, %{inserted: non_neg_integer(), updated: non_neg_integer(), errors: [error()]}} | {:error, term}
+  @spec import(String.t(), keyword) ::
+          {:ok, %{inserted: non_neg_integer(), updated: non_neg_integer(), errors: [error()]}}
+          | {:error, term}
   def import(content, opts \\ []) when is_binary(content) do
     delimiter = Keyword.get(opts, :delimiter, ",")
     mapping = normalize_mapping(Keyword.get(opts, :mapping, %{}))
@@ -62,7 +66,9 @@ defmodule Craftplan.CSV.Importers.Customers do
       |> CSV.parse_string(skip_headers: false, separator: delimiter)
 
     case parsed do
-      [] -> {:ok, %{inserted: 0, updated: 0, errors: []}}
+      [] ->
+        {:ok, %{inserted: 0, updated: 0, errors: []}}
+
       [headers | data_rows] ->
         header_map =
           headers
@@ -83,12 +89,18 @@ defmodule Craftplan.CSV.Importers.Customers do
                 }
 
                 case upsert_customer(attrs, actor) do
-                  {:ok, :inserted} -> {acc_i + 1, acc_u, acc_e}
-                  {:ok, :updated} -> {acc_i, acc_u + 1, acc_e}
-                  {:error, reason} -> {acc_i, acc_u, [%{row: line, message: inspect(reason)} | acc_e]}
+                  {:ok, :inserted} ->
+                    {acc_i + 1, acc_u, acc_e}
+
+                  {:ok, :updated} ->
+                    {acc_i, acc_u + 1, acc_e}
+
+                  {:error, reason} ->
+                    {acc_i, acc_u, [%{row: line, message: inspect(reason)} | acc_e]}
                 end
 
-              {:error, msg} -> {acc_i, acc_u, [%{row: line, message: msg} | acc_e]}
+              {:error, msg} ->
+                {acc_i, acc_u, [%{row: line, message: msg} | acc_e]}
             end
           end)
 
@@ -115,19 +127,23 @@ defmodule Craftplan.CSV.Importers.Customers do
   defp header_index_map(headers) do
     headers
     |> Enum.with_index()
-    |> Enum.into(%{}, fn {h, i} -> {String.downcase(String.trim(to_string(h))), i} end)
+    |> Map.new(fn {h, i} -> {String.downcase(String.trim(to_string(h))), i} end)
   end
 
   defp normalize_mapping(mapping) when is_map(mapping) do
-    mapping
-    |> Enum.into(%{}, fn {k, v} -> {to_string(k), (is_binary(v) && String.downcase(String.trim(v))) || nil} end)
+    Map.new(mapping, fn {k, v} ->
+      {to_string(k), (is_binary(v) && String.downcase(String.trim(v))) || nil}
+    end)
   end
 
   defp apply_mapping(header_map, mapping) when mapping == %{}, do: header_map
+
   defp apply_mapping(header_map, mapping) do
     Enum.reduce(["type", "first_name", "last_name", "email"], header_map, fn field, acc ->
       case Map.get(mapping, field) do
-        nil -> acc
+        nil ->
+          acc
+
         mapped_header ->
           case Map.fetch(header_map, mapped_header) do
             {:ok, idx} -> Map.put(acc, field, idx)
@@ -145,18 +161,16 @@ defmodule Craftplan.CSV.Importers.Customers do
   end
 
   defp cast_row(fields, header_map) do
-    type_str = fetch_field(fields, header_map, "type") |> to_string() |> String.trim()
-    first_name = fetch_field(fields, header_map, "first_name") |> to_string() |> String.trim()
-    last_name = fetch_field(fields, header_map, "last_name") |> to_string() |> String.trim()
-    email = fetch_field(fields, header_map, "email") |> to_string() |> String.trim()
+    type_str = fields |> fetch_field(header_map, "type") |> to_string() |> String.trim()
+    first_name = fields |> fetch_field(header_map, "first_name") |> to_string() |> String.trim()
+    last_name = fields |> fetch_field(header_map, "last_name") |> to_string() |> String.trim()
+    email = fields |> fetch_field(header_map, "email") |> to_string() |> String.trim()
 
     with {:ok, type} <- parse_type(type_str),
          :ok <- present?(first_name, "first_name"),
          :ok <- present?(last_name, "last_name"),
          {:ok, email} <- parse_email(email) do
       {:ok, %{type: type, first_name: first_name, last_name: last_name, email: email}}
-    else
-      {:error, msg} -> {:error, msg}
     end
   end
 
@@ -170,10 +184,12 @@ defmodule Craftplan.CSV.Importers.Customers do
   end
 
   defp parse_email(""), do: {:error, "Missing email"}
+
   defp parse_email(email) do
-    case Regex.match?(~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/, email) do
-      true -> {:ok, String.downcase(email)}
-      false -> {:error, "Invalid email: #{email}"}
+    if Regex.match?(~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/, email) do
+      {:ok, String.downcase(email)}
+    else
+      {:error, "Invalid email: #{email}"}
     end
   end
 

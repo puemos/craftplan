@@ -14,7 +14,7 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
       </.breadcrumb>
       <:actions>
         <.link :if={@live_action == :index} patch={~p"/manage/purchasing/suppliers/new"}>
-          <.button>New Supplier</.button>
+          <.button variant={:primary}>New Supplier</.button>
         </.link>
       </:actions>
     </.header>

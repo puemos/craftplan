@@ -19,7 +19,7 @@ defmodule CraftplanWeb.CustomerLive.Show do
 
       <:actions>
         <.link patch={~p"/manage/customers/#{@customer.reference}/edit"}>
-          <.button>Edit customer</.button>
+          <.button variant={:primary}>Edit customer</.button>
         </.link>
       </:actions>
     </.header>
@@ -54,7 +54,7 @@ defmodule CraftplanWeb.CustomerLive.Show do
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold">Orders History</h3>
               <.link navigate={~p"/manage/orders/new?customer_id=#{@customer.reference}"}>
-                <.button>New Order</.button>
+                <.button variant={:primary}>New Order</.button>
               </.link>
             </div>
 

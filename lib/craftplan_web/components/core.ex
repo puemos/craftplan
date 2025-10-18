@@ -282,7 +282,7 @@ defmodule CraftplanWeb.Components.Core do
 
   ## Examples
 
-      <.button>Send!</.button>
+      <.button variant={:primary}>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
       <.button expanding={true}>Full Width & Height Button!</.button>
       <.button size={:sm}>Small Button</button>
@@ -385,7 +385,10 @@ defmodule CraftplanWeb.Components.Core do
   def stepper(assigns) do
     ~H"""
     <div class={["mb-4 flex items-center gap-3", @class]}>
-      <% current_idx = Enum.find_index(@steps, fn s -> String.downcase(to_string(s)) == String.downcase(to_string(@current)) end) || 0 %>
+      <% current_idx =
+        Enum.find_index(@steps, fn s ->
+          String.downcase(to_string(s)) == String.downcase(to_string(@current))
+        end) || 0 %>
       <%= for {step, idx} <- Enum.with_index(@steps) do %>
         <% current? = String.downcase(to_string(@current)) == String.downcase(to_string(step)) %>
         <div class="flex items-center gap-2">

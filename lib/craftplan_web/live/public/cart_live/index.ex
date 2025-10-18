@@ -118,7 +118,7 @@ defmodule CraftplanWeb.Public.CartLive.Index do
 
           <div class="mt-8 flex space-y-3">
             <.link navigate={~p"/checkout"} class="h-10 w-full">
-              <.button expanding={true}>
+              <.button variant={:primary} expanding={true}>
                 Checkout
               </.button>
             </.link>

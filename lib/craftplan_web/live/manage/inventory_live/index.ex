@@ -16,7 +16,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
 
       <:actions>
         <.link :if={@live_action == :index} patch={~p"/manage/inventory/new"}>
-          <.button>New Material</.button>
+          <.button variant={:primary}>New Material</.button>
         </.link>
       </:actions>
     </.header>
@@ -322,7 +322,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
           patch={~p"/manage/inventory/#{@selected_material.sku}/adjust"}
           phx-click={JS.push_focus()}
         >
-          <.button>Adjust Stock</.button>
+          <.button variant={:primary}>Adjust Stock</.button>
         </.link>
       </footer>
     </.modal>

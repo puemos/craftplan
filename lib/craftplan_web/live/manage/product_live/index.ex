@@ -15,7 +15,7 @@ defmodule CraftplanWeb.ProductLive.Index do
 
       <:actions>
         <.link patch={~p"/manage/products/new"}>
-          <.button>New Product</.button>
+          <.button variant={:primary}>New Product</.button>
         </.link>
       </:actions>
     </.header>

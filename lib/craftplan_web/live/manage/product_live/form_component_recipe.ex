@@ -152,6 +152,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
         <:actions>
           <.button
+            variant={:primary}
             type="submit"
             disabled={not @form.source.changed? || not @form.source.valid?}
             phx-disable-with="Saving..."

@@ -12,7 +12,7 @@ defmodule CraftplanWeb.CustomerLive.Index do
 
       <:actions>
         <.link patch={~p"/manage/customers/new"}>
-          <.button>New Customer</.button>
+          <.button variant={:primary}>New Customer</.button>
         </.link>
       </:actions>
     </.header>

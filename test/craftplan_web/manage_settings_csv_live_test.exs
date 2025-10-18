@@ -35,6 +35,7 @@ defmodule CraftplanWeb.ManageSettingsCSVLiveTest do
   @tag role: :admin
   test "products mapping UI appears on preview", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/manage/settings/csv")
+
     view
     |> element("button[phx-click=open_import][phx-value-entity='products']")
     |> render_click()
@@ -49,7 +50,14 @@ defmodule CraftplanWeb.ManageSettingsCSVLiveTest do
 
     view
     |> element("#csv-mapping-form")
-    |> render_submit(%{"mapping" => %{"name" => "product name", "sku" => "code", "price" => "cost", "status" => "state"}})
+    |> render_submit(%{
+      "mapping" => %{
+        "name" => "product name",
+        "sku" => "code",
+        "price" => "cost",
+        "status" => "state"
+      }
+    })
 
     assert render(view) =~ "Dry run: 1 rows valid, 0 errors"
   end

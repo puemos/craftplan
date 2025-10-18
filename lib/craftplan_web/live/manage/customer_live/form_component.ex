@@ -63,7 +63,7 @@ defmodule CraftplanWeb.CustomerLive.FormComponent do
         </div>
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Customer</.button>
+          <.button variant={:primary} phx-disable-with="Saving...">Save Customer</.button>
         </:actions>
       </.simple_form>
     </div>

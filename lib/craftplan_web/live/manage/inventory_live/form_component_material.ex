@@ -48,7 +48,7 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMaterial do
         />
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Material</.button>
+          <.button variant={:primary} phx-disable-with="Saving...">Save Material</.button>
         </:actions>
       </.simple_form>
     </div>

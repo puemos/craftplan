@@ -41,7 +41,7 @@ defmodule CraftplanWeb.OrderLive.Index do
       </.breadcrumb>
       <:actions>
         <.link patch={~p"/manage/orders/new"}>
-          <.button>New Order</.button>
+          <.button variant={:primary}>New Order</.button>
         </.link>
       </:actions>
     </.header>
@@ -399,7 +399,11 @@ defmodule CraftplanWeb.OrderLive.Index do
       </div>
 
       <div class="flex justify-end space-x-3">
-        <.button class="mr-2" phx-click={JS.navigate(~p"/manage/orders/#{@selected_order.reference}")}>
+        <.button
+          variant={:primary}
+          class="mr-2"
+          phx-click={JS.navigate(~p"/manage/orders/#{@selected_order.reference}")}
+        >
           View Order Details
         </.button>
         <.button variant={:outline} phx-click="close_event_modal">

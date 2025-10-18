@@ -24,6 +24,7 @@ defmodule CraftplanWeb.InventoryLive.FormComponentAllergens do
 
         <:actions>
           <.button
+            variant={:primary}
             disabled={
               MapSet.equal?(MapSet.new(@init_allergen_ids), MapSet.new(@selected_allergen_ids))
             }

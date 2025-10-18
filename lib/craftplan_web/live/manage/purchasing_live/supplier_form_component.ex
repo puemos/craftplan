@@ -25,7 +25,7 @@ defmodule CraftplanWeb.PurchasingLive.SupplierFormComponent do
         <.input field={@form[:notes]} type="textarea" label="Notes" />
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Supplier</.button>
+          <.button variant={:primary} phx-disable-with="Saving...">Save Supplier</.button>
         </:actions>
       </.simple_form>
     </div>

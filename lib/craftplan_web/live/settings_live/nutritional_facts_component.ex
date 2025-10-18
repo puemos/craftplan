@@ -59,7 +59,7 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
         >
           <.input field={@form[:name]} type="text" label="Nutritional fact name" />
           <:actions>
-            <.button phx-disable-with="Saving...">Add Nutritional Fact</.button>
+            <.button variant={:primary} phx-disable-with="Saving...">Add Nutritional Fact</.button>
           </:actions>
         </.simple_form>
       </.modal>

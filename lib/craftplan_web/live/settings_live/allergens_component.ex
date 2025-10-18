@@ -59,7 +59,7 @@ defmodule CraftplanWeb.SettingsLive.AllergensComponent do
         >
           <.input field={@form[:name]} type="text" label="Allergen name" />
           <:actions>
-            <.button phx-disable-with="Saving...">Save Allergen</.button>
+            <.button variant={:primary} phx-disable-with="Saving...">Save Allergen</.button>
           </:actions>
         </.simple_form>
       </.modal>

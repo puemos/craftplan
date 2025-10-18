@@ -18,7 +18,7 @@ defmodule CraftplanWeb.PlanLive.Index do
       </.breadcrumb>
       <:actions>
         <.link navigate={~p"/manage/production/make_sheet"}>
-          <.button>Make Sheet</.button>
+          <.button variant={:primary}>Make Sheet</.button>
         </.link>
       </:actions>
     </.header>
@@ -651,7 +651,7 @@ defmodule CraftplanWeb.PlanLive.Index do
         <div class="mb-3 flex items-center justify-between print:mb-2">
           <div class="text-lg font-medium print:text-base">Today's Production</div>
           <div class="space-x-2 print:hidden">
-            <.button phx-click="consume_all_today">Consume All Completed</.button>
+            <.button variant={:primary} phx-click="consume_all_today">Consume All Completed</.button>
             <.button variant={:outline} onclick="window.print()">Print</.button>
           </div>
         </div>
@@ -691,7 +691,7 @@ defmodule CraftplanWeb.PlanLive.Index do
             </:col>
           </.table>
           <div class="mt-3 flex space-x-2">
-            <.button phx-click="confirm_consume">Consume Now</.button>
+            <.button variant={:primary} phx-click="confirm_consume">Consume Now</.button>
             <.button variant={:outline} phx-click="cancel_consume">Not Now</.button>
           </div>
         </div>

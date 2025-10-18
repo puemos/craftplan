@@ -33,7 +33,7 @@ defmodule CraftplanWeb.PurchasingLive.PurchaseOrderFormComponent do
         <.input field={@form[:ordered_at]} type="datetime-local" label="Ordered At" />
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Purchase Order</.button>
+          <.button variant={:primary} phx-disable-with="Saving...">Save Purchase Order</.button>
         </:actions>
       </.simple_form>
     </div>

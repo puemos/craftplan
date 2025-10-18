@@ -100,7 +100,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
               />
             </div>
             <div class="mt-6 flex gap-2">
-              <.button id="csv-export-submit">Export</.button>
+              <.button id="csv-export-submit" variant={:primary}>Export</.button>
             </div>
           </.form>
           <.live_component

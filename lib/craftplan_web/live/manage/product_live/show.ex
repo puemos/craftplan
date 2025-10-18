@@ -15,7 +15,7 @@ defmodule CraftplanWeb.ProductLive.Show do
 
       <:actions>
         <.link patch={~p"/manage/products/#{@product.sku}/edit"} phx-click={JS.push_focus()}>
-          <.button>Edit product</.button>
+          <.button variant={:primary}>Edit product</.button>
         </.link>
       </:actions>
     </.header>

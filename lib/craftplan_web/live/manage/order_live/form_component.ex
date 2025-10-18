@@ -158,6 +158,7 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
 
         <:actions>
           <.button
+            variant={:primary}
             disabled={
               not @form.source.changed? || not @form.source.valid? ||
                 Enum.empty?((@form.source.forms && @form.source.forms[:items]) || [])

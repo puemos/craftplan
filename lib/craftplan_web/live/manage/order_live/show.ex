@@ -28,7 +28,7 @@ defmodule CraftplanWeb.OrderLive.Show do
 
       <:actions>
         <.link patch={~p"/manage/orders/#{@order.reference}/edit"} phx-click={JS.push_focus()}>
-          <.button>Edit order</.button>
+          <.button variant={:primary}>Edit order</.button>
         </.link>
         <.link navigate={~p"/manage/orders/#{@order.reference}/invoice"}>
           <.button variant={:outline}>View Invoice</.button>
@@ -172,7 +172,7 @@ defmodule CraftplanWeb.OrderLive.Show do
       </.table>
       <footer>
         <.button variant={:outline} phx-click="cancel_consume">Close</.button>
-        <.button phx-click="confirm_consume">Consume Now</.button>
+        <.button variant={:primary} phx-click="confirm_consume">Consume Now</.button>
       </footer>
     </.modal>
 

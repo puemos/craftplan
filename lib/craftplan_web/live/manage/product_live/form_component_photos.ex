@@ -191,6 +191,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentPhotos do
 
         <:actions>
           <.button
+            variant={:primary}
             phx-disable-with="Saving..."
             disabled={@has_changes == false}
             class={if @has_changes == false, do: "cursor-not-allowed opacity-50", else: ""}

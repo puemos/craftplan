@@ -78,7 +78,11 @@ defmodule CraftplanWeb.Public.CatalogLive.Show do
               />
             </div>
 
-            <.button class="mt-4 w-full" disabled={@product.selling_availability == :off}>
+            <.button
+              variant={:primary}
+              class="mt-4 w-full"
+              disabled={@product.selling_availability == :off}
+            >
               {existing_item =
                 Enum.find(@cart.items || [], fn item -> item.product_id == @product.id end)
 

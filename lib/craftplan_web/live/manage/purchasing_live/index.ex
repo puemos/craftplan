@@ -15,7 +15,7 @@ defmodule CraftplanWeb.PurchasingLive.Index do
       </.breadcrumb>
       <:actions>
         <.link :if={@live_action == :index} patch={~p"/manage/purchasing/new"}>
-          <.button>New Purchase Order</.button>
+          <.button variant={:primary}>New Purchase Order</.button>
         </.link>
         <.link navigate={~p"/manage/purchasing/suppliers"}>
           <.button variant={:outline}>Suppliers</.button>
@@ -61,7 +61,7 @@ defmodule CraftplanWeb.PurchasingLive.Index do
         </:action>
         <:action :let={po}>
           <.link :if={po.status != :received} phx-click={JS.push("receive", value: %{id: po.id})}>
-            <.button size={:sm}>Mark Received</.button>
+            <.button size={:sm} variant={:primary}>Mark Received</.button>
           </.link>
         </:action>
       </.table>

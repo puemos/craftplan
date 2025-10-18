@@ -18,7 +18,7 @@ defmodule CraftplanWeb.PurchasingLive.Show do
           <.button variant={:outline}>Add Item</.button>
         </.link>
         <.link :if={@po.status != :received} phx-click={JS.push("receive", value: %{id: @po.id})}>
-          <.button>Mark Received</.button>
+          <.button variant={:primary}>Mark Received</.button>
         </.link>
       </:actions>
     </.header>

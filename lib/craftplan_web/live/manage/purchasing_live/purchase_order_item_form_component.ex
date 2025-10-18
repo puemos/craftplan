@@ -28,7 +28,7 @@ defmodule CraftplanWeb.PurchasingLive.PurchaseOrderItemFormComponent do
           <.input field={@form[:unit_price]} type="number" label="Unit Price" step="0.001" min="0" />
         </div>
         <:actions>
-          <.button phx-disable-with="Adding...">Add Item</.button>
+          <.button variant={:primary} phx-disable-with="Adding...">Add Item</.button>
         </:actions>
       </.simple_form>
     </div>

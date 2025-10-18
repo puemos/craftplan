@@ -29,7 +29,9 @@ defmodule CraftplanWeb.ImportModalComponentTest do
     assert has_element?(view, "#csv-mapping-form")
 
     # defaults should map correctly to headers
-    mapping_params = %{"mapping" => %{"name" => "name", "sku" => "sku", "price" => "price", "status" => ""}}
+    mapping_params = %{
+      "mapping" => %{"name" => "name", "sku" => "sku", "price" => "price", "status" => ""}
+    }
 
     view
     |> element("#csv-mapping-form")
