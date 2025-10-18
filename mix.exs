@@ -77,7 +77,8 @@ defmodule Craftplan.MixProject do
       {:ex_image_info, "~> 1.0.0"},
       {:hackney, "~> 1.9"},
       {:sweet_xml, "~> 0.6"},
-      {:tz, "~> 0.28"}
+      {:tz, "~> 0.28"},
+      {:nimble_csv, "~> 1.2"}
     ]
   end
 

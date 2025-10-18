@@ -86,7 +86,10 @@ defmodule CraftplanWeb.SettingsLive.Index do
               />
               <.input type="text" name="delimiter" label="Delimiter" value="," />
               <.input type="checkbox" name="dry_run" label="Dry run" checked />
-              <div>
+              <div class="sm:col-span-2">
+                <.input type="textarea" name="csv_content" label="Paste CSV (dry run)" value="" />
+              </div>
+              <div class="sm:col-span-2">
                 <label class="mb-1 block text-sm font-medium text-stone-700">CSV File</label>
                 <input type="file" name="csv" class="block w-full text-sm" />
               </div>
@@ -164,6 +167,36 @@ defmodule CraftplanWeb.SettingsLive.Index do
 
   defp apply_action(socket, :csv, _params) do
     assign(socket, :page_title, "CSV Import/Export")
+  end
+
+  @impl true
+  def handle_event("csv_import", params, socket) do
+    entity = params["entity"] || "products"
+    delimiter = params["delimiter"] || ","
+    dry_run? = params["dry_run"] in [true, "true", "on", "1"]
+    content = params["csv_content"] || ""
+
+    if dry_run? and String.trim(content) != "" do
+      do_csv_dry_run(entity, content, delimiter, socket)
+    else
+      {:noreply, put_flash(socket, :info, "Upload a file or paste CSV content for dry run.")}
+    end
+  end
+
+  def handle_event("csv_export", _params, socket) do
+    {:noreply, put_flash(socket, :info, "Export started (not yet implemented)")}
+  end
+
+  defp do_csv_dry_run("products", csv, delimiter, socket) do
+    case Craftplan.CSV.Importers.Products.dry_run(csv, delimiter: delimiter) do
+      {:ok, %{rows: rows, errors: errors}} ->
+        msg = "Dry run: #{length(rows)} rows valid, #{length(errors)} errors"
+        {:noreply, socket |> put_flash(:info, msg) |> assign(:csv_errors, errors)}
+    end
+  end
+
+  defp do_csv_dry_run(_, _csv, _delim, socket) do
+    {:noreply, put_flash(socket, :error, "Only products dry-run supported yet")}
   end
 
   @impl true
