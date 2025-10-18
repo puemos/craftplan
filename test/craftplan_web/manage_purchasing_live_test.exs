@@ -6,19 +6,10 @@ defmodule CraftplanWeb.ManagePurchasingLiveTest do
   alias Craftplan.Inventory.PurchaseOrder
   alias Craftplan.Inventory.Supplier
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
+  @moduledoc false
 
   defp create_supplier!(attrs \\ %{}) do
-    staff = staff_user!()
+    staff = Craftplan.DataCase.staff_actor()
     name = Map.get(attrs, :name, "Acme Supplies #{System.unique_integer()}")
 
     Supplier
@@ -32,7 +23,7 @@ defmodule CraftplanWeb.ManagePurchasingLiveTest do
   end
 
   defp create_po!(supplier) do
-    staff = staff_user!()
+    staff = Craftplan.DataCase.staff_actor()
 
     PurchaseOrder
     |> Ash.Changeset.for_create(:create, %{
@@ -43,28 +34,25 @@ defmodule CraftplanWeb.ManagePurchasingLiveTest do
   end
 
   describe "purchase orders index and modals" do
+    @tag role: :staff
     test "renders purchase orders index for staff", %{conn: conn} do
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/purchasing")
       assert has_element?(view, "#purchase-orders")
     end
 
+    @tag role: :staff
     test "renders new PO modal", %{conn: conn} do
       _sup = create_supplier!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/purchasing/new")
       assert has_element?(view, "#po-new-modal")
     end
 
+    @tag role: :staff
     test "renders add item modal for existing PO", %{conn: conn} do
       sup = create_supplier!()
       po = create_po!(sup)
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/purchasing/#{po.reference}/add_item")
       assert has_element?(view, "#po-item-modal")
@@ -72,10 +60,9 @@ defmodule CraftplanWeb.ManagePurchasingLiveTest do
   end
 
   describe "suppliers" do
+    @tag role: :staff
     test "renders suppliers list and new modal", %{conn: conn} do
       _sup = create_supplier!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/purchasing/suppliers")
       assert has_element?(view, "#suppliers")
@@ -84,10 +71,9 @@ defmodule CraftplanWeb.ManagePurchasingLiveTest do
       assert has_element?(view, "#supplier-modal")
     end
 
+    @tag role: :staff
     test "renders supplier edit modal", %{conn: conn} do
       sup = create_supplier!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/purchasing/suppliers/#{sup.id}/edit")
       assert has_element?(view, "#supplier-modal")
@@ -95,11 +81,10 @@ defmodule CraftplanWeb.ManagePurchasingLiveTest do
   end
 
   describe "purchase order show" do
+    @tag role: :staff
     test "renders overview and items tabs", %{conn: conn} do
       sup = create_supplier!()
       po = create_po!(sup)
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/purchasing/#{po.reference}")
       assert has_element?(view, "[role=tablist]")
