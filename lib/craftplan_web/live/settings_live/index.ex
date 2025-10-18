@@ -64,12 +64,13 @@ defmodule CraftplanWeb.SettingsLive.Index do
       </:tab>
 
       <:tab
-        label="CSV"
+        label="Import/Export"
         path={~p"/manage/settings/csv"}
         selected?={@live_action == :csv}
       >
         <div class="max-w-2xl">
-          <h2 class="mb-4 text-lg font-medium">CSV Import</h2>
+          <h2 class="mb-4 text-lg font-medium">Import</h2>
+          <div class="mb-3 text-sm text-stone-600">Step 1: Choose entity</div>
           <.form for={@csv_form} id="csv-import-form" phx-submit="csv_import">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <.input
@@ -85,7 +86,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
                 required
               />
               <.input type="text" name="delimiter" label="Delimiter" value="," />
-              <.input type="checkbox" name="dry_run" label="Dry run" checked />
+              <.input type="checkbox" name="dry_run" label="Dry run (preview)" checked />
+              <div class="sm:col-span-2 text-sm text-stone-600">Step 2: Provide CSV (paste or upload file)</div>
               <div class="sm:col-span-2">
                 <.input type="textarea" name="csv_content" label="Paste CSV (dry run)" value="" />
               </div>
@@ -95,50 +97,14 @@ defmodule CraftplanWeb.SettingsLive.Index do
               </div>
             </div>
             <div class="mt-6 flex gap-2">
-              <.button id="csv-import-submit">Import</.button>
+              <.button id="csv-import-submit">Preview / Next</.button>
               <.button variant={:outline} id="csv-template-download" type="button">
                 Download Template
               </.button>
             </div>
           </.form>
 
-          <div :if={@csv_headers != []} class="mt-8">
-            <h3 class="mb-2 text-base font-medium">Map Columns</h3>
-            <.form for={to_form(@csv_mapping)} id="csv-mapping-form" phx-submit="csv_validate">
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <.input type="select" name="mapping[name]" label="Name" options={@csv_headers} value={@csv_mapping["name"]} />
-                <.input type="select" name="mapping[sku]" label="SKU" options={@csv_headers} value={@csv_mapping["sku"]} />
-                <.input type="select" name="mapping[price]" label="Price" options={@csv_headers} value={@csv_mapping["price"]} />
-                <.input type="select" name="mapping[status]" label="Status" options={["" | @csv_headers]} value={@csv_mapping["status"]} />
-              </div>
-              <div class="mt-4">
-                <.button id="csv-validate-submit">Validate</.button>
-              </div>
-            </.form>
-
-            <div class="mt-6">
-              <h4 class="mb-2 font-medium">Preview</h4>
-              <table class="min-w-full divide-y divide-stone-200 border">
-                <thead><tr>
-                  <th :for={h <- @csv_headers} class="px-2 py-1 text-left text-xs font-medium text-stone-600">{h}</th>
-                </tr></thead>
-                <tbody class="divide-y divide-stone-100">
-                  <tr :for={row <- @csv_rows}>
-                    <td :for={i <- 0..(length(@csv_headers)-1)} class="px-2 py-1 text-xs">{Enum.at(row, i)}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div :if={@csv_errors && @csv_errors != []} class="mt-4">
-              <h4 class="mb-2 font-medium">Errors</h4>
-              <ul class="list-disc pl-6 text-sm text-red-700">
-                <li :for={e <- @csv_errors}>Row {e.row}: {e.message}</li>
-              </ul>
-            </div>
-          </div>
-
-          <h2 class="mt-8 mb-4 text-lg font-medium">CSV Export</h2>
+          <h2 class="mt-10 mb-4 text-lg font-medium">Export</h2>
           <.form for={@csv_export_form} id="csv-export-form" phx-submit="csv_export">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <.input
@@ -158,6 +124,43 @@ defmodule CraftplanWeb.SettingsLive.Index do
               <.button id="csv-export-submit">Export</.button>
             </div>
           </.form>
+          <.modal id="csv-mapping-modal" title="Step 3: Map Columns" show={@show_mapping_modal}>
+            <div>
+              <.form for={to_form(@csv_mapping)} id="csv-mapping-form" phx-submit="csv_validate">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <.input type="select" name="mapping[name]" label="Name" options={@csv_headers} value={@csv_mapping["name"]} />
+                  <.input type="select" name="mapping[sku]" label="SKU" options={@csv_headers} value={@csv_mapping["sku"]} />
+                  <.input type="select" name="mapping[price]" label="Price" options={@csv_headers} value={@csv_mapping["price"]} />
+                  <.input type="select" name="mapping[status]" label="Status" options={["" | @csv_headers]} value={@csv_mapping["status"]} />
+                </div>
+                <div class="mt-4 flex gap-2">
+                  <.button id="csv-validate-submit">Validate</.button>
+                  <.button variant={:outline} id="csv-import-final" type="button">Import</.button>
+                </div>
+              </.form>
+
+              <div class="mt-6">
+                <h4 class="mb-2 font-medium">Preview</h4>
+                <table class="min-w-full divide-y divide-stone-200 border">
+                  <thead><tr>
+                    <th :for={h <- @csv_headers} class="px-2 py-1 text-left text-xs font-medium text-stone-600">{h}</th>
+                  </tr></thead>
+                  <tbody class="divide-y divide-stone-100">
+                    <tr :for={row <- @csv_rows}>
+                      <td :for={i <- 0..(length(@csv_headers)-1)} class="px-2 py-1 text-xs">{Enum.at(row, i)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div :if={@csv_errors && @csv_errors != []} class="mt-4">
+                <h4 class="mb-2 font-medium">Errors</h4>
+                <ul class="list-disc pl-6 text-sm text-red-700">
+                  <li :for={e <- @csv_errors}>Row {e.row}: {e.message}</li>
+                </ul>
+              </div>
+            </div>
+          </.modal>
         </div>
       </:tab>
     </.tabs>
@@ -182,6 +185,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
       |> assign(:csv_rows, [])
       |> assign(:csv_mapping, %{})
       |> assign(:csv_errors, [])
+      |> assign(:show_mapping_modal, false)
       |> assign_new(:current_user, fn -> nil end)
 
     # Always configure CSV upload; harmless on other tabs and avoids missing @uploads
@@ -277,7 +281,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
      |> assign(:csv_rows, rows)
      |> assign(:csv_mapping, mapping)
      |> assign(:csv_entity, entity)
-     |> assign(:csv_delimiter, delimiter)}
+     |> assign(:csv_delimiter, delimiter)
+     |> assign(:show_mapping_modal, true)}
   end
 
   defp do_csv_dry_run("products", csv, delimiter, mapping, socket) do
