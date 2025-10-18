@@ -6,17 +6,6 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
   alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.Supplier
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
   defp create_supplier! do
     Supplier
     |> Ash.Changeset.for_create(:create, %{
@@ -25,7 +14,7 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
       contact_email: "sam+#{System.unique_integer()}@sup.test",
       contact_phone: "555"
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp create_material! do
@@ -38,11 +27,11 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
+  @tag role: :staff
   test "create supplier via form", %{conn: conn} do
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/purchasing/suppliers/new")
 
     name = "Sup-#{System.unique_integer()}"
@@ -55,11 +44,11 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
     assert render(view) =~ "Supplier saved"
   end
 
+  @tag role: :staff
   test "create purchase order and add item then receive", %{conn: conn} do
     sup = create_supplier!()
     mat = create_material!()
 
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/purchasing/new")
 
     po_params = %{
@@ -77,7 +66,7 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
     assert render(view) =~ "Purchase order"
 
     # Fetch created PO and navigate to add_item directly
-    po = hd(Craftplan.Inventory.list_purchase_orders!(actor: staff_user!()))
+    po = hd(Craftplan.Inventory.list_purchase_orders!(actor: Craftplan.DataCase.staff_actor()))
     {:ok, index, _} = live(conn, ~p"/manage/purchasing/#{po.reference}/add_item")
 
     # Add an item

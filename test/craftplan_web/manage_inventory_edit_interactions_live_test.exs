@@ -2,19 +2,7 @@ defmodule CraftplanWeb.ManageInventoryEditInteractionsLiveTest do
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-
   alias Craftplan.Inventory.Material
-
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
 
   defp create_material! do
     Material
@@ -26,12 +14,12 @@ defmodule CraftplanWeb.ManageInventoryEditInteractionsLiveTest do
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
+  @tag role: :staff
   test "edit material and save", %{conn: conn} do
     m = create_material!()
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/edit")
 
     params = %{"material" => %{"name" => m.name <> "X"}}

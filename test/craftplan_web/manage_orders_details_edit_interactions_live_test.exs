@@ -7,16 +7,7 @@ defmodule CraftplanWeb.ManageOrdersDetailsEditInteractionsLiveTest do
   alias Craftplan.CRM.Customer
   alias Craftplan.Orders.Order
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
+  @moduledoc false
 
   defp create_customer! do
     Customer
@@ -36,7 +27,7 @@ defmodule CraftplanWeb.ManageOrdersDetailsEditInteractionsLiveTest do
       price: Decimal.new("3.50"),
       status: :active
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp create_order!(customer, product) do
@@ -46,15 +37,15 @@ defmodule CraftplanWeb.ManageOrdersDetailsEditInteractionsLiveTest do
       delivery_date: DateTime.utc_now(),
       items: [%{"product_id" => product.id, "quantity" => 1, "unit_price" => product.price}]
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
+  @tag role: :staff
   test "edit order details and save", %{conn: conn} do
     c = create_customer!()
     p = create_product!()
     o = create_order!(c, p)
 
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/orders/#{o.reference}/edit")
 
     # No specific field required; submit minimal change (same customer)

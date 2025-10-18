@@ -7,17 +7,6 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
   alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.NutritionalFact
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
   defp create_material! do
     Material
     |> Ash.Changeset.for_create(:create, %{
@@ -28,24 +17,24 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp create_allergen! do
     Allergen
     |> Ash.Changeset.for_create(:create, %{name: "ALG-#{System.unique_integer()}"})
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp create_nf! do
     NutritionalFact
     |> Ash.Changeset.for_create(:create, %{name: "NF-#{System.unique_integer()}"})
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
+  @tag role: :staff
   test "adjust stock via set_total", %{conn: conn} do
     m = create_material!()
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/adjust")
 
     params = %{"movement" => %{"material_id" => m.id, "quantity" => "5", "reason" => "test"}}
@@ -58,9 +47,9 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     assert render(view) =~ "Material created successfully"
   end
 
+  @tag role: :staff
   test "adjust stock via add", %{conn: conn} do
     m = create_material!()
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/adjust")
 
     view
@@ -77,9 +66,9 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     assert render(view) =~ "Material created successfully"
   end
 
+  @tag role: :staff
   test "adjust stock via subtract", %{conn: conn} do
     m = create_material!()
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/adjust")
 
     view
@@ -96,10 +85,10 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     assert render(view) =~ "Material created successfully"
   end
 
+  @tag role: :staff
   test "assign allergens to material", %{conn: conn} do
     m = create_material!()
     a = create_allergen!()
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/allergens")
 
     params = %{"material" => %{}, "allergen_ids" => [a.id]}
@@ -115,10 +104,10 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     assert render(view) =~ "Allergens updated successfully"
   end
 
+  @tag role: :staff
   test "assign nutritional facts to material", %{conn: conn} do
     m = create_material!()
     _nf = create_nf!()
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/nutritional_facts")
 
     # Open modal and click first available fact

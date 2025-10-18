@@ -2,19 +2,7 @@ defmodule CraftplanWeb.ManageProductsIndexInteractionsLiveTest do
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-
   alias Craftplan.Catalog.Product
-
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
 
   defp create_product!(attrs \\ %{}) do
     name = Map.get(attrs, :name, "P-#{System.unique_integer()}")
@@ -29,12 +17,12 @@ defmodule CraftplanWeb.ManageProductsIndexInteractionsLiveTest do
       price: price,
       status: status
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
+  @tag role: :staff
   test "delete product from index stream", %{conn: conn} do
     p = create_product!()
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/products")
 
     # Click the delete link for this product by phx-value-id

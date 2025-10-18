@@ -6,17 +6,6 @@ defmodule CraftplanWeb.ManageProductsInteractionsLiveTest do
   alias Craftplan.Catalog.Product
   alias Craftplan.Inventory.Material
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
   defp create_product!(attrs \\ %{}) do
     name = Map.get(attrs, :name, "P-#{System.unique_integer()}")
     sku = Map.get(attrs, :sku, "SKU-#{System.unique_integer()}")
@@ -33,7 +22,7 @@ defmodule CraftplanWeb.ManageProductsInteractionsLiveTest do
       photos: photos,
       featured_photo: featured_photo
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp create_material! do
@@ -46,7 +35,7 @@ defmodule CraftplanWeb.ManageProductsInteractionsLiveTest do
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   @tag :skip
@@ -54,10 +43,10 @@ defmodule CraftplanWeb.ManageProductsInteractionsLiveTest do
     :ok
   end
 
+  @tag role: :staff
   test "product recipe: add material and save", %{conn: conn} do
     product = create_product!()
     material = create_material!()
-    conn = sign_in(conn, staff_user!())
 
     {:ok, view, _} = live(conn, ~p"/manage/products/#{product.sku}/recipe")
 

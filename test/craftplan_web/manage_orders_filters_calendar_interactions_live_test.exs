@@ -7,17 +7,6 @@ defmodule CraftplanWeb.ManageOrdersFiltersCalendarInteractionsLiveTest do
   alias Craftplan.CRM.Customer
   alias Craftplan.Orders.Order
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
   defp seed_order!(customer_name) do
     c =
       Customer
@@ -36,7 +25,7 @@ defmodule CraftplanWeb.ManageOrdersFiltersCalendarInteractionsLiveTest do
         price: Decimal.new("3.50"),
         status: :active
       })
-      |> Ash.create!(actor: staff_user!())
+      |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
 
     Order
     |> Ash.Changeset.for_create(:create, %{
@@ -44,13 +33,13 @@ defmodule CraftplanWeb.ManageOrdersFiltersCalendarInteractionsLiveTest do
       delivery_date: DateTime.utc_now(),
       items: [%{"product_id" => p.id, "quantity" => 1, "unit_price" => p.price}]
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
+  @tag role: :staff
   test "apply customer_name filter narrows list", %{conn: conn} do
     _ = seed_order!("Zed")
     _ = seed_order!("Amy")
-    conn = sign_in(conn, staff_user!())
 
     {:ok, view, _} = live(conn, ~p"/manage/orders")
 
@@ -62,8 +51,8 @@ defmodule CraftplanWeb.ManageOrdersFiltersCalendarInteractionsLiveTest do
     assert html =~ "Zed"
   end
 
+  @tag role: :staff
   test "calendar prev/next buttons update month label", %{conn: conn} do
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/orders?view=calendar")
 
     initial = render(view)

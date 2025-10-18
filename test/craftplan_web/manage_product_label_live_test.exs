@@ -9,19 +9,8 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
   alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.MaterialAllergen
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
   defp create_material_with_allergen!(name) do
-    staff = staff_user!()
+    staff = Craftplan.DataCase.staff_actor()
 
     material =
       Material
@@ -49,7 +38,7 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
   end
 
   defp create_product_with_recipe! do
-    staff = staff_user!()
+    staff = Craftplan.DataCase.staff_actor()
 
     product =
       Product
@@ -75,11 +64,9 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
     Ash.reload!(product, load: [:allergens, recipe: [components: [material: [:name]]]])
   end
 
+  @tag role: :staff
   test "renders product label with ingredients and allergens", %{conn: conn} do
-    staff = staff_user!()
     product = create_product_with_recipe!()
-
-    conn = sign_in(conn, staff)
 
     {:ok, _view, html} = live(conn, ~p"/manage/products/#{product.sku}/label")
 

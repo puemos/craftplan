@@ -8,17 +8,6 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
   alias Craftplan.Inventory.Material
   alias Craftplan.Orders.Order
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
   defp create_material! do
     Material
     |> Ash.Changeset.for_create(:create, %{
@@ -29,7 +18,7 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
   defp create_product_with_recipe!(material) do
@@ -41,7 +30,7 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
         price: Decimal.new("3.00"),
         status: :active
       })
-      |> Ash.create!(actor: staff_user!())
+      |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
 
     _recipe =
       Recipe
@@ -69,15 +58,15 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
       delivery_date: DateTime.utc_now(),
       items: [%{"product_id" => product.id, "quantity" => 1, "unit_price" => product.price}]
     })
-    |> Ash.create!(actor: staff_user!())
+    |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end
 
+  @tag role: :staff
   test "items: mark done shows consume modal and confirm", %{conn: conn} do
     mat = create_material!()
     prod = create_product_with_recipe!(mat)
     order = create_order_with_item!(prod)
 
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/orders/#{order.reference}/items")
 
     # Grab the item id from DB

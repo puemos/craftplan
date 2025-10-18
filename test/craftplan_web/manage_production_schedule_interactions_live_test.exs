@@ -3,19 +3,8 @@ defmodule CraftplanWeb.ManageProductionScheduleInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> Plug.Test.put_req_cookie("timezone", "Etc/UTC")
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
-
+  @tag role: :staff
   test "schedule view toggles and navigation", %{conn: conn} do
-    conn = sign_in(conn, staff_user!())
     {:ok, view, _} = live(conn, ~p"/manage/production/schedule")
 
     initial = render(view)

@@ -2,52 +2,18 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
   use CraftplanWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-
-  alias Craftplan.Catalog.Product
-
-  defp staff_user! do
-    Craftplan.DataCase.staff_actor()
-  end
-
-  defp unique_sku do
-    "sku-" <> Ecto.UUID.generate()
-  end
-
-  defp create_product!(attrs \\ %{}) do
-    staff = staff_user!()
-    name = Map.get(attrs, :name, "Test Product")
-    sku = Map.get(attrs, :sku, unique_sku())
-    price = Map.get(attrs, :price, Decimal.new("9.99"))
-    status = Map.get(attrs, :status, :active)
-
-    Product
-    |> Ash.Changeset.for_create(:create, %{
-      name: name,
-      sku: sku,
-      price: price,
-      status: status
-    })
-    |> Ash.create!(actor: staff)
-  end
-
-  defp sign_in(conn, user) do
-    conn
-    |> AshAuthentication.Phoenix.Plug.store_in_session(user)
-    |> Plug.Conn.assign(:current_user, user)
-  end
+  alias Craftplan.Test.Factory
 
   describe "index and new" do
+    @tag role: :staff
     test "renders index for staff", %{conn: conn} do
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/products")
       assert has_element?(view, "#products")
     end
 
+    @tag role: :staff
     test "renders new product modal and creates product", %{conn: conn} do
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
 
       {:ok, view, _html} = live(conn, ~p"/manage/products/new")
 
@@ -56,7 +22,7 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
       params = %{
         "product" => %{
           "name" => "New Product",
-          "sku" => unique_sku(),
+          "sku" => "sku-" <> Ecto.UUID.generate(),
           "price" => "12.34"
         }
       }
@@ -71,10 +37,9 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
   end
 
   describe "show tabs" do
+    @tag role: :staff
     test "renders details tab for staff", %{conn: conn} do
-      product = create_product!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      product = Factory.create_product!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/products/#{product.sku}")
 
@@ -82,10 +47,9 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
       assert has_element?(view, "kbd")
     end
 
+    @tag role: :staff
     test "renders recipe tab for staff", %{conn: conn} do
-      product = create_product!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      product = Factory.create_product!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/products/#{product.sku}/recipe")
 
@@ -93,10 +57,9 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
       assert has_element?(view, "#recipe-form")
     end
 
+    @tag role: :staff
     test "renders nutrition tab for staff", %{conn: conn} do
-      product = create_product!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      product = Factory.create_product!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/products/#{product.sku}/nutrition")
 
@@ -104,10 +67,9 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
       assert has_element?(view, "#nutritional-facts")
     end
 
+    @tag role: :staff
     test "renders photos tab for staff", %{conn: conn} do
-      product = create_product!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      product = Factory.create_product!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/products/#{product.sku}/photos")
 
@@ -115,10 +77,9 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
       assert has_element?(view, "h3", "Product Photos")
     end
 
+    @tag role: :staff
     test "renders edit modal for staff", %{conn: conn} do
-      product = create_product!()
-      staff = staff_user!()
-      conn = sign_in(conn, staff)
+      product = Factory.create_product!()
 
       {:ok, view, _html} = live(conn, ~p"/manage/products/#{product.sku}/edit")
 
