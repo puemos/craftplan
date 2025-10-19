@@ -74,11 +74,7 @@ defmodule CraftplanWeb.Components.Page do
       )
 
     ~H"""
-    <div class={[
-      "rounded-md border border-gray-200 bg-white",
-      not @full_bleed && "shadow-sm/10",
-      @class
-    ]}>
+    <div class={["rounded-md border border-gray-200 bg-white", @class]}>
       <div class={@content_classes}>
         <div
           :if={@header != [] || @actions != []}
