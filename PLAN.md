@@ -1,363 +1,278 @@
-Craftplan Product Plan — Bakery Operations (Self‑Hosted)
+Craftplan Product Plan -- Bakery ERP Roadmap
 
-Last updated: 2025‑10‑18
+Last updated: 2025-10-19
 
-Progress
+Progress Snapshot
 - Overall: [ ] Not started / [x] In progress / [ ] Done
-- Milestones
-  - [ ] M1: Bakery Ops Essentials (in progress)
-  - [ ] M2: Inventory & Purchasing Basics
-  - [ ] M3: Data IO & Onboarding
-  - [ ] M4: Storefront & Payments (Optional)
-  - [ ] M5: BI & Insights
-  - [ ] M6: Overview Tabs Across Index Pages
+- Current Cycle (Oct 2025): Stabilize public print flows + prep costing foundations.
+- Milestone Health
+  - [ ] M0: Launch Readiness Backlog (Active)
+  - [ ] M1: Production Costing Foundations
+  - [ ] M2: Traceability & Compliance
+  - [ ] M3: Inventory Planning & Purchasing
+  - [ ] M4: Commerce & Channel Sync (Optional)
+  - [ ] M5: Insights & Pricing Intelligence
+  - [ ] M6: Onboarding & Adoption
 
 Recently Completed
-- Production split into tabs: Overview and Schedule; Schedule shows calendar only.
-- Planner highlights over‑capacity days; metrics computed in Overview with details modal.
-- Make Sheet print‑only layout improved; print view hides nav/actions.
-- Product capacity: `max_daily_quantity` field added and enforced at checkout; global capacity validation.
-- Product availability gating in storefront.
-- Settings extended for tax/fulfillment/lead-time/daily capacity/shipping; checkout totals preview uses Settings.
-- Invoice printable page (HTML) scaffold; browser print supported.
-- Seeds updated for settings, capacities, availability; FK ordering fixed.
-- CSV Import UI modularized: Import modal extracted into reusable LiveComponent with sticky stepper, Mapping/Preview/Errors tabs, footer actions; wired into Settings > Import/Export. Added LiveView tests for wizard flow and preserved existing tests. Refactored the component to use static per-entity configs (fields, instructions, default mapping candidates, importer module) to reduce conditionals and make it reusable across entities.
-- Order and inventory LiveViews now share the settings-inspired layout primitives: `/manage/orders` adopts `Page.surface` stacks with toggle bar; `/manage/inventory` catalog + forecast follow the same pattern, including hover popovers that contrast required vs projected balance and a legend card for operators.
+- Planner split into Overview/Schedule tabs; schedule calendar isolates day view.
+- Over-capacity highlights in planner with metrics modal across tabs.
+- Make Sheet print view hides navigation and actions; invoice printable HTML scaffolded.
+- Product capacity (`max_daily_quantity`) enforced at checkout alongside global capacity.
+- Product availability gating in storefront; settings extended for tax/fulfillment/lead time/daily capacity/shipping.
+- CSV import LiveComponent refactor with reusable wizard, per-entity configs, and LiveView tests.
+- Orders and Inventory LiveViews aligned to settings-inspired layout primitives with shared components.
 
-Next Up
-- Finish operational polish for bakery:
-  - Public Order Status page at `/o/:reference` with reference, delivery/pickup date, and items.
-  - Product Label print view (ingredients/allergens/batch/date) leveraging invoice print pattern.
-  - Audit print classes across Make Sheet and Invoice.
-- Carry the new manage layout to remaining tabs:
-  - Purchasing index + suppliers tab.
-  - Inventory forecast popover QA (mobile) and tie legend colors into low-stock banner.
-- Cleanup: remove unused helpers in PlanLive; confirm navigation/highlight behaviors.
-- Cleanup: remove unused helpers in PlanLive; confirm navigation/highlight behaviors.
-- Prep onboarding: wire actual CSV importers (Products/Materials/Customers) to the Import step; keep dry‑run verification; add exporters for Orders/Customers/Movements.
-
-How To Track
-- Check off tasks below as you complete them. Keep milestone checkboxes in sync.
-- Optionally add completion dates, e.g., [x] … (2025‑10‑11).
-
-Purpose
-- Keep Craftplan incredibly simple for small bakeries: Operate → Make → Stock.
-- Optimize the back‑office: production planning, materials consumption, reordering, labeling.
-- Ship small, durable primitives; avoid configuration sprawl. Self‑host first.
-
-Vertical Focus
-- Primary: Bakery (preorders/pickups, daily capacity, recipe/batch workflows).
+Competitive Insights -- Craftybase Highlights
+- Multi-stage BOMs with components/sub-assemblies and labor costing; generates real-time cost rollups and pricing suggestions.
+- Compliance and traceability tooling: lot/batch tracking, recall workflows, audit-friendly reports.
+- Location-aware inventory with stock transfers, consignment tracking, and guided stocktake/cycle count tooling.
+- Automated COGS calculations (GAAP/IRS aligned) feeding reports and profitability dashboards.
+- Integrated channel sync (Shopify, Etsy, Square, Faire, Wix, WooCommerce, Amazon Handmade) with real-time stock updates.
+- Templates and calculators (pricing, production planning) supporting onboarding and ongoing price optimization.
 
 Guiding Principles
-- One obvious way to do things; defaults on; minimal toggles.
-- Recipe-driven production; batches optional; simple costing; daily capacity.
-- Self-hosted friendly: works offline/manual; integrations are optional.
-
-Milestones Overview
-- M1: Bakery Ops Essentials (production planner, make sheet, consume, labels, invoices)
-- M2: Inventory & Purchasing Basics (low stock + reorders, forecasting surface)
-- M3: Data IO & Onboarding (CSV import/export, seeded bakery demo)
-- M4: Storefront & Payments (Optional: basic checkout, Stripe)
-- M5: BI & Insights (capacity utilization, sales trends, inventory KPIs)
-- M6: Overview Tabs Across Index Pages (consistent Overview for key sections)
-
-Legend
-- Domain = Ash Resource/Domain work
-- UI = LiveView/UI changes
-- Ops = Services/Emails/PDF/CSV/etc.
+- Operate -> Make -> Stock remains the primary loop; extend with costing and compliance primitives rather than bespoke workflows.
+- Self-host friendly and offline tolerant: webhooks/integrations should degrade gracefully to CSV or manual sync.
+- Favor declarative Ash resources and LiveView streams; keep imperative logic in services only when needed.
+- Every new surface must support printable artifacts (labels, planner, invoices, compliance reports).
 
 --------------------------------------------------------------------
-Milestone 1 — Bakery Ops Essentials (2 weeks)
+Milestone 0 -- Launch Readiness Backlog (1-2 weeks)
 Status: [ ] Not started  [x] In progress  [ ] Done
 Goals
-- Operate the bakery day‑to‑day: plan production, make, consume materials, label batches, and reconcile orders.
-- Keep checkout optional; prioritize back‑office order entry and fulfillment.
+- Close open polish items so production teams can demo a cohesive flow end-to-end.
+- Lay groundwork for costing and traceability by shipping batch codes and label improvements.
 
-User Stories (MVP)
-- As a maker, I see today’s production quantities and can mark items done, then “Consume All Completed”.
-- As a maker, I print simple product labels (HTML) with ingredients/allergens and optional batch code.
-- As an operator, I generate an invoice (HTML print) and mark an order as paid with a method/date.
-- As an operator, I set a single tax rate and daily capacity; lead time applies to deliveries.
-- As a customer, I can view my order status by reference (no login).
+User Stories
+- As a customer, I can view my order status via `/o/:reference` with delivery details and items.
+- As a maker, I can print compliant product labels (ingredients/allergens/batch/date) with clean print styles.
+- As an operator, make sheet and invoice prints respect `print:hidden` classes and no stray UI enters the printout.
+
+Requirements
+- Public
+  - [ ] LiveView `CraftplanWeb.Public.OrderStatusLive` route `/o/:reference` with read-only status, fulfillment method, delivery/pickup date, and item list.
+- Labels & Printing
+  - [ ] Product label LiveView using existing invoice pattern; ensure batch/date placeholders.
+  - [ ] Audit print classes across make sheet, invoice, and labels; add smoke tests.
+- Cleanup
+  - [ ] Remove unused helpers in `PlanLive` and confirm tab navigation highlights.
+
+Acceptance Criteria
+- Order status page handles invalid references gracefully (404 + CTA to contact bakery).
+- Label printouts render without navigation and support 1-up & sheet layouts via CSS.
+- Printed planner/invoice/label surfaces show only production data (no buttons/toolbars).
+
+Implementation Notes
+- Domain: ensure `OrderItem` optional `batch_code` exists for upcoming milestones.
+- UI: `lib/craftplan_web/live/public/order_status_live.ex`, `lib/craftplan_web/live/manage/product_label_live.ex`.
+- Tests: LiveView integration tests for public order status and label print toggles.
+
+--------------------------------------------------------------------
+Milestone 1 -- Production Costing Foundations (2-3 weeks)
+Status: [ ] Not started  [ ] In progress  [ ] Done
+Goals
+- Match competitor parity on multi-stage recipes, labor costing, and automated batch cost rollups.
+- Provide pricing guidance hooks that later feed Insights.
+
+User Stories
+- As a product developer, I build a BOM with components, sub-assemblies, and labor entries.
+- As an operator, completing a batch generates actual cost per unit and suggested price ranges.
+- As a planner, I see batch codes auto-generated when marking production done.
 
 Requirements
 - Domain
-  - Orders
-    - [ ] Add attributes: `invoice_number`, `invoice_status`, `invoiced_at`, `payment_method`, `discount_type`, `discount_value`, `delivery_method`.
-    - [x] Calculate totals: compute `discount_total` and `tax_total` from Settings (logic in place; discount UI pending).
-    - [ ] Add optional `batch_code` on `OrderItem` (auto‑generate when marking done: `B-YYYYMMDD-SKU`).
-  - Settings
-    - [x] Add `tax_mode`, `tax_rate`, `offers_pickup`, `offers_delivery`, `lead_time_days`, `daily_capacity`, `shipping_flat`.
-  - Catalog
-    - [x] Add `selling_availability` on `Catalog.Product`.
-- Product Capacity
-  - [x] Add `max_daily_quantity` (0 = unlimited) to `Catalog.Product`.
-  - [x] Enforce per‑product capacity at checkout/day scheduling.
-- UI (Back‑office focus)
-  - Production Planner / Make Sheet
-    - [x] “Make Sheet” print‑friendly view.
-    - [x] “Consume All Completed” action.
-    - [x] Click rows in Overview to jump to Schedule day and highlight target day.
-    - [x] Ensure `days_range` is assigned; prev/next in Day view adjusts by 1 day.
-  - Labels
-    - [x] Product label HTML print view (ingredients/allergens/batch/date).
-  - Public Order Status
-    - [x] New LV `/o/:reference` shows status, delivery date, items.
-  - Printing
-    - [x] Audit print classes across Make Sheet, Invoice, Label, and Order Status; added tests.
-  - Checkout (optional for v0.1)
-    - [x] Delivery method and date validator (lead time, per‑product and global capacity).
-    - [ ] Discount line UI (logic in place; UI pending).
-  - Settings & Product
-    - [x] General tab for tax/fulfillment/capacity/lead time/shipping.
-    - [x] Product: availability control and `max_daily_quantity` input.
-- Ops
-  - [x] Invoice HTML printable page (browser print).
-- Seeds
-  - [x] Update settings, capacities, availability; include bakery‑specific samples.
+  - [ ] New Ash resources for BOM structures: `Catalog.BOM`, `Catalog.BOMComponent`, `Catalog.LaborStep` with versioning.
+  - [ ] Link BOM to `Catalog.Product`; support status (`draft`, `active`).
+  - [ ] Labor rates and overhead settings in `Settings` (hourly rate, markup defaults).
+  - [ ] Batch cost calculation service generating `material_cost`, `labor_cost`, `overhead_cost`, `unit_cost`.
+  - [ ] Auto-generate `batch_code` (`B-YYYYMMDD-SKU-SEQ`) when order items marked done; persist to order items.
+- UI
+  - [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries.
+  - [ ] Planner “Mark Done” dialog shows resulting batch code and actual cost snapshot.
+  - [ ] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
+- Data & Migrations
+  - [ ] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
+  - [ ] Backfill seeds with example recipes (bread, pastry) including labor.
 
 Acceptance Criteria
-- Make Sheet shows per‑product totals for selected day; “Consume All Completed” updates stocks.
-- Invoice print view; marking paid updates `paid_at` and payment method.
-- Delivery dates enforce lead time/capacity; pickup/delivery aligned to Settings.
-- Public order status resolves by reference with no auth.
+- Batch completion persists cost breakdown and batch code on order item; totals flow into invoices.
+- Pricing helper toggles between markup types (percent/fixed) and respects inclusive/exclusive tax.
+- BOM editor enforces valid graphs (no cycles) and supports saving draft vs publish.
 
-Implementation Approach (files)
+Implementation Notes
+- Consider `Ash.Flow` for multi-step BOM creation to reuse validations.
+- Add unit tests for cost calculator (material shrinkage, multi-step components).
+- Update documentation in guides for BOM/labor usage.
+
+--------------------------------------------------------------------
+Milestone 2 -- Traceability & Compliance (2 weeks)
+Status: [ ] Not started  [ ] In progress  [ ] Done
+Goals
+- Deliver lot tracking, recall readiness, and audit-friendly exports ahead of competitor parity claims.
+
+User Stories
+- As a quality lead, I can trace which batches used a recalled material and export affected orders.
+- As an operator, I can record certifications/expiry on materials and be alerted during production.
+- As a regulator, I can receive printable compliance reports showing batch lineage and disposition.
+
+Requirements
 - Domain
-  - `lib/craftplan/orders/order.ex`: ensure invoice/discount/delivery fields accept lists; add `batch_code` on order items.
-  - `lib/craftplan/orders/changes/calculate_totals.ex`: totals logic as implemented; add discount UI later.
-  - `lib/craftplan/orders/consumption.ex`: reuse for “Consume All”.
+  - [ ] Extend inventory movements to capture `lot_number`, `expiry_date`, `certifications`.
+  - [ ] Batch-to-material usage join resource for trace queries.
+  - [ ] Recall log resource with status (`investigating`, `resolved`).
 - UI
-  - `lib/craftplan_web/live/manage/plan_live/index.ex`: Make Sheet/Overview/Schedule wiring, bulk actions, guards.
-  - New LV endpoint(s) for Label print: `/manage/products/:sku/label` and/or `/manage/orders/:ref/label`.
-  - New LV `CraftplanWeb.Public.OrderStatusLive` (route `/o/:reference`).
-- Data & Migration Checklist
-  - Orders: add invoice/discount/delivery fields; add `batch_code` to order items.
-
-
---------------------------------------------------------------------
-Milestone 2 — Inventory & Purchasing Basics (2 weeks)
-Status: [ ] Not started  [ ] In progress  [ ] Done
-Goals
-- Low‑stock awareness and simple reordering; surface materials requirements from upcoming orders.
-
-User Stories
-- As a maker, I see low‑stock materials and a reorder suggestion list.
-- As an operator, I can raise POs and receive into stock to unblock production.
-
-Requirements
-- Inventory
-  - [x] No change to units storage (base units: gram/ml/piece). Conversions are a UI concern.
-  - [ ] Inventory Index: low‑stock banner and “Reorder Suggestions” view.
-- Purchasing
-  - [x] Reorder suggestions are computed, not persisted.
-  - [ ] Quick create PO flow from suggestions (navigates to Purchasing with supplier selection).
-- Variants
-  - [ ] Defer or implement only if needed for bakery (single‑dimension). Not required for v0.1 operations.
+  - [ ] Traceability dashboard under `/manage/traceability` summarizing recent batches, open recalls, expiring materials.
+  - [ ] Batch detail view linking orders, materials, and printable compliance sheet.
+  - [ ] Warnings in planner when scheduled production will use expiring lots.
+- Ops/Reports
+  - [ ] Generate compliance export (CSV/HTML) for selected batch or date range.
+  - [ ] Add audit trail events for lot assignments and recall resolutions.
 
 Acceptance Criteria
-- Low‑stock banner shows materials where `current_stock < minimum_stock`.
-- Reorder list shows suggested quantity and link to create PO.
+- Given a recalled material lot, system lists all batches and orders containing it within seconds.
+- Expiry warnings show within planner cards and block completion unless overridden with reason.
+- Compliance exports include signature block and can be printed cleanly.
 
-Implementation Approach (files)
+Implementation Notes
+- Add composite indexes for lot/batch lookups.
+- Build LiveView stream for traceability dashboard; include empty-state messaging.
+- Tests: traceability query unit tests + LiveView flow for marking recall resolved.
+
+--------------------------------------------------------------------
+Milestone 3 -- Inventory Planning & Purchasing (2 weeks)
+Status: [ ] Not started  [ ] In progress  [ ] Done
+Goals
+- Move beyond low-stock alerts to actionable purchase workflows with location awareness.
+
+User Stories
+- As a purchasing manager, I review reorder suggestions by supplier and raise a PO in one click.
+- As a stock controller, I transfer inventory between locations and consignments with audit history.
+- As an owner, I perform rolling stocktakes that feed accuracy metrics without shutting down operations.
+
+Requirements
+- Inventory & Locations
+  - [ ] Introduce `Inventory.Location` resource, transfer actions, and consignment tracking.
+  - [ ] Location revenue/expense reporting aligned with orders.
+  - [ ] Reorder engine considers lead time, safety stock, and upcoming production.
 - UI
-  - `lib/craftplan_web/live/manage/inventory_live/index.ex`: compute low stock server‑side and show banner.
-  - New LV/tab: Reorder Suggestions under Inventory using `InventoryForecasting`.
-- Services
-  - Extend `InventoryForecasting` to compute shortages vs min/max and upcoming orders.
+  - [ ] Inventory Overview tab: low-stock banner, forecast chart, reorder table grouped by supplier.
+  - [ ] Purchasing LiveView: PO quick-create from suggestions, status tracker.
+  - [ ] Stocktake workflow LiveView with guided counts (random/category/age-based selection) and variance report.
+- Data & Integrations
+  - [ ] Optional barcode import/export hooks for stocktakes (CSV upload now, future scanner integration).
+  - [ ] Seeds include multi-location scenario (main bakery + farmer's market consignment).
 
-Data & Migration Checklist
-- None beyond UI/services; leverage existing inventory/purchasing resources.
+Acceptance Criteria
+- Reorder suggestions compute quantity with formula (forecast demand + safety stock - on hand - on order) and surface supplier.
+- Stocktake completion generates variance adjustment entries and accuracy metrics.
+- Purchasing flow updates inventory upon receiving and closes suggestion.
 
-
---------------------------------------------------------------------
-Milestone 3 — Data IO & Onboarding (2 weeks)
-Status: [ ] Not started  [ ] In progress  [ ] Done
-Goals
-- Painless onboarding for bakeries: CSV import/export for key entities and a seeded demo.
-
-User Stories
-- As an operator, I import products/materials/recipes/customers via CSV with dry‑run and clear errors.
-- As an operator, I export orders/customers/movements for bookkeeping.
-- As a prospect, I can run a seeded bakery demo and see the full Operate → Make → Stock loop.
-
-Requirements
-- CSV
-  - Import endpoints for Products, Materials, Recipes (2‑phase: create products/materials first; recipes reference by SKU), Customers.
-  - Exports for Orders, Customers, Inventory Movements.
-  - Use NimbleCSV; show dry‑run and errors.
-- Demo
-  - Seeded bakery dataset; screenshots and quick video script.
-
-Implementation Approach (files)
-- CSV
-  - New LiveViews under Settings or a `CraftplanWeb.CSVController` for import/export pages.
-  - Services: `lib/craftplan/csv/importers/*.ex` and `exporters/*.ex` using NimbleCSV.
-- Seeds
-  - Expand `priv/repo/seeds.exs` to include bakery‑specific products/recipes/orders.
-
-Data & Migration Checklist
-- None beyond seeds and CSV services.
-
+Implementation Notes
+- Extend `InventoryForecasting` module; add tests covering location splits.
+- Use LiveView streams for long reorder lists.
+- Document stocktake best practices in guides.
 
 --------------------------------------------------------------------
-Milestone 4 — Storefront & Payments (Optional, 2 weeks)
+Milestone 4 -- Commerce & Channel Sync (Optional, 3 weeks)
 Status: [ ] Not started  [ ] In progress  [ ] Done
 Goals
-- Optional public checkout flow and Stripe redirect for teams that sell online.
+- Offer a lightweight integration path with major commerce channels while keeping self-host deployments viable.
 
 User Stories
-- As a seller, I enable Stripe and redirect to a secure checkout link after order creation.
-- As a seller, I optionally block orders for products marked unavailable or over capacity.
+- As a seller, I sync orders from Shopify/Etsy into Craftplan and keep inventory levels aligned.
+- As a bakery without integrations, I import daily orders via CSV template with the same validation flow.
+- As an operator, I toggle Stripe checkout and redirect customers for payment when enabled.
 
 Requirements
-- Payments (optional)
-  - [ ] Settings: `stripe_public_key`, `stripe_secret_key`, `stripe_enabled`.
-  - [ ] Checkout: create Stripe Checkout Session and redirect when enabled.
-- Stock Gating
-  - [ ] Gate by `daily_capacity` and `selling_availability` on the storefront.
+- Integrations
+  - [ ] Provide integration adapters (start with Shopify + Etsy) using API keys stored encrypted.
+  - [ ] Background job (Oban) to fetch orders/products and reconcile inventory.
+  - [ ] Manual CSV import/export remains available as fallback.
+- Storefront
+  - [ ] Checkout LiveView optionally creates Stripe Checkout Session (using `stripity_stripe`).
+  - [ ] Daily capacity and availability gating stays enforced across imported orders.
+- Security & Config
+  - [ ] Admin settings UI for API credentials, sync frequency, and dry-run preview.
+  - [ ] Audit log for outbound API calls and failures.
+
+Acceptance Criteria
+- Inventory adjusts within one sync cycle after external order/import.
+- Sync failures surface actionable errors and do not break manual order entry.
+- Stripe-enabled checkout redirects correctly and records payment status.
+
+Implementation Notes
+- Start with read-only integrations (orders/products); write-backs can follow later.
+- Provide mix task for manual sync trigger for self-host installs.
 
 --------------------------------------------------------------------
-Milestone 5 — BI & Insights (2 weeks)
+Milestone 5 -- Insights & Pricing Intelligence (2 weeks)
 Status: [ ] Not started  [ ] In progress  [ ] Done
-
 Goals
-- Provide lightweight, actionable insights without heavy configuration.
+- Deliver GAAP-aligned cost reporting, profitability dashboards, and pricing recommendations that leverage data from earlier milestones.
 
 User Stories
-- As a maker, I see capacity utilization by product and day; I can spot over‑capacity days.
-- As a seller, I see sales trends and top products/customers for a selected period.
-- As an operator, I see basic inventory KPIs: days of supply and low‑stock items.
+- As an owner, I see capacity utilization, margin by product, and sales trends in one dashboard.
+- As a pricing analyst, I receive recommendations when costs drift or margins fall below thresholds.
+- As an auditor, I export COGS reports with methodology notes.
 
 Requirements
-- Views
-  - [ ] Capacity Utilization: per product/day % = scheduled quantity / max_daily_quantity; flag over 100%.
-  - [ ] Sales Trends: revenue and orders by day/week; top products/customers.
-  - [ ] Inventory KPIs: low stock list; days of supply using recent consumption.
-- UI
-  - [ ] Add `/manage/reports` LiveView grouping these tiles/tables (reuse DataVis components).
-  - [ ] Date range picker; default last 30 days.
 - Data
-  - [ ] Query functions in a `Craftplan.Insights` context (no persistence) or use SQL with aggregates.
-  - [ ] Capacity pulls from Orders+Products; Sales from Orders; Inventory from Inventory+Forecasting.
- - Interactions
-   - [ ] Each metric tile/table row is clickable to drill into detail (consistent with Overview behavior).
+  - [ ] New `Craftplan.Insights` context aggregating orders, batch costs, inventory adjustments.
+  - [ ] GAAP/IRS-compliant COGS calculations with configurable costing method (FIFO/rolling average).
+  - [ ] Alert engine for margin thresholds and over-capacity warnings.
+- UI
+  - [ ] `/manage/reports` LiveView with stat cards (capacity utilization, gross margin, top products/customers) and tables.
+  - [ ] Price drift alerts appearing on product overview tab; ability to accept suggested price.
+  - [ ] Export buttons (CSV/print) for each report section.
+- Docs
+  - [ ] Guides detailing costing assumptions and how to configure pricing rules.
 
 Acceptance Criteria
-- BI page loads quickly and works without extra config; shows empty‑state hints when data missing.
-- Over‑capacity days are clearly highlighted.
+- COGS report reconciles with inventory movements and passes automated test suite with sample data.
+- Pricing suggestions display inputs (unit cost, target margin) and allow quick apply to product.
+- Dashboards perform within acceptable response times (<500ms typical dataset).
 
-Implementation Approach (files)
-- New context: `lib/craftplan/insights.ex` for query helpers.
-- New LV: `lib/craftplan_web/live/manage/reports_live/index.ex` and routes under `/manage`.
-- Reuse `CraftplanWeb.Components.DataVis` for stat cards and tables.
+Implementation Notes
+- Preload data via `Ash.Query.load/2`; avoid N+1 queries.
+- Add LiveView tests for KPI surfaces using fixtures.
 
 --------------------------------------------------------------------
-Milestone 6 — Overview Tabs Across Index Pages (1–2 weeks)
-Status: [ ] Not started  [x] In progress  [ ] Done
-
+Milestone 6 -- Onboarding & Adoption (ongoing, 2 weeks)
+Status: [ ] Not started  [ ] In progress  [ ] Done
 Goals
-- Provide a consistent “Overview” tab with quick metrics across key index pages; keep details under existing tabs.
-
-Pages
-- Products, Inventory, Orders, Customers, Purchasing.
+- Remove friction during setup with better CSV flows, demo assets, and calculators similar to competitor positioning.
 
 User Stories
-- As a user, I land on an Overview tab showing key KPIs and quick links.
-- I can click a metric to see the underlying list filtered to that segment.
+- As a new tenant, I import products, materials, recipes, and customers with dry-run validation and contextual help.
+- As a prospect, I explore a seeded bakery scenario, watch a short primer video, and print sample planner/labels.
+- As a maker, I access calculators (pricing, production planning) from within the app.
 
 Requirements
-- [ ] Add tabs to each index page: Overview (default) + existing content under secondary tabs.
-- [ ] Define 3–5 stat cards + 1–2 tables per page (e.g., low stock, pending orders, top customers, open POs).
-- [ ] Make rows/tiles clickable to navigate to the relevant filtered list.
-
-Implementation Approach (files)
-- Products: `lib/craftplan_web/live/manage/product_live/index.ex`
-- Inventory: `lib/craftplan_web/live/manage/inventory_live/index.ex`
-- Orders: `lib/craftplan_web/live/manage/order_live/index.ex`
-- Customers: `lib/craftplan_web/live/manage/customer_live/index.ex`
-- Purchasing: `lib/craftplan_web/live/manage/purchasing_live/index.ex`
-
-Acceptance Criteria
-- All listed pages have an Overview tab with fast‑loading metrics; clicking navigates to the correct filtered list.
-
---------------------------------------------------------------------
-Seeding & Local Run
-- After code/migrations, set up and seed with:
-  - mix ecto.reset && mix run priv/repo/seeds.exs
-  - or: mix ecto.migrate && mix run priv/repo/seeds.exs
-- Seeds configure:
-  - Settings: currency USD, tax 10% exclusive, pickup/delivery on, lead time 1 day, daily capacity 25, flat shipping 5.00.
-  - Products: sample capacities and availability (some preorder/off) to exercise gating.
-- Orders: past, current, and future delivery dates for planner and forecasting.
-
-Setup & Packaging
-- Add Dockerfile and `docker-compose` app service for one‑command setup in self‑hosted environments.
+- CSV & Importers
+  - [ ] Wire product/material/customer importers to the wizard component; keep dry-run step.
+  - [ ] Add recipe importer supporting SKU lookups and BOM version assignment.
+  - [ ] Provide exporters for orders/customers/inventory movements.
+- Demo & Content
+  - [ ] Expand seeds to include multi-location bakery scenario and sample reports.
+  - [ ] Add quickstart guide (Markdown/LiveView) with embedded screenshots/video links.
+  - [ ] Surface calculators/templates (pricing, production planning) similar to Craftybase resources.
+- UX Support
+  - [ ] In-app checklist for onboarding tasks (mix of LiveView + persistent settings flags).
 
 Acceptance Criteria
-- CSV import validates and provides a preview; successful rows create/update records; errors listed.
-- If enabled, order creation can redirect to Stripe; payment success webhook can be added later (out of scope for MVP).
-- Storefront gating (if used) prevents choosing unavailable dates.
-
-Implementation Approach (files)
-- CSV
-  - New controllers: `CraftplanWeb.CSVController` (or LiveViews under Settings) for import/export pages.
-  - Services: `lib/craftplan/csv/importers/*.ex` and `exporters/*.ex` using NimbleCSV.
-- Payments
-  - `lib/craftplan_web/live/public/checkout_live/index.ex`: branch to Stripe session creation (use `stripity_stripe`) when enabled.
-- Settings
-  - Extend Settings resource and UI with Stripe keys and gating flag.
-
-Data & Migration Checklist
-- Add Settings fields for Stripe.
-
+- CSV wizard completes import with granular error reporting and generates summary results.
+- Demo tenant can run through Operate -> Make -> Stock loop including costing and reporting surfaces.
+- Onboarding checklist auto-updates as tasks completed and collapses once done.
 
 --------------------------------------------------------------------
-Cross-Cutting Notes
-- Taxes & Totals
-  - Keep rules simple; document clearly in README and Guides.
-- Internationalization
-  - Continue using Money for currency; tax display mirrors mode (inclusive/exclusive).
-- Printing
-  - Use browser print for all PDF generation (invoices, labels, make sheets); keep it simple and self-hosted friendly.
-- Security
-  - Keep public order status read-only; no PII beyond order items and delivery date.
-- Backward Compatibility
-  - New fields defaulted; migrations written with safe defaults; ensure existing data loads.
-
-Polish & Cleanup
-- [ ] Remove unused helpers in `lib/craftplan_web/live/manage/plan_live/index.ex` (e.g., `get_previous_week_range/1`, `get_next_week_range/1`) if no longer used.
-- [ ] Audit print view classes (`print:hidden`, `print:block`) across invoice and make sheet to ensure clean output.
-
-Open Questions
-- Do we need per‑item tax override now or later? (Recommend later.)
-- Do we want to persist invoice PDFs or generate on demand? (Recommend on‑demand for simplicity.)
-- For variants, do we track inventory by variant? (Out of scope; product‑level only for now.)
-- Should public storefront ship in v0.1 for bakeries, or remain optional behind config?
-
-Task Breakdown (high-level)
-- M1
-  - Orders: fields + CalculateTotals updates (domain)
-  - Settings: tax/fulfillment; UI forms
-  - Checkout: delivery method/date/tax/discount; capacity checks; invoice issue
-  - Invoice: HTML print view (already complete)
-  - Product: availability field + UX
-- M2
-  - Inventory: low stock banner + reorder suggestions tab
-  - Optional: variants only if needed for bakery
-- M3
-  - CSV import/export pages + services; seeded bakery demo
-- M4 (Optional)
-  - Stripe toggle and redirect; storefront gating
-
-Validation Plan
-- Add targeted tests where patterns exist (domain changes and CalculateTotals logic).
-- Manually verify flows in dev with seeded data; add sample seeds per vertical later.
- - Tests to add
-   - [ ] Integration: checkout capacity validation (per‑product, global; lead time).
-   - [ ] Unit: CalculateTotals (exclusive vs inclusive tax; fixed vs percent discounts).
-   - [ ] Planner metrics: correctness of `compute_week_metrics/…` and details generation (edge cases: zero caps/data).
-   - [ ] UI: Schedule Week/Day toggle boundaries and navigation.
-
-Done means
-- Code merged with migrations; guides updated; README features matrix updated; screenshots refreshed where relevant.
+Tracking & Delivery
+- Keep `PLAN.md` milestone checkboxes in sync with progress; update "Last updated" date per change.
+- Run `mix ash_postgres.generate_migrations` after domain changes and commit snapshots.
+- Tests to add as features land:
+  - BOM cost calculator edge cases (`test/craftplan/catalog`).
+  - Traceability recall flow (`test/craftplan/traceability`).
+  - Reorder suggestion algorithm (`test/craftplan/inventory`).
+  - Integration sync adapters (mock API clients).
+  - Insights dashboard LiveView tests using fixtures.
+- Documentation touchpoints: update README feature matrix + guides after each milestone.
