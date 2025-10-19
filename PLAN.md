@@ -276,3 +276,4 @@ Tracking & Delivery
   - Integration sync adapters (mock API clients).
   - Insights dashboard LiveView tests using fixtures.
 - Documentation touchpoints: update README feature matrix + guides after each milestone.
+- Competitive watch: review Craftybase roadmap quarterly and fold learnings into this plan.
