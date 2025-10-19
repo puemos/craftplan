@@ -239,12 +239,13 @@ defmodule CraftplanWeb.Layouts do
               >
                 {@nav_sub_label}
               </p>
-              <ul class="space-y-1 border-l border-stone-200 pl-4">
+              <ul class="space-y-1 border-l border-stone-200 pl-4" role="tablist">
                 <li :for={sub <- @nav_sub_links}>
                   <.link
                     navigate={sub.navigate}
                     class={sub_nav_link_classes(sub.active)}
                     data-active={sub.active}
+                    role="tab"
                   >
                     <span class="flex items-center gap-2">
                       <.nav_icon :if={sub[:icon]} name={sub.icon} class="h-3.5 w-3.5 text-stone-500" />
