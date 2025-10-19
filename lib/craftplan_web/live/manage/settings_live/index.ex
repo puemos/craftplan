@@ -30,36 +30,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
             </div>
           </div>
 
-          <aside class="lg:w-64">
-            <div class="rounded-md border border-gray-200 bg-white p-4 text-sm">
-              <h3 class="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Jump to
-              </h3>
-              <ul class="mt-3 space-y-2">
-                <li>
-                  <a
-                    class="font-medium text-stone-700 hover:text-primary-600"
-                    href="#general-settings"
-                  >
-                    General
-                  </a>
-                </li>
-                <li>
-                  <a class="font-medium text-stone-700 hover:text-primary-600" href="#tax-settings">
-                    Tax &amp; Pricing
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="font-medium text-stone-700 hover:text-primary-600"
-                    href="#fulfillment-settings"
-                  >
-                    Fulfillment &amp; Capacity
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </aside>
+          <aside class="lg:w-64"></aside>
         </div>
       </div>
 
@@ -85,16 +56,15 @@ defmodule CraftplanWeb.SettingsLive.Index do
         </div>
       </div>
 
-      <div :if={@live_action == :csv}>
+      <div :if={@live_action == :csv} class="space-y-6">
+        <.header>
+          Import data into Craftplan
+          <:subtitle>
+            Bring in your existing records. Each import walks you through column mapping so nothing gets lost.
+          </:subtitle>
+        </.header>
         <div class="flex flex-col gap-6 lg:flex-row">
           <section class="flex-1 rounded-md border border-gray-200 bg-white p-6">
-            <header>
-              <h2 class="text-lg font-semibold text-stone-900">Import data into Craftplan</h2>
-              <p class="mt-1 text-sm text-stone-600">
-                Bring in your existing records. Each import walks you through column mapping so nothing gets lost.
-              </p>
-            </header>
-
             <div class="mt-6 space-y-4">
               <button
                 :for={entity <- csv_import_entities()}

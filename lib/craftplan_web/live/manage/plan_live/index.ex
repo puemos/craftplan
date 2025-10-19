@@ -522,8 +522,8 @@ defmodule CraftplanWeb.PlanLive.Index do
                       [
                         "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
                         index > 0 && "pl-4",
-                        is_today?(day) && "border border-stone-300 bg-stone-200",
-                        is_today?(Date.add(day, 1)) && "border-r border-r-stone-300"
+                        is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
+                        is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300"
                       ]
                       |> Enum.filter(& &1)
                       |> Enum.join("  ")
@@ -532,7 +532,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                     <div class={["flex items-center justify-center"]}>
                       <div class={[
                         "inline-flex items-center justify-center space-x-1 rounded px-2",
-                        is_today?(day) && "bg-stone-500 text-white"
+                        is_today?(day) && "bg-indigo-500 text-white"
                       ]}>
                         <div>{format_day_name(day)}</div>
                         <div>{format_short_date(day, @time_zone)}</div>
@@ -556,8 +556,8 @@ defmodule CraftplanWeb.PlanLive.Index do
                         "border-t border-t-stone-200",
                         index > 0 && "border-l",
                         index < 6 && "border-r",
-                        is_today?(day) && "border border-stone-300 bg-stone-200",
-                        is_today?(Date.add(day, 1)) && "border-r border-r-stone-300",
+                        is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
+                        is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300",
                         "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
                       ]
                       |> Enum.filter(& &1)
@@ -818,35 +818,6 @@ defmodule CraftplanWeb.PlanLive.Index do
      |> assign(:material_day_quantity, nil)
      |> assign(:material_day_balance, nil)}
   end
-
-  defp plan_breadcrumbs(%{live_action: :index}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: true}
-    ]
-  end
-
-  defp plan_breadcrumbs(%{live_action: :schedule}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: false},
-      %{label: "Schedule", path: ~p"/manage/production/schedule", current?: true}
-    ]
-  end
-
-  defp plan_breadcrumbs(%{live_action: :make_sheet}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: false},
-      %{label: "Make Sheet", path: ~p"/manage/production/make_sheet", current?: true}
-    ]
-  end
-
-  defp plan_breadcrumbs(%{live_action: :materials}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: false},
-      %{label: "Materials", path: ~p"/manage/production/materials", current?: true}
-    ]
-  end
-
-  defp plan_breadcrumbs(_), do: plan_breadcrumbs(%{live_action: :index})
 
   @impl true
   def handle_event("previous_week", _params, socket) do
@@ -1378,6 +1349,35 @@ defmodule CraftplanWeb.PlanLive.Index do
       }
     ]
   end
+
+  defp plan_breadcrumbs(%{live_action: :index}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(%{live_action: :schedule}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: false},
+      %{label: "Schedule", path: ~p"/manage/production/schedule", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(%{live_action: :make_sheet}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: false},
+      %{label: "Make Sheet", path: ~p"/manage/production/make_sheet", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(%{live_action: :materials}) do
+    [
+      %{label: "Production", path: ~p"/manage/production", current?: false},
+      %{label: "Materials", path: ~p"/manage/production/materials", current?: true}
+    ]
+  end
+
+  defp plan_breadcrumbs(_), do: plan_breadcrumbs(%{live_action: :index})
 
   defp progress_by_status(items, status) do
     zero = Decimal.new(0)

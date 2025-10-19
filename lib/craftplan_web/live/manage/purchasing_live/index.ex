@@ -131,6 +131,14 @@ defmodule CraftplanWeb.PurchasingLive.Index do
      |> push_event("close-modal", %{id: "po-new-modal"})}
   end
 
+  @impl true
+  def handle_info({:po_item_saved, _item}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "Item added to PO")
+     |> push_event("close-modal", %{id: "po-item-modal"})}
+  end
+
   defp purchasing_sub_links(active) do
     [
       %{
@@ -169,14 +177,6 @@ defmodule CraftplanWeb.PurchasingLive.Index do
   defp purchasing_breadcrumbs(%{live_action: :add_item}), do: purchasing_breadcrumbs(%{live_action: :index})
 
   defp purchasing_breadcrumbs(_), do: purchasing_breadcrumbs(%{live_action: :index})
-
-  @impl true
-  def handle_info({:po_item_saved, _item}, socket) do
-    {:noreply,
-     socket
-     |> put_flash(:info, "Item added to PO")
-     |> push_event("close-modal", %{id: "po-item-modal"})}
-  end
 
   defp load_purchase_orders(socket) do
     Inventory.list_purchase_orders!(actor: socket.assigns[:current_user], load: [:supplier])

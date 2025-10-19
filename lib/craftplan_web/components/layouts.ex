@@ -19,6 +19,7 @@ defmodule CraftplanWeb.Layouts do
   attr :current_user, :any, default: nil
   attr :cart, :any, default: nil
   attr :flash, :map, default: %{}
+  attr :socket, :any, default: nil
   attr :page_title, :string, default: nil
   attr :nav_sub_links, :list, default: []
   attr :nav_sub_label, :string, default: nil
@@ -95,6 +96,7 @@ defmodule CraftplanWeb.Layouts do
             current_user={@current_user}
             nav_sub_links={@nav_sub_links}
             nav_sub_label={@nav_sub_label}
+            variant={:mobile}
           />
         </aside>
       </div>
@@ -115,6 +117,7 @@ defmodule CraftplanWeb.Layouts do
             current_user={@current_user}
             nav_sub_links={@nav_sub_links}
             nav_sub_label={@nav_sub_label}
+            variant={:desktop}
           />
         </aside>
 
@@ -212,8 +215,12 @@ defmodule CraftplanWeb.Layouts do
   attr :current_user, :any, default: nil
   attr :nav_sub_links, :list, default: []
   attr :nav_sub_label, :string, default: nil
+  attr :variant, :atom, default: :desktop
 
   defp sidebar_content(assigns) do
+    assigns =
+      assign(assigns, :sub_nav_role, if(assigns.variant == :desktop, do: "tablist"))
+
     ~H"""
     <nav class="h-[calc(100vh-4rem)] flex flex-col justify-between overflow-y-auto px-4 pt-6 pb-6 md:h-full md:pb-8">
       <div>
@@ -239,13 +246,13 @@ defmodule CraftplanWeb.Layouts do
               >
                 {@nav_sub_label}
               </p>
-              <ul class="space-y-1 border-l border-stone-200 pl-4" role="tablist">
+              <ul class="space-y-1 border-l border-stone-200 pl-4" role={@sub_nav_role}>
                 <li :for={sub <- @nav_sub_links}>
                   <.link
-                    navigate={sub.navigate}
+                    patch={sub.navigate}
                     class={sub_nav_link_classes(sub.active)}
                     data-active={sub.active}
-                    role="tab"
+                    role={if(@sub_nav_role, do: "tab", else: nil)}
                   >
                     <span class="flex items-center gap-2">
                       <.nav_icon :if={sub[:icon]} name={sub.icon} class="h-3.5 w-3.5 text-stone-500" />
@@ -603,10 +610,6 @@ defmodule CraftplanWeb.Layouts do
   end
 
   defp nav_active?(_, _, _), do: false
-
-  defp show_cart?(conn, current_path) do
-    not String.starts_with?(current_path, "/manage")
-  end
 
   attr :breadcrumbs, :list, required: true
 

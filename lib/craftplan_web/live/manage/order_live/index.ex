@@ -242,8 +242,8 @@ defmodule CraftplanWeb.OrderLive.Index do
                     [
                       "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
                       index > 0 && "pl-4",
-                      is_today?(day) && "border border-stone-300 bg-stone-200",
-                      is_today?(Date.add(day, 1)) && "border-r border-r-stone-300"
+                      is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
+                      is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300"
                     ]
                     |> Enum.filter(& &1)
                     |> Enum.join("  ")
@@ -252,7 +252,7 @@ defmodule CraftplanWeb.OrderLive.Index do
                   <div class={["flex items-center justify-center"]}>
                     <div class={[
                       "inline-flex items-center justify-center space-x-1 rounded px-2",
-                      is_today?(day) && "bg-stone-500 text-white"
+                      is_today?(day) && "bg-indigo-500 text-white"
                     ]}>
                       <div>{format_day_name(day)}</div>
                       <div>{format_short_date(day, @time_zone)}</div>
@@ -270,8 +270,8 @@ defmodule CraftplanWeb.OrderLive.Index do
                       "border-t border-t-stone-200",
                       index > 0 && "border-l",
                       index < 6 && "border-r",
-                      is_today?(day) && "border border-stone-300 bg-stone-200",
-                      is_today?(Date.add(day, 1)) && "border-r border-r-stone-300",
+                      is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
+                      is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300",
                       "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
                     ]
                     |> Enum.filter(& &1)

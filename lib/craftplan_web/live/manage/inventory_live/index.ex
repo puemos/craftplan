@@ -143,7 +143,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
                     <div class={["flex items-center justify-center"]}>
                       <div class={[
                         "inline-flex items-center justify-center space-x-1 rounded px-2",
-                        is_today?(day) && "bg-stone-500 text-white"
+                        is_today?(day) && "bg-indigo-500 text-white"
                       ]}>
                         <div>{format_day_name(day)}</div>
                         <div>{format_short_date(day, @time_zone)}</div>
@@ -487,6 +487,34 @@ defmodule CraftplanWeb.InventoryLive.Index do
      |> assign(:materials_requirements, materials_requirements)}
   end
 
+  @impl true
+  def handle_event("delete", %{"id" => id}, socket) do
+    case id
+         |> Inventory.get_material_by_id!(actor: socket.assigns.current_user)
+         |> Ash.destroy(actor: socket.assigns.current_user) do
+      :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Material deleted successfully")
+         |> stream_delete(:materials, %{id: id})}
+
+      {:error, _error} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete material.")}
+    end
+  end
+
+  @impl true
+  def handle_info({:saved, material}, socket) do
+    material = Ash.load!(material, :current_stock, actor: socket.assigns.current_user)
+
+    {:noreply, stream_insert(socket, :materials, material)}
+  end
+
+  defp format_day_name(date) do
+    day_of_week = Date.day_of_week(date)
+    Enum.at(~w(Mon Tue Wed Thu Fri Sat Sun), day_of_week - 1)
+  end
+
   defp inventory_sub_links(live_action) do
     [
       %{
@@ -531,34 +559,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
 
   defp inventory_breadcrumbs(assigns) do
     inventory_breadcrumbs(%{assigns | live_action: :index})
-  end
-
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    case id
-         |> Inventory.get_material_by_id!(actor: socket.assigns.current_user)
-         |> Ash.destroy(actor: socket.assigns.current_user) do
-      :ok ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Material deleted successfully")
-         |> stream_delete(:materials, %{id: id})}
-
-      {:error, _error} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete material.")}
-    end
-  end
-
-  @impl true
-  def handle_info({:saved, material}, socket) do
-    material = Ash.load!(material, :current_stock, actor: socket.assigns.current_user)
-
-    {:noreply, stream_insert(socket, :materials, material)}
-  end
-
-  defp format_day_name(date) do
-    day_of_week = Date.day_of_week(date)
-    Enum.at(~w(Mon Tue Wed Thu Fri Sat Sun), day_of_week - 1)
   end
 
   @doc """
