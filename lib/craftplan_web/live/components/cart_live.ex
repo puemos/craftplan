@@ -17,7 +17,7 @@ defmodule CraftplanWeb.CartLive do
       )
 
     cart = Ash.load!(cart, [:total_items], context: %{cart_id: cart.id})
-    dbg(cart)
+
     {:ok, assign(socket, :cart, cart)}
   end
 

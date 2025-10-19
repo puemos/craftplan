@@ -299,7 +299,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                     phx-click="view_details"
                     phx-value-date={Date.to_iso8601(day)}
                     phx-value-product={product.id}
-                    class="kanban-card group cursor-move rounded-lg border border-slate-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+                    class="kanban-card group cursor-move rounded-lg border border-slate-300 bg-white p-3 transition-all hover:shadow-md"
                     draggable="true"
                     data-product-id={product.id}
                     data-date={Date.to_iso8601(day)}
@@ -374,7 +374,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                     phx-click="view_details"
                     phx-value-date={Date.to_iso8601(day)}
                     phx-value-product={product.id}
-                    class="kanban-card group cursor-move rounded-lg border border-blue-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+                    class="kanban-card group cursor-move rounded-lg border border-blue-300 bg-white p-3 transition-all hover:shadow-md"
                     draggable="true"
                     data-product-id={product.id}
                     data-date={Date.to_iso8601(day)}
@@ -449,7 +449,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                     phx-click="view_details"
                     phx-value-date={Date.to_iso8601(day)}
                     phx-value-product={product.id}
-                    class="kanban-card group cursor-move rounded-lg border border-green-300 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+                    class="kanban-card group cursor-move rounded-lg border border-green-300 bg-white p-3 transition-all hover:shadow-md"
                     draggable="true"
                     data-product-id={product.id}
                     data-date={Date.to_iso8601(day)}
