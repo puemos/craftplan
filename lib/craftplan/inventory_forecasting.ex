@@ -3,7 +3,12 @@ defmodule Craftplan.InventoryForecasting do
   Module for inventory forecasting operations
   """
 
+  alias Craftplan.Inventory.ForecastRow
+  alias Craftplan.Inventory.PurchaseOrderItem
+  alias Craftplan.Settings
   alias Craftplan.Orders
+  alias Decimal, as: D
+  require Ash.Query
 
   @doc """
   Prepares materials requirements for a given date range.
@@ -148,5 +153,119 @@ defmodule Craftplan.InventoryForecasting do
       nil ->
         {Decimal.new(0), Decimal.new(0)}
     end
+  end
+
+  @doc """
+  Builds rich forecast rows ready for owner metrics consumption.
+  """
+  def owner_grid_rows(days_range, opts \\ [], actor \\ nil) when is_list(days_range) do
+    service_level = Keyword.get(opts, :service_level, 0.95)
+    service_level_z = service_level_to_z(service_level)
+    lookback_days = Keyword.get(opts, :lookback_days, 42)
+
+    materials_requirements = prepare_materials_requirements(days_range, actor)
+
+    past_range = build_past_range(days_range, lookback_days)
+    past_orders = maybe_load_orders(past_range, actor)
+
+    actual_usage_map =
+      load_materials_requirements(past_range, past_orders)
+      |> Enum.into(%{}, fn {material, quantities} ->
+        {material.id, Enum.map(quantities, fn {quantity, _day} -> quantity end)}
+      end)
+
+    on_order_map = open_purchase_orders_by_material(actor)
+    settings = safe_get_settings()
+    default_lead_time = settings.lead_time_days || 0
+
+    rows =
+      Enum.map(materials_requirements, fn {material, data} ->
+        on_hand = material.current_stock || D.new(0)
+        on_order = Map.get(on_order_map, material.id, D.new(0))
+
+        planned_usage = Enum.map(data.quantities, fn {quantity, _day} -> quantity end)
+
+        projected_balances =
+          data.quantities
+          |> projected_closing_balances(on_hand)
+          |> Enum.map(fn {day, balance} -> %{date: day, balance: balance} end)
+
+        %{
+          material_id: material.id,
+          material_name: material.name,
+          on_hand: on_hand,
+          on_order: on_order,
+          lead_time_days: default_lead_time,
+          service_level_z: D.from_float(service_level_z),
+          pack_size: D.new(1),
+          max_cover_days: nil,
+          actual_usage: Map.get(actual_usage_map, material.id, []),
+          planned_usage: planned_usage,
+          projected_balances: projected_balances
+        }
+      end)
+
+    ForecastRow
+    |> Ash.Query.for_read(:owner_grid_metrics, %{rows: rows})
+    |> Ash.read!(actor: actor)
+  end
+
+  defp projected_closing_balances(day_quantities, initial_on_hand) do
+    Enum.map_reduce(day_quantities, initial_on_hand, fn {quantity, day}, balance ->
+      closing = Decimal.sub(balance, quantity)
+      {{day, closing}, closing}
+    end)
+    |> elem(0)
+  end
+
+  defp build_past_range(_days_range, lookback_days) when lookback_days <= 0, do: []
+
+  defp build_past_range(days_range, lookback_days) do
+    start_day = Enum.min(days_range, Date)
+
+    start_day
+    |> Stream.iterate(&Date.add(&1, -1))
+    |> Stream.drop(1)
+    |> Enum.take(lookback_days)
+    |> Enum.reverse()
+  end
+
+  defp maybe_load_orders([], _actor), do: []
+  defp maybe_load_orders(days_range, actor), do: load_orders_for_forecast(days_range, actor)
+
+  defp open_purchase_orders_by_material(actor) do
+    PurchaseOrderItem
+    |> Ash.Query.load(:purchase_order)
+    |> Ash.read!(actor: actor)
+    |> Enum.filter(fn item ->
+      case item.purchase_order do
+        %{status: :received} -> false
+        _ -> true
+      end
+    end)
+    |> Enum.group_by(& &1.material_id, fn item -> item.quantity end)
+    |> Enum.into(%{}, fn {material_id, quantities} ->
+      total =
+        Enum.reduce(quantities, D.new(0), fn qty, acc ->
+          Decimal.add(acc, qty || D.new(0))
+        end)
+
+      {material_id, total}
+    end)
+  end
+
+  defp safe_get_settings do
+    Settings.get_settings!()
+  rescue
+    _ -> %{lead_time_days: 0}
+  end
+
+  defp service_level_to_z(0.9), do: 1.28
+  defp service_level_to_z(0.95), do: 1.65
+  defp service_level_to_z(0.975), do: 1.96
+  defp service_level_to_z(0.99), do: 2.33
+  defp service_level_to_z(value) when is_float(value) and value > 0 do
+    # Default to 95% when unrecognised
+    service_level_to_z(0.95)
   end
 end

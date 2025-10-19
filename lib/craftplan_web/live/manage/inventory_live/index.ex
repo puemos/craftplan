@@ -272,7 +272,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
                                   <div>{format_amount(material.unit, day_quantity)}</div>
                                 </div> --%>
                                 <div class="grid-row-2 grid">
-                                  <div>Balance</div>
                                   <div>{format_amount(material.unit, day_balance)}</div>
                                 </div>
                               </div>
