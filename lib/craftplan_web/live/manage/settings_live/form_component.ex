@@ -13,52 +13,109 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input
-          field={@form[:currency]}
-          type="select"
-          options={currency_options()}
-          label="Default currency"
-        />
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <.input
-            field={@form[:tax_mode]}
-            type="select"
-            options={[
-              {"Exclusive (add tax)", :exclusive},
-              {"Inclusive (price includes tax)", :inclusive}
-            ]}
-            label="Tax mode"
-          />
-          <.input
-            field={@form[:tax_rate]}
-            type="number"
-            step="0.001"
-            min="0"
-            label="Tax rate (e.g., 0.21)"
-          />
+        <div class="space-y-8">
+          <section
+            id="general-settings"
+            aria-labelledby="general-settings-title"
+            class="rounded-lg border border-stone-200 bg-stone-50"
+          >
+            <div class="border-b border-stone-200 px-4 py-3">
+              <h3 id="general-settings-title" class="text-base font-semibold text-stone-800">
+                General
+              </h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Set the default currency used across orders, invoices, and reports.
+              </p>
+            </div>
+            <div class="space-y-4 p-4">
+              <.input
+                field={@form[:currency]}
+                type="select"
+                options={currency_options()}
+                label="Default currency"
+              />
+            </div>
+          </section>
+
+          <section
+            id="tax-settings"
+            aria-labelledby="tax-settings-title"
+            class="rounded-lg border border-stone-200 bg-stone-50"
+          >
+            <div class="border-b border-stone-200 px-4 py-3">
+              <h3 id="tax-settings-title" class="text-base font-semibold text-stone-800">
+                Tax &amp; Pricing
+              </h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Choose how tax is applied and define a default rate. Rates are decimal, e.g. 0.21 for 21%.
+              </p>
+            </div>
+            <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
+              <.input
+                field={@form[:tax_mode]}
+                type="select"
+                options={[
+                  {"Exclusive (add tax)", :exclusive},
+                  {"Inclusive (price includes tax)", :inclusive}
+                ]}
+                label="Tax mode"
+              />
+              <.input
+                field={@form[:tax_rate]}
+                type="number"
+                step="0.001"
+                min="0"
+                label="Tax rate"
+                placeholder="0.21"
+              />
+            </div>
+          </section>
+
+          <section
+            id="fulfillment-settings"
+            aria-labelledby="fulfillment-settings-title"
+            class="rounded-lg border border-stone-200 bg-stone-50"
+          >
+            <div class="border-b border-stone-200 px-4 py-3">
+              <h3 id="fulfillment-settings-title" class="text-base font-semibold text-stone-800">
+                Fulfillment &amp; Capacity
+              </h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Configure how orders are fulfilled and the capacity rules that inform scheduling.
+              </p>
+            </div>
+            <div class="space-y-6 p-4">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <.input field={@form[:offers_pickup]} type="checkbox" label="Offer pickup" />
+                <.input field={@form[:offers_delivery]} type="checkbox" label="Offer delivery" />
+                <.input
+                  field={@form[:shipping_flat]}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  label="Flat shipping"
+                />
+              </div>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <.input
+                  field={@form[:lead_time_days]}
+                  type="number"
+                  min="0"
+                  label="Lead time (days)"
+                  placeholder="e.g. 2"
+                />
+                <.input
+                  field={@form[:daily_capacity]}
+                  type="number"
+                  min="0"
+                  label="Daily capacity"
+                  placeholder="0 for unlimited"
+                />
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <.input field={@form[:offers_pickup]} type="checkbox" label="Offer Pickup" />
-          <.input field={@form[:offers_delivery]} type="checkbox" label="Offer Delivery" />
-          <.input
-            field={@form[:shipping_flat]}
-            type="number"
-            step="0.01"
-            min="0"
-            label="Flat Shipping"
-          />
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <.input field={@form[:lead_time_days]} type="number" min="0" label="Lead time (days)" />
-          <.input
-            field={@form[:daily_capacity]}
-            type="number"
-            min="0"
-            label="Daily capacity (0=unlimited)"
-          />
-        </div>
         <:actions>
           <.button variant={:primary} phx-disable-with="Saving...">Save Settings</.button>
         </:actions>

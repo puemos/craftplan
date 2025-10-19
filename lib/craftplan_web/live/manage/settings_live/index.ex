@@ -15,16 +15,51 @@ defmodule CraftplanWeb.SettingsLive.Index do
     ~H"""
     <div class="mt-4 space-y-6">
       <div :if={@live_action in [:general, :index]}>
-        <div class="max-w-lg rounded-md border border-gray-200 bg-white p-4">
-          <.live_component
-            module={CraftplanWeb.SettingsLive.FormComponent}
-            id="settings-form"
-            current_user={@current_user}
-            title={@page_title}
-            action={@live_action}
-            settings={@settings}
-            patch={~p"/manage/settings/general"}
-          />
+        <div class="flex flex-col gap-6 lg:flex-row">
+          <div class="grow">
+            <div class="rounded-md border border-gray-200 bg-white p-6">
+              <.live_component
+                module={CraftplanWeb.SettingsLive.FormComponent}
+                id="settings-form"
+                current_user={@current_user}
+                title={@page_title}
+                action={@live_action}
+                settings={@settings}
+                patch={~p"/manage/settings/general"}
+              />
+            </div>
+          </div>
+
+          <aside class="lg:w-64">
+            <div class="rounded-md border border-gray-200 bg-white p-4 text-sm">
+              <h3 class="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                Jump to
+              </h3>
+              <ul class="mt-3 space-y-2">
+                <li>
+                  <a
+                    class="font-medium text-stone-700 hover:text-primary-600"
+                    href="#general-settings"
+                  >
+                    General
+                  </a>
+                </li>
+                <li>
+                  <a class="font-medium text-stone-700 hover:text-primary-600" href="#tax-settings">
+                    Tax &amp; Pricing
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="font-medium text-stone-700 hover:text-primary-600"
+                    href="#fulfillment-settings"
+                  >
+                    Fulfillment &amp; Capacity
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </aside>
         </div>
       </div>
 
@@ -51,49 +86,94 @@ defmodule CraftplanWeb.SettingsLive.Index do
       </div>
 
       <div :if={@live_action == :csv}>
-        <div class="max-w-2xl">
-          <h2 class="mb-2 text-lg font-medium">Import & Export</h2>
-          <p class="mb-4 text-sm text-stone-700">Click on the entity you wish to import.</p>
-          <div class="mb-8 flex gap-3">
-            <.button variant={:outline} phx-click="open_import" phx-value-entity="products">
-              <.icon name="hero-cube-solid" class="h-4 w-4" /> Products
-            </.button>
-            <.button variant={:outline} phx-click="open_import" phx-value-entity="materials">
-              <.icon name="hero-archive-box-solid" class="h-4 w-4" /> Materials
-            </.button>
-            <.button variant={:outline} phx-click="open_import" phx-value-entity="customers">
-              <.icon name="hero-user-group-solid" class="h-4 w-4" /> Customers
-            </.button>
-          </div>
+        <div class="flex flex-col gap-6 lg:flex-row">
+          <section class="flex-1 rounded-md border border-gray-200 bg-white p-6">
+            <header>
+              <h2 class="text-lg font-semibold text-stone-900">Import data into Craftplan</h2>
+              <p class="mt-1 text-sm text-stone-600">
+                Bring in your existing records. Each import walks you through column mapping so nothing gets lost.
+              </p>
+            </header>
 
-          <h2 class="mt-10 mb-4 text-lg font-medium">Export</h2>
-          <.form for={@csv_export_form} id="csv-export-form" phx-submit="csv_export">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <.input
-                type="select"
-                name="entity"
-                label="Entity"
-                options={[
-                  {"Orders", "orders"},
-                  {"Customers", "customers"},
-                  {"Inventory Movements", "movements"}
-                ]}
-                value="orders"
-                required
-              />
+            <div class="mt-6 space-y-4">
+              <button
+                :for={entity <- csv_import_entities()}
+                type="button"
+                class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-4 text-left transition hover:border-primary-400 hover:bg-white"
+                phx-click="open_import"
+                phx-value-entity={entity.value}
+              >
+                <div class="flex items-start gap-3">
+                  <div class="text-primary-500 rounded-lg border border-stone-300 bg-white p-2">
+                    <.icon name={entity.icon} class="h-5 w-5" />
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-base font-medium text-stone-900">{entity.label}</span>
+                      <span class="text-xs font-medium uppercase tracking-wide text-stone-500">
+                        CSV
+                      </span>
+                    </div>
+                    <p class="mt-1 text-sm text-stone-600">{entity.description}</p>
+                    <p class="mt-2 text-xs text-stone-500">
+                      Includes: {entity.includes}
+                    </p>
+                  </div>
+                </div>
+              </button>
             </div>
-            <div class="mt-6 flex gap-2">
-              <.button id="csv-export-submit" variant={:primary}>Export</.button>
-            </div>
-          </.form>
-          <.live_component
-            module={CraftplanWeb.ImportModalComponent}
-            id="csv-mapping-modal"
-            show={@show_mapping_modal}
-            entity={@selected_entity}
-            current_user={@current_user}
-          />
+
+            <p class="mt-6 text-xs text-stone-500">
+              Need a template first? Click an import to download the matching CSV header layout.
+            </p>
+          </section>
+
+          <aside class="space-y-6 lg:w-96">
+            <section class="rounded-md border border-gray-200 bg-white p-6">
+              <h3 class="text-base font-semibold text-stone-900">Export data</h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Generate a CSV extract for your reporting and accounting workflows.
+              </p>
+
+              <.form for={@csv_export_form} id="csv-export-form" phx-submit="csv_export">
+                <div class="mt-4 space-y-4">
+                  <.input
+                    type="select"
+                    name="entity"
+                    label="Entity to export"
+                    options={[
+                      {"Orders", "orders"},
+                      {"Customers", "customers"},
+                      {"Inventory movements", "movements"}
+                    ]}
+                    value="orders"
+                    required
+                  />
+                </div>
+                <div class="mt-6 flex gap-2">
+                  <.button id="csv-export-submit" variant={:primary} class="flex-1 justify-center">
+                    Export CSV
+                  </.button>
+                </div>
+              </.form>
+            </section>
+
+            <section class="border-primary-200 bg-primary-50 text-primary-800 rounded-md border border-dashed p-6 text-sm">
+              <h4 class="text-primary-900 font-semibold">Tip</h4>
+              <p class="mt-2">
+                Keep a snapshot of your data by exporting on a schedule. Imports are idempotent—reimporting an updated CSV lets you keep Craftplan and your spreadsheets in sync.
+              </p>
+            </section>
+          </aside>
         </div>
+
+        <.live_component
+          module={CraftplanWeb.ImportModalComponent}
+          id="csv-mapping-modal"
+          show={@show_mapping_modal}
+          entity={@selected_entity}
+          current_user={@current_user}
+        />
       </div>
     </div>
     """
@@ -149,6 +229,10 @@ defmodule CraftplanWeb.SettingsLive.Index do
      |> assign(:show_mapping_modal, true)}
   end
 
+  def handle_event("csv_export", _params, socket) do
+    {:noreply, put_flash(socket, :info, "Export started (not yet implemented)")}
+  end
+
   defp apply_action(socket, :index, _params) do
     assign(socket, :page_title, "Settings")
   end
@@ -194,6 +278,32 @@ defmodule CraftplanWeb.SettingsLive.Index do
     ]
   end
 
+  def csv_import_entities do
+    [
+      %{
+        value: "products",
+        label: "Products",
+        icon: "hero-cube-solid",
+        description: "Import product SKUs, base pricing, and default production info.",
+        includes: "Names, SKUs, pricing, packaging, allergens"
+      },
+      %{
+        value: "materials",
+        label: "Materials",
+        icon: "hero-archive-box-solid",
+        description: "Bulk load raw materials so recipes and inventory stay accurate.",
+        includes: "Names, suppliers, units, cost, allergen tags"
+      },
+      %{
+        value: "customers",
+        label: "Customers",
+        icon: "hero-user-group-solid",
+        description: "Bring in customer records to reuse for orders and invoices.",
+        includes: "Names, company, contact details, delivery notes"
+      }
+    ]
+  end
+
   defp settings_breadcrumbs(:index) do
     [
       %{label: "Settings", path: ~p"/manage/settings", current?: true}
@@ -229,10 +339,6 @@ defmodule CraftplanWeb.SettingsLive.Index do
   end
 
   defp settings_breadcrumbs(_), do: settings_breadcrumbs(:index)
-
-  def handle_event("csv_export", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Export started (not yet implemented)")}
-  end
 
   # Component close callback from ImportModalComponent
   @impl true

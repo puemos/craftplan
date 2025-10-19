@@ -10,36 +10,89 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
     assigns = assign_new(assigns, :show_modal, fn -> false end)
 
     ~H"""
-    <div>
+    <div class="space-y-6">
       <.header>
-        <:subtitle>Manage nutritional facts for all products and materials</:subtitle>
+        <:subtitle>Keep a central list of nutrients you add to recipes and packaging.</:subtitle>
         Nutritional Facts
-        <:actions>
-          <button
-            type="button"
-            phx-click="show_modal"
-            phx-target={@myself}
-            class="inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-          >
-            <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add Nutritional Fact
-          </button>
-        </:actions>
       </.header>
 
-      <div class="mt-6">
-        <.table id="nutritional-facts" rows={@nutritional_facts}>
-          <:col :let={fact} label="Name">{fact.name}</:col>
-          <:action :let={fact}>
-            <.link
-              phx-click={JS.push("delete", value: %{id: fact.id}, target: @myself)}
-              data-confirm="Are you sure you want to delete this nutritional fact? This action cannot be undone."
+      <div class="flex flex-col gap-6 lg:flex-row">
+        <div class="flex-1">
+          <div class="rounded-md border border-gray-200 bg-white">
+            <div class="border-t border-stone-200 px-4 py-4">
+              <form
+                id="nutritional-fact-filter"
+                phx-change="filter_facts"
+                phx-submit="filter_facts"
+                phx-target={@myself}
+                class="space-y-2"
+              >
+                <label
+                  class="sr-only text-sm font-medium text-stone-700"
+                  for="nutritional-fact-filter-query"
+                >
+                  Search nutritional facts
+                </label>
+                <input
+                  id="nutritional-fact-filter-query"
+                  name="query"
+                  type="search"
+                  value={@search_query}
+                  placeholder="Filter by name..."
+                  phx-debounce="300"
+                  class="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 transition focus:border-primary-400 focus:ring-primary-200/60 focus:outline-none focus:ring"
+                />
+              </form>
+            </div>
+
+            <div class="-mt-10 p-4">
+              <.table
+                id="nutritional-facts"
+                rows={@visible_facts}
+                wrapper_class="mt-0"
+              >
+                <:col :let={fact} label="Name">{fact.name}</:col>
+                <:action :let={fact}>
+                  <.link
+                    phx-click={JS.push("delete", value: %{id: fact.id}, target: @myself)}
+                    data-confirm="Are you sure you want to delete this nutritional fact? This action cannot be undone."
+                  >
+                    <.button size={:sm} variant={:danger}>
+                      Delete
+                    </.button>
+                  </.link>
+                </:action>
+                <:empty>
+                  <div class="py-6 text-center text-sm text-stone-500">
+                    {if String.trim(@search_query) == "" do
+                      "No nutritional facts yet. Add your first entry from the manage panel."
+                    else
+                      "No nutritional facts match your search."
+                    end}
+                  </div>
+                </:empty>
+              </.table>
+            </div>
+          </div>
+        </div>
+
+        <aside class="lg:w-80">
+          <div class="space-y-4 rounded-md border border-gray-200 bg-white p-4">
+            <h3 class="text-sm font-semibold text-stone-800">Manage</h3>
+            <p class="text-sm text-stone-600">
+              Add nutritional facts that you frequently reference. These appear anywhere you select nutrients.
+            </p>
+            <.button
+              type="button"
+              variant={:primary}
+              class="w-full justify-center"
+              phx-click="show_modal"
+              phx-target={@myself}
             >
-              <.button size={:sm} variant={:danger}>
-                Delete
-              </.button>
-            </.link>
-          </:action>
-        </.table>
+              <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add Nutritional Fact
+            </.button>
+          </div>
+        </aside>
       </div>
 
       <.modal
@@ -71,11 +124,14 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
   def update(assigns, socket) do
     nutritional_facts = Inventory.list_nutritional_facts!()
     form = new_nutritional_fact_form(assigns.current_user)
+    search_query = Map.get(socket.assigns, :search_query, "")
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:nutritional_facts, nutritional_facts)
+     |> assign(:search_query, search_query)
+     |> assign(:visible_facts, filter_facts(nutritional_facts, search_query))
      |> assign(:form, form)
      |> assign(:show_modal, false)}
   end
@@ -95,12 +151,14 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
 
         nutritional_facts = Inventory.list_nutritional_facts!()
 
-        {:noreply,
-         socket
-         |> assign(:nutritional_facts, nutritional_facts)
-         |> assign(:form, new_nutritional_fact_form(socket.assigns.current_user))
-         |> assign(:show_modal, false)
-         |> put_flash(:info, "Nutritional fact added successfully")}
+        socket =
+          socket
+          |> assign(:form, new_nutritional_fact_form(socket.assigns.current_user))
+          |> assign(:show_modal, false)
+          |> assign(:nutritional_facts, nutritional_facts)
+          |> assign_filtered_facts(socket.assigns.search_query)
+
+        {:noreply, put_flash(socket, :info, "Nutritional fact added successfully")}
 
       {:error, form} ->
         {:noreply, assign(socket, :form, form)}
@@ -117,10 +175,12 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
 
     nutritional_facts = Inventory.list_nutritional_facts!()
 
-    {:noreply,
-     socket
-     |> assign(:nutritional_facts, nutritional_facts)
-     |> put_flash(:info, "Nutritional fact deleted successfully")}
+    socket =
+      socket
+      |> assign(:nutritional_facts, nutritional_facts)
+      |> assign_filtered_facts(socket.assigns.search_query)
+
+    {:noreply, put_flash(socket, :info, "Nutritional fact deleted successfully")}
   end
 
   @impl true
@@ -133,6 +193,16 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
     {:noreply, assign(socket, :show_modal, false)}
   end
 
+  @impl true
+  def handle_event("filter_facts", params, socket) do
+    query =
+      params
+      |> Map.get("query", "")
+      |> String.trim()
+
+    {:noreply, socket |> assign(:search_query, query) |> assign_filtered_facts(query)}
+  end
+
   defp new_nutritional_fact_form(user) do
     NutritionalFact
     |> AshPhoenix.Form.for_create(:create,
@@ -140,5 +210,22 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
       as: "nutritional_fact"
     )
     |> to_form()
+  end
+
+  defp assign_filtered_facts(socket, query) do
+    assign(socket, :visible_facts, filter_facts(socket.assigns.nutritional_facts, query))
+  end
+
+  defp filter_facts(nutritional_facts, ""), do: nutritional_facts
+
+  defp filter_facts(nutritional_facts, query) do
+    downcased = String.downcase(query)
+
+    Enum.filter(nutritional_facts, fn fact ->
+      fact.name
+      |> to_string()
+      |> String.downcase()
+      |> String.contains?(downcased)
+    end)
   end
 end
