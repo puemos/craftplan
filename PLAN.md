@@ -18,16 +18,21 @@ Recently Completed
 - Make Sheet print‑only layout improved; print view hides nav/actions.
 - Product capacity: `max_daily_quantity` field added and enforced at checkout; global capacity validation.
 - Product availability gating in storefront.
-- Settings extended for tax/fulfillment/lead‑time/daily capacity/shipping; checkout totals preview uses Settings.
+- Settings extended for tax/fulfillment/lead-time/daily capacity/shipping; checkout totals preview uses Settings.
 - Invoice printable page (HTML) scaffold; browser print supported.
 - Seeds updated for settings, capacities, availability; FK ordering fixed.
 - CSV Import UI modularized: Import modal extracted into reusable LiveComponent with sticky stepper, Mapping/Preview/Errors tabs, footer actions; wired into Settings > Import/Export. Added LiveView tests for wizard flow and preserved existing tests. Refactored the component to use static per-entity configs (fields, instructions, default mapping candidates, importer module) to reduce conditionals and make it reusable across entities.
+- Order and inventory LiveViews now share the settings-inspired layout primitives: `/manage/orders` adopts `Page.surface` stacks with toggle bar; `/manage/inventory` catalog + forecast follow the same pattern, including hover popovers that contrast required vs projected balance and a legend card for operators.
 
 Next Up
 - Finish operational polish for bakery:
   - Public Order Status page at `/o/:reference` with reference, delivery/pickup date, and items.
   - Product Label print view (ingredients/allergens/batch/date) leveraging invoice print pattern.
   - Audit print classes across Make Sheet and Invoice.
+- Carry the new manage layout to remaining tabs:
+  - Purchasing index + suppliers tab.
+  - Inventory forecast popover QA (mobile) and tie legend colors into low-stock banner.
+- Cleanup: remove unused helpers in PlanLive; confirm navigation/highlight behaviors.
 - Cleanup: remove unused helpers in PlanLive; confirm navigation/highlight behaviors.
 - Prep onboarding: wire actual CSV importers (Products/Materials/Customers) to the Import step; keep dry‑run verification; add exporters for Orders/Customers/Movements.
 

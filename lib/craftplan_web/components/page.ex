@@ -67,7 +67,11 @@ defmodule CraftplanWeb.Components.Page do
 
   def surface(assigns) do
     assigns =
-      assign(assigns, :content_classes, Enum.reject(["flex flex-col gap-4", assigns[:padding]], &is_nil/1))
+      assign(
+        assigns,
+        :content_classes,
+        Enum.reject(["flex flex-col gap-4", assigns[:padding]], &is_nil/1)
+      )
 
     ~H"""
     <div class={[

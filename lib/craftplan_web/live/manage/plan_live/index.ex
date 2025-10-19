@@ -54,6 +54,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                   variant={:compact}
                   zebra
                   no_margin
+                  row_click={fn row -> JS.navigate("/manage/orders/#{row.reference}") end}
                 >
                   <:col :let={row} label="Reference">
                     <.kbd>{row.reference}</.kbd>
@@ -112,9 +113,6 @@ defmodule CraftplanWeb.PlanLive.Index do
                   variant={:compact}
                   zebra
                   no_margin
-                  row_click={
-                    fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
-                  }
                 >
                   <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
                   <:col :let={row} label="Product">{row.product.name}</:col>
@@ -143,9 +141,6 @@ defmodule CraftplanWeb.PlanLive.Index do
                   variant={:compact}
                   zebra
                   no_margin
-                  row_click={
-                    fn row -> JS.push("navigate_to_day", value: %{date: Date.to_iso8601(row.day)}) end
-                  }
                 >
                   <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
                   <:col :let={row} label="Orders" align={:right}>{row.count}</:col>
@@ -434,12 +429,6 @@ defmodule CraftplanWeb.PlanLive.Index do
                           </svg>
                           {format_amount(:piece, total_quantity(items))}
                         </span>
-                        <span
-                          :if={(product.max_daily_quantity || 0) > 0}
-                          class="text-xs text-stone-400"
-                        >
-                          / {product.max_daily_quantity}
-                        </span>
                       </div>
                     </div>
                     <div
@@ -509,12 +498,6 @@ defmodule CraftplanWeb.PlanLive.Index do
                           </svg>
                           {format_amount(:piece, total_quantity(items))}
                         </span>
-                        <span
-                          :if={(product.max_daily_quantity || 0) > 0}
-                          class="text-xs text-stone-400"
-                        >
-                          / {product.max_daily_quantity}
-                        </span>
                       </div>
                     </div>
                     <div
@@ -583,12 +566,6 @@ defmodule CraftplanWeb.PlanLive.Index do
                             />
                           </svg>
                           {format_amount(:piece, total_quantity(items))}
-                        </span>
-                        <span
-                          :if={(product.max_daily_quantity || 0) > 0}
-                          class="text-xs text-stone-400"
-                        >
-                          / {product.max_daily_quantity}
                         </span>
                       </div>
                     </div>
@@ -686,12 +663,6 @@ defmodule CraftplanWeb.PlanLive.Index do
                           <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
                             <span>
                               {format_amount(:piece, total_quantity(items))}
-                              <span
-                                :if={(product.max_daily_quantity || 0) > 0}
-                                class="ml-1 text-stone-400"
-                              >
-                                / {product.max_daily_quantity}
-                              </span>
                             </span>
                           </div>
                           <div class="mt-1.5 h-1.5 w-full rounded-full bg-stone-200 group-hover:bg-stone-200">
