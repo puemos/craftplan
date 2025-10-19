@@ -10,6 +10,7 @@ defmodule CraftplanWeb.OrderLive.Index do
   alias Craftplan.Catalog
   alias Craftplan.CRM
   alias Craftplan.Orders
+  alias CraftplanWeb.Components.Page
 
   @type filter_options :: %{
           status: list(String.t()) | nil,
@@ -39,139 +40,163 @@ defmodule CraftplanWeb.OrderLive.Index do
       |> assign_new(:calendar_event_duration, fn -> @calendar_event_duration end)
 
     ~H"""
-    <.header>
-      Orders
-    </.header>
-    <form id="filters-form" phx-change="apply_filters" class="mb-6">
-      <div class="flex w-full space-x-4">
-        <.input
-          type="text"
-          name="filters[customer_name]"
-          id="customer_name"
-          value={@filters["customer_name"]}
-          label="Customer Name"
-          placeholder="Luca Georgino"
-        />
-        <div class="w-52">
-          <.input
-            label="Status"
-            type="checkdrop"
-            name="filters[status][]"
-            id="status"
-            value={@filters["status"]}
-            multiple={true}
-            options={[
-              {"Unconfirmed", "unconfirmed"},
-              {"Confirmed", "confirmed"},
-              {"In Progress", "in_progress"},
-              {"Ready", "ready"},
-              {"Delivered", "delivered"},
-              {"Completed", "completed"},
-              {"Cancelled", "cancelled"}
-            ]}
-          />
-        </div>
-        <div class="w-52">
-          <.input
-            type="checkdrop"
-            name="filters[payment_status][]"
-            id="payment_status"
-            value={@filters["payment_status"]}
-            multiple={true}
-            label="Payment status"
-            options={[
-              {"Paid", "paid"},
-              {"Pending", "pending"},
-              {"To be Refunded", "to_be_refunded"},
-              {"Refunded", "refunded"}
-            ]}
-          />
-        </div>
+    <Page.page>
+      <.header>
+        Orders
+      </.header>
 
-        <.input
-          type="date"
-          name="filters[delivery_date_start]"
-          id="delivery_date_start"
-          value={@filters["delivery_date_start"]}
-          label="Delivery date after"
-        />
-
-        <.input
-          type="date"
-          name="filters[delivery_date_end]"
-          id="delivery_date_end"
-          value={@filters["delivery_date_end"]}
-          label="Delivery date before"
-        />
-        <div class="mt-8 flex justify-end">
-          <.button type="button" phx-click="reset_filters" class="ml-2">
-            Reset Filters
-          </.button>
-        </div>
-      </div>
-    </form>
-
-    <div class="mb-8 space-y-6">
-      <div :if={@view_mode == "table"}>
-        <.table
-          id="orders"
-          rows={@streams.orders}
-          row_click={fn {_id, order} -> JS.navigate(~p"/manage/orders/#{order.reference}") end}
-        >
-          <:empty>
-            <div class="block py-4 pr-6">
-              <span>No orders found</span>
-            </div>
-          </:empty>
-
-          <:col :let={{_id, order}} label="Customer">
-            <.link
-              class="hover:text-blue-800 hover:underline"
-              navigate={~p"/manage/customers/#{order.customer.reference}"}
-            >
-              {order.customer.full_name}
-            </.link>
-          </:col>
-
-          <:col :let={{_id, order}} label="Reference">
-            <.kbd>{format_reference(order.reference)}</.kbd>
-          </:col>
-
-          <:col :let={{_id, order}} label="Delivery date">
-            {format_time(order.delivery_date, @time_zone)}
-          </:col>
-
-          <:col :let={{_id, order}} label="Total cost">
-            {format_money(@settings.currency, order.total_cost)}
-          </:col>
-
-          <:col :let={{_id, order}} label="Status">
-            <.badge
-              text={order.status}
-              colors={[
-                {order.status, "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
-              ]}
+      <Page.surface>
+        <:header>
+          <div class="space-y-1">
+            <h2 class="text-sm font-semibold text-stone-900">Filter orders</h2>
+            <p class="text-sm text-stone-500">
+              Narrow the list by customer, fulfillment status, or delivery window.
+            </p>
+          </div>
+        </:header>
+        <:actions>
+          <Page.filter_reset />
+        </:actions>
+        <form id="filters-form" phx-change="apply_filters">
+          <Page.form_grid columns={4} class="max-w-full">
+            <.input
+              type="text"
+              name="filters[customer_name]"
+              id="customer_name"
+              value={@filters["customer_name"]}
+              label="Customer name"
+              placeholder="Luca Georgino"
             />
-          </:col>
 
-          <:col :let={{_id, order}} label="Payment">
-            <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
-          </:col>
-        </.table>
-      </div>
-      <div :if={@view_mode == "calendar"}>
-        <div class="min-w-[1000px]">
-          <div
-            id="controls"
-            class="border-gray-200/70 mb-4 flex items-center justify-between border-b pb-4"
+            <div class="min-w-[12rem]">
+              <.input
+                label="Status"
+                type="checkdrop"
+                name="filters[status][]"
+                id="status"
+                value={@filters["status"]}
+                multiple={true}
+                options={[
+                  {"Unconfirmed", "unconfirmed"},
+                  {"Confirmed", "confirmed"},
+                  {"In Progress", "in_progress"},
+                  {"Ready", "ready"},
+                  {"Delivered", "delivered"},
+                  {"Completed", "completed"},
+                  {"Cancelled", "cancelled"}
+                ]}
+              />
+            </div>
+
+            <div class="min-w-[12rem]">
+              <.input
+                type="checkdrop"
+                name="filters[payment_status][]"
+                id="payment_status"
+                value={@filters["payment_status"]}
+                multiple={true}
+                label="Payment status"
+                options={[
+                  {"Paid", "paid"},
+                  {"Pending", "pending"},
+                  {"To be Refunded", "to_be_refunded"},
+                  {"Refunded", "refunded"}
+                ]}
+              />
+            </div>
+
+            <.input
+              type="date"
+              name="filters[delivery_date_start]"
+              id="delivery_date_start"
+              value={@filters["delivery_date_start"]}
+              label="Delivery date after"
+            />
+
+            <.input
+              type="date"
+              name="filters[delivery_date_end]"
+              id="delivery_date_end"
+              value={@filters["delivery_date_end"]}
+              label="Delivery date before"
+            />
+          </Page.form_grid>
+        </form>
+      </Page.surface>
+
+      <Page.section
+        title="Orders overview"
+        description="Toggle between table and calendar formats to manage production promises."
+      >
+        <:actions :if={Enum.any?(@nav_sub_links)}>
+          <Page.toggle_bar links={@nav_sub_links} />
+        </:actions>
+
+        <Page.surface :if={@view_mode == "table"}>
+          <.table
+            id="orders"
+            rows={@streams.orders}
+            row_click={fn {_id, order} -> JS.navigate(~p"/manage/orders/#{order.reference}") end}
           >
-            <div></div>
+            <:empty>
+              <div class="rounded-md border border-dashed border-stone-200 bg-stone-50 py-10 text-center text-sm text-stone-500">
+                No orders match the current filters.
+              </div>
+            </:empty>
 
+            <:col :let={{_id, order}} label="Customer">
+              <.link
+                class="hover:text-primary-600 hover:underline"
+                navigate={~p"/manage/customers/#{order.customer.reference}"}
+              >
+                {order.customer.full_name}
+              </.link>
+            </:col>
+
+            <:col :let={{_id, order}} label="Reference">
+              <.kbd>{format_reference(order.reference)}</.kbd>
+            </:col>
+
+            <:col :let={{_id, order}} label="Delivery date">
+              {format_time(order.delivery_date, @time_zone)}
+            </:col>
+
+            <:col :let={{_id, order}} label="Total cost">
+              {format_money(@settings.currency, order.total_cost)}
+            </:col>
+
+            <:col :let={{_id, order}} label="Status">
+              <.badge
+                text={order.status}
+                colors={[
+                  {order.status,
+                   "#{order_status_color(order.status)} #{order_status_bg(order.status)}"}
+                ]}
+              />
+            </:col>
+
+            <:col :let={{_id, order}} label="Payment">
+              <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
+            </:col>
+          </.table>
+        </Page.surface>
+
+        <Page.surface
+          :if={@view_mode == "calendar"}
+          full_bleed
+          class="overflow-hidden"
+        >
+          <:header>
+            <div class="text-sm font-medium text-stone-700">
+              {Calendar.strftime(List.first(@days_range), "%B %Y")}
+            </div>
+          </:header>
+          <:actions>
             <div class="flex items-center">
               <button
+                type="button"
                 phx-click="prev_week"
-                size={:sm}
-                class="px-[6px] cursor-pointer rounded-l-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+                class="rounded-l-md border border-gray-300 bg-white px-2 py-1 text-sm text-stone-600 transition hover:bg-gray-50"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -189,31 +214,16 @@ defmodule CraftplanWeb.OrderLive.Index do
                 </svg>
               </button>
               <button
+                type="button"
                 phx-click="today"
-                size={:sm}
-                variant={:outline}
-                class="flex cursor-pointer items-center border-y border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
+                class="border-y border-gray-300 bg-white px-3 py-1 text-xs font-medium uppercase tracking-wide text-stone-600 transition hover:bg-gray-50 disabled:cursor-default disabled:bg-gray-100 disabled:text-gray-400"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mr-1 h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
                 Today
               </button>
               <button
+                type="button"
                 phx-click="next_week"
-                size={:sm}
-                class="px-[6px] cursor-pointer rounded-r-md border border-gray-300 bg-white py-1 hover:bg-gray-50"
+                class="rounded-r-md border border-gray-300 bg-white px-2 py-1 text-sm text-stone-600 transition hover:bg-gray-50"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -227,99 +237,97 @@ defmodule CraftplanWeb.OrderLive.Index do
                 </svg>
               </button>
             </div>
-            <div class="absolute left-1/2 -translate-x-1/2 transform">
-              <span class="font-medium text-stone-700">
-                {Calendar.strftime(List.first(@days_range), "%B %Y")}
-              </span>
-            </div>
-          </div>
-          <table class="w-full table-fixed border-collapse">
-            <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
-              <tr>
-                <th
-                  :for={{day, index} <- Enum.with_index(@days_range |> Enum.take(7))}
-                  class={
-                    [
-                      "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
-                      index > 0 && "pl-4",
-                      is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
-                      is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300"
-                    ]
-                    |> Enum.filter(& &1)
-                    |> Enum.join("  ")
-                  }
-                >
-                  <div class={["flex items-center justify-center"]}>
-                    <div class={[
-                      "inline-flex items-center justify-center space-x-1 rounded px-2",
-                      is_today?(day) && "bg-indigo-500 text-white"
-                    ]}>
-                      <div>{format_day_name(day)}</div>
-                      <div>{format_short_date(day, @time_zone)}</div>
+          </:actions>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-[960px] w-full table-fixed border-collapse">
+              <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
+                <tr>
+                  <th
+                    :for={{day, index} <- Enum.with_index(@days_range |> Enum.take(7))}
+                    class={
+                      [
+                        "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
+                        index > 0 && "pl-4",
+                        is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
+                        is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300"
+                      ]
+                      |> Enum.filter(& &1)
+                      |> Enum.join("  ")
+                    }
+                  >
+                    <div class="flex items-center justify-center">
+                      <div class={[
+                        "inline-flex items-center justify-center space-x-1 rounded px-2",
+                        is_today?(day) && "bg-indigo-500 text-white"
+                      ]}>
+                        <div>{format_day_name(day)}</div>
+                        <div>{format_short_date(day, @time_zone)}</div>
+                      </div>
                     </div>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="h-[60vh]">
-                <td
-                  :for={{day, index} <- Enum.with_index(@days_range |> Enum.take(7))}
-                  class={
-                    [
-                      "border-t border-t-stone-200",
-                      index > 0 && "border-l",
-                      index < 6 && "border-r",
-                      is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
-                      is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300",
-                      "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
-                    ]
-                    |> Enum.filter(& &1)
-                    |> Enum.join("  ")
-                  }
-                >
-                  <div class="h-full overflow-y-auto">
-                    <div
-                      :for={order <- get_orders_for_day(day, @orders)}
-                      phx-click="show_event_modal"
-                      phx-value-eventId={order.reference}
-                      class={[
-                        "group relative mb-2 flex cursor-pointer flex-col space-y-1 border bg-white p-1.5 hover:bg-stone-100",
-                        (is_today?(day) && "border-stone-300") || "border-stone-200"
-                      ]}
-                    >
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="h-[60vh]">
+                  <td
+                    :for={{day, index} <- Enum.with_index(@days_range |> Enum.take(7))}
+                    class={
+                      [
+                        "border-t border-t-stone-200",
+                        index > 0 && "border-l",
+                        index < 6 && "border-r",
+                        is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
+                        is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300",
+                        "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
+                      ]
+                      |> Enum.filter(& &1)
+                      |> Enum.join("  ")
+                    }
+                  >
+                    <div class="h-full overflow-y-auto">
                       <div
+                        :for={order <- get_orders_for_day(day, @orders)}
+                        phx-click="show_event_modal"
+                        phx-value-eventId={order.reference}
                         class={[
-                          "absolute top-1 right-1 h-2 w-2 rounded-full",
-                          order_dot_status_bg(order.status)
+                          "group relative mb-2 flex cursor-pointer flex-col space-y-1 border bg-white p-1.5 hover:bg-stone-100",
+                          (is_today?(day) && "border-stone-300") || "border-stone-200"
                         ]}
-                        title={order.status}
+                      >
+                        <div
+                          class={[
+                            "absolute top-1 right-1 h-2 w-2 rounded-full",
+                            order_dot_status_bg(order.status)
+                          ]}
+                          title={order.status}
+                        >
+                        </div>
+                        <div class="truncate text-xs font-medium" title={order.customer.full_name}>
+                          {order.customer.full_name}
+                        </div>
+                        <div class="text-xs text-stone-500">
+                          {format_hour(order.delivery_date, @time_zone)}
+                        </div>
+                        <div class="text-xs text-stone-500">
+                          {format_money(@settings.currency, order.total_cost)}
+                        </div>
+                      </div>
+
+                      <div
+                        :if={get_orders_for_day(day, @orders) |> Enum.empty?()}
+                        class="flex h-full pt-2 text-sm text-stone-400"
                       >
                       </div>
-                      <div class="truncate text-xs font-medium" title={order.customer.full_name}>
-                        {order.customer.full_name}
-                      </div>
-                      <div class="text-xs text-stone-500">
-                        {format_hour(order.delivery_date, @time_zone)}
-                      </div>
-                      <div class="text-xs text-stone-500">
-                        {format_money(@settings.currency, order.total_cost)}
-                      </div>
                     </div>
-
-                    <div
-                      :if={get_orders_for_day(day, @orders) |> Enum.empty?()}
-                      class="flex h-full pt-2 text-sm text-stone-400"
-                    >
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Page.surface>
+      </Page.section>
+    </Page.page>
 
     <.modal
       :if={@live_action in [:new, :edit]}

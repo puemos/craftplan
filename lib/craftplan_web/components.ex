@@ -15,6 +15,7 @@ defmodule CraftplanWeb.Components do
       import CraftplanWeb.Components.Core
       import CraftplanWeb.Components.DataVis
       import CraftplanWeb.Components.Forms
+      import CraftplanWeb.Components.Page
 
       # import CraftplanWeb.Components.Modal
       # import CraftplanWeb.Components.Navigation

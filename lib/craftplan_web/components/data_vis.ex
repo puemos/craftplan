@@ -60,7 +60,7 @@ defmodule CraftplanWeb.Components.DataVis do
     ~H"""
     <div class={["table-fixed overflow-y-auto px-4 sm:overflow-visible sm:px-0", @wrapper_class]}>
       <table class={[
-        "w-[40rem] table-fixed border-collapse sm:w-full",
+        "table-fixed border-collapse sm:w-full",
         if(not @no_margin, do: "mt-11"),
         @table_class
       ]}>
@@ -95,7 +95,7 @@ defmodule CraftplanWeb.Components.DataVis do
             @zebra && "[&_tr:nth-child(even)]:bg-stone-50"
           ]}
         >
-          <tr :if={@empty != nil} id={"empty-#{@id}"} class="hidden only:block">
+          <tr :if={@empty != nil} id={"empty-#{@id}"} class="hidden last:table-row">
             <td colspan={Enum.count(@col)}>
               {render_slot(@empty)}
             </td>

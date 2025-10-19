@@ -8,11 +8,11 @@ defmodule CraftplanWeb.InventoryLive.Show do
   def render(assigns) do
     assigns =
       assigns
-      |> assign_new(:nav_sub_links, fn -> [] end)
+      |> assign_new(:tabs_links, fn -> [] end)
       |> assign_new(:breadcrumbs, fn -> [] end)
 
     ~H"""
-    <.sub_nav links={@nav_sub_links} />
+    <.sub_nav links={@tabs_links} />
 
     <div class="mt-4 space-y-6">
       <div :if={@live_action in [:details, :show]}>
@@ -203,7 +203,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
 
     live_action = socket.assigns.live_action
 
-    nav_sub_links = [
+    tabs_links = [
       %{
         label: "Details",
         navigate: ~p"/manage/inventory/#{material.sku}/details",
@@ -226,11 +226,25 @@ defmodule CraftplanWeb.InventoryLive.Show do
       }
     ]
 
+    nav_sub_links = [
+      %{
+        label: "Materials",
+        navigate: ~p"/manage/inventory",
+        active: false
+      },
+      %{
+        label: "Forecast",
+        navigate: ~p"/manage/inventory/forecast",
+        active: false
+      }
+    ]
+
     {:noreply,
      socket
      |> assign(:page_title, page_title(live_action))
      |> assign(:material, material)
      |> assign(:open_po_items, open_po_items)
+     |> assign(:tabs_links, tabs_links)
      |> assign(:nav_sub_links, nav_sub_links)
      |> assign(:breadcrumbs, material_breadcrumbs(material, live_action))}
   end

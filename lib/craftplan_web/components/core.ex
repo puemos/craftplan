@@ -47,6 +47,7 @@ defmodule CraftplanWeb.Components.Core do
       class={[
         "inline-block whitespace-nowrap rounded border border-stone-400 bg-stone-100 text-stone-700",
         "px-1 py-0.5 text-xs leading-none",
+        "max-w-full truncate",
         @class
       ]}
       {@rest}
