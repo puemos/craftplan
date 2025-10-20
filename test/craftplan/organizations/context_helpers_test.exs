@@ -3,6 +3,7 @@ defmodule Craftplan.Organizations.ContextHelpersTest do
 
   alias Ash.Changeset
   alias Ash.Query
+  alias Craftplan.Accounts.Membership
   alias Craftplan.Catalog.Product
   alias Craftplan.Organizations
   alias Craftplan.Test.Factory
@@ -47,7 +48,8 @@ defmodule Craftplan.Organizations.ContextHelpersTest do
 
       assert Organizations.put_actor(actor, organization) == %{
                role: :staff,
-               organization_id: organization.id
+               organization_id: organization.id,
+               global_role: :staff
              }
     end
 
@@ -61,10 +63,24 @@ defmodule Craftplan.Organizations.ContextHelpersTest do
       organization = Factory.create_organization!()
       user = Craftplan.DataCase.staff_actor()
 
-      actor = Organizations.put_actor(user, organization)
+      membership =
+        Membership
+        |> Changeset.for_create(:create, %{
+          organization_id: organization.id,
+          user_id: user.id,
+          role: :staff,
+          status: :active
+        })
+        |> Ash.create!(authorize?: false, tenant: organization.id)
+
+      actor = Organizations.put_actor(user, organization, membership)
 
       assert actor.organization_id == organization.id
       assert actor.role == :staff
+      assert actor.global_role == :staff
+      assert actor.membership_role == :staff
+      assert actor.membership_status == :active
+      assert actor.membership_id == membership.id
       assert actor.id == user.id
     end
   end

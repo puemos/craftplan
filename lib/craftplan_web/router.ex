@@ -60,8 +60,7 @@ defmodule CraftplanWeb.Router do
     auth_routes AuthController, Craftplan.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
-    sign_in_route register_path: "/register",
-                  reset_path: "/reset",
+    sign_in_route reset_path: "/reset",
                   auth_routes_prefix: "/auth",
                   on_mount: [
                     CraftplanWeb.LiveCurrentPath,
@@ -77,6 +76,8 @@ defmodule CraftplanWeb.Router do
                   CraftplanWeb.AuthOverrides,
                   Default
                 ]
+
+    live "/register", Auth.SignupLive, :new
   end
 
   #

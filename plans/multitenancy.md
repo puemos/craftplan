@@ -3,7 +3,7 @@
 ## Status
 - [x] Organization domain foundations
 - [x] Organization-aware data model
-- [ ] Authentication & membership
+- [x] Authentication & membership
 - [ ] Web boundary propagation
 - [ ] Operations & observability
 - [ ] Testing & documentation
@@ -40,13 +40,13 @@
 
 ## 3. Authentication & Membership
 
-- Extend `Accounts.User` with organization relationships and membership join resource.
-- Scope authentication flows to require organization context (subdomain, invite, or signup form).
-- Ensure sessions and tokens include organization identifiers.
-- Design a self-service onboarding flow that can register an organization and its first admin:
-  - Build a signup service that provisions an organization and associated admin user in a single transaction.
-  - Expose a Phoenix LiveView for the signup form (`/register`) that captures organization + admin details and stores them via the signup service.
-  - Send confirmation/invite emails after signup and redirect the new admin into their organization's base path once confirmed.
+- [x] Extend `Accounts.User` with organization relationships and membership join resource.
+- [x] Scope authentication flows to require organization context (subdomain, invite, or signup form).
+- [x] Ensure sessions and tokens include organization identifiers.
+- [ ] Design a self-service onboarding flow that can register an organization and its first admin:
+  - [x] Build a signup service that provisions an organization and associated admin user in a single transaction.
+  - [x] Expose a Phoenix LiveView for the signup form (`/register`) that captures organization + admin details and stores them via the signup service.
+  - [ ] Send confirmation/invite emails after signup and redirect the new admin into their organization's base path once confirmed.
 
 ## 4. Web Boundary Propagation
 

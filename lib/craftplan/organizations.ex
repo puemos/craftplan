@@ -4,6 +4,7 @@ defmodule Craftplan.Organizations do
 
   alias Ash.Changeset
   alias Ash.Query
+  alias Craftplan.Accounts.Membership
   alias Craftplan.Types.OrganizationContext
 
   @doc """
@@ -44,17 +45,27 @@ defmodule Craftplan.Organizations do
   Useful when invoking Ash actions directly in tests or background workers where
   we construct the actor manually. If `nil` is provided, a new actor map is returned.
   """
-  @spec put_actor(map() | nil, Ash.Resource.record() | binary()) :: map()
-  def put_actor(nil, organization), do: %{organization_id: organization_id(organization)}
+  @spec put_actor(map() | struct | nil, Ash.Resource.record() | binary(), Membership.t() | nil) ::
+          map()
+  def put_actor(actor, organization, membership \\ nil)
 
-  def put_actor(actor, organization) when is_struct(actor) do
-    actor
-    |> Map.from_struct()
-    |> Map.put(:organization_id, organization_id(organization))
+  def put_actor(nil, organization, membership) do
+    maybe_put_membership(%{organization_id: organization_id(organization)}, membership)
   end
 
-  def put_actor(actor, organization) when is_map(actor) do
-    Map.put(actor, :organization_id, organization_id(organization))
+  def put_actor(actor, organization, membership) when is_struct(actor) do
+    actor
+    |> Map.from_struct()
+    |> put_global_role()
+    |> Map.put(:organization_id, organization_id(organization))
+    |> maybe_put_membership(membership)
+  end
+
+  def put_actor(actor, organization, membership) when is_map(actor) do
+    actor
+    |> put_global_role()
+    |> Map.put(:organization_id, organization_id(organization))
+    |> maybe_put_membership(membership)
   end
 
   resources do
@@ -70,4 +81,21 @@ defmodule Craftplan.Organizations do
 
   defp organization_id(%{id: id}) when is_binary(id), do: id
   defp organization_id(id) when is_binary(id), do: id
+
+  defp put_global_role(actor) do
+    case Map.fetch(actor, :role) do
+      {:ok, role} -> Map.put_new(actor, :global_role, role)
+      :error -> actor
+    end
+  end
+
+  defp maybe_put_membership(actor, %{role: role} = membership) do
+    actor
+    |> Map.put(:role, role)
+    |> Map.put(:membership_role, role)
+    |> Map.put(:membership_status, membership.status)
+    |> Map.put(:membership_id, membership.id)
+  end
+
+  defp maybe_put_membership(actor, _membership), do: actor
 end

@@ -81,6 +81,12 @@ defmodule Craftplan.Organizations.Organization do
     end
   end
 
+  relationships do
+    has_many :memberships, Craftplan.Accounts.Membership do
+      destination_attribute :organization_id
+    end
+  end
+
   calculations do
     calculate :branding_color, :string do
       calculation fn record, _context ->
