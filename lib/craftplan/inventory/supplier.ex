@@ -20,11 +20,14 @@ defmodule Craftplan.Inventory.Supplier do
 
     create :create do
       primary? true
-      accept [:name, :contact_name, :contact_email, :contact_phone, :notes]
+
+      accept [:organization_id, :name, :contact_name, :contact_email, :contact_phone, :notes]
     end
 
     update :update do
-      accept [:name, :contact_name, :contact_email, :contact_phone, :notes]
+      primary? true
+
+      accept [:organization_id, :name, :contact_name, :contact_email, :contact_phone, :notes]
     end
   end
 
@@ -38,8 +41,19 @@ defmodule Craftplan.Inventory.Supplier do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :name, :string do
       allow_nil? false
@@ -63,5 +77,13 @@ defmodule Craftplan.Inventory.Supplier do
     end
 
     timestamps()
+  end
+
+  relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
   end
 end

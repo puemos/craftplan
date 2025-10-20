@@ -16,13 +16,14 @@ defmodule Craftplan.Orders.OrderItem do
 
     create :create do
       primary? true
-      accept [:product_id, :quantity, :unit_price, :status]
+
+      accept [:organization_id, :product_id, :quantity, :unit_price, :status]
     end
 
     update :update do
       primary? true
       require_atomic? false
-      accept [:quantity, :status, :consumed_at]
+      accept [:organization_id, :quantity, :status, :consumed_at]
     end
 
     read :in_range do
@@ -75,8 +76,19 @@ defmodule Craftplan.Orders.OrderItem do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :unit_price, :decimal do
       allow_nil? false
@@ -100,6 +112,12 @@ defmodule Craftplan.Orders.OrderItem do
   end
 
   relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
+
     belongs_to :order, Craftplan.Orders.Order do
       allow_nil? false
     end

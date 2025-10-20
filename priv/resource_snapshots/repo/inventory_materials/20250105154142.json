@@ -11,6 +11,26 @@
       "type": "uuid"
     },
     {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "destination": "organizations",
+        "destination_field": "id",
+        "field": "organization_id",
+        "match": "matching",
+        "multitenancy": null,
+        "on_delete": "nilify",
+        "on_update": "ignore"
+      },
+      "scale": null,
+      "size": null,
+      "source": "organization_id",
+      "type": "uuid"
+    },
+    {
       "allow_nil?": false,
       "default": "nil",
       "generated?": false,
@@ -96,7 +116,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "30FDF53E79D30676184D46343FDFD56A2BD8E64F609BD059EA32F2A9338D55A4",
+  "hash": "56E14C13FC38CD3280C9C4D680F98C4CFCD384D557BB3FC43187167608A3ACF5",
   "identities": [
     {
       "all_tenants?": false,
@@ -128,9 +148,9 @@
     }
   ],
   "multitenancy": {
-    "attribute": null,
-    "global": null,
-    "strategy": null
+    "attribute": "organization_id",
+    "global": true,
+    "strategy": "attribute"
   },
   "repo": "Elixir.Craftplan.Repo",
   "schema": null,

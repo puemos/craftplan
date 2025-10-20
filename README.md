@@ -77,10 +77,10 @@ For detailed instructions on using Craftplan, check out our user guides:
 - [ ] Quality control tracking
 - [ ] Notifications
 
-### 🛒 Storefront
+### 🛒 Storefront Integrations (planned)
 
-- [x] Public catalog, cart, and checkout (creates orders)
-- [x] Responsive UI
+- [ ] External platform integrations (Shopify, WooCommerce, WhatsApp Business)
+- [ ] Responsive marketing site
 - [ ] Blog
 - [ ] Billing/payments
 

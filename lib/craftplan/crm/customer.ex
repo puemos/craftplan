@@ -69,8 +69,19 @@ defmodule Craftplan.CRM.Customer do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :reference, :string do
       writable? false
@@ -134,6 +145,12 @@ defmodule Craftplan.CRM.Customer do
   end
 
   relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
+
     has_many :orders, Craftplan.Orders.Order
   end
 
@@ -149,8 +166,8 @@ defmodule Craftplan.CRM.Customer do
   end
 
   identities do
-    identity :phone, [:phone]
-    identity :email, [:email]
-    identity :reference, [:reference]
+    identity :phone, [:organization_id, :phone]
+    identity :email, [:organization_id, :email]
+    identity :reference, [:organization_id, :reference]
   end
 end

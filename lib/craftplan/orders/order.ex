@@ -23,6 +23,7 @@ defmodule Craftplan.Orders.Order do
       primary? true
 
       accept [
+        :organization_id,
         :status,
         :customer_id,
         :delivery_date,
@@ -30,6 +31,7 @@ defmodule Craftplan.Orders.Order do
         :invoice_status,
         :invoiced_at,
         :payment_method,
+        :payment_status,
         :discount_type,
         :discount_value,
         :delivery_method
@@ -45,6 +47,7 @@ defmodule Craftplan.Orders.Order do
     # Public, minimal create action for checkout
     create :public_create do
       accept [
+        :organization_id,
         :customer_id,
         :delivery_date,
         :delivery_method,
@@ -62,6 +65,7 @@ defmodule Craftplan.Orders.Order do
       require_atomic? false
 
       accept [
+        :organization_id,
         :status,
         :customer_id,
         :delivery_date,
@@ -225,8 +229,19 @@ defmodule Craftplan.Orders.Order do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :currency, Craftplan.Types.Currency do
       allow_nil? false
@@ -336,6 +351,12 @@ defmodule Craftplan.Orders.Order do
   end
 
   relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
+
     has_many :items, Craftplan.Orders.OrderItem
 
     belongs_to :customer, Craftplan.CRM.Customer do
@@ -350,6 +371,6 @@ defmodule Craftplan.Orders.Order do
   end
 
   identities do
-    identity :reference, [:reference]
+    identity :reference, [:organization_id, :reference]
   end
 end

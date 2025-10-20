@@ -22,12 +22,15 @@ defmodule Craftplan.Inventory.PurchaseOrder do
 
     create :create do
       primary? true
-      accept [:supplier_id, :status, :ordered_at]
+
+      accept [:organization_id, :supplier_id, :status, :ordered_at]
       change set_attribute(:status, :draft)
     end
 
     update :update do
-      accept [:supplier_id, :status, :ordered_at, :received_at]
+      primary? true
+
+      accept [:organization_id, :supplier_id, :status, :ordered_at, :received_at]
     end
   end
 
@@ -41,8 +44,19 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :reference, :string do
       writable? false
@@ -79,6 +93,12 @@ defmodule Craftplan.Inventory.PurchaseOrder do
   end
 
   relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
+
     belongs_to :supplier, Craftplan.Inventory.Supplier do
       allow_nil? false
     end
@@ -87,6 +107,6 @@ defmodule Craftplan.Inventory.PurchaseOrder do
   end
 
   identities do
-    identity :reference, [:reference]
+    identity :reference, [:organization_id, :reference]
   end
 end

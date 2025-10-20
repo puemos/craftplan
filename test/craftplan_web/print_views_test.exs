@@ -70,14 +70,4 @@ defmodule CraftplanWeb.PrintViewsTest do
     assert html =~ "print:max-w-full"
     assert html =~ "print:hidden"
   end
-
-  test "public order status contains print classes", %{conn: conn} do
-    order = create_order_with_item!()
-
-    conn = Plug.Conn.assign(conn, :current_user, nil)
-    {:ok, _view, html} = live(conn, ~p"/o/#{order.reference}")
-
-    assert html =~ "print:max-w-full"
-    assert html =~ "print:hidden"
-  end
 end

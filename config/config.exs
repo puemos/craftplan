@@ -49,7 +49,7 @@ config :craftplan,
     Craftplan.Inventory,
     Craftplan.Catalog,
     Craftplan.Accounts,
-    Craftplan.Cart
+    Craftplan.Organizations
   ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase

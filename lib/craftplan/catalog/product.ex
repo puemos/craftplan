@@ -12,20 +12,13 @@ defmodule Craftplan.Catalog.Product do
   end
 
   actions do
-    defaults [
-      :read,
-      :destroy,
-      create: [
-        :name,
-        :status,
-        :price,
-        :sku,
-        :photos,
-        :featured_photo,
-        :selling_availability,
-        :max_daily_quantity
-      ],
-      update: [
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+
+      accept [
+        :organization_id,
         :name,
         :status,
         :price,
@@ -35,7 +28,23 @@ defmodule Craftplan.Catalog.Product do
         :selling_availability,
         :max_daily_quantity
       ]
-    ]
+    end
+
+    update :update do
+      primary? true
+
+      accept [
+        :organization_id,
+        :name,
+        :status,
+        :price,
+        :sku,
+        :photos,
+        :featured_photo,
+        :selling_availability,
+        :max_daily_quantity
+      ]
+    end
 
     read :list do
       prepare build(sort: :name)
@@ -79,8 +88,19 @@ defmodule Craftplan.Catalog.Product do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :name, :string do
       allow_nil? false
@@ -138,6 +158,12 @@ defmodule Craftplan.Catalog.Product do
   end
 
   relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
+
     has_one :recipe, Craftplan.Catalog.Recipe do
       allow_nil? true
     end
@@ -170,7 +196,7 @@ defmodule Craftplan.Catalog.Product do
   end
 
   identities do
-    identity :sku, [:sku]
-    identity :name, [:name]
+    identity :sku, [:organization_id, :sku]
+    identity :name, [:organization_id, :name]
   end
 end

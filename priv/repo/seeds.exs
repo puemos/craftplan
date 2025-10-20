@@ -1,11 +1,12 @@
 # seeds.exs
 
 alias Craftplan.Accounts
-alias Craftplan.Cart
 alias Craftplan.Catalog
 alias Craftplan.CRM
 alias Craftplan.Inventory
 alias Craftplan.Orders
+alias Craftplan.Organizations
+alias Craftplan.Organizations.Provisioning
 alias Craftplan.Repo
 alias Craftplan.Settings
 
@@ -82,9 +83,6 @@ if Mix.env() == :dev do
   Repo.delete_all(Orders.Order)
   Repo.delete_all(Catalog.RecipeMaterial)
   Repo.delete_all(Catalog.Recipe)
-  # Clear carts before products to avoid FK violations
-  Repo.delete_all(Cart.CartItem)
-  Repo.delete_all(Cart.Cart)
   Repo.delete_all(Catalog.Product)
   Repo.delete_all(Inventory.Movement)
   Repo.delete_all(Inventory.MaterialNutritionalFact)
@@ -99,10 +97,31 @@ if Mix.env() == :dev do
   Repo.delete_all(CRM.Customer)
   Repo.delete_all(Accounts.User)
   Repo.delete_all(Settings.Settings)
+  Repo.delete_all(Organizations.Organization)
 
   # ------------------------------------------------------------------------------
   # 3. Seed necessary data
   # ------------------------------------------------------------------------------
+
+  {:ok, sunrise_bakery} =
+    Provisioning.provision(%{
+      name: "Sunrise Bakery",
+      slug: "sunrise",
+      timezone: "America/Chicago",
+      locale: "en",
+      branding: %{"primary_color" => "#F59E0B"}
+    })
+
+  {:ok, bluebird_cafe} =
+    Provisioning.provision(%{
+      name: "Bluebird Cafe",
+      slug: "bluebird",
+      timezone: "America/New_York",
+      locale: "en",
+      branding: %{"primary_color" => "#3B82F6"}
+    })
+
+  _organizations = %{sunrise: sunrise_bakery, bluebird: bluebird_cafe}
 
   seed_user = fn email, role ->
     {:ok, user} =
@@ -123,15 +142,19 @@ if Mix.env() == :dev do
     user
   end
 
-  seed_material = fn name, sku, unit, price, min, max ->
-    Ash.Seed.seed!(Inventory.Material, %{
-      name: name,
-      sku: sku,
-      unit: unit,
-      price: Decimal.new(price),
-      minimum_stock: Decimal.new(min),
-      maximum_stock: Decimal.new(max)
-    })
+  seed_material = fn organization, name, sku, unit, price, min, max ->
+    Ash.Seed.seed!(
+      Inventory.Material,
+      %{
+        name: name,
+        sku: sku,
+        unit: unit,
+        price: Decimal.new(price),
+        minimum_stock: Decimal.new(min),
+        maximum_stock: Decimal.new(max)
+      },
+      tenant: organization.id
+    )
   end
 
   link_material_allergen = fn material, allergen ->
@@ -151,22 +174,30 @@ if Mix.env() == :dev do
     })
   end
 
-  add_initial_stock = fn material, quantity ->
-    Ash.Seed.seed!(Inventory.Movement, %{
-      material_id: material.id,
-      occurred_at: DateTime.utc_now(),
-      quantity: Decimal.new(quantity),
-      reason: "Initial stock"
-    })
+  add_initial_stock = fn organization, material, quantity ->
+    Ash.Seed.seed!(
+      Inventory.Movement,
+      %{
+        material_id: material.id,
+        occurred_at: DateTime.utc_now(),
+        quantity: Decimal.new(quantity),
+        reason: "Initial stock"
+      },
+      tenant: organization.id
+    )
   end
 
-  seed_product = fn name, sku, price ->
-    Ash.Seed.seed!(Catalog.Product, %{
-      name: name,
-      sku: sku,
-      status: :active,
-      price: Decimal.new(price)
-    })
+  seed_product = fn organization, name, sku, price ->
+    Ash.Seed.seed!(
+      Catalog.Product,
+      %{
+        name: name,
+        sku: sku,
+        status: :active,
+        price: Decimal.new(price)
+      },
+      tenant: organization.id
+    )
   end
 
   seed_recipe = fn product, notes ->
@@ -185,59 +216,83 @@ if Mix.env() == :dev do
   end
 
   # Purchasing helpers
-  seed_supplier = fn name, email ->
-    Ash.Seed.seed!(Inventory.Supplier, %{
-      name: name,
-      contact_email: email
-    })
+  seed_supplier = fn organization, name, email ->
+    Ash.Seed.seed!(
+      Inventory.Supplier,
+      %{
+        name: name,
+        contact_email: email
+      },
+      tenant: organization.id
+    )
   end
 
-  seed_purchase_order = fn supplier, status ->
-    Ash.Seed.seed!(Inventory.PurchaseOrder, %{
-      supplier_id: supplier.id,
-      status: status,
-      ordered_at: DateTime.utc_now()
-    })
+  seed_purchase_order = fn organization, supplier, status ->
+    Ash.Seed.seed!(
+      Inventory.PurchaseOrder,
+      %{
+        supplier_id: supplier.id,
+        status: status,
+        ordered_at: DateTime.utc_now()
+      },
+      tenant: organization.id
+    )
   end
 
-  seed_purchase_order_item = fn po, material, quantity, unit_price ->
-    Ash.Seed.seed!(Inventory.PurchaseOrderItem, %{
-      purchase_order_id: po.id,
-      material_id: material.id,
-      quantity: Decimal.new(quantity),
-      unit_price: Decimal.new(unit_price)
-    })
+  seed_purchase_order_item = fn organization, po, material, quantity, unit_price ->
+    Ash.Seed.seed!(
+      Inventory.PurchaseOrderItem,
+      %{
+        purchase_order_id: po.id,
+        material_id: material.id,
+        quantity: Decimal.new(quantity),
+        unit_price: Decimal.new(unit_price)
+      },
+      tenant: organization.id
+    )
   end
 
-  seed_customer = fn first_name, last_name, email, phone, address_map ->
-    Ash.Seed.seed!(CRM.Customer, %{
-      type: :individual,
-      first_name: first_name,
-      last_name: last_name,
-      email: email,
-      phone: phone,
-      billing_address: address_map,
-      shipping_address: address_map
-    })
+  seed_customer = fn organization, first_name, last_name, email, phone, address_map ->
+    Ash.Seed.seed!(
+      CRM.Customer,
+      %{
+        type: :individual,
+        first_name: first_name,
+        last_name: last_name,
+        email: email,
+        phone: phone,
+        billing_address: address_map,
+        shipping_address: address_map
+      },
+      tenant: organization.id
+    )
   end
 
-  seed_order = fn customer, delivery_in_days, status, payment_status ->
-    Ash.Seed.seed!(Orders.Order, %{
-      customer_id: customer.id,
-      delivery_date: DateTime.add(DateTime.utc_now(), delivery_in_days, :day),
-      status: status,
-      payment_status: payment_status
-    })
+  seed_order = fn organization, customer, delivery_in_days, status, payment_status ->
+    Ash.Seed.seed!(
+      Orders.Order,
+      %{
+        customer_id: customer.id,
+        delivery_date: DateTime.add(DateTime.utc_now(), delivery_in_days, :day),
+        status: status,
+        payment_status: payment_status
+      },
+      tenant: organization.id
+    )
   end
 
-  seed_order_item = fn order, product, quantity, status ->
-    Ash.Seed.seed!(Orders.OrderItem, %{
-      order_id: order.id,
-      product_id: product.id,
-      quantity: Decimal.new(quantity),
-      unit_price: product.price,
-      status: status
-    })
+  seed_order_item = fn organization, order, product, quantity, status ->
+    Ash.Seed.seed!(
+      Orders.OrderItem,
+      %{
+        order_id: order.id,
+        product_id: product.id,
+        quantity: Decimal.new(quantity),
+        unit_price: product.price,
+        status: status
+      },
+      tenant: organization.id
+    )
   end
 
   # -- 3.1 Create users
@@ -265,24 +320,96 @@ if Mix.env() == :dev do
 
   # -- 3.5 Materials
   materials = %{
-    flour: seed_material.("All Purpose Flour", "FLOUR-001", :gram, "0.002", "5000", "20000"),
-    whole_wheat: seed_material.("Whole Wheat Flour", "FLOUR-002", :gram, "0.003", "3000", "15000"),
-    rye_flour: seed_material.("Rye Flour", "FLOUR-003", :gram, "0.004", "2000", "8000"),
-    gluten_free_mix: seed_material.("Gluten-Free Flour Mix", "GF-001", :gram, "0.005", "1000", "7000"),
-    oats: seed_material.("Rolled Oats", "OATS-001", :gram, "0.0025", "2000", "10000"),
-    almonds: seed_material.("Whole Almonds", "NUTS-001", :gram, "0.02", "2000", "10000"),
-    walnuts: seed_material.("Walnuts", "NUTS-002", :gram, "0.025", "1500", "8000"),
-    eggs: seed_material.("Fresh Eggs", "EGG-001", :piece, "0.15", "100", "500"),
-    milk: seed_material.("Whole Milk", "MILK-001", :milliliter, "0.003", "2000", "10000"),
-    butter: seed_material.("Butter", "DAIRY-001", :gram, "0.01", "1000", "5000"),
-    cream_cheese: seed_material.("Cream Cheese", "DAIRY-002", :gram, "0.015", "500", "3000"),
-    sugar: seed_material.("White Sugar", "SUGAR-001", :gram, "0.003", "3000", "15000"),
-    brown_sugar: seed_material.("Brown Sugar", "SUGAR-002", :gram, "0.004", "2000", "10000"),
-    chocolate: seed_material.("Dark Chocolate", "CHOC-001", :gram, "0.02", "2000", "8000"),
-    vanilla: seed_material.("Vanilla Extract", "FLAV-001", :milliliter, "0.15", "500", "2000"),
-    cinnamon: seed_material.("Ground Cinnamon", "SPICE-001", :gram, "0.006", "300", "1500"),
-    yeast: seed_material.("Active Dry Yeast", "YEAST-001", :gram, "0.05", "500", "2000"),
-    salt: seed_material.("Sea Salt", "SALT-001", :gram, "0.001", "1000", "5000")
+    flour:
+      seed_material.(
+        sunrise_bakery,
+        "All Purpose Flour",
+        "FLOUR-001",
+        :gram,
+        "0.002",
+        "5000",
+        "20000"
+      ),
+    whole_wheat:
+      seed_material.(
+        sunrise_bakery,
+        "Whole Wheat Flour",
+        "FLOUR-002",
+        :gram,
+        "0.003",
+        "3000",
+        "15000"
+      ),
+    rye_flour:
+      seed_material.(
+        sunrise_bakery,
+        "Rye Flour",
+        "FLOUR-003",
+        :gram,
+        "0.004",
+        "2000",
+        "8000"
+      ),
+    gluten_free_mix:
+      seed_material.(
+        sunrise_bakery,
+        "Gluten-Free Flour Mix",
+        "GF-001",
+        :gram,
+        "0.005",
+        "1000",
+        "7000"
+      ),
+    oats: seed_material.(sunrise_bakery, "Rolled Oats", "OATS-001", :gram, "0.0025", "2000", "10000"),
+    almonds: seed_material.(sunrise_bakery, "Whole Almonds", "NUTS-001", :gram, "0.02", "2000", "10000"),
+    walnuts: seed_material.(sunrise_bakery, "Walnuts", "NUTS-002", :gram, "0.025", "1500", "8000"),
+    eggs: seed_material.(sunrise_bakery, "Fresh Eggs", "EGG-001", :piece, "0.15", "100", "500"),
+    milk:
+      seed_material.(
+        sunrise_bakery,
+        "Whole Milk",
+        "MILK-001",
+        :milliliter,
+        "0.003",
+        "2000",
+        "10000"
+      ),
+    butter: seed_material.(sunrise_bakery, "Butter", "DAIRY-001", :gram, "0.01", "1000", "5000"),
+    cream_cheese: seed_material.(sunrise_bakery, "Cream Cheese", "DAIRY-002", :gram, "0.015", "500", "3000"),
+    sugar: seed_material.(sunrise_bakery, "White Sugar", "SUGAR-001", :gram, "0.003", "3000", "15000"),
+    brown_sugar: seed_material.(sunrise_bakery, "Brown Sugar", "SUGAR-002", :gram, "0.004", "2000", "10000"),
+    chocolate: seed_material.(sunrise_bakery, "Dark Chocolate", "CHOC-001", :gram, "0.02", "2000", "8000"),
+    vanilla:
+      seed_material.(
+        sunrise_bakery,
+        "Vanilla Extract",
+        "FLAV-001",
+        :milliliter,
+        "0.15",
+        "500",
+        "2000"
+      ),
+    cinnamon:
+      seed_material.(
+        sunrise_bakery,
+        "Ground Cinnamon",
+        "SPICE-001",
+        :gram,
+        "0.006",
+        "300",
+        "1500"
+      ),
+    yeast:
+      seed_material.(
+        sunrise_bakery,
+        "Active Dry Yeast",
+        "YEAST-001",
+        :gram,
+        "0.05",
+        "500",
+        "2000"
+      ),
+    salt: seed_material.(sunrise_bakery, "Sea Salt", "SALT-001", :gram, "0.001", "1000", "5000")
   }
 
   # -- 3.6 Link materials to relevant allergens
@@ -352,35 +479,35 @@ if Mix.env() == :dev do
 
   # -- 3.8 Add some initial stock
   Enum.each(materials, fn {_key, material} ->
-    add_initial_stock.(material, "5000")
+    add_initial_stock.(sunrise_bakery, material, "5000")
   end)
 
   # -- 3.8.1 Suppliers and Purchase Orders
   suppliers = %{
-    miller: seed_supplier.("Miller & Co.", "hello@miller.test"),
-    dairy: seed_supplier.("Fresh Dairy Ltd.", "sales@dairy.test")
+    miller: seed_supplier.(sunrise_bakery, "Miller & Co.", "hello@miller.test"),
+    dairy: seed_supplier.(sunrise_bakery, "Fresh Dairy Ltd.", "sales@dairy.test")
   }
 
-  po1 = seed_purchase_order.(suppliers.miller, :ordered)
-  seed_purchase_order_item.(po1, materials.flour, "10000", "0.0018")
-  seed_purchase_order_item.(po1, materials.whole_wheat, "5000", "0.0027")
+  po1 = seed_purchase_order.(sunrise_bakery, suppliers.miller, :ordered)
+  seed_purchase_order_item.(sunrise_bakery, po1, materials.flour, "10000", "0.0018")
+  seed_purchase_order_item.(sunrise_bakery, po1, materials.whole_wheat, "5000", "0.0027")
 
-  po2 = seed_purchase_order.(suppliers.dairy, :ordered)
-  seed_purchase_order_item.(po2, materials.butter, "2000", "0.009")
-  seed_purchase_order_item.(po2, materials.milk, "5000", "0.0025")
+  po2 = seed_purchase_order.(sunrise_bakery, suppliers.dairy, :ordered)
+  seed_purchase_order_item.(sunrise_bakery, po2, materials.butter, "2000", "0.009")
+  seed_purchase_order_item.(sunrise_bakery, po2, materials.milk, "5000", "0.0025")
 
   # -- 3.9 Seed products
   products = %{
-    almond_cookies: seed_product.("Almond Cookies", "COOK-001", "3.99"),
-    choc_cake: seed_product.("Chocolate Cake", "CAKE-001", "15.99"),
-    bread: seed_product.("Artisan Bread", "BREAD-001", "4.99"),
-    muffins: seed_product.("Blueberry Muffins", "MUF-001", "2.99"),
-    croissants: seed_product.("Butter Croissants", "PAST-001", "2.50"),
-    gf_cupcakes: seed_product.("Gluten-Free Cupcakes", "CUP-001", "3.49"),
-    rye_loaf: seed_product.("Rye Loaf Bread", "BREAD-002", "5.49"),
-    carrot_cake: seed_product.("Carrot Cake", "CAKE-002", "12.99"),
-    oatmeal_cookies: seed_product.("Oatmeal Cookies", "COOK-002", "3.49"),
-    cheese_danish: seed_product.("Cheese Danish", "PAST-002", "2.99")
+    almond_cookies: seed_product.(sunrise_bakery, "Almond Cookies", "COOK-001", "3.99"),
+    choc_cake: seed_product.(sunrise_bakery, "Chocolate Cake", "CAKE-001", "15.99"),
+    bread: seed_product.(sunrise_bakery, "Artisan Bread", "BREAD-001", "4.99"),
+    muffins: seed_product.(sunrise_bakery, "Blueberry Muffins", "MUF-001", "2.99"),
+    croissants: seed_product.(sunrise_bakery, "Butter Croissants", "PAST-001", "2.50"),
+    gf_cupcakes: seed_product.(sunrise_bakery, "Gluten-Free Cupcakes", "CUP-001", "3.49"),
+    rye_loaf: seed_product.(sunrise_bakery, "Rye Loaf Bread", "BREAD-002", "5.49"),
+    carrot_cake: seed_product.(sunrise_bakery, "Carrot Cake", "CAKE-002", "12.99"),
+    oatmeal_cookies: seed_product.(sunrise_bakery, "Oatmeal Cookies", "COOK-002", "3.49"),
+    cheese_danish: seed_product.(sunrise_bakery, "Cheese Danish", "PAST-002", "2.99")
   }
 
   # Set product availability and per-day capacity to try the feature
@@ -531,6 +658,7 @@ if Mix.env() == :dev do
   customers = %{
     john:
       seed_customer.(
+        sunrise_bakery,
         "John",
         "Doe",
         "john@example.com",
@@ -545,6 +673,7 @@ if Mix.env() == :dev do
       ),
     jane:
       seed_customer.(
+        sunrise_bakery,
         "Jane",
         "Smith",
         "jane@example.com",
@@ -559,6 +688,7 @@ if Mix.env() == :dev do
       ),
     bob:
       seed_customer.(
+        sunrise_bakery,
         "Bob",
         "Johnson",
         "bob@example.com",
@@ -573,6 +703,7 @@ if Mix.env() == :dev do
       ),
     alice:
       seed_customer.(
+        sunrise_bakery,
         "Alice",
         "Anderson",
         "alice@example.com",
@@ -587,6 +718,7 @@ if Mix.env() == :dev do
       ),
     michael:
       seed_customer.(
+        sunrise_bakery,
         "Michael",
         "Brown",
         "michael@example.com",
@@ -601,6 +733,7 @@ if Mix.env() == :dev do
       ),
     grace:
       seed_customer.(
+        sunrise_bakery,
         "Grace",
         "Thomas",
         "grace@example.com",
@@ -615,6 +748,7 @@ if Mix.env() == :dev do
       ),
     taylor:
       seed_customer.(
+        sunrise_bakery,
         "Taylor",
         "Evans",
         "taylor@example.com",
@@ -629,6 +763,7 @@ if Mix.env() == :dev do
       ),
     emily:
       seed_customer.(
+        sunrise_bakery,
         "Emily",
         "Clark",
         "emily@example.com",
@@ -649,19 +784,23 @@ if Mix.env() == :dev do
 
   # Helper for non-initial stock movements
   adjust_stock = fn material, quantity, reason, days_from_now ->
-    Ash.Seed.seed!(Inventory.Movement, %{
-      material_id: material.id,
-      occurred_at: DateTime.add(DateTime.utc_now(), days_from_now, :day),
-      quantity: Decimal.new(quantity),
-      reason: reason
-    })
+    Ash.Seed.seed!(
+      Inventory.Movement,
+      %{
+        material_id: material.id,
+        occurred_at: DateTime.add(DateTime.utc_now(), days_from_now, :day),
+        quantity: Decimal.new(quantity),
+        reason: reason
+      },
+      tenant: material.organization_id
+    )
   end
 
   # A) New materials to unlock more recipes
   new_materials = %{
-    blueberries: seed_material.("Blueberries", "FRUIT-001", :gram, "0.010", "500", "3000"),
-    sesame_seeds: seed_material.("Sesame Seeds", "SEED-001", :gram, "0.012", "500", "3000"),
-    peanut_butter: seed_material.("Peanut Butter", "PB-001", :gram, "0.015", "500", "3000")
+    blueberries: seed_material.(sunrise_bakery, "Blueberries", "FRUIT-001", :gram, "0.010", "500", "3000"),
+    sesame_seeds: seed_material.(sunrise_bakery, "Sesame Seeds", "SEED-001", :gram, "0.012", "500", "3000"),
+    peanut_butter: seed_material.(sunrise_bakery, "Peanut Butter", "PB-001", :gram, "0.015", "500", "3000")
   }
 
   materials = Map.merge(materials, new_materials)
@@ -694,15 +833,15 @@ if Mix.env() == :dev do
   link_material_nutritional_fact.(materials.peanut_butter, nutritional_facts.protein, "25", :gram)
 
   # Stock for new materials
-  Enum.each(new_materials, fn {_k, m} -> add_initial_stock.(m, "3000") end)
+  Enum.each(new_materials, fn {_k, m} -> add_initial_stock.(sunrise_bakery, m, "3000") end)
 
   # B) Make muffins actually use blueberries
   link_recipe_material.(recipes.muffins, materials.blueberries, "120")
 
   # C) New products and recipes
   new_products = %{
-    sesame_bagel: seed_product.("Sesame Bagel", "BAGEL-001", "2.25"),
-    pb_cookies: seed_product.("Peanut Butter Cookies", "COOK-003", "3.79")
+    sesame_bagel: seed_product.(sunrise_bakery, "Sesame Bagel", "BAGEL-001", "2.25"),
+    pb_cookies: seed_product.(sunrise_bakery, "Peanut Butter Cookies", "COOK-003", "3.79")
   }
 
   products = Map.merge(products, new_products)
@@ -748,45 +887,45 @@ if Mix.env() == :dev do
   adjust_stock.(materials.yeast, "-400", "Use in production surge", -2)
   adjust_stock.(materials.yeast, "-300", "Use in production surge", -1)
 
-  supplier_baker = seed_supplier.("Baker Supplies", "orders@bakersup.test")
-  po3 = seed_purchase_order.(supplier_baker, :ordered)
-  seed_purchase_order_item.(po3, materials.butter, "1500", "0.0095")
-  seed_purchase_order_item.(po3, materials.yeast, "1200", "0.048")
+  supplier_baker = seed_supplier.(sunrise_bakery, "Baker Supplies", "orders@bakersup.test")
+  po3 = seed_purchase_order.(sunrise_bakery, supplier_baker, :ordered)
+  seed_purchase_order_item.(sunrise_bakery, po3, materials.butter, "1500", "0.0095")
+  seed_purchase_order_item.(sunrise_bakery, po3, materials.yeast, "1200", "0.048")
 
   # Receive stock today
   adjust_stock.(materials.butter, "1500", "PO #{po3.id} receipt", 0)
   adjust_stock.(materials.yeast, "1200", "PO #{po3.id} receipt", 0)
 
   # E) Capacity stress test for tomorrow
-  cap1 = seed_order.(customers.john, 1, :confirmed, :pending)
-  seed_order_item.(cap1, products.croissants, "60", :todo)
-  seed_order_item.(cap1, products.muffins, "40", :todo)
+  cap1 = seed_order.(sunrise_bakery, customers.john, 1, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, cap1, products.croissants, "60", :todo)
+  seed_order_item.(sunrise_bakery, cap1, products.muffins, "40", :todo)
 
-  cap2 = seed_order.(customers.jane, 1, :confirmed, :pending)
-  seed_order_item.(cap2, products.sesame_bagel, "50", :todo)
-  seed_order_item.(cap2, products.pb_cookies, "30", :todo)
+  cap2 = seed_order.(sunrise_bakery, customers.jane, 1, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, cap2, products.sesame_bagel, "50", :todo)
+  seed_order_item.(sunrise_bakery, cap2, products.pb_cookies, "30", :todo)
 
   # F) Availability off edge case
-  off_case = seed_order.(customers.michael, 9, :unconfirmed, :pending)
-  seed_order_item.(off_case, products.carrot_cake, "1", :todo)
+  off_case = seed_order.(sunrise_bakery, customers.michael, 9, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, off_case, products.carrot_cake, "1", :todo)
 
   # G) Long-range history
-  old_q = seed_order.(customers.alice, -90, :delivered, :paid)
-  seed_order_item.(old_q, products.bread, "2", :done)
-  seed_order_item.(old_q, products.oatmeal_cookies, "18", :done)
+  old_q = seed_order.(sunrise_bakery, customers.alice, -90, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, old_q, products.bread, "2", :done)
+  seed_order_item.(sunrise_bakery, old_q, products.oatmeal_cookies, "18", :done)
 
-  old_h = seed_order.(customers.bob, -180, :delivered, :paid)
-  seed_order_item.(old_h, products.rye_loaf, "3", :done)
-  seed_order_item.(old_h, products.choc_cake, "1", :done)
+  old_h = seed_order.(sunrise_bakery, customers.bob, -180, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, old_h, products.rye_loaf, "3", :done)
+  seed_order_item.(sunrise_bakery, old_h, products.choc_cake, "1", :done)
 
   # H) Allergen-heavy event order
-  allergen_party = seed_order.(customers.grace, 6, :unconfirmed, :pending)
+  allergen_party = seed_order.(sunrise_bakery, customers.grace, 6, :unconfirmed, :pending)
   # tree nuts
-  seed_order_item.(allergen_party, products.almond_cookies, "24", :todo)
+  seed_order_item.(sunrise_bakery, allergen_party, products.almond_cookies, "24", :todo)
   # peanuts
-  seed_order_item.(allergen_party, products.pb_cookies, "24", :todo)
+  seed_order_item.(sunrise_bakery, allergen_party, products.pb_cookies, "24", :todo)
   # sesame
-  seed_order_item.(allergen_party, products.sesame_bagel, "24", :todo)
+  seed_order_item.(sunrise_bakery, allergen_party, products.sesame_bagel, "24", :todo)
 
   # ------------------------------------------------------------------------------
   # 4. Create orders for these customers (simulate real bakery operations)
@@ -796,198 +935,285 @@ if Mix.env() == :dev do
   # -----------------------------
 
   # Last Week - Monday (Day -7)
-  order1 = seed_order.(customers.john, -7, :delivered, :paid)
-  seed_order_item.(order1, products.bread, "2", :done)
-  seed_order_item.(order1, products.muffins, "6", :done)
-  seed_order_item.(order1, products.croissants, "4", :done)
+  order1 = seed_order.(sunrise_bakery, customers.john, -7, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order1, products.bread, "2", :done)
+  seed_order_item.(sunrise_bakery, order1, products.muffins, "6", :done)
+  seed_order_item.(sunrise_bakery, order1, products.croissants, "4", :done)
 
-  order2 = seed_order.(customers.jane, -7, :delivered, :paid)
-  seed_order_item.(order2, products.choc_cake, "1", :done)
-  seed_order_item.(order2, products.gf_cupcakes, "8", :done)
+  order2 = seed_order.(sunrise_bakery, customers.jane, -7, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order2, products.choc_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order2, products.gf_cupcakes, "8", :done)
 
-  order3 = seed_order.(customers.michael, -7, :delivered, :paid)
-  seed_order_item.(order3, products.oatmeal_cookies, "12", :done)
-  seed_order_item.(order3, products.bread, "1", :done)
-  seed_order_item.(order3, products.rye_loaf, "1", :done)
+  order3 = seed_order.(sunrise_bakery, customers.michael, -7, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order3, products.oatmeal_cookies, "12", :done)
+  seed_order_item.(sunrise_bakery, order3, products.bread, "1", :done)
+  seed_order_item.(sunrise_bakery, order3, products.rye_loaf, "1", :done)
 
   # Last Week - Tuesday (Day -6)
-  order4 = seed_order.(customers.alice, -6, :delivered, :paid)
-  seed_order_item.(order4, products.bread, "3", :done)
-  seed_order_item.(order4, products.carrot_cake, "1", :done)
+  order4 = seed_order.(sunrise_bakery, customers.alice, -6, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order4, products.bread, "3", :done)
+  seed_order_item.(sunrise_bakery, order4, products.carrot_cake, "1", :done)
 
-  order5 = seed_order.(customers.grace, -6, :delivered, :paid)
-  seed_order_item.(order5, products.cheese_danish, "5", :done)
-  seed_order_item.(order5, products.croissants, "6", :done)
-  seed_order_item.(order5, products.almond_cookies, "10", :done)
+  order5 = seed_order.(sunrise_bakery, customers.grace, -6, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order5, products.cheese_danish, "5", :done)
+  seed_order_item.(sunrise_bakery, order5, products.croissants, "6", :done)
+  seed_order_item.(sunrise_bakery, order5, products.almond_cookies, "10", :done)
 
-  order6 = seed_order.(customers.bob, -6, :cancelled, :refunded)
-  seed_order_item.(order6, products.choc_cake, "1", :done)
+  order6 = seed_order.(sunrise_bakery, customers.bob, -6, :cancelled, :refunded)
+  seed_order_item.(sunrise_bakery, order6, products.choc_cake, "1", :done)
 
   # Last Week - Thursday (Day -4)
-  order7 = seed_order.(customers.taylor, -4, :delivered, :paid)
-  seed_order_item.(order7, products.choc_cake, "2", :done)
-  seed_order_item.(order7, products.bread, "2", :done)
+  order7 = seed_order.(sunrise_bakery, customers.taylor, -4, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order7, products.choc_cake, "2", :done)
+  seed_order_item.(sunrise_bakery, order7, products.bread, "2", :done)
 
-  order8 = seed_order.(customers.emily, -4, :delivered, :paid)
-  seed_order_item.(order8, products.rye_loaf, "1", :done)
-  seed_order_item.(order8, products.croissants, "12", :done)
-  seed_order_item.(order8, products.muffins, "4", :done)
+  order8 = seed_order.(sunrise_bakery, customers.emily, -4, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order8, products.rye_loaf, "1", :done)
+  seed_order_item.(sunrise_bakery, order8, products.croissants, "12", :done)
+  seed_order_item.(sunrise_bakery, order8, products.muffins, "4", :done)
 
   # Last Weekend - Saturday (Day -2)
-  order9 = seed_order.(customers.john, -2, :delivered, :paid)
-  seed_order_item.(order9, products.choc_cake, "1", :done)
-  seed_order_item.(order9, products.muffins, "12", :done)
-  seed_order_item.(order9, products.bread, "2", :done)
-  seed_order_item.(order9, products.croissants, "8", :done)
+  order9 = seed_order.(sunrise_bakery, customers.john, -2, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order9, products.choc_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order9, products.muffins, "12", :done)
+  seed_order_item.(sunrise_bakery, order9, products.bread, "2", :done)
+  seed_order_item.(sunrise_bakery, order9, products.croissants, "8", :done)
 
-  order10 = seed_order.(customers.michael, -2, :delivered, :paid)
-  seed_order_item.(order10, products.choc_cake, "1", :done)
-  seed_order_item.(order10, products.gf_cupcakes, "12", :done)
+  order10 = seed_order.(sunrise_bakery, customers.michael, -2, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order10, products.choc_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order10, products.gf_cupcakes, "12", :done)
 
-  order11 = seed_order.(customers.grace, -2, :delivered, :paid)
-  seed_order_item.(order11, products.carrot_cake, "1", :done)
-  seed_order_item.(order11, products.oatmeal_cookies, "24", :done)
+  order11 = seed_order.(sunrise_bakery, customers.grace, -2, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order11, products.carrot_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order11, products.oatmeal_cookies, "24", :done)
 
-  order12 = seed_order.(customers.jane, -2, :delivered, :paid)
-  seed_order_item.(order12, products.choc_cake, "1", :done)
-  seed_order_item.(order12, products.almond_cookies, "15", :done)
+  order12 = seed_order.(sunrise_bakery, customers.jane, -2, :delivered, :paid)
+  seed_order_item.(sunrise_bakery, order12, products.choc_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order12, products.almond_cookies, "15", :done)
 
   # -----------------------------
   # CURRENT WEEK (Days 0 to 7)
   # -----------------------------
 
   # Today (Day 0)
-  order13 = seed_order.(customers.alice, 0, :completed, :paid)
-  seed_order_item.(order13, products.bread, "2", :done)
-  seed_order_item.(order13, products.croissants, "6", :done)
+  order13 = seed_order.(sunrise_bakery, customers.alice, 0, :completed, :paid)
+  seed_order_item.(sunrise_bakery, order13, products.bread, "2", :done)
+  seed_order_item.(sunrise_bakery, order13, products.croissants, "6", :done)
 
-  order14 = seed_order.(customers.bob, 0, :completed, :paid)
-  seed_order_item.(order14, products.carrot_cake, "1", :done)
-  seed_order_item.(order14, products.gf_cupcakes, "6", :done)
-  seed_order_item.(order14, products.rye_loaf, "1", :done)
+  order14 = seed_order.(sunrise_bakery, customers.bob, 0, :completed, :paid)
+  seed_order_item.(sunrise_bakery, order14, products.carrot_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order14, products.gf_cupcakes, "6", :done)
+  seed_order_item.(sunrise_bakery, order14, products.rye_loaf, "1", :done)
 
-  order15 = seed_order.(customers.taylor, 0, :ready, :pending)
-  seed_order_item.(order15, products.bread, "3", :done)
-  seed_order_item.(order15, products.muffins, "8", :in_progress)
+  order15 = seed_order.(sunrise_bakery, customers.taylor, 0, :ready, :pending)
+  seed_order_item.(sunrise_bakery, order15, products.bread, "3", :done)
+  seed_order_item.(sunrise_bakery, order15, products.muffins, "8", :in_progress)
 
-  order16 = seed_order.(customers.emily, 0, :ready, :pending)
-  seed_order_item.(order16, products.choc_cake, "1", :done)
-  seed_order_item.(order16, products.cheese_danish, "8", :in_progress)
+  order16 = seed_order.(sunrise_bakery, customers.emily, 0, :ready, :pending)
+  seed_order_item.(sunrise_bakery, order16, products.choc_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order16, products.cheese_danish, "8", :in_progress)
 
   # Tomorrow (Day 1)
-  order17 = seed_order.(customers.john, 1, :confirmed, :pending)
-  seed_order_item.(order17, products.bread, "2", :in_progress)
-  seed_order_item.(order17, products.croissants, "4", :todo)
+  order17 = seed_order.(sunrise_bakery, customers.john, 1, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, order17, products.bread, "2", :in_progress)
+  seed_order_item.(sunrise_bakery, order17, products.croissants, "4", :todo)
 
-  order18 = seed_order.(customers.jane, 1, :confirmed, :pending)
-  seed_order_item.(order18, products.bread, "1", :done)
-  seed_order_item.(order18, products.almond_cookies, "10", :todo)
+  order18 = seed_order.(sunrise_bakery, customers.jane, 1, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, order18, products.bread, "1", :done)
+  seed_order_item.(sunrise_bakery, order18, products.almond_cookies, "10", :todo)
 
-  order19 = seed_order.(customers.michael, 1, :confirmed, :pending)
-  seed_order_item.(order19, products.bread, "2", :in_progress)
-  seed_order_item.(order19, products.oatmeal_cookies, "15", :done)
-  seed_order_item.(order19, products.muffins, "6", :todo)
+  order19 = seed_order.(sunrise_bakery, customers.michael, 1, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, order19, products.bread, "2", :in_progress)
+  seed_order_item.(sunrise_bakery, order19, products.oatmeal_cookies, "15", :done)
+  seed_order_item.(sunrise_bakery, order19, products.muffins, "6", :todo)
 
   # This Week - Wednesday (Day 3)
-  order20 = seed_order.(customers.bob, 3, :confirmed, :pending)
-  seed_order_item.(order20, products.choc_cake, "1", :in_progress)
-  seed_order_item.(order20, products.rye_loaf, "2", :todo)
+  order20 = seed_order.(sunrise_bakery, customers.bob, 3, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, order20, products.choc_cake, "1", :in_progress)
+  seed_order_item.(sunrise_bakery, order20, products.rye_loaf, "2", :todo)
 
-  order21 = seed_order.(customers.grace, 3, :confirmed, :pending)
-  seed_order_item.(order21, products.choc_cake, "1", :done)
-  seed_order_item.(order21, products.croissants, "8", :in_progress)
-  seed_order_item.(order21, products.almond_cookies, "12", :todo)
+  order21 = seed_order.(sunrise_bakery, customers.grace, 3, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, order21, products.choc_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order21, products.croissants, "8", :in_progress)
+  seed_order_item.(sunrise_bakery, order21, products.almond_cookies, "12", :todo)
 
-  order22 = seed_order.(customers.alice, 3, :confirmed, :pending)
-  seed_order_item.(order22, products.choc_cake, "1", :done)
-  seed_order_item.(order22, products.muffins, "4", :in_progress)
+  order22 = seed_order.(sunrise_bakery, customers.alice, 3, :confirmed, :pending)
+  seed_order_item.(sunrise_bakery, order22, products.choc_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order22, products.muffins, "4", :in_progress)
 
   # This Week - Friday (Day 5)
-  order23 = seed_order.(customers.taylor, 5, :unconfirmed, :pending)
-  seed_order_item.(order23, products.carrot_cake, "2", :done)
-  seed_order_item.(order23, products.bread, "3", :in_progress)
-  seed_order_item.(order23, products.croissants, "6", :todo)
+  order23 = seed_order.(sunrise_bakery, customers.taylor, 5, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order23, products.carrot_cake, "2", :done)
+  seed_order_item.(sunrise_bakery, order23, products.bread, "3", :in_progress)
+  seed_order_item.(sunrise_bakery, order23, products.croissants, "6", :todo)
 
-  order24 = seed_order.(customers.emily, 5, :unconfirmed, :pending)
-  seed_order_item.(order24, products.carrot_cake, "1", :in_progress)
-  seed_order_item.(order24, products.gf_cupcakes, "12", :todo)
+  order24 = seed_order.(sunrise_bakery, customers.emily, 5, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order24, products.carrot_cake, "1", :in_progress)
+  seed_order_item.(sunrise_bakery, order24, products.gf_cupcakes, "12", :todo)
 
   # Weekend Event Orders (Day 6-7)
-  order25 = seed_order.(customers.john, 6, :unconfirmed, :pending)
-  seed_order_item.(order25, products.carrot_cake, "1", :done)
-  seed_order_item.(order25, products.cheese_danish, "12", :in_progress)
-  seed_order_item.(order25, products.bread, "5", :in_progress)
-  seed_order_item.(order25, products.croissants, "12", :todo)
-  seed_order_item.(order25, products.muffins, "24", :todo)
+  order25 = seed_order.(sunrise_bakery, customers.john, 6, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order25, products.carrot_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order25, products.cheese_danish, "12", :in_progress)
+  seed_order_item.(sunrise_bakery, order25, products.bread, "5", :in_progress)
+  seed_order_item.(sunrise_bakery, order25, products.croissants, "12", :todo)
+  seed_order_item.(sunrise_bakery, order25, products.muffins, "24", :todo)
 
-  order26 = seed_order.(customers.jane, 6, :unconfirmed, :pending)
-  seed_order_item.(order26, products.carrot_cake, "1", :done)
-  seed_order_item.(order26, products.oatmeal_cookies, "20", :in_progress)
+  order26 = seed_order.(sunrise_bakery, customers.jane, 6, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order26, products.carrot_cake, "1", :done)
+  seed_order_item.(sunrise_bakery, order26, products.oatmeal_cookies, "20", :in_progress)
 
-  order27 = seed_order.(customers.michael, 7, :unconfirmed, :pending)
-  seed_order_item.(order27, products.choc_cake, "2", :done)
-  seed_order_item.(order27, products.gf_cupcakes, "15", :in_progress)
-  seed_order_item.(order27, products.rye_loaf, "3", :todo)
+  order27 = seed_order.(sunrise_bakery, customers.michael, 7, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order27, products.choc_cake, "2", :done)
+  seed_order_item.(sunrise_bakery, order27, products.gf_cupcakes, "15", :in_progress)
+  seed_order_item.(sunrise_bakery, order27, products.rye_loaf, "3", :todo)
 
   # -----------------------------
   # NEXT WEEK (Days 8 to 14)
   # -----------------------------
 
   # Next Week - Monday (Day 8)
-  order28 = seed_order.(customers.alice, 8, :unconfirmed, :pending)
-  seed_order_item.(order28, products.bread, "2", :todo)
-  seed_order_item.(order28, products.croissants, "6", :todo)
+  order28 = seed_order.(sunrise_bakery, customers.alice, 8, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order28, products.bread, "2", :todo)
+  seed_order_item.(sunrise_bakery, order28, products.croissants, "6", :todo)
 
-  order29 = seed_order.(customers.bob, 8, :unconfirmed, :pending)
-  seed_order_item.(order29, products.choc_cake, "1", :todo)
-  seed_order_item.(order29, products.muffins, "6", :todo)
+  order29 = seed_order.(sunrise_bakery, customers.bob, 8, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order29, products.choc_cake, "1", :todo)
+  seed_order_item.(sunrise_bakery, order29, products.muffins, "6", :todo)
 
   # Next Week - Tuesday (Day 9)
-  order30 = seed_order.(customers.grace, 9, :unconfirmed, :pending)
-  seed_order_item.(order30, products.cheese_danish, "10", :todo)
-  seed_order_item.(order30, products.rye_loaf, "2", :todo)
+  order30 = seed_order.(sunrise_bakery, customers.grace, 9, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order30, products.cheese_danish, "10", :todo)
+  seed_order_item.(sunrise_bakery, order30, products.rye_loaf, "2", :todo)
 
-  order31 = seed_order.(customers.taylor, 9, :unconfirmed, :pending)
-  seed_order_item.(order31, products.bread, "3", :todo)
-  seed_order_item.(order31, products.almond_cookies, "15", :todo)
-  seed_order_item.(order31, products.croissants, "8", :todo)
+  order31 = seed_order.(sunrise_bakery, customers.taylor, 9, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order31, products.bread, "3", :todo)
+  seed_order_item.(sunrise_bakery, order31, products.almond_cookies, "15", :todo)
+  seed_order_item.(sunrise_bakery, order31, products.croissants, "8", :todo)
 
   # Office Party Orders (Day 10)
-  order32 = seed_order.(customers.emily, 10, :unconfirmed, :pending)
-  seed_order_item.(order32, products.oatmeal_cookies, "30", :todo)
-  seed_order_item.(order32, products.croissants, "24", :todo)
-  seed_order_item.(order32, products.muffins, "18", :todo)
+  order32 = seed_order.(sunrise_bakery, customers.emily, 10, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order32, products.oatmeal_cookies, "30", :todo)
+  seed_order_item.(sunrise_bakery, order32, products.croissants, "24", :todo)
+  seed_order_item.(sunrise_bakery, order32, products.muffins, "18", :todo)
 
-  order33 = seed_order.(customers.john, 10, :unconfirmed, :pending)
-  seed_order_item.(order33, products.gf_cupcakes, "12", :todo)
-  seed_order_item.(order33, products.cheese_danish, "15", :todo)
+  order33 = seed_order.(sunrise_bakery, customers.john, 10, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order33, products.gf_cupcakes, "12", :todo)
+  seed_order_item.(sunrise_bakery, order33, products.cheese_danish, "15", :todo)
 
   # Next Week - Friday (Day 12)
-  order34 = seed_order.(customers.jane, 12, :unconfirmed, :pending)
-  seed_order_item.(order34, products.carrot_cake, "1", :todo)
-  seed_order_item.(order34, products.bread, "2", :todo)
+  order34 = seed_order.(sunrise_bakery, customers.jane, 12, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order34, products.carrot_cake, "1", :todo)
+  seed_order_item.(sunrise_bakery, order34, products.bread, "2", :todo)
 
-  order35 = seed_order.(customers.michael, 12, :unconfirmed, :pending)
-  seed_order_item.(order35, products.choc_cake, "1", :todo)
-  seed_order_item.(order35, products.almond_cookies, "12", :todo)
-  seed_order_item.(order35, products.rye_loaf, "1", :todo)
+  order35 = seed_order.(sunrise_bakery, customers.michael, 12, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order35, products.choc_cake, "1", :todo)
+  seed_order_item.(sunrise_bakery, order35, products.almond_cookies, "12", :todo)
+  seed_order_item.(sunrise_bakery, order35, products.rye_loaf, "1", :todo)
 
   # Weekend Event (Day 13-14)
-  order36 = seed_order.(customers.bob, 13, :unconfirmed, :pending)
-  seed_order_item.(order36, products.choc_cake, "2", :todo)
-  seed_order_item.(order36, products.carrot_cake, "1", :todo)
-  seed_order_item.(order36, products.bread, "4", :todo)
-  seed_order_item.(order36, products.muffins, "12", :todo)
+  order36 = seed_order.(sunrise_bakery, customers.bob, 13, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order36, products.choc_cake, "2", :todo)
+  seed_order_item.(sunrise_bakery, order36, products.carrot_cake, "1", :todo)
+  seed_order_item.(sunrise_bakery, order36, products.bread, "4", :todo)
+  seed_order_item.(sunrise_bakery, order36, products.muffins, "12", :todo)
 
-  order37 = seed_order.(customers.alice, 14, :unconfirmed, :pending)
-  seed_order_item.(order37, products.croissants, "18", :todo)
-  seed_order_item.(order37, products.oatmeal_cookies, "24", :todo)
+  order37 = seed_order.(sunrise_bakery, customers.alice, 14, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order37, products.croissants, "18", :todo)
+  seed_order_item.(sunrise_bakery, order37, products.oatmeal_cookies, "24", :todo)
 
-  order38 = seed_order.(customers.grace, 14, :unconfirmed, :pending)
-  seed_order_item.(order38, products.gf_cupcakes, "12", :todo)
-  seed_order_item.(order38, products.cheese_danish, "10", :todo)
+  order38 = seed_order.(sunrise_bakery, customers.grace, 14, :unconfirmed, :pending)
+  seed_order_item.(sunrise_bakery, order38, products.gf_cupcakes, "12", :todo)
+  seed_order_item.(sunrise_bakery, order38, products.cheese_danish, "10", :todo)
 
-  # -- 5. Recalculate persisted order totals now that all items exist
+  # ------------------------------------------------------------------------------
+  # 5. Bluebird Cafe sample dataset
+  # ------------------------------------------------------------------------------
+
+  bluebird_materials = %{
+    espresso_beans:
+      seed_material.(
+        bluebird_cafe,
+        "Espresso Beans",
+        "ESP-001",
+        :gram,
+        "0.030",
+        "2000",
+        "8000"
+      ),
+    oat_milk:
+      seed_material.(
+        bluebird_cafe,
+        "Oat Milk",
+        "OAT-DRINK-001",
+        :milliliter,
+        "0.004",
+        "1500",
+        "6000"
+      )
+  }
+
+  Enum.each(bluebird_materials, fn {_key, material} ->
+    add_initial_stock.(bluebird_cafe, material, "2500")
+  end)
+
+  bluebird_supplier = seed_supplier.(bluebird_cafe, "Cafe Co-op", "orders@cafeco.test")
+
+  bluebird_po = seed_purchase_order.(bluebird_cafe, bluebird_supplier, :ordered)
+
+  seed_purchase_order_item.(
+    bluebird_cafe,
+    bluebird_po,
+    bluebird_materials.espresso_beans,
+    "4000",
+    "0.028"
+  )
+
+  seed_purchase_order_item.(
+    bluebird_cafe,
+    bluebird_po,
+    bluebird_materials.oat_milk,
+    "3000",
+    "0.0035"
+  )
+
+  bluebird_products = %{
+    espresso_muffin: seed_product.(bluebird_cafe, "Espresso Crumble Muffin", "BB-MUF-001", "3.49"),
+    cold_brew: seed_product.(bluebird_cafe, "Nitro Cold Brew", "BB-DRINK-001", "4.25")
+  }
+
+  bluebird_recipes = %{
+    espresso_muffin:
+      seed_recipe.(
+        bluebird_products.espresso_muffin,
+        "Blend espresso crumble batter, top with oat streusel, bake at 185°C for 18 minutes."
+      )
+  }
+
+  link_recipe_material.(bluebird_recipes.espresso_muffin, bluebird_materials.espresso_beans, "45")
+  link_recipe_material.(bluebird_recipes.espresso_muffin, bluebird_materials.oat_milk, "120")
+
+  bluebird_customer =
+    seed_customer.(
+      bluebird_cafe,
+      "Naomi",
+      "Rivera",
+      "naomi@bluebird.test",
+      "3125550101",
+      %{
+        street: "77 Sparrow Ln",
+        city: "Chicago",
+        state: "IL",
+        zip: "60622",
+        country: "USA"
+      }
+    )
+
+  bluebird_order = seed_order.(bluebird_cafe, bluebird_customer, 2, :confirmed, :pending)
+  seed_order_item.(bluebird_cafe, bluebird_order, bluebird_products.espresso_muffin, "12", :todo)
+  seed_order_item.(bluebird_cafe, bluebird_order, bluebird_products.cold_brew, "18", :todo)
+
+  # -- 6. Recalculate persisted order totals now that all items exist
   for order <- Orders.list_orders!(%{}, load: [:items]) do
     order
     |> Ash.Changeset.for_update(:update, %{})

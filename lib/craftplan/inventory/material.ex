@@ -15,18 +15,13 @@ defmodule Craftplan.Inventory.Material do
   end
 
   actions do
-    defaults [
-      :read,
-      :destroy,
-      create: [
-        :name,
-        :sku,
-        :unit,
-        :price,
-        :minimum_stock,
-        :maximum_stock
-      ],
-      update: [
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+
+      accept [
+        :organization_id,
         :name,
         :sku,
         :unit,
@@ -34,7 +29,21 @@ defmodule Craftplan.Inventory.Material do
         :minimum_stock,
         :maximum_stock
       ]
-    ]
+    end
+
+    update :update do
+      primary? true
+
+      accept [
+        :organization_id,
+        :name,
+        :sku,
+        :unit,
+        :price,
+        :minimum_stock,
+        :maximum_stock
+      ]
+    end
 
     update :update_allergens do
       require_atomic? false
@@ -80,8 +89,19 @@ defmodule Craftplan.Inventory.Material do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :name, :string do
       public? true
@@ -124,6 +144,12 @@ defmodule Craftplan.Inventory.Material do
   end
 
   relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
+
     has_many :movements, Craftplan.Inventory.Movement
     has_many :material_allergens, MaterialAllergen
     has_many :material_nutritional_facts, MaterialNutritionalFact
@@ -139,7 +165,7 @@ defmodule Craftplan.Inventory.Material do
   end
 
   identities do
-    identity :name, [:name]
-    identity :sku, [:sku]
+    identity :name, [:organization_id, :name]
+    identity :sku, [:organization_id, :sku]
   end
 end

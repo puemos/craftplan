@@ -35,11 +35,14 @@ defmodule Craftplan.Inventory.PurchaseOrderItem do
 
     create :create do
       primary? true
-      accept [:purchase_order_id, :material_id, :quantity, :unit_price]
+
+      accept [:organization_id, :purchase_order_id, :material_id, :quantity, :unit_price]
     end
 
     update :update do
-      accept [:quantity, :unit_price]
+      primary? true
+
+      accept [:organization_id, :quantity, :unit_price]
     end
   end
 
@@ -53,8 +56,19 @@ defmodule Craftplan.Inventory.PurchaseOrderItem do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+    global? true
+  end
+
   attributes do
     uuid_primary_key :id
+
+    attribute :organization_id, :uuid do
+      allow_nil? true
+      public? true
+    end
 
     attribute :quantity, :decimal do
       allow_nil? false
@@ -69,6 +83,12 @@ defmodule Craftplan.Inventory.PurchaseOrderItem do
   end
 
   relationships do
+    belongs_to :organization, Craftplan.Organizations.Organization do
+      attribute_type :uuid
+      source_attribute :organization_id
+      allow_nil? true
+    end
+
     belongs_to :purchase_order, Craftplan.Inventory.PurchaseOrder do
       allow_nil? false
     end

@@ -13,16 +13,18 @@ defmodule CraftplanWeb.LiveNav do
 
   defp assign_nav_section(_params, url, socket) do
     path = URI.parse(url).path || ""
+    base_path = socket.assigns[:organization_base_path] || ""
+    scoped_path = String.replace_prefix(path, base_path, "")
 
     section =
       cond do
-        String.starts_with?(path, "/manage/production") -> :production
-        String.starts_with?(path, "/manage/inventory") -> :inventory
-        String.starts_with?(path, "/manage/purchasing") -> :purchasing
-        String.starts_with?(path, "/manage/products") -> :products
-        String.starts_with?(path, "/manage/orders") -> :orders
-        String.starts_with?(path, "/manage/customers") -> :customers
-        String.starts_with?(path, "/manage/settings") -> :settings
+        String.starts_with?(scoped_path, "/manage/production") -> :production
+        String.starts_with?(scoped_path, "/manage/inventory") -> :inventory
+        String.starts_with?(scoped_path, "/manage/purchasing") -> :purchasing
+        String.starts_with?(scoped_path, "/manage/products") -> :products
+        String.starts_with?(scoped_path, "/manage/orders") -> :orders
+        String.starts_with?(scoped_path, "/manage/customers") -> :customers
+        String.starts_with?(scoped_path, "/manage/settings") -> :settings
         true -> nil
       end
 

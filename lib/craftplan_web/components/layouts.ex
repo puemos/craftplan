@@ -17,7 +17,6 @@ defmodule CraftplanWeb.Layouts do
   attr :current_path, :string, default: ""
   attr :nav_section, :atom, default: nil
   attr :current_user, :any, default: nil
-  attr :cart, :any, default: nil
   attr :flash, :map, default: %{}
   attr :socket, :any, default: nil
   attr :page_title, :string, default: nil
@@ -144,14 +143,6 @@ defmodule CraftplanWeb.Layouts do
               </div>
 
               <div class="flex items-center gap-4">
-                <div :if={@cart} class="relative">
-                  {live_render(@socket, CraftplanWeb.CartLive,
-                    id: "cart_live",
-                    session: %{"cart_id" => @cart.id},
-                    sticky: true
-                  )}
-                </div>
-
                 <div :if={@current_user} class="relative">
                   <button
                     type="button"
@@ -583,12 +574,7 @@ defmodule CraftplanWeb.Layouts do
   end
 
   defp shop_links do
-    [
-      %{label: "Home", navigate: ~p"/", icon: :home, exact: "/"},
-      %{label: "Catalog", navigate: ~p"/catalog", icon: :catalog, exact: "/catalog"},
-      %{label: "Contact", navigate: ~p"/catalog", icon: :contact},
-      %{label: "About us", navigate: ~p"/catalog", icon: :about}
-    ]
+    []
   end
 
   defp compute_links(current_path, nav_section, links) do

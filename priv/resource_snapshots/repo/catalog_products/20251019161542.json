@@ -41,24 +41,12 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "unit_price",
-      "type": "decimal"
+      "source": "name",
+      "type": "text"
     },
     {
       "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "quantity",
-      "type": "decimal"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"todo\"",
+      "default": "\"draft\"",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
@@ -69,6 +57,45 @@
       "type": "text"
     },
     {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "price",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sku",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "photos",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
       "allow_nil?": true,
       "default": "nil",
       "generated?": false,
@@ -77,8 +104,32 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "consumed_at",
-      "type": "utc_datetime"
+      "source": "featured_photo",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"available\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "selling_availability",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "max_daily_quantity",
+      "type": "bigint"
     },
     {
       "allow_nil?": false,
@@ -103,68 +154,6 @@
       "size": null,
       "source": "updated_at",
       "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "orders_items_order_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "orders_orders"
-      },
-      "scale": null,
-      "size": null,
-      "source": "order_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "orders_items_product_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "catalog_products"
-      },
-      "scale": null,
-      "size": null,
-      "source": "product_id",
-      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -172,14 +161,43 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "B761705B9ED254700A5A1CA066C5E39535B34564853157B83F9D02DFAAC2FCA4",
-  "identities": [],
+  "hash": "11AAE7D7AEEA3524D397DA4056AF90105DF0C64E08422F4F28CF19B6AEAB0FAE",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "catalog_products_name_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "name"
+        }
+      ],
+      "name": "name",
+      "nils_distinct?": true,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "catalog_products_sku_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "sku"
+        }
+      ],
+      "name": "sku",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
-    "attribute": "organization_id",
-    "global": true,
-    "strategy": "attribute"
+    "attribute": null,
+    "global": null,
+    "strategy": null
   },
   "repo": "Elixir.Craftplan.Repo",
   "schema": null,
-  "table": "orders_items"
+  "table": "catalog_products"
 }

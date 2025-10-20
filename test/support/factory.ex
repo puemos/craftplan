@@ -11,11 +11,50 @@ defmodule Craftplan.Test.Factory do
   alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.MaterialAllergen
   alias Craftplan.Orders.Order
+  alias Craftplan.Organizations
 
   defp staff_actor, do: Craftplan.DataCase.staff_actor()
 
+  def create_organization!(attrs \\ %{}, actor \\ Craftplan.DataCase.admin_actor()) do
+    base_name = Map.get(attrs, :name, "Test Organization")
+
+    slug =
+      Map.get_lazy(attrs, :slug, fn ->
+        base_name
+        |> String.downcase()
+        |> String.replace(~r/[^a-z0-9]+/, "-")
+        |> Kernel.<>("-" <> Integer.to_string(System.unique_integer([:positive])))
+      end)
+
+    params =
+      attrs
+      |> Map.put(:name, base_name)
+      |> Map.put(:slug, slug)
+      |> Map.put_new(:status, :active)
+
+    Organizations.create_organization!(params, actor: actor)
+  end
+
+  defp pop_organization(attrs) do
+    {organization, rest} = Map.pop(attrs, :organization)
+
+    cond do
+      match?(%{__struct__: Craftplan.Organizations.Organization}, organization) ->
+        {organization, rest}
+
+      organization == nil ->
+        {org_attrs, rest_without_attrs} = Map.pop(rest, :organization_attrs, %{})
+        {create_organization!(org_attrs), rest_without_attrs}
+
+      true ->
+        raise ArgumentError, "expected :organization to be an Organizations.Organization struct"
+    end
+  end
+
   # Products
   def create_product!(attrs \\ %{}, actor \\ staff_actor()) do
+    {organization, attrs} = pop_organization(attrs)
+
     params =
       %{
         name: Map.get(attrs, :name, "Test Product"),
@@ -26,11 +65,14 @@ defmodule Craftplan.Test.Factory do
 
     Product
     |> Ash.Changeset.for_create(:create, params)
+    |> Organizations.put_tenant(organization)
     |> Ash.create!(actor: actor)
   end
 
   # Materials & Allergens
   def create_material!(attrs \\ %{}, actor \\ staff_actor()) do
+    {organization, attrs} = pop_organization(attrs)
+
     params =
       %{
         name: Map.get(attrs, :name, "Test Material"),
@@ -43,6 +85,7 @@ defmodule Craftplan.Test.Factory do
 
     Material
     |> Ash.Changeset.for_create(:create, params)
+    |> Organizations.put_tenant(organization)
     |> Ash.create!(actor: actor)
   end
 
@@ -67,6 +110,8 @@ defmodule Craftplan.Test.Factory do
 
   # Customers
   def create_customer!(attrs \\ %{}, _actor \\ staff_actor()) do
+    {organization, attrs} = pop_organization(attrs)
+
     params =
       %{
         type: :individual,
@@ -77,6 +122,7 @@ defmodule Craftplan.Test.Factory do
 
     Customer
     |> Ash.Changeset.for_create(:create, params)
+    |> Organizations.put_tenant(organization)
     |> Ash.create!()
   end
 
@@ -84,6 +130,10 @@ defmodule Craftplan.Test.Factory do
   def create_order_with_items!(customer, items, opts \\ []) do
     actor = Keyword.get(opts, :actor, staff_actor())
     delivery_date = Keyword.get(opts, :delivery_date, DateTime.utc_now())
+
+    organization_id =
+      Map.get(customer, :organization_id) ||
+        raise ArgumentError, "customer must belong to an organization"
 
     params = %{
       customer_id: customer.id,
@@ -94,6 +144,7 @@ defmodule Craftplan.Test.Factory do
     {:ok, order} =
       Order
       |> Ash.Changeset.for_create(:create, params)
+      |> Organizations.put_tenant(organization_id)
       |> Ash.create(actor: actor)
 
     Ash.reload!(order, load: [items: [product: [:name, :sku]]], actor: actor)
