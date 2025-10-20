@@ -238,6 +238,12 @@ defmodule Craftplan.Accounts.User do
     end
   end
 
+  relationships do
+    has_many :memberships, Craftplan.Accounts.Membership do
+      destination_attribute :user_id
+    end
+  end
+
   identities do
     identity :unique_email, [:email]
   end

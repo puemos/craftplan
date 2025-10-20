@@ -62,7 +62,8 @@ defmodule Craftplan.Inventory.ForecastMetrics do
 
       length(samples) < minimum_samples ->
         avg =
-          avg_daily_use(actual_samples, planned_samples, opts)
+          actual_samples
+          |> avg_daily_use(planned_samples, opts)
           |> D.mult(D.new("0.5"))
 
         max_decimal(avg, D.new(0))
@@ -143,8 +144,6 @@ defmodule Craftplan.Inventory.ForecastMetrics do
 
     if compare(avg_daily_use, 0) == :gt do
       D.div(on_hand, avg_daily_use)
-    else
-      nil
     end
   end
 
@@ -155,14 +154,11 @@ defmodule Craftplan.Inventory.ForecastMetrics do
   """
   @spec stockout_date([{Date.t(), decimal()}]) :: Date.t() | nil
   def stockout_date(projected_balances) do
-    projected_balances
-    |> Enum.find_value(fn {date, balance} ->
+    Enum.find_value(projected_balances, fn {date, balance} ->
       balance = decimal_from_number(balance)
 
       if compare(balance, 0) == :lt do
         date
-      else
-        nil
       end
     end)
   end
@@ -221,7 +217,8 @@ defmodule Craftplan.Inventory.ForecastMetrics do
 
         {cover_days, avg} ->
           target_stock =
-            decimal_from_number(avg)
+            avg
+            |> decimal_from_number()
             |> D.mult(decimal_from_number(cover_days))
 
           current_stock = D.add(on_hand, on_order)
@@ -234,8 +231,7 @@ defmodule Craftplan.Inventory.ForecastMetrics do
           min_decimal(base_needed, max_additional)
       end
 
-    capped_needed
-    |> ceil_to_pack_size(pack_size)
+    ceil_to_pack_size(capped_needed, pack_size)
   end
 
   @doc """
@@ -285,8 +281,7 @@ defmodule Craftplan.Inventory.ForecastMetrics do
         nil
 
       _ ->
-        (Enum.sum(values) / length(values))
-        |> D.from_float()
+        D.from_float(Enum.sum(values) / length(values))
     end
   end
 
@@ -295,7 +290,7 @@ defmodule Craftplan.Inventory.ForecastMetrics do
     |> Enum.map(&extract_sample_value/1)
     |> Enum.reject(&is_nil/1)
     |> Enum.map(fn
-      %Decimal{} = decimal -> D.to_float(decimal)
+      %D{} = decimal -> D.to_float(decimal)
       value when is_number(value) -> value * 1.0
     end)
   end
@@ -303,10 +298,10 @@ defmodule Craftplan.Inventory.ForecastMetrics do
   defp extract_sample_value({_, value}), do: value
   defp extract_sample_value(%{quantity: value}), do: value
   defp extract_sample_value(%{value: value}), do: value
-  defp extract_sample_value(value) when is_number(value) or is_struct(value, Decimal), do: value
+  defp extract_sample_value(value) when is_number(value) or is_struct(value, D), do: value
   defp extract_sample_value(_), do: nil
 
-  defp decimal_from_number(%Decimal{} = decimal), do: decimal
+  defp decimal_from_number(%D{} = decimal), do: decimal
   defp decimal_from_number(value) when is_integer(value), do: D.new(value)
   defp decimal_from_number(value) when is_float(value), do: D.from_float(value)
   defp decimal_from_number(value) when is_binary(value), do: D.new(value)
@@ -327,6 +322,6 @@ defmodule Craftplan.Inventory.ForecastMetrics do
   end
 
   defp compare(left, right) do
-    Decimal.compare(decimal_from_number(left), decimal_from_number(right))
+    D.compare(decimal_from_number(left), decimal_from_number(right))
   end
 end

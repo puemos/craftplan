@@ -140,7 +140,8 @@ defmodule Craftplan.InventoryForecastingTest do
       |> Enum.with_index()
       |> Enum.map(fn {_qty, idx} -> Date.add(today, idx) end)
 
-    Enum.zip(future_quantities, days_range)
+    future_quantities
+    |> Enum.zip(days_range)
     |> Enum.each(fn {qty, day} ->
       dt = DateTime.new!(day, ~T[10:00:00], tz)
       order!(product, dt, qty)
@@ -188,14 +189,16 @@ defmodule Craftplan.InventoryForecastingTest do
     actual_balances =
       Enum.map(flour_row.projected_balances, fn %{balance: balance} -> balance end)
 
-    Enum.zip(actual_balances, Enum.map(expected_balances, &Decimal.new/1))
+    actual_balances
+    |> Enum.zip(Enum.map(expected_balances, &Decimal.new/1))
     |> Enum.each(fn {actual, expected} ->
       assert Decimal.compare(actual, expected) == :eq
     end)
   end
 
   defp cover_equals?(nil, nil), do: true
-  defp cover_equals?(%Decimal{} = left, %Decimal{} = right),
-    do: Decimal.compare(left, right) == :eq
+
+  defp cover_equals?(%Decimal{} = left, %Decimal{} = right), do: Decimal.compare(left, right) == :eq
+
   defp cover_equals?(_, _), do: false
 end

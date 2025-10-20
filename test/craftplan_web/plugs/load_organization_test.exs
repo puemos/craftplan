@@ -1,6 +1,8 @@
 defmodule CraftplanWeb.Plugs.LoadOrganizationTest do
   use CraftplanWeb.ConnCase, async: true
 
+  alias Ash.Changeset
+  alias Craftplan.Accounts.Membership
   alias Craftplan.Organizations.Provisioning
   alias CraftplanWeb.Plugs.LoadOrganization
 
@@ -46,6 +48,16 @@ defmodule CraftplanWeb.Plugs.LoadOrganizationTest do
   test "merges current user details into actor map", %{conn: conn, organization: organization} do
     user = Craftplan.Test.AuthHelpers.register_user!(role: :staff)
 
+    {:ok, membership} =
+      Membership
+      |> Changeset.for_create(:create, %{
+        organization_id: organization.id,
+        user_id: user.id,
+        role: :staff,
+        status: :active
+      })
+      |> Ash.create(authorize?: false, tenant: organization.id)
+
     conn =
       conn
       |> assign(:current_user, user)
@@ -57,6 +69,7 @@ defmodule CraftplanWeb.Plugs.LoadOrganizationTest do
     assert actor.organization_id == organization.id
     assert actor.role == :staff
     assert actor.id == user.id
+    assert actor.membership_id == membership.id
     assert conn.assigns.organization_actor == actor
   end
 

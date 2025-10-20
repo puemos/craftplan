@@ -98,6 +98,7 @@ defmodule CraftplanWeb.AuthOverrides do
     set :reset_toggle_text, "Forgot your password?"
     set :show_first, :sign_in
     set :hide_class, "hidden"
+    set :sign_in_form_module, CraftplanWeb.Auth.Components.Password.SignInForm
   end
 
   override AshAuthentication.Phoenix.Components.Password.SignInForm do
