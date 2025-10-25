@@ -115,7 +115,7 @@ Goals
 
 Progress
 - ✅ Forecast calculator + Ash `:owner_grid_metrics` action shipped (Milestone A per [plans/inventory_forecast_grid.md](./inventory_forecast_grid.md)).
-- 🔄 Milestone B kickoff: refactoring `CraftplanWeb.Manage.Inventory.ForecastLive` defaults, building metrics band/control components, and instrumenting telemetry.
+- 🔄 Milestone B kickoff: `CraftplanWeb.InventoryLive.Index` now assigns planning defaults and renders the new Inventory metrics band component; telemetry + control wiring land next.
 - 📋 LiveView + Purchasing dependencies tracked in `plans/inventory_forecast_grid.md` Next Steps section; coordination with design scheduled for week of Oct 27.
 
 Next Up

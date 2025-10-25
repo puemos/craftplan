@@ -5,7 +5,14 @@ defmodule CraftplanWeb.InventoryLive.Index do
   alias Craftplan.Inventory
   alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
+  alias CraftplanWeb.Components.Inventory, as: InventoryComponents
   alias CraftplanWeb.Components.Page
+
+  require Logger
+
+  @default_service_level 0.95
+  @default_horizon_days 7
+  @default_risk_filters [:shortage, :watch, :balanced]
 
   @impl true
   def render(assigns) do
@@ -201,6 +208,27 @@ defmodule CraftplanWeb.InventoryLive.Index do
                   </:actions>
                 </Page.surface>
               </div>
+
+              <Page.surface padding="p-4">
+                <:header>
+                  <div>
+                    <h3 class="text-sm font-semibold text-stone-900">Owner metrics</h3>
+                    <p class="text-xs text-stone-500">
+                      Service level, safety stock, and reorder point per material at a glance.
+                    </p>
+                  </div>
+                </:header>
+                <InventoryComponents.metrics_band
+                  id="owner-metrics-band"
+                  rows={@forecast_rows}
+                  service_level={@service_level}
+                  horizon_days={@horizon_days}
+                  loading?={!@metrics_loaded?}
+                />
+                <p :if={@forecast_error} class="mt-3 text-xs text-rose-600">
+                  {@forecast_error}
+                </p>
+              </Page.surface>
 
               <Page.surface full_bleed class="overflow-hidden">
                 <div class="overflow-x-auto">
@@ -441,9 +469,10 @@ defmodule CraftplanWeb.InventoryLive.Index do
   end
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    socket = assign_forecast_defaults(socket, session)
+    days_range = generate_week_range(today, socket.assigns.horizon_days)
 
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
@@ -457,6 +486,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
       |> assign(:material_details, nil)
       |> assign(:material_day_quantity, nil)
       |> assign(:material_day_balance, nil)
+      |> assign_owner_metrics()
 
     {:ok, socket}
   end
@@ -498,7 +528,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
 
   defp apply_action(socket, :forecast, _params) do
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = generate_week_range(today, socket.assigns.horizon_days)
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
     socket
@@ -507,6 +537,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
     |> assign(:today, today)
     |> assign(:days_range, days_range)
     |> assign(:materials_requirements, materials_requirements)
+    |> assign_owner_metrics()
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
@@ -576,22 +607,25 @@ defmodule CraftplanWeb.InventoryLive.Index do
   @impl true
   def handle_event("next_week", _params, socket) do
     # Move the date range forward by 7 days
-    new_start = Date.add(List.first(socket.assigns.days_range), 7)
-    days_range = generate_week_range(new_start)
+    horizon = socket.assigns.horizon_days
+    start_date = List.first(socket.assigns.days_range) || socket.assigns.today || Date.utc_today()
+    new_start = Date.add(start_date, horizon)
+    days_range = generate_week_range(new_start, horizon)
 
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
     {:noreply,
      socket
      |> assign(:days_range, days_range)
-     |> assign(:materials_requirements, materials_requirements)}
+     |> assign(:materials_requirements, materials_requirements)
+     |> assign_owner_metrics()}
   end
 
   @impl true
   def handle_event("today", _params, socket) do
     # Reset to current day and forward
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = generate_week_range(today, socket.assigns.horizon_days)
 
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
@@ -599,7 +633,8 @@ defmodule CraftplanWeb.InventoryLive.Index do
      socket
      |> assign(:today, today)
      |> assign(:days_range, days_range)
-     |> assign(:materials_requirements, materials_requirements)}
+     |> assign(:materials_requirements, materials_requirements)
+     |> assign_owner_metrics()}
   end
 
   @impl true
@@ -670,6 +705,148 @@ defmodule CraftplanWeb.InventoryLive.Index do
   defp popover_label(_status, unit, _required, balance) do
     "Balance #{format_amount(unit, balance)}"
   end
+
+  defp assign_forecast_defaults(socket, session) do
+    prefs = forecast_preferences(session)
+
+    service_level =
+      prefs
+      |> Map.get("service_level")
+      |> normalize_service_level()
+
+    horizon_days =
+      prefs
+      |> Map.get("horizon_days")
+      |> normalize_horizon_days()
+
+    risk_filters =
+      prefs
+      |> Map.get("risk_filters")
+      |> normalize_risk_filters()
+
+    socket
+    |> assign(:service_level, service_level)
+    |> assign(:horizon_days, horizon_days)
+    |> assign(:risk_filters, risk_filters)
+    |> assign(:demand_delta, 0)
+    |> assign(:lead_time_override, nil)
+    |> assign(:metrics_loaded?, false)
+    |> assign(:forecast_rows, [])
+    |> assign(:forecast_error, nil)
+  end
+
+  defp assign_owner_metrics(%{assigns: %{days_range: days_range}} = socket) when days_range in [nil, []] do
+    assign(socket, :forecast_rows, [])
+  end
+
+  defp assign_owner_metrics(socket) do
+    actor = socket.assigns[:current_user]
+    days_range = socket.assigns.days_range || []
+
+    socket = assign(socket, :metrics_loaded?, false)
+
+    rows =
+      InventoryForecasting.owner_grid_rows(
+        days_range,
+        [service_level: socket.assigns.service_level],
+        actor
+      )
+
+    socket
+    |> assign(:forecast_rows, rows)
+    |> assign(:metrics_loaded?, true)
+    |> assign(:forecast_error, nil)
+  rescue
+    exception ->
+      Logger.error("Unable to load forecast metrics: #{Exception.message(exception)}",
+        exception: exception,
+        stacktrace: __STACKTRACE__
+      )
+
+      socket
+      |> assign(:forecast_rows, [])
+      |> assign(:metrics_loaded?, false)
+      |> assign(:forecast_error, "Unable to load forecast metrics right now.")
+  end
+
+  defp normalize_service_level(nil), do: @default_service_level
+
+  defp normalize_service_level(%Decimal{} = value) do
+    value
+    |> Decimal.to_float()
+    |> normalize_service_level()
+  end
+
+  defp normalize_service_level(value) when is_binary(value) do
+    case Float.parse(value) do
+      {float, _} -> normalize_service_level(float)
+      :error -> @default_service_level
+    end
+  end
+
+  defp normalize_service_level(value) when is_integer(value) and value > 1 do
+    normalize_service_level(value / 100)
+  end
+
+  defp normalize_service_level(value) when is_integer(value) do
+    normalize_service_level(value * 1.0)
+  end
+
+  defp normalize_service_level(value) when is_float(value) do
+    allowed_levels = [0.9, 0.95, 0.975, 0.99]
+
+    Enum.min_by(allowed_levels, fn level -> abs(level - value) end)
+  end
+
+  defp normalize_horizon_days(nil), do: @default_horizon_days
+
+  defp normalize_horizon_days(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, _} -> normalize_horizon_days(int)
+      :error -> @default_horizon_days
+    end
+  end
+
+  defp normalize_horizon_days(value) when value in [7, 14, 28], do: value
+  defp normalize_horizon_days(_value), do: @default_horizon_days
+
+  defp normalize_risk_filters(nil), do: @default_risk_filters
+
+  defp normalize_risk_filters(filters) when is_list(filters) do
+    filters
+    |> Enum.map(&normalize_risk_filter/1)
+    |> Enum.filter(&(&1 in @default_risk_filters))
+    |> Enum.uniq()
+    |> case do
+      [] -> @default_risk_filters
+      normalized -> normalized
+    end
+  end
+
+  defp normalize_risk_filters(_), do: @default_risk_filters
+
+  defp normalize_risk_filter(value) when value in @default_risk_filters, do: value
+
+  defp normalize_risk_filter(value) when is_binary(value) do
+    case String.downcase(value) do
+      "shortage" -> :shortage
+      "watch" -> :watch
+      "balanced" -> :balanced
+      _ -> nil
+    end
+  end
+
+  defp normalize_risk_filter(_), do: nil
+
+  defp forecast_preferences(nil), do: %{}
+
+  defp forecast_preferences(session) when is_map(session) do
+    Map.get(session, "inventory_forecast_preferences") ||
+      Map.get(session, :inventory_forecast_preferences) ||
+      %{}
+  end
+
+  defp forecast_preferences(_), do: %{}
 
   defp inventory_sub_links(live_action) do
     [

@@ -8,6 +8,7 @@ defmodule CraftplanWeb.ManageInventoryForecastNavLiveTest do
     {:ok, view, _} = live(conn, ~p"/manage/inventory/forecast")
 
     assert has_element?(view, "#controls")
+    assert has_element?(view, "#owner-metrics-band")
     initial = render(view)
 
     view

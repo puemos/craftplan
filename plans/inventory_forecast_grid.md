@@ -77,14 +77,15 @@ Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 **Objectives**: Responsive metrics band, control panel, and diff-friendly updates.
 
 - [~] Confirm LiveView module path; refactor mount/init to assign defaults: `service_level`, `horizon_days`, `risk_filters`, `demand_delta`, `lead_time_override`, `metrics_loaded?`.
-  - ✅ Module + routing confirmed; helper signature defined (`assign_defaults(socket, opts \\ %{})`).
-  - 🏗️ Pending: implement helper + session persistence; ensure telemetry span (`:mount_defaults_ms`) captures hydration timing post-defaults.
-- [ ] Introduce a metrics band component under `CraftplanWeb.Components.Inventory` with:
+  - ✅ Owner grid now lives in `CraftplanWeb.InventoryLive.Index` (`:forecast` action) with `assign_forecast_defaults/2` and `assign_owner_metrics/1` wiring defaults + Ash reads on mount and horizon changes.
+  - ⚠️ Session persistence + telemetry spans still pending; defaults reset on refresh until we add a storage hook.
+- [~] Introduce a metrics band component under `CraftplanWeb.Components.Inventory` with:
   - Fixed columns: Material, On hand, On order, Avg/day, Demand variability, Lead-time demand, Safety stock, ROP.
   - Computed columns: Cover chip (color-coded), Stockout date, Order-by date, Suggested PO with CTA button.
   - Inline explainers using `<.tooltip>` / `<.icon_help>` patterns.
-  - Component API: `metrics_band(assigns)` expects `rows`, `service_level`, and `horizon_days`; emits `phx-target` IDs (`material-#{row.id}`) for CTA buttons; wraps values in reusable `status_chip/1`.
-  - 📅 Design review w/ Jules & Priya on 2025-10-27 to lock spacing, chip colors, and glossary entrypoints.
+  - ✅ `CraftplanWeb.Components.Inventory.metrics_band/1` now renders risk chips, numeric columns, empty/loading states, and stub CTA buttons injected into the LiveView (`#owner-metrics-band`).
+  - Component API: `metrics_band(assigns)` expects `rows`, `service_level`, and `horizon_days`; emits `phx-value-material-id` on CTAs and wraps risk chips via `risk_chip_classes/1`.
+  - 📅 Design review w/ Jules & Priya on 2025-10-27 to lock spacing, chip colors, glossary entrypoints, and button hierarchy.
 - [ ] Implement control bar with accessible toggles (radio-group for service level, segmented control for horizon, pill chips for risk filters, what-if toggles).
   - Use `<.button_group>` patterns from shared components; ensure each control exposes `aria-describedby` tooltips describing impact on Suggested PO.
   - Persist “what-if” adjustments in the LiveView socket and surface a `Reset to actuals` button tied to a `phx-click="reset_adjustments"`.
@@ -182,8 +183,8 @@ Outstanding questions: None for Phase 1. Revisit as new requirements emerge.
 
 ## 9. Immediate Next Steps
 
-1. Confirm the `CraftplanWeb.Manage.Inventory.ForecastLive` entry point and refactor `mount/3` to assign the default planning controls before metrics load (Milestone B kickoff).
-2. Partner with design to lock the metrics band + control bar spec (tokens, breakpoints, glossary copy) and capture it in the shared Figma/Jira thread.
-3. Implement the `CraftplanWeb.Components.Inventory.metrics_band/1` + control bar skeletons, wiring them to the new `:owner_grid_metrics` action for initial data.
-4. Define the LiveView test plan (stream refresh, control interactions, risk chip coverage) and set up telemetry assertions that will be exercised once UI hooks land.
-5. Document the ForecastLive session persistence + telemetry contract (defaults helper, event names, expected timings) and circulate with QA/perf reviewers before coding.
+1. Add telemetry + instrumentation for `assign_owner_metrics/1` (duration, row count, service level, horizon) and decide on a persistence hook for forecast defaults (session or user setting).
+2. Partner with design to lock the control bar patterns (service level radios, horizon segments, risk pills) and wire them into the LiveView assigns/events.
+3. Implement the what-if controls (`demand_delta`, `lead_time_override`) plus risk filter toggles and ensure `assign_owner_metrics/1` respects the filters when streaming rows.
+4. Build the glossary/right-rail component and surface any warnings emitted by `ForecastMetrics` (missing data, defaults applied).
+5. Hook the Suggested PO CTA into the Purchasing flow (event wiring + navigation) and extend LiveView tests to cover CTA disabled states.
