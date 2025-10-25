@@ -348,17 +348,17 @@ defmodule CraftplanWeb.PlanLive.Index do
 
             <div class="absolute left-1/2 -translate-x-1/2 transform">
               <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
-                <span class="">
+                <span>
                   {Calendar.strftime(List.first(@days_range), "%B %Y")}
                 </span>
                 <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
-                  <span class="">
+                  <span>
                     //
                   </span>
-                  <span class="">
+                  <span>
                     {format_day_name(day)}
                   </span>
-                  <span class="">
+                  <span>
                     {format_short_date(day, @time_zone)}
                   </span>
                 </div>

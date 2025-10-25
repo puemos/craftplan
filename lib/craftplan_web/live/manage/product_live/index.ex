@@ -41,7 +41,7 @@ defmodule CraftplanWeb.ProductLive.Index do
             alt={product.name}
             class="h-5 w-5"
           />
-          <span class="">
+          <span>
             {product.name}
           </span>
         </div>

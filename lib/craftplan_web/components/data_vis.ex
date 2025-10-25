@@ -154,7 +154,7 @@ defmodule CraftplanWeb.Components.DataVis do
 
   def list(assigns) do
     ~H"""
-    <div class="">
+    <div>
       <dl class="-my-4 divide-y divide-stone-100">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
           <dt class="w-1/4 flex-none text-stone-500">{item.title}</dt>

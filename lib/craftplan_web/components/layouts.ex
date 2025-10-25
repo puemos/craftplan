@@ -258,24 +258,6 @@ defmodule CraftplanWeb.Layouts do
             </div>
           </li>
         </ul>
-
-        <section :if={@is_manage? and @shop_links != []} class="mt-8">
-          <p class="text-xs font-semibold uppercase tracking-wide text-stone-400">
-            Browse
-          </p>
-          <ul class="mt-3 space-y-1">
-            <li :for={link <- @shop_links}>
-              <.link
-                navigate={link.navigate}
-                class={nav_link_classes(link.active)}
-                data-active={link.active}
-              >
-                <.nav_icon name={link.icon} />
-                <span>{link.label}</span>
-              </.link>
-            </li>
-          </ul>
-        </section>
       </div>
 
       <div

@@ -48,7 +48,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               </div>
 
               <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
-                <div class="">
+                <div>
                   No materials in recipe
                 </div>
               </div>

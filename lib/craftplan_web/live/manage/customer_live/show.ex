@@ -17,7 +17,7 @@ defmodule CraftplanWeb.CustomerLive.Show do
     <.sub_nav links={@tabs_links} />
 
     <div class="p mt-4 space-y-6">
-      <div :if={@live_action in [:details, :show]}>
+      <.tabs_content :if={@live_action in [:details, :show]}>
         <div class="mt-8 space-y-8">
           <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <.list>
@@ -30,9 +30,9 @@ defmodule CraftplanWeb.CustomerLive.Show do
             </.list>
           </div>
         </div>
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :orders}>
+      <.tabs_content :if={@live_action == :orders}>
         <div class="mt-6 space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Orders History</h3>
@@ -69,9 +69,9 @@ defmodule CraftplanWeb.CustomerLive.Show do
             </:col>
           </.table>
         </div>
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :statistics}>
+      <.tabs_content :if={@live_action == :statistics}>
         <div class="mt-6 space-y-8">
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <.stat_card title="Total Orders" value={@customer.total_orders} />
@@ -82,7 +82,7 @@ defmodule CraftplanWeb.CustomerLive.Show do
             />
           </div>
         </div>
-      </div>
+      </.tabs_content>
     </div>
     """
   end

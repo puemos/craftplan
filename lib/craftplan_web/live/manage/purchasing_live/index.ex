@@ -14,22 +14,19 @@ defmodule CraftplanWeb.PurchasingLive.Index do
 
     ~H"""
     <div class="mt-4">
-      <.table id="purchase-orders" rows={@purchase_orders}>
+      <.table
+        id="purchase-orders"
+        rows={@purchase_orders}
+        row_click={fn po -> JS.navigate(~p"/manage/purchasing/#{po.reference}") end}
+      >
         <:col :let={po} label="Reference">
-          <.link navigate={~p"/manage/purchasing/#{po.reference}"}>
-            <.kbd>{po.reference}</.kbd>
-          </.link>
+          <.kbd>{po.reference}</.kbd>
         </:col>
         <:col :let={po} label="Supplier">{po.supplier.name}</:col>
         <:col :let={po} label="Status">{po.status}</:col>
         <:col :let={po} label="Ordered">{format_time(po.ordered_at, @time_zone)}</:col>
         <:col :let={po} label="Received">{format_time(po.received_at, @time_zone)}</:col>
 
-        <:action :let={po}>
-          <.link patch={~p"/manage/purchasing/#{po.reference}/add_item"}>
-            <.button size={:sm} variant={:outline}>Add Item</.button>
-          </.link>
-        </:action>
         <:action :let={po}>
           <.link :if={po.status != :received} phx-click={JS.push("receive", value: %{id: po.id})}>
             <.button size={:sm} variant={:primary}>Mark Received</.button>

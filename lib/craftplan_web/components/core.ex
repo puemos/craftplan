@@ -468,7 +468,7 @@ defmodule CraftplanWeb.Components.Core do
 
   def tabs_content(assigns) do
     ~H"""
-    <div class="content border-gray-200/70 relative mt-2 flex w-full items-center justify-center rounded-md border bg-white p-5">
+    <div class="content border-gray-200/70 relative rounded-md border bg-white p-5">
       {render_slot(@inner_block)}
     </div>
     """

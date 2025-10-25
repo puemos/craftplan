@@ -34,7 +34,7 @@ defmodule CraftplanWeb.OrderLive.Show do
     <.sub_nav links={@tabs_links} />
 
     <div class="mt-4 space-y-6">
-      <div :if={@live_action in [:details, :show, :edit]}>
+      <.tabs_content :if={@live_action in [:details, :show, :edit]}>
         <.list>
           <:item title="Reference">
             <.kbd>
@@ -80,9 +80,9 @@ defmodule CraftplanWeb.OrderLive.Show do
             {format_time(@order.inserted_at, @time_zone)}
           </:item>
         </.list>
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :items}>
+      <.tabs_content :if={@live_action == :items}>
         <.table id="order-items" rows={@order.items}>
           <:col :let={item} label="Product">
             <.link
@@ -137,7 +137,7 @@ defmodule CraftplanWeb.OrderLive.Show do
             </span>
           </:col>
         </.table>
-      </div>
+      </.tabs_content>
     </div>
 
     <.modal

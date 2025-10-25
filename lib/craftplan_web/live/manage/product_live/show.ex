@@ -24,7 +24,7 @@ defmodule CraftplanWeb.ProductLive.Show do
     <.sub_nav links={@tabs_links} />
 
     <div class="mt-6 space-y-6">
-      <div :if={@live_action in [:details, :show]}>
+      <.tabs_content :if={@live_action in [:details, :show]}>
         <.list>
           <:item title="Status">
             <.badge
@@ -76,9 +76,9 @@ defmodule CraftplanWeb.ProductLive.Show do
             {@product.max_daily_quantity}
           </:item>
         </.list>
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :recipe}>
+      <.tabs_content :if={@live_action == :recipe}>
         <.live_component
           module={CraftplanWeb.ProductLive.FormComponentRecipe}
           id="material-form"
@@ -90,9 +90,9 @@ defmodule CraftplanWeb.ProductLive.Show do
           patch={~p"/manage/products/#{@product.sku}/recipe"}
           on_cancel={hide_modal("product-material-modal")}
         />
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :nutrition}>
+      <.tabs_content :if={@live_action == :nutrition}>
         <div>
           <h3 class="my-4 text-lg font-medium">Nutritional Facts</h3>
           <p class="mb-4 text-sm text-stone-500">
@@ -103,9 +103,9 @@ defmodule CraftplanWeb.ProductLive.Show do
           <:col :let={fact} label="Nutrient">{fact.name}</:col>
           <:col :let={fact} label="Amount">{format_amount(fact.unit, fact.amount)}</:col>
         </.table>
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :photos}>
+      <.tabs_content :if={@live_action == :photos}>
         <.live_component
           module={CraftplanWeb.ProductLive.FormComponentPhotos}
           id={@product.id}
@@ -116,7 +116,7 @@ defmodule CraftplanWeb.ProductLive.Show do
           settings={@settings}
           patch={~p"/manage/products/#{@product.sku}"}
         />
-      </div>
+      </.tabs_content>
     </div>
 
     <.modal

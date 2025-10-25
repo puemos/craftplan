@@ -12,19 +12,23 @@ defmodule CraftplanWeb.InventoryLive.Show do
       |> assign_new(:breadcrumbs, fn -> [] end)
 
     ~H"""
+    <.header>
+      {@material.name}
+      <:actions>
+        <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
+          <.button>Edit</.button>
+        </.link>
+        <.link patch={~p"/manage/inventory/#{@material.sku}/adjust"} phx-click={JS.push_focus()}>
+          <.button variant={:primary}>Adjust Stock</.button>
+        </.link>
+      </:actions>
+    </.header>
+
     <.sub_nav links={@tabs_links} />
 
     <div class="mt-4 space-y-6">
-      <div :if={@live_action in [:details, :show]}>
+      <.tabs_content :if={@live_action in [:details, :show]}>
         <.list>
-          <:item title="Actions">
-            <.link patch={~p"/manage/inventory/#{@material.sku}/adjust"} phx-click={JS.push_focus()}>
-              <.button size={:sm} variant={:primary}>Adjust Stock</.button>
-            </.link>
-            <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
-              <.button size={:sm} variant={:primary}>Edit</.button>
-            </.link>
-          </:item>
           <:item title="Name">{@material.name}</:item>
           <:item title="SKU">
             <.kbd>
@@ -79,9 +83,9 @@ defmodule CraftplanWeb.InventoryLive.Show do
             <:col :let={poi} label="Status">{poi.purchase_order.status}</:col>
           </.table>
         </div>
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :allergens}>
+      <.tabs_content :if={@live_action == :allergens}>
         <.live_component
           module={CraftplanWeb.InventoryLive.FormComponentAllergens}
           id="material-allergens-form"
@@ -91,9 +95,9 @@ defmodule CraftplanWeb.InventoryLive.Show do
           patch={~p"/manage/inventory/#{@material.sku}/allergens"}
           allergens={@allergens_available}
         />
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :nutritional_facts}>
+      <.tabs_content :if={@live_action == :nutritional_facts}>
         <.live_component
           module={CraftplanWeb.InventoryLive.FormComponentNutritionalFacts}
           id="material-nutritional-facts-form"
@@ -103,9 +107,9 @@ defmodule CraftplanWeb.InventoryLive.Show do
           patch={~p"/manage/inventory/#{@material.sku}/nutritional_facts"}
           nutritional_facts={@nutritional_facts_available}
         />
-      </div>
+      </.tabs_content>
 
-      <div :if={@live_action == :stock}>
+      <.tabs_content :if={@live_action == :stock}>
         <div>
           <.table id="inventory_movements" no_margin rows={@material.movements}>
             <:empty>
@@ -126,7 +130,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
             <:col :let={entry} label="Reason">{entry.reason}</:col>
           </.table>
         </div>
-      </div>
+      </.tabs_content>
     </div>
 
     <.modal

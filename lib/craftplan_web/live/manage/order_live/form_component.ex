@@ -55,7 +55,7 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
             </div>
 
             <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
-              <div class="">
+              <div>
                 No items
               </div>
             </div>

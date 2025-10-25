@@ -35,7 +35,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
       </div>
 
       <div :if={@live_action == :allergens}>
-        <div class="">
+        <div>
           <.live_component
             module={CraftplanWeb.SettingsLive.AllergensComponent}
             id="allergens-component"
@@ -46,7 +46,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
       </div>
 
       <div :if={@live_action == :nutritional_facts}>
-        <div class="">
+        <div>
           <.live_component
             module={CraftplanWeb.SettingsLive.NutritionalFactsComponent}
             id="nutritional-facts-component"

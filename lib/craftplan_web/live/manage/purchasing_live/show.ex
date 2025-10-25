@@ -11,19 +11,23 @@ defmodule CraftplanWeb.PurchasingLive.Show do
       assign_new(assigns, :breadcrumbs, fn -> [] end)
 
     ~H"""
+    <.header>
+      {@po.reference}
+      <:actions>
+        <.link patch={~p"/manage/purchasing/#{@po.reference}/add_item"}>
+          <.button variant={:outline}>Add Item</.button>
+        </.link>
+        <.link :if={@po.status != :received} phx-click={JS.push("receive", value: %{id: @po.id})}>
+          <.button variant={:primary}>Mark Received</.button>
+        </.link>
+      </:actions>
+    </.header>
+
     <.sub_nav links={@tabs_links} />
 
     <div class="mt-4 space-y-4">
-      <%= if @live_action == :show do %>
+      <.tabs_content :if={@live_action in [:show]}>
         <.list>
-          <:item title="Actions">
-            <.link patch={~p"/manage/purchasing/#{@po.reference}/add_item"}>
-              <.button size={:sm} variant={:outline}>Add Item</.button>
-            </.link>
-            <.link :if={@po.status != :received} phx-click={JS.push("receive", value: %{id: @po.id})}>
-              <.button size={:sm} variant={:primary}>Mark Received</.button>
-            </.link>
-          </:item>
           <:item title="Reference">
             <.kbd>{@po.reference}</.kbd>
           </:item>
@@ -32,7 +36,8 @@ defmodule CraftplanWeb.PurchasingLive.Show do
           <:item title="Ordered At">{format_time(@po.ordered_at, @time_zone)}</:item>
           <:item title="Received At">{format_time(@po.received_at, @time_zone)}</:item>
         </.list>
-      <% else %>
+      </.tabs_content>
+      <.tabs_content :if={@live_action not in [:show]}>
         <div>
           <.table id="po-items" rows={@po.items}>
             <:col :let={i} label="Material">{i.material.name}</:col>
@@ -42,7 +47,7 @@ defmodule CraftplanWeb.PurchasingLive.Show do
             </:col>
           </.table>
         </div>
-      <% end %>
+      </.tabs_content>
     </div>
 
     <.modal
