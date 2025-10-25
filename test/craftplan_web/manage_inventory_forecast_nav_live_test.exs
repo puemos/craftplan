@@ -4,11 +4,10 @@ defmodule CraftplanWeb.ManageInventoryForecastNavLiveTest do
   import Phoenix.LiveViewTest
 
   @tag role: :staff
-  test "inventory forecast controls update view", %{conn: conn} do
+  test "legacy inventory forecast controls update view", %{conn: conn} do
     {:ok, view, _} = live(conn, ~p"/manage/inventory/forecast")
 
     assert has_element?(view, "#controls")
-    assert has_element?(view, "#owner-metrics-band")
     initial = render(view)
 
     view
@@ -24,5 +23,24 @@ defmodule CraftplanWeb.ManageInventoryForecastNavLiveTest do
 
     after_today = render(view)
     refute after_today == after_next
+  end
+
+  @tag role: :staff
+  test "owner forecast view exposes metrics band and control toggles", %{conn: conn} do
+    {:ok, view, _} = live(conn, ~p"/manage/inventory/forecast/reorder")
+
+    assert has_element?(view, "#owner-metrics-band")
+
+    view
+    |> element("button[data-service-level=\"0.9\"]")
+    |> render_click()
+
+    assert has_element?(view, "button[data-service-level=\"0.9\"][aria-pressed=true]")
+
+    view
+    |> element("button[data-horizon=\"14\"]")
+    |> render_click()
+
+    assert has_element?(view, "button[data-horizon=\"14\"][aria-pressed=true]")
   end
 end

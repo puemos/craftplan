@@ -1,8 +1,8 @@
 # Inventory Forecast Grid Improvement Plan
 
-Owner: You  
-Drafted by: Coding agent (Codex)  
-Last updated: 2025-10-25  
+Owner: You
+Drafted by: Coding agent (Codex)
+Last updated: 2025-10-25
 Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 
 ---
@@ -76,8 +76,8 @@ Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 
 **Objectives**: Responsive metrics band, control panel, and diff-friendly updates.
 
-- [~] Confirm LiveView module path; refactor mount/init to assign defaults: `service_level`, `horizon_days`, `risk_filters`, `demand_delta`, `lead_time_override`, `metrics_loaded?`.
-  - ✅ Owner grid now lives in `CraftplanWeb.InventoryLive.Index` (`:forecast` action) with `assign_forecast_defaults/2` and `assign_owner_metrics/1` wiring defaults + Ash reads on mount and horizon changes.
+- [x] Confirm LiveView module path; refactor mount/init to assign defaults: `service_level`, `horizon_days`, `risk_filters`, `demand_delta`, `lead_time_override`, `metrics_loaded?`.
+  - ✅ Owner metrics moved into dedicated `CraftplanWeb.InventoryLive.ReorderPlanner` (`/manage/inventory/forecast/reorder`) with planning controls, service-level/horizon toggles, and `InventoryComponents.metrics_band/1` wiring.
   - ⚠️ Session persistence + telemetry spans still pending; defaults reset on refresh until we add a storage hook.
 - [~] Introduce a metrics band component under `CraftplanWeb.Components.Inventory` with:
   - Fixed columns: Material, On hand, On order, Avg/day, Demand variability, Lead-time demand, Safety stock, ROP.
@@ -86,10 +86,10 @@ Status: Milestone B kickoff – LiveView defaults + component skeletons queued
   - ✅ `CraftplanWeb.Components.Inventory.metrics_band/1` now renders risk chips, numeric columns, empty/loading states, and stub CTA buttons injected into the LiveView (`#owner-metrics-band`).
   - Component API: `metrics_band(assigns)` expects `rows`, `service_level`, and `horizon_days`; emits `phx-value-material-id` on CTAs and wraps risk chips via `risk_chip_classes/1`.
   - 📅 Design review w/ Jules & Priya on 2025-10-27 to lock spacing, chip colors, glossary entrypoints, and button hierarchy.
-- [ ] Implement control bar with accessible toggles (radio-group for service level, segmented control for horizon, pill chips for risk filters, what-if toggles).
+- [~] Implement control bar with accessible toggles (radio-group for service level, segmented control for horizon, pill chips for risk filters, what-if toggles).
   - Use `<.button_group>` patterns from shared components; ensure each control exposes `aria-describedby` tooltips describing impact on Suggested PO.
   - Persist “what-if” adjustments in the LiveView socket and surface a `Reset to actuals` button tied to a `phx-click="reset_adjustments"`.
-  - 🎯 Aim to have clickable skeleton in dev by 2025-10-29 for usability walkthrough.
+  - ✅ Service level + horizon toggles live in the Reorder Planner page; risk filters/what-if toggles still pending.
 - [ ] Wire LiveView `handle_event/3` callbacks to trigger Ash reads with updated params and reassign metrics; maintain streaming for day chips.
   - Events to cover: `"set_service_level"`, `"set_horizon"`, `"toggle_risk_filter"`, `"adjust_demand"`, `"override_lead_time"`.
   - Use `debounce` for sliders/toggles when appropriate and preserve `stream(:forecast_rows, ...)` for the day chips.
@@ -183,8 +183,8 @@ Outstanding questions: None for Phase 1. Revisit as new requirements emerge.
 
 ## 9. Immediate Next Steps
 
-1. Add telemetry + instrumentation for `assign_owner_metrics/1` (duration, row count, service level, horizon) and decide on a persistence hook for forecast defaults (session or user setting).
-2. Partner with design to lock the control bar patterns (service level radios, horizon segments, risk pills) and wire them into the LiveView assigns/events.
-3. Implement the what-if controls (`demand_delta`, `lead_time_override`) plus risk filter toggles and ensure `assign_owner_metrics/1` respects the filters when streaming rows.
-4. Build the glossary/right-rail component and surface any warnings emitted by `ForecastMetrics` (missing data, defaults applied).
-5. Hook the Suggested PO CTA into the Purchasing flow (event wiring + navigation) and extend LiveView tests to cover CTA disabled states.
+1. Add telemetry + instrumentation for `CraftplanWeb.InventoryLive.ReorderPlanner` metrics loads (duration, row count, service level, horizon) and persist planner defaults to session/user settings.
+2. Partner with design to finalize the Reorder Planner control bar (risk filters, demand delta, lead-time override) and wire events into the LiveView.
+3. Implement what-if controls + risk filtering so the metrics band re-hydrates rows according to the toggles.
+4. Build the glossary/right-rail component and surface warnings when defaults (lead time, pack size) kick in.
+5. Hook the Suggested PO CTA into Purchasing (flow + navigation) and extend LiveView tests for CTA disabled states and risk filtering.

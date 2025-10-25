@@ -125,6 +125,7 @@ defmodule CraftplanWeb.Router do
       # Inventory
       live "/manage/inventory", InventoryLive.Index, :index
       live "/manage/inventory/forecast", InventoryLive.Index, :forecast
+      live "/manage/inventory/forecast/reorder", InventoryLive.ReorderPlanner, :reorder
       live "/manage/inventory/new", InventoryLive.Index, :new
       live "/manage/inventory/:sku", InventoryLive.Show, :show
       live "/manage/inventory/:sku/details", InventoryLive.Show, :details

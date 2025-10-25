@@ -9,6 +9,30 @@ defmodule CraftplanWeb.Components.DataVis do
 
   # alias Phoenix.LiveView.JS
 
+  attr :id, :string, default: nil
+  attr :class, :string, default: nil
+  attr :min_width, :string, default: "min-w-[1100px]"
+  attr :aria_label, :string, default: "Scrollable table"
+  attr :show_edges?, :boolean, default: true
+  slot :inner_block, required: true
+
+  def scroll_table(assigns) do
+    ~H"""
+    <div id={@id} class={["relative", @class]}>
+      <div
+        class="w-full overflow-x-auto overflow-y-hidden focus-visible:ring-primary-200 focus-visible:outline-none focus-visible:ring-2"
+        tabindex="0"
+        role="region"
+        aria-label={@aria_label}
+      >
+        <div class={["inline-block min-w-full align-top", @min_width]}>
+          {render_slot(@inner_block)}
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   @doc ~S"""
   Renders a table with generic styling.
 
