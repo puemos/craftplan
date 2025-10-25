@@ -87,7 +87,7 @@ defmodule CraftplanWeb.PurchasingLive.Index do
        selected_po: nil,
        purchasing_tab: :purchase_orders
      )
-     |> assign(:nav_sub_links, purchasing_sub_links(:purchase_orders))
+     |> assign(:nav_sub_links, purchasing_sub_links())
      |> assign(:breadcrumbs, purchasing_breadcrumbs(%{live_action: :index}))}
   end
 
@@ -136,17 +136,17 @@ defmodule CraftplanWeb.PurchasingLive.Index do
      |> push_event("close-modal", %{id: "po-item-modal"})}
   end
 
-  defp purchasing_sub_links(active) do
+  defp purchasing_sub_links do
     [
       %{
         label: "Purchase Orders",
         navigate: ~p"/manage/purchasing",
-        active: active == :purchase_orders
+        active: true
       },
       %{
         label: "Suppliers",
         navigate: ~p"/manage/purchasing/suppliers",
-        active: active == :suppliers
+        active: false
       }
     ]
   end

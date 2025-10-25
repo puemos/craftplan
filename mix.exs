@@ -45,6 +45,7 @@ defmodule Craftplan.MixProject do
       {:bandit, "~> 1.5"},
       {:bcrypt_elixir, "~> 3.0"},
       {:dns_cluster, "~> 0.2"},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ecto_sql, "~> 3.13"},
       {:esbuild, "~> 0.9", runtime: Mix.env() == :dev},
       {:ex_money_sql, "~> 1.0"},

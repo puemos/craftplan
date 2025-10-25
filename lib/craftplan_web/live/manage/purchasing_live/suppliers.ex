@@ -55,7 +55,7 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
     {:ok,
      socket
      |> assign(suppliers: suppliers, supplier: nil, purchasing_tab: :suppliers)
-     |> assign(:nav_sub_links, purchasing_sub_links(:suppliers))
+     |> assign(:nav_sub_links, purchasing_sub_links())
      |> assign(:breadcrumbs, suppliers_breadcrumbs(%{live_action: :index}))}
   end
 
@@ -88,17 +88,17 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
      |> push_event("close-modal", %{id: "supplier-modal"})}
   end
 
-  defp purchasing_sub_links(active) do
+  defp purchasing_sub_links do
     [
       %{
         label: "Purchase Orders",
         navigate: ~p"/manage/purchasing",
-        active: active == :purchase_orders
+        active: false
       },
       %{
         label: "Suppliers",
         navigate: ~p"/manage/purchasing/suppliers",
-        active: active == :suppliers
+        active: true
       }
     ]
   end

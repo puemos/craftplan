@@ -455,12 +455,15 @@ defmodule CraftplanWeb.ImportModalComponent do
     if entries == [] do
       :error
     else
-      {content, _} =
+      result =
         consume_uploaded_entries(socket, :csv, fn %{path: path}, _entry ->
           {:ok, File.read!(path)}
         end)
 
-      {:ok, content}
+      case result do
+        [content | _] -> {:ok, content}
+        [] -> :error
+      end
     end
   end
 
