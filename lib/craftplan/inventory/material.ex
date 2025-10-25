@@ -70,7 +70,7 @@ defmodule Craftplan.Inventory.Material do
   end
 
   policies do
-    # Public reads (used in storefront calculations); restrict writes
+    # Public reads (used for planner math, printouts, and exports); restrict writes
     policy action_type(:read) do
       authorize_if always()
     end

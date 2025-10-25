@@ -4,7 +4,7 @@ Last updated: 2025-10-19
 
 Progress Snapshot
 - Overall: [ ] Not started / [x] In progress / [ ] Done
-- Current Cycle (Oct 2025): Stabilize public print flows + prep costing foundations.
+- Current Cycle (Oct 2025): Stabilize internal print flows + prep costing foundations.
 - Milestone Health
   - [ ] M0: Launch Readiness Backlog (Active)
   - [ ] M1: Production Costing Foundations
@@ -19,7 +19,7 @@ Recently Completed
 - Over-capacity highlights in planner with metrics modal across tabs.
 - Make Sheet print view hides navigation and actions; invoice printable HTML scaffolded.
 - Product capacity (`max_daily_quantity`) enforced at checkout alongside global capacity.
-- Product availability gating in storefront; settings extended for tax/fulfillment/lead time/daily capacity/shipping.
+- Public storefront retired in favor of a login-first screen; capacity/tax/fulfillment settings remain for internal planning.
 - CSV import LiveComponent refactor with reusable wizard, per-entity configs, and LiveView tests.
 - Orders and Inventory LiveViews aligned to settings-inspired layout primitives with shared components.
 
@@ -45,13 +45,14 @@ Goals
 - Lay groundwork for costing and traceability by shipping batch codes and label improvements.
 
 User Stories
-- As a customer, I can view my order status via `/o/:reference` with delivery details and items.
+- As an admin, the login/landing screen highlights Craftplan’s value props and routes users to sign-in/reset flows.
 - As a maker, I can print compliant product labels (ingredients/allergens/batch/date) with clean print styles.
 - As an operator, make sheet and invoice prints respect `print:hidden` classes and no stray UI enters the printout.
 
 Requirements
-- Public
-  - [ ] LiveView `CraftplanWeb.Public.OrderStatusLive` route `/o/:reference` with read-only status, fulfillment method, delivery/pickup date, and item list.
+- Landing
+  - [ ] Replace any remaining storefront routes with the login-focused public screen.
+  - [ ] Ensure auth routes (`/sign-in`, `/reset`) remain reachable from the landing copy.
 - Labels & Printing
   - [ ] Product label LiveView using existing invoice pattern; ensure batch/date placeholders.
   - [ ] Audit print classes across make sheet, invoice, and labels; add smoke tests.
@@ -59,14 +60,14 @@ Requirements
   - [ ] Remove unused helpers in `PlanLive` and confirm tab navigation highlights.
 
 Acceptance Criteria
-- Order status page handles invalid references gracefully (404 + CTA to contact bakery).
+- Landing page loads without requiring session data and links into existing auth flows.
 - Label printouts render without navigation and support 1-up & sheet layouts via CSS.
 - Printed planner/invoice/label surfaces show only production data (no buttons/toolbars).
 
 Implementation Notes
 - Domain: ensure `OrderItem` optional `batch_code` exists for upcoming milestones.
-- UI: `lib/craftplan_web/live/public/order_status_live.ex`, `lib/craftplan_web/live/manage/product_label_live.ex`.
-- Tests: LiveView integration tests for public order status and label print toggles.
+- UI: login landing (`PageController`) plus `lib/craftplan_web/live/manage/product_label_live.ex`.
+- Tests: Controller test for landing copy plus print toggles for labels/make sheet/invoice.
 
 --------------------------------------------------------------------
 Milestone 1 -- Production Costing Foundations (2-3 weeks)

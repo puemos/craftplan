@@ -17,22 +17,4 @@ defmodule Craftplan.Orders do
       define :update_item, action: :update
     end
   end
-
-  @doc """
-  Public fetch of an order by reference using the `:public_show` read action.
-  Returns `{:ok, order_or_nil}`.
-  """
-  def public_get_order_by_reference(reference, opts \\ []) do
-    load = Keyword.get(opts, :load, [])
-
-    query =
-      Order
-      |> Ash.Query.for_read(:public_show, %{reference: reference})
-      |> Ash.Query.load(load)
-
-    case Ash.read_one(query) do
-      {:ok, record} -> {:ok, record}
-      {:error, _} -> {:ok, nil}
-    end
-  end
 end

@@ -21,7 +21,7 @@ defmodule Craftplan.Inventory.MaterialAllergen do
   end
 
   policies do
-    # Public read (used for storefront allergen listing)
+    # Public read (used for printable allergen listings and exports)
     policy action_type(:read) do
       authorize_if always()
     end

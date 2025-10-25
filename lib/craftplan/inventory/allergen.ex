@@ -32,7 +32,7 @@ defmodule Craftplan.Inventory.Allergen do
   end
 
   policies do
-    # Public read (displayed on storefront); writes restricted
+    # Public read (displayed on printable labels and exports); writes restricted
     policy action_type(:read) do
       authorize_if always()
     end

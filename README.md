@@ -79,7 +79,7 @@ For detailed instructions on using Craftplan, check out our user guides:
 
 ### 🛒 Storefront
 
-- [x] Public catalog, cart, and checkout (creates orders)
+- [x] Public login/overview landing page
 - [x] Responsive UI
 - [ ] Blog
 - [ ] Billing/payments

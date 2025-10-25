@@ -86,6 +86,7 @@ defmodule Craftplan.Inventory.ForecastMetricsTest do
   describe "stockout and order-by dates" do
     test "identifies first negative projected balance" do
       today = ~D[2025-02-15]
+
       projections = [
         {today, 12},
         {Date.add(today, 1), 4},
@@ -98,6 +99,7 @@ defmodule Craftplan.Inventory.ForecastMetricsTest do
 
     test "returns nil when there is no stockout" do
       today = ~D[2025-02-15]
+
       projections = [
         {today, 12},
         {Date.add(today, 1), 8}

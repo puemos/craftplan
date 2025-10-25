@@ -21,7 +21,7 @@ defmodule Craftplan.Inventory.MaterialNutritionalFact do
   end
 
   policies do
-    # Public read (used for storefront nutritional facts)
+    # Public read (used for nutrition labels and planner exports)
     policy action_type(:read) do
       authorize_if always()
     end

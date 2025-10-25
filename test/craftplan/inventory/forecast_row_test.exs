@@ -7,6 +7,7 @@ defmodule Craftplan.Inventory.ForecastRowTest do
 
   test "owner_grid_metrics manual action computes metrics for provided rows" do
     today = ~D[2025-02-15]
+
     projections = [
       %{date: today, balance: 50},
       %{date: Date.add(today, 1), balance: 35},
@@ -41,6 +42,7 @@ defmodule Craftplan.Inventory.ForecastRowTest do
     expected_avg = ForecastMetrics.avg_daily_use(actual_usage, planned_usage)
     expected_variability = ForecastMetrics.demand_variability(actual_usage, planned_usage)
     expected_lead_time_demand = ForecastMetrics.lead_time_demand(expected_avg, lead_time_days)
+
     expected_safety_stock =
       ForecastMetrics.safety_stock(
         D.from_float(service_level_z),
@@ -48,9 +50,14 @@ defmodule Craftplan.Inventory.ForecastRowTest do
         lead_time_days
       )
 
-    expected_reorder_point = ForecastMetrics.reorder_point(expected_lead_time_demand, expected_safety_stock)
+    expected_reorder_point =
+      ForecastMetrics.reorder_point(expected_lead_time_demand, expected_safety_stock)
+
     expected_cover = ForecastMetrics.cover_days(on_hand, expected_avg)
-    expected_stockout = ForecastMetrics.stockout_date(Enum.map(projections, &{&1.date, &1.balance}))
+
+    expected_stockout =
+      ForecastMetrics.stockout_date(Enum.map(projections, &{&1.date, &1.balance}))
+
     expected_order_by = ForecastMetrics.order_by_date(expected_stockout, lead_time_days)
 
     expected_suggested =
@@ -72,22 +79,22 @@ defmodule Craftplan.Inventory.ForecastRowTest do
 
     assert [%{material_name: "Flour"} = row] = result
 
-    assert Decimal.compare(row.avg_daily_use, expected_avg) == :eq
-    assert Decimal.compare(row.demand_variability, expected_variability) == :eq
-    assert Decimal.compare(row.lead_time_demand, expected_lead_time_demand) == :eq
-    assert Decimal.compare(row.safety_stock, expected_safety_stock) == :eq
-    assert Decimal.compare(row.reorder_point, expected_reorder_point) == :eq
+    assert D.compare(row.avg_daily_use, expected_avg) == :eq
+    assert D.compare(row.demand_variability, expected_variability) == :eq
+    assert D.compare(row.lead_time_demand, expected_lead_time_demand) == :eq
+    assert D.compare(row.safety_stock, expected_safety_stock) == :eq
+    assert D.compare(row.reorder_point, expected_reorder_point) == :eq
     assert cover_equals?(row.cover_days, expected_cover)
     assert row.stockout_date == expected_stockout
     assert row.order_by_date == expected_order_by
-    assert Decimal.compare(row.suggested_po_qty, expected_suggested) == :eq
+    assert D.compare(row.suggested_po_qty, expected_suggested) == :eq
     assert row.risk_state == expected_risk
     assert Enum.count(row.projected_balances) == length(projections)
   end
 
   defp cover_equals?(nil, nil), do: true
-  defp cover_equals?(%Decimal{} = left, %Decimal{} = right),
-    do: Decimal.compare(left, right) == :eq
+
+  defp cover_equals?(%D{} = left, %D{} = right), do: D.compare(left, right) == :eq
+
   defp cover_equals?(_, _), do: false
 end
-

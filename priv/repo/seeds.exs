@@ -1,7 +1,6 @@
 # seeds.exs
 
 alias Craftplan.Accounts
-alias Craftplan.Cart
 alias Craftplan.Catalog
 alias Craftplan.CRM
 alias Craftplan.Inventory
@@ -82,9 +81,7 @@ if Mix.env() == :dev do
   Repo.delete_all(Orders.Order)
   Repo.delete_all(Catalog.RecipeMaterial)
   Repo.delete_all(Catalog.Recipe)
-  # Clear carts before products to avoid FK violations
-  Repo.delete_all(Cart.CartItem)
-  Repo.delete_all(Cart.Cart)
+  # Clear products after recipes to avoid FK violations
   Repo.delete_all(Catalog.Product)
   Repo.delete_all(Inventory.Movement)
   Repo.delete_all(Inventory.MaterialNutritionalFact)

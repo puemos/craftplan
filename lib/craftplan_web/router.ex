@@ -3,7 +3,6 @@ defmodule CraftplanWeb.Router do
   use AshAuthentication.Phoenix.Router
 
   alias AshAuthentication.Phoenix.Overrides.Default
-  alias Craftplan.Cart
 
   #
   # Plugs
@@ -22,32 +21,6 @@ defmodule CraftplanWeb.Router do
          ],
          "; "
        )
-
-  def put_cart(conn, _opts) do
-    cart =
-      case get_session(conn, :cart_id) do
-        nil ->
-          {:ok, cart} = Cart.create_cart(%{items: []})
-          cart
-
-        cart_id ->
-          case Cart.get_cart_by_id(cart_id, context: %{cart_id: cart_id}) do
-            {:ok, nil} ->
-              {:ok, cart} = Cart.create_cart(%{items: []})
-              cart
-
-            {:ok, cart} ->
-              cart
-
-            {:error, _} ->
-              {:ok, cart} = Cart.create_cart(%{items: []})
-              cart
-          end
-      end
-
-    # Ensure subsequent cart resource accesses have context to satisfy policies
-    put_session(conn, :cart_id, cart.id)
-  end
 
   def put_session_timezone(conn, _opts) do
     timezone = conn.cookies["timezone"]
@@ -68,7 +41,6 @@ defmodule CraftplanWeb.Router do
     plug :put_csp
     plug :load_from_session
     plug :put_session_timezone
-    plug :put_cart
   end
 
   pipeline :api do
@@ -84,7 +56,6 @@ defmodule CraftplanWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    post "/cart/clear", CartController, :clear
 
     # Authentication Routes
     auth_routes AuthController, Craftplan.Accounts.User, path: "/auth"
@@ -95,7 +66,6 @@ defmodule CraftplanWeb.Router do
                   auth_routes_prefix: "/auth",
                   on_mount: [
                     CraftplanWeb.LiveCurrentPath,
-                    CraftplanWeb.LiveCart,
                     {CraftplanWeb.LiveUserAuth, :live_no_user}
                   ],
                   overrides: [
@@ -108,22 +78,6 @@ defmodule CraftplanWeb.Router do
                   CraftplanWeb.AuthOverrides,
                   Default
                 ]
-
-    # Public LiveView Routes
-    ash_authentication_live_session :public,
-      on_mount: [
-        CraftplanWeb.LiveCurrentPath,
-        CraftplanWeb.LiveNav,
-        CraftplanWeb.LiveSettings,
-        CraftplanWeb.LiveCart,
-        {CraftplanWeb.LiveUserAuth, :live_user_optional}
-      ] do
-      live "/o/:reference", Public.OrderStatusLive.Show, :show
-      live "/catalog", Public.CatalogLive.Index, :index
-      live "/catalog/:sku", Public.CatalogLive.Show, :show
-      live "/cart", Public.CartLive.Index, :index
-      live "/checkout", Public.CheckoutLive.Index, :index
-    end
   end
 
   #
@@ -139,7 +93,6 @@ defmodule CraftplanWeb.Router do
         CraftplanWeb.LiveCurrentPath,
         CraftplanWeb.LiveNav,
         CraftplanWeb.LiveSettings,
-        CraftplanWeb.LiveCart,
         {CraftplanWeb.LiveUserAuth, :live_admin_required}
       ] do
       # Settings Routes
@@ -156,7 +109,6 @@ defmodule CraftplanWeb.Router do
         CraftplanWeb.LiveCurrentPath,
         CraftplanWeb.LiveNav,
         CraftplanWeb.LiveSettings,
-        CraftplanWeb.LiveCart,
         {CraftplanWeb.LiveUserAuth, :live_staff_required}
       ] do
       # Products

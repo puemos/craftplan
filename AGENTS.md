@@ -1,12 +1,12 @@
 # Craftplan Agent Guide
 
 ## Project Snapshot
-- Craftplan is a self-hosted ERP for small bakeries, with domains covering catalog, inventory, orders, CRM, and storefront flows.
+- Craftplan is a self-hosted inventory & manufacturing software for micro-business, covering catalog, inventory, orders, CRM, and planner flows.
 - Core stack: Elixir 1.18+, Ash Framework for domain modeling, AshPostgres for persistence, Phoenix LiveView + TailwindCSS for UI.
 - Product principles: keep the operate → make → stock loop simple, favor printable artifacts (planner, labels, invoices), and ship durable primitives over heavy configuration.
 
 ## Repo Layout Highlights
-- `lib/craftplan/`: Ash domains by context (`catalog`, `inventory`, `orders`, `settings`, `crm`, `cart`, `csv`, `types`).
+- `lib/craftplan/`: Ash domains by context (`catalog`, `inventory`, `orders`, `settings`, `crm`, `csv`, `types`).
 - `lib/craftplan_web/`: Phoenix boundary (LiveViews in `live/`, shared components in `components/`, controllers for public endpoints).
 - `priv/repo/`: Database migrations and `seeds.exs`; keep `priv/resource_snapshots/` aligned with Ash migrations.
 - `assets/`: Frontend assets (requires `npm install --prefix assets` before builds).
@@ -31,7 +31,7 @@
 - Prefer LiveView streams (`stream/3`) for long-running collections and track counts with dedicated assigns.
 - Extend shared UI in `CraftplanWeb.Components` instead of duplicating markup.
 - Place JS hooks in `assets/js` and wire via `app.js`; never embed `<script>` tags in HEEx.
-- Check router scopes for implicit aliases when adding public routes (e.g., `/o/:reference` order status).
+- Check router scopes for implicit aliases when adding LiveView routes (e.g., `/manage/orders` inside the browser scope).
 
 ## Testing & QA
 - Default run: `mix test` (alias runs `ash.setup --quiet` first); narrow with `mix test path/to/file.exs:line`.

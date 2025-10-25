@@ -1,18 +1,138 @@
-<div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-32xl:py-40 lg:px-8">
-  <div class="max-w-2xl lg:mx-0">
-    <div class="flex">
-      <h1 class="text-2xl font-light tracking-wide text-slate-900">
-        Craftplan
-        <small class="ml-3 text-sm font-light tracking-wide text-slate-500">
-          Artisanal Manufacturing
-        </small>
-      </h1>
+<section class="relative isolate min-h-screen overflow-hidden bg-slate-950 text-white">
+  <div
+    class="from-emerald-500/30 via-slate-900/40 pointer-events-none absolute inset-x-0 top-0 h-96 bg-gradient-to-b to-slate-950 blur-3xl"
+    aria-hidden="true"
+  />
+
+  <div class="relative mx-auto max-w-6xl px-6 py-16 lg:px-8 lg:py-24">
+    <div class="grid gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-center">
+      <div class="space-y-10">
+        <div class="border-white/20 bg-white/5 tracking-[0.35em] text-white/70 inline-flex items-center gap-3 rounded-full border px-4 py-1 text-xs font-semibold">
+          OPERATE&nbsp;&middot;&nbsp;MAKE&nbsp;&middot;&nbsp;STOCK
+        </div>
+
+        <div class="space-y-6">
+          <h1 class="text-4xl font-light leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Focus on ovens, not ops.
+          </h1>
+          <p class="text-white/80 text-lg leading-relaxed sm:text-xl">
+            Craftplan keeps your bakery's catalog, inventory, orders, and CRM in sync. Plan tomorrow's production,
+            print what matters (planner, labels, delivery notes), and keep every station aligned from operate&nbsp;&rarr;&nbsp;make&nbsp;&rarr;&nbsp;stock.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+          <.link href={~p"/sign-in"}>
+            <.button variant={:primary} size={:lg} class="shadow-emerald-500/40 shadow-lg">
+              Log in to workspace
+            </.button>
+          </.link>
+          <.link
+            href={~p"/reset"}
+            class="text-white/70 inline-flex items-center text-sm font-semibold transition hover:text-white"
+          >
+            Forgot password?
+          </.link>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <article class="border-white/10 bg-white/5 rounded-2xl border p-5 backdrop-blur">
+            <p class="text-sm font-semibold uppercase tracking-wide text-emerald-200">Operate</p>
+            <p class="text-white/80 mt-2 text-base">
+              Schedule the bake, align wholesale promises, and share digestible planners that are ready to print or pin to the wall.
+            </p>
+          </article>
+          <article class="border-white/10 bg-white/5 rounded-2xl border p-5 backdrop-blur">
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-200">Make</p>
+            <p class="text-white/80 mt-2 text-base">
+              Recipes stay tied to real inventory, so batches update stock, allergens, and nutrition facts automatically.
+            </p>
+          </article>
+          <article class="border-white/10 bg-white/5 rounded-2xl border p-5 backdrop-blur sm:col-span-2">
+            <p class="text-sm font-semibold uppercase tracking-wide text-orange-200">Stock</p>
+            <p class="text-white/80 mt-2 text-base">
+              Material movements, purchasing, and order fulfillment live together so you always know what is packed, delivered, or low.
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <div class="lg:justify-self-end">
+        <div class="rounded-[32px] border-white/10 bg-white/5 border p-8 shadow-2xl backdrop-blur">
+          <div class="flex items-center gap-2 text-sm font-semibold text-emerald-200">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-300" aria-hidden="true" />
+            All systems ready
+          </div>
+          <p class="mt-6 text-2xl font-semibold text-white">{@workspace_name}</p>
+          <p class="text-white/70 mt-2 text-base">
+            One login unlocks catalog, inventory, orders, CRM, and production tooling&mdash;no extra portals.
+          </p>
+
+          <div class="mt-6 space-y-4">
+            <.link href={~p"/sign-in"} class="inline-flex w-full">
+              <.button variant={:primary} size={:lg} class="w-full justify-center">
+                Go to login
+              </.button>
+            </.link>
+            <p class="text-white/60 text-sm">
+              Need access? Ask your Craftplan admin to add a seat from <span class="font-semibold text-white">Manage &rarr; Settings &rarr; Users</span>.
+            </p>
+          </div>
+
+          <dl class="mt-8 grid gap-6 sm:grid-cols-2">
+            <div>
+              <dt class="text-white/60 text-xs uppercase tracking-wide">Release</dt>
+              <dd class="mt-1 text-lg font-semibold text-white">{@release_version}</dd>
+            </div>
+            <div>
+              <dt class="text-white/60 text-xs uppercase tracking-wide">Deploy mode</dt>
+              <dd class="mt-1 text-lg font-semibold text-white">Self-hosted</dd>
+            </div>
+            <div>
+              <dt class="text-white/60 text-xs uppercase tracking-wide">Domains</dt>
+              <dd class="text-white/80 mt-1 text-base">Catalog · Inventory · Orders · CRM</dd>
+            </div>
+            <div>
+              <dt class="text-white/60 text-xs uppercase tracking-wide">Artifacts</dt>
+              <dd class="text-white/80 mt-1 text-base">Planner, batch labels, invoices</dd>
+            </div>
+          </dl>
+
+          <ul class="text-white/75 mt-8 space-y-3 text-sm">
+            <li class="flex items-start gap-2">
+              <span class="bg-white/60 mt-1 h-1.5 w-1.5 rounded-full" aria-hidden="true" />
+              Printable daily planner ready for production stand-ups.
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="bg-white/60 mt-1 h-1.5 w-1.5 rounded-full" aria-hidden="true" />
+              Batch labels with allergens and nutrition pulled from Ash resources.
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="bg-white/60 mt-1 h-1.5 w-1.5 rounded-full" aria-hidden="true" />
+              Delivery packets combining picking, CRM contacts, and invoicing.
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
-    <p class="mt-8 text-4xl font-extralight leading-tight tracking-wide text-slate-900">
-      Crafting excellence,<br />one piece at a time.
-    </p>
-    <p class="mt-6 text-base font-light leading-7 text-slate-600">
-      Welcome to Craftplan, where traditional craftsmanship meets modern manufacturing. We create high-quality, handcrafted products with precision and care.
-    </p>
+
+    <div class="border-white/10 bg-white/5 mt-20 rounded-3xl border p-8 backdrop-blur">
+      <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="text-white/60 text-sm font-semibold uppercase tracking-wide">
+            Why micro-business choose Craftplan
+          </p>
+          <p class="text-white/80 mt-2 max-w-2xl text-base">
+            Built on Phoenix LiveView + Ash, Craftplan stays fast on-prem and gives your team durable primitives:
+            catalog actions, flows, and manage_relationship helpers instead of brittle spreadsheets.
+          </p>
+        </div>
+        <div class="text-white/80 flex flex-wrap gap-3 text-sm font-semibold">
+          <span class="border-white/20 rounded-full border px-4 py-1">Run-book friendly</span>
+          <span class="border-white/20 rounded-full border px-4 py-1">Extensible schemas</span>
+          <span class="border-white/20 rounded-full border px-4 py-1">Live dashboards</span>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+</section>

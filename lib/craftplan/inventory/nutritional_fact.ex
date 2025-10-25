@@ -32,7 +32,7 @@ defmodule Craftplan.Inventory.NutritionalFact do
   end
 
   policies do
-    # Public read (displayed on storefront); writes restricted
+    # Public read (displayed on nutrition labels and exports); writes restricted
     policy action_type(:read) do
       authorize_if always()
     end

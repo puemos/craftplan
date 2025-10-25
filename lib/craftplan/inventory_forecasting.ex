@@ -5,9 +5,10 @@ defmodule Craftplan.InventoryForecasting do
 
   alias Craftplan.Inventory.ForecastRow
   alias Craftplan.Inventory.PurchaseOrderItem
-  alias Craftplan.Settings
   alias Craftplan.Orders
+  alias Craftplan.Settings
   alias Decimal, as: D
+
   require Ash.Query
 
   @doc """
@@ -47,10 +48,10 @@ defmodule Craftplan.InventoryForecasting do
   Calculates material balances for each day in the forecast
   """
   def calculate_material_balances(material, quantities) do
-    initial_balance = material.current_stock || Decimal.new(0)
+    initial_balance = material.current_stock || D.new(0)
 
     Enum.map_reduce(quantities, initial_balance, fn {day_quantity, _day}, acc_balance ->
-      new_balance = Decimal.sub(acc_balance, day_quantity)
+      new_balance = D.sub(acc_balance, day_quantity)
       {acc_balance, new_balance}
     end)
   end
@@ -69,7 +70,7 @@ defmodule Craftplan.InventoryForecasting do
 
           %{product: %{recipe: recipe}, quantity: quantity} ->
             Enum.map(recipe.components, fn component ->
-              {day, component.material, Decimal.mult(component.quantity, quantity)}
+              {day, component.material, D.mult(component.quantity, quantity)}
             end)
         end)
       end)
@@ -85,7 +86,7 @@ defmodule Craftplan.InventoryForecasting do
           day_quantity =
             day_quantities
             |> Enum.filter(fn {qty_day, _} -> Date.compare(qty_day, day) == :eq end)
-            |> Enum.reduce(Decimal.new(0), fn {_, qty}, acc -> Decimal.add(acc, qty) end)
+            |> Enum.reduce(D.new(0), fn {_, qty}, acc -> D.add(acc, qty) end)
 
           {day_quantity, day}
         end)
@@ -99,8 +100,8 @@ defmodule Craftplan.InventoryForecasting do
   Calculates total quantity needed for a material across all days
   """
   def total_material_quantity(day_quantities) do
-    Enum.reduce(day_quantities, Decimal.new(0), fn {quantity, _}, acc ->
-      Decimal.add(acc, quantity)
+    Enum.reduce(day_quantities, D.new(0), fn {quantity, _}, acc ->
+      D.add(acc, quantity)
     end)
   end
 
@@ -114,7 +115,7 @@ defmodule Craftplan.InventoryForecasting do
           item.product.recipe != nil,
           component <- item.product.recipe.components,
           component.material.id == material.id do
-        material_quantity = Decimal.mult(component.quantity, item.quantity)
+        material_quantity = D.mult(component.quantity, item.quantity)
 
         %{
           order: %{reference: order.reference},
@@ -126,7 +127,7 @@ defmodule Craftplan.InventoryForecasting do
     order_items_using_material
     |> Enum.group_by(& &1.product)
     |> Enum.map(fn {product, items} ->
-      total_quantity = Enum.reduce(items, Decimal.new(0), &Decimal.add(&2, &1.quantity))
+      total_quantity = Enum.reduce(items, D.new(0), &D.add(&2, &1.quantity))
       {product, %{total_quantity: total_quantity, order_items: items}}
     end)
     |> Enum.sort_by(fn {product, _} -> product.name end)
@@ -142,7 +143,7 @@ defmodule Craftplan.InventoryForecasting do
                Date.compare(d, date) == :eq
              end) do
           nil ->
-            {Decimal.new(0), Decimal.new(0)}
+            {D.new(0), D.new(0)}
 
           day_index ->
             {quantity, _} = Enum.at(material_data.quantities, day_index)
@@ -151,7 +152,7 @@ defmodule Craftplan.InventoryForecasting do
         end
 
       nil ->
-        {Decimal.new(0), Decimal.new(0)}
+        {D.new(0), D.new(0)}
     end
   end
 
@@ -169,8 +170,9 @@ defmodule Craftplan.InventoryForecasting do
     past_orders = maybe_load_orders(past_range, actor)
 
     actual_usage_map =
-      load_materials_requirements(past_range, past_orders)
-      |> Enum.into(%{}, fn {material, quantities} ->
+      past_range
+      |> load_materials_requirements(past_orders)
+      |> Map.new(fn {material, quantities} ->
         {material.id, Enum.map(quantities, fn {quantity, _day} -> quantity end)}
       end)
 
@@ -211,8 +213,9 @@ defmodule Craftplan.InventoryForecasting do
   end
 
   defp projected_closing_balances(day_quantities, initial_on_hand) do
-    Enum.map_reduce(day_quantities, initial_on_hand, fn {quantity, day}, balance ->
-      closing = Decimal.sub(balance, quantity)
+    day_quantities
+    |> Enum.map_reduce(initial_on_hand, fn {quantity, day}, balance ->
+      closing = D.sub(balance, quantity)
       {{day, closing}, closing}
     end)
     |> elem(0)
@@ -244,10 +247,10 @@ defmodule Craftplan.InventoryForecasting do
       end
     end)
     |> Enum.group_by(& &1.material_id, fn item -> item.quantity end)
-    |> Enum.into(%{}, fn {material_id, quantities} ->
+    |> Map.new(fn {material_id, quantities} ->
       total =
         Enum.reduce(quantities, D.new(0), fn qty, acc ->
-          Decimal.add(acc, qty || D.new(0))
+          D.add(acc, qty || D.new(0))
         end)
 
       {material_id, total}
@@ -264,6 +267,7 @@ defmodule Craftplan.InventoryForecasting do
   defp service_level_to_z(0.95), do: 1.65
   defp service_level_to_z(0.975), do: 1.96
   defp service_level_to_z(0.99), do: 2.33
+
   defp service_level_to_z(value) when is_float(value) and value > 0 do
     # Default to 95% when unrecognised
     service_level_to_z(0.95)
