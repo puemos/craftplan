@@ -615,5 +615,4 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   defp as_decimal(value) when is_integer(value), do: D.new(value)
   defp as_decimal(value) when is_float(value), do: D.from_float(value)
-  defp as_decimal(_), do: D.new(0)
 end
