@@ -2,8 +2,8 @@
 
 Owner: You  
 Drafted by: Coding agent (Codex)  
-Last updated: 2025-02-15  
-Status: Milestone A underway – calculator & embedded read ready
+Last updated: 2025-10-25  
+Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 
 ---
 
@@ -64,10 +64,11 @@ Status: Milestone A underway – calculator & embedded read ready
 - [x] Introduce `Craftplan.Inventory.ForecastMetrics` with pure functions:
   - `avg_daily_use/2`, `demand_variability/2`, `lead_time_demand/2`, `safety_stock/2`, `reorder_point/2`, `cover_days/2`, `stockout_date/2`, `order_by_date/2`, `suggested_po_qty/2`, `risk_state/2`.
   - Cover guards: zero demand, missing lead time, perishable caps (respect optional `max_cover_days` field).
-- [~] Extend or create Ash read action (`:owner_grid_metrics`) to hydrate new fields. Ensure it uses a single query with `Ash.Query.load/2` for day-level data.
-  - ✅ `Craftplan.Inventory.ForecastRow` embedded resource + manual `:owner_grid_metrics` action now returns metrics-ready rows.
-  - ⏭️ Next: connect `ForecastRow` to live material data and ensure Ash snapshots remain aligned.
-- [ ] Update Ash resource snapshots + generate new migrations if new persisted fields are introduced.
+- [x] Extend or create Ash read action (`:owner_grid_metrics`) to hydrate new fields. Ensure it uses a single query with `Ash.Query.load/2` for day-level data.
+  - ✅ `Craftplan.Inventory.ForecastRow` embedded resource + manual `:owner_grid_metrics` action now returns metrics-ready rows from live material + demand joins with no N+1 queries.
+  - 🧪 Action regression covered via fixture-backed loads; LiveView consumers can now rely on a single payload for metrics + day chips.
+- [x] Update Ash resource snapshots + generate new migrations if new persisted fields are introduced.
+  - ✅ Snapshots regenerated after wiring `ForecastRow` (no DB schema deltas required).
 - [x] Add calculator unit tests covering: steady demand, zero demand, spike demand, long lead time, perishable cap, existing PO offset.
 - [x] Acceptance: `mix test test/craftplan/inventory/forecast_metrics_test.exs` passes with new cases (`ForecastRow` integration test added).
 
@@ -75,15 +76,26 @@ Status: Milestone A underway – calculator & embedded read ready
 
 **Objectives**: Responsive metrics band, control panel, and diff-friendly updates.
 
-- [ ] Confirm LiveView module path; refactor mount/init to assign defaults: `service_level`, `horizon_days`, `risk_filters`, `demand_delta`, `lead_time_override`, `metrics_loaded?`.
+- [~] Confirm LiveView module path; refactor mount/init to assign defaults: `service_level`, `horizon_days`, `risk_filters`, `demand_delta`, `lead_time_override`, `metrics_loaded?`.
+  - ✅ Module + routing confirmed; helper signature defined (`assign_defaults(socket, opts \\ %{})`).
+  - 🏗️ Pending: implement helper + session persistence; ensure telemetry span (`:mount_defaults_ms`) captures hydration timing post-defaults.
 - [ ] Introduce a metrics band component under `CraftplanWeb.Components.Inventory` with:
   - Fixed columns: Material, On hand, On order, Avg/day, Demand variability, Lead-time demand, Safety stock, ROP.
   - Computed columns: Cover chip (color-coded), Stockout date, Order-by date, Suggested PO with CTA button.
   - Inline explainers using `<.tooltip>` / `<.icon_help>` patterns.
+  - Component API: `metrics_band(assigns)` expects `rows`, `service_level`, and `horizon_days`; emits `phx-target` IDs (`material-#{row.id}`) for CTA buttons; wraps values in reusable `status_chip/1`.
+  - 📅 Design review w/ Jules & Priya on 2025-10-27 to lock spacing, chip colors, and glossary entrypoints.
 - [ ] Implement control bar with accessible toggles (radio-group for service level, segmented control for horizon, pill chips for risk filters, what-if toggles).
+  - Use `<.button_group>` patterns from shared components; ensure each control exposes `aria-describedby` tooltips describing impact on Suggested PO.
+  - Persist “what-if” adjustments in the LiveView socket and surface a `Reset to actuals` button tied to a `phx-click="reset_adjustments"`.
+  - 🎯 Aim to have clickable skeleton in dev by 2025-10-29 for usability walkthrough.
 - [ ] Wire LiveView `handle_event/3` callbacks to trigger Ash reads with updated params and reassign metrics; maintain streaming for day chips.
+  - Events to cover: `"set_service_level"`, `"set_horizon"`, `"toggle_risk_filter"`, `"adjust_demand"`, `"override_lead_time"`.
+  - Use `debounce` for sliders/toggles when appropriate and preserve `stream(:forecast_rows, ...)` for the day chips.
 - [ ] Add right-rail `<aside>` with glossary cards (including “How we calculate Suggested PO”), last PO activity (if available), and surfaced warnings when defaults or caps are applied.
+  - Right rail pulls copy from a glossary data module to avoid inline prose; include activity list component that links back to Purchasing drafts.
 - [ ] Acceptance: LiveView tests confirm `<#forecast-grid>` updates risk state and suggested PO after changing controls; HTML diff limited to impacted rows.
+  - Add/extend `test/craftplan_web/live/manage/inventory/forecast_live_test.exs` with scenarios covering default mount, service-level change, risk filter application, and glossary visibility toggles.
 
 ### Milestone C — PO Flow & Advanced Interactions (2 dev days)
 
@@ -170,9 +182,8 @@ Outstanding questions: None for Phase 1. Revisit as new requirements emerge.
 
 ## 9. Immediate Next Steps
 
-1. Thread real material data into `ForecastRow.owner_grid_metrics` (load on-hand/on-order, projected balances) and validate snapshots.
-2. Socialise the calculator + embedded read approach with product/design; confirm no additional metrics are required before LiveView work.
-3. Align with design on metrics band and control layout assets; plan LiveView refactor to consume `ForecastRow`.
-4. Prepare fixture dataset and telemetry hooks ahead of performance testing once data wiring lands.
-
-Once the above confirmations are in place, we can start coding Milestone A.
+1. Confirm the `CraftplanWeb.Manage.Inventory.ForecastLive` entry point and refactor `mount/3` to assign the default planning controls before metrics load (Milestone B kickoff).
+2. Partner with design to lock the metrics band + control bar spec (tokens, breakpoints, glossary copy) and capture it in the shared Figma/Jira thread.
+3. Implement the `CraftplanWeb.Components.Inventory.metrics_band/1` + control bar skeletons, wiring them to the new `:owner_grid_metrics` action for initial data.
+4. Define the LiveView test plan (stream refresh, control interactions, risk chip coverage) and set up telemetry assertions that will be exercised once UI hooks land.
+5. Document the ForecastLive session persistence + telemetry contract (defaults helper, event names, expected timings) and circulate with QA/perf reviewers before coding.

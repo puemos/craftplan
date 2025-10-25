@@ -1,15 +1,15 @@
 Craftplan Product Plan -- Bakery ERP Roadmap
 
-Last updated: 2025-10-19
+Last updated: 2025-10-25
 
 Progress Snapshot
 - Overall: [ ] Not started / [x] In progress / [ ] Done
 - Current Cycle (Oct 2025): Stabilize internal print flows + prep costing foundations.
+- Active Initiative: Inventory Forecast Grid Milestone B (LiveView controls + metrics band).
 - Milestone Health
-  - [ ] M0: Launch Readiness Backlog (Active)
   - [ ] M1: Production Costing Foundations
   - [ ] M2: Traceability & Compliance
-  - [ ] M3: Inventory Planning & Purchasing
+  - [x] M3: Inventory Planning & Purchasing
   - [ ] M4: Commerce & Channel Sync (Optional)
   - [ ] M5: Insights & Pricing Intelligence
   - [ ] M6: Onboarding & Adoption
@@ -37,39 +37,6 @@ Guiding Principles
 - Favor declarative Ash resources and LiveView streams; keep imperative logic in services only when needed.
 - Every new surface must support printable artifacts (labels, planner, invoices, compliance reports).
 
---------------------------------------------------------------------
-Milestone 0 -- Launch Readiness Backlog (1-2 weeks)
-Status: [ ] Not started  [x] In progress  [ ] Done
-Goals
-- Close open polish items so production teams can demo a cohesive flow end-to-end.
-- Lay groundwork for costing and traceability by shipping batch codes and label improvements.
-
-User Stories
-- As an admin, the login/landing screen highlights Craftplan’s value props and routes users to sign-in/reset flows.
-- As a maker, I can print compliant product labels (ingredients/allergens/batch/date) with clean print styles.
-- As an operator, make sheet and invoice prints respect `print:hidden` classes and no stray UI enters the printout.
-
-Requirements
-- Landing
-  - [ ] Replace any remaining storefront routes with the login-focused public screen.
-  - [ ] Ensure auth routes (`/sign-in`, `/reset`) remain reachable from the landing copy.
-- Labels & Printing
-  - [ ] Product label LiveView using existing invoice pattern; ensure batch/date placeholders.
-  - [ ] Audit print classes across make sheet, invoice, and labels; add smoke tests.
-- Cleanup
-  - [ ] Remove unused helpers in `PlanLive` and confirm tab navigation highlights.
-
-Acceptance Criteria
-- Landing page loads without requiring session data and links into existing auth flows.
-- Label printouts render without navigation and support 1-up & sheet layouts via CSS.
-- Printed planner/invoice/label surfaces show only production data (no buttons/toolbars).
-
-Implementation Notes
-- Domain: ensure `OrderItem` optional `batch_code` exists for upcoming milestones.
-- UI: login landing (`PageController`) plus `lib/craftplan_web/live/manage/product_label_live.ex`.
-- Tests: Controller test for landing copy plus print toggles for labels/make sheet/invoice.
-
---------------------------------------------------------------------
 Milestone 1 -- Production Costing Foundations (2-3 weeks)
 Status: [ ] Not started  [ ] In progress  [ ] Done
 Goals
@@ -142,9 +109,18 @@ Implementation Notes
 
 --------------------------------------------------------------------
 Milestone 3 -- Inventory Planning & Purchasing (2 weeks)
-Status: [ ] Not started  [ ] In progress  [ ] Done
+Status: [ ] Not started  [x] In progress  [ ] Done
 Goals
 - Move beyond low-stock alerts to actionable purchase workflows with location awareness.
+
+Progress
+- ✅ Forecast calculator + Ash `:owner_grid_metrics` action shipped (Milestone A per [plans/inventory_forecast_grid.md](./inventory_forecast_grid.md)).
+- 🔄 Milestone B kickoff: refactoring `CraftplanWeb.Manage.Inventory.ForecastLive` defaults, building metrics band/control components, and instrumenting telemetry.
+- 📋 LiveView + Purchasing dependencies tracked in `plans/inventory_forecast_grid.md` Next Steps section; coordination with design scheduled for week of Oct 27.
+
+Next Up
+- Implement ForecastLive control defaults + event wiring, then land metrics band & right-rail glossary.
+- Align Inventory Overview and Purchasing LiveViews to consume the new metrics payloads for PO creation.
 
 User Stories
 - As a purchasing manager, I review reorder suggestions by supplier and raise a PO in one click.
@@ -157,6 +133,7 @@ Requirements
   - [ ] Location revenue/expense reporting aligned with orders.
   - [ ] Reorder engine considers lead time, safety stock, and upcoming production.
 - UI
+  - [ ] Owner-facing forecast grid delivered per [plans/inventory_forecast_grid.md](./inventory_forecast_grid.md) (metrics band, controls, glossary rail, PO CTA).
   - [ ] Inventory Overview tab: low-stock banner, forecast chart, reorder table grouped by supplier.
   - [ ] Purchasing LiveView: PO quick-create from suggestions, status tracker.
   - [ ] Stocktake workflow LiveView with guided counts (random/category/age-based selection) and variance report.
@@ -166,6 +143,7 @@ Requirements
 
 Acceptance Criteria
 - Reorder suggestions compute quantity with formula (forecast demand + safety stock - on hand - on order) and surface supplier.
+- Forecast grid refresh stays under 200 ms server-side for 500 materials × 28-day horizon while surfacing risk state, stockout/order-by dates, and suggested PO per plan.
 - Stocktake completion generates variance adjustment entries and accuracy metrics.
 - Purchasing flow updates inventory upon receiving and closes suggestion.
 
@@ -188,6 +166,7 @@ User Stories
 Requirements
 - Integrations
   - [ ] Provide integration adapters (start with Shopify + Etsy) using API keys stored encrypted.
+  - [ ] Deliver WhatsApp Business integration per [plans/whatsapp_integration.md](./whatsapp_integration.md) to cover messaging, catalog sync, and provider behaviour reused by future channels.
   - [ ] Background job (Oban) to fetch orders/products and reconcile inventory.
   - [ ] Manual CSV import/export remains available as fallback.
 - Storefront
