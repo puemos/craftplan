@@ -360,7 +360,7 @@ defmodule CraftplanWeb.ImportModalComponent do
       is_nil(csv) ->
         {:noreply, put_flash(socket, :error, "No CSV to import. Run Verify first.")}
 
-      importer && function_exported?(importer, :import, 2) ->
+      function_exported?(importer, :import, 2) ->
         actor = socket.assigns[:current_user]
 
         case importer.import(csv, delimiter: delimiter, mapping: mapping, actor: actor) do
@@ -432,7 +432,7 @@ defmodule CraftplanWeb.ImportModalComponent do
     cfg = entity_config(entity)
     importer = cfg.importer
 
-    if importer && function_exported?(importer, :dry_run, 2) do
+    if function_exported?(importer, :dry_run, 2) do
       {:ok, %{rows: rows, errors: errors}} =
         importer.dry_run(csv, delimiter: delimiter, mapping: mapping)
 
