@@ -5,7 +5,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
   alias Craftplan.Inventory
   alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
-  alias CraftplanWeb.Components.Inventory, as: InventoryComponents
   alias CraftplanWeb.Components.Page
 
   @impl true
