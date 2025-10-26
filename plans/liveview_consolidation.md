@@ -4,30 +4,6 @@ Each task below is self-contained and marked with a checkbox for tracking. Updat
 
 ---
 
-## Task 1 — Generic Form Behaviour
-- [ ] **Status:** _Not started_
-
-### Context
-Nearly every LiveComponent form (products, suppliers, materials, purchase orders, customers, etc.) reimplements the same `assign_form`, `validate`, and `save` logic. This creates copy/paste bugs and inconsistent flash messaging.
-
-### Deliverables
-1. Introduce `CraftplanWeb.FormComponent` (macro or behaviour) encapsulating shared patterns:
-   - `c:form_config/1` callback describing resource, action, and nested forms.
-   - Default `update/2` that loads records, runs `Form.for_create/for_update`, and assigns `@form`.
-   - Shared `handle_event("validate")` and `handle_event("save")`, including flash, `push_patch`, and parent notifications.
-2. Provide override hooks (`handle_save_result/2`, `after_validate/2`) so specialized components (e.g., Order items consumption) can extend behaviour.
-3. Migrate representative components:
-   - Simple CRUD (SupplierFormComponent).
-   - Nested form (Customer form with billing/shipping).
-   - Complex one (Product form or Settings form) to prove extensibility.
-4. Update developer docs (`guides/ui_helpers.md` or CONTRIBUTING) explaining how to opt in.
-5. Add component/unit tests covering the macro (success path, error path, override hooks) and update existing LiveComponent tests to assert behaviour via the shared helpers.
-
-### Status Log
-- _Add notes here (e.g., “In progress – Alice 2024‑05‑10”)._
-
-
----
 
 ## Task 2 — List Editor Component
 - [ ] **Status:** _Not started_
