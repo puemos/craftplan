@@ -2,8 +2,8 @@
 
 Owner: You
 Drafted by: Coding agent (Codex)
-Last updated: 2025-10-25
-Status: Milestone B kickoff – LiveView defaults + component skeletons queued
+Last updated: 2025-02-15
+Status: Milestone B in-flight – owner metrics band + service/horizon toggles live; risk filters & PO CTA still open
 
 ---
 
@@ -29,7 +29,7 @@ Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 
 ## 2. Approach Overview
 
-1. **Data-first**: Extend the domain layer (`Craftplan.Inventory.Forecast`) with pure, well-tested metric functions and Ash actions that return rich aggregates in a single trip. Keep LiveView lean by consuming these computed values directly.
+1. **Data-first**: Extend the domain layer (`Craftplan.InventoryForecasting` + `Craftplan.Inventory.ForecastRow`) with pure, well-tested metric functions and Ash actions that return rich aggregates in a single trip. Keep LiveView lean by consuming these computed values directly.
 2. **Composable UI**: Introduce a metrics band component that can be embedded elsewhere (e.g., supplier detail pages) and stream updated rows for fast recomputation. Use LiveView streams for day chips and assign-based refresh for metrics to keep diff payloads tight.
 3. **Explainability**: Pair every numeric state with copy (tooltip, glossary, or inline label) so operators understand why a suggested quantity changed. Favor existing design tokens for color/risk semantics and ensure ARIA labelling.
 4. **Operational hooks**: Route Suggested PO actions into Purchasing with a parameterised Ash Flow that prebuilds drafts, making it trivial to extend to automation later.
@@ -39,13 +39,13 @@ Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 
 ## 3. Assumptions, Dependencies & Inputs
 
-- `Inventory.Forecast` already produces daily requirements and projected balances; we will extend it to compute per-material aggregates without duplicating SQL.
-- Lead time is stored per material (preferred) or per supplier; a global fallback exists in Settings. Missing values default to `settings.default_lead_time_days`.
-- Pack size (rounding basis) and optional perishable-cap days are defined; if absent, assume `1` and `nil`.
+- `InventoryForecasting.owner_grid_rows/3` now wraps the existing materials requirements pipeline and enriches rows through the embedded Ash resource `Craftplan.Inventory.ForecastRow`.
+- Lead time currently falls back to the global setting (`Settings.get_settings!().lead_time_days`). Per-material or supplier overrides are not yet wired in.
+- Pack size (rounding basis) and optional perishable-cap days are defined but not yet plumbed into the owner grid; current implementation assumes `1` and `nil` respectively.
 - Average daily use follows an industry baseline: blend the trailing 6 weeks of actual consumption (60 %) with the next 2 weeks of planned demand (40 %); fall back to trailing actuals when plans are missing, and smooth variability with the same sample.
 - Demand variability uses the blended sample’s standard deviation; if fewer than 10 data points exist, apply 0.5 × average as a conservative proxy.
-- Forecast LiveView resides under `CraftplanWeb.Manage.Inventory.ForecastLive` (verify actual path). The LiveView already loads day chips; we will enrich assigns and templates.
-- Purchasing already exposes an action or LiveView that can accept `material_id`, `supplier_id`, `quantity`, `target_receipt_date` parameters for draft creation.
+- Forecast LiveView resides under `CraftplanWeb.InventoryLive.ReorderPlanner` (`lib/craftplan_web/live/manage/inventory_live/reorder.ex`). It already loads owner metrics rows and exposes service level + horizon toggles.
+- Purchasing integration for Suggested PO is not yet implemented; no existing CTA hooks into Purchasing from the Reorder Planner.
 - Performance target: <=200 ms server processing for 500 materials × 28-day horizon; client diff under 50 KB.
 - Accessibility baseline: Tailwind tokens available; accessible status chips require ARIA labels describing risk and next action.
 - Supplier-specific overrides are not required for Phase 1; rely on material-level defaults and the global fallback for gaps.
@@ -60,43 +60,43 @@ Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 
 **Objectives**: Comprehensive metrics calculator, Ash actions exposing data, regression tests.
 
-- [x] Inventory the existing forecast pipeline: data sources, Ash resources, and LiveView assigns; capture architectural notes in `docs/architecture/inventory_forecast.md`.
+- [ ] Inventory the existing forecast pipeline: data sources, Ash resources, and LiveView assigns; capture architectural notes in `docs/architecture/inventory_forecast.md`.
 - [x] Introduce `Craftplan.Inventory.ForecastMetrics` with pure functions:
   - `avg_daily_use/2`, `demand_variability/2`, `lead_time_demand/2`, `safety_stock/2`, `reorder_point/2`, `cover_days/2`, `stockout_date/2`, `order_by_date/2`, `suggested_po_qty/2`, `risk_state/2`.
   - Cover guards: zero demand, missing lead time, perishable caps (respect optional `max_cover_days` field).
 - [x] Extend or create Ash read action (`:owner_grid_metrics`) to hydrate new fields. Ensure it uses a single query with `Ash.Query.load/2` for day-level data.
-  - ✅ `Craftplan.Inventory.ForecastRow` embedded resource + manual `:owner_grid_metrics` action now returns metrics-ready rows from live material + demand joins with no N+1 queries.
+  - ✅ `Craftplan.Inventory.ForecastRow` embedded resource + manual `:owner_grid_metrics` action now returns metrics-ready rows from the materials requirements pipeline with no N+1 queries.
   - 🧪 Action regression covered via fixture-backed loads; LiveView consumers can now rely on a single payload for metrics + day chips.
 - [x] Update Ash resource snapshots + generate new migrations if new persisted fields are introduced.
   - ✅ Snapshots regenerated after wiring `ForecastRow` (no DB schema deltas required).
 - [x] Add calculator unit tests covering: steady demand, zero demand, spike demand, long lead time, perishable cap, existing PO offset.
-- [x] Acceptance: `mix test test/craftplan/inventory/forecast_metrics_test.exs` passes with new cases (`ForecastRow` integration test added).
+- [x] Acceptance: `mix test test/craftplan/inventory/forecast_metrics_test.exs` and `test/craftplan/inventory/forecast_row_test.exs` pass with new cases (`ForecastRow` integration test added).
 
 ### Milestone B — LiveView & Interaction Architecture (3 dev days)
 
 **Objectives**: Responsive metrics band, control panel, and diff-friendly updates.
 
 - [x] Confirm LiveView module path; refactor mount/init to assign defaults: `service_level`, `horizon_days`, `risk_filters`, `demand_delta`, `lead_time_override`, `metrics_loaded?`.
-  - ✅ Owner metrics moved into dedicated `CraftplanWeb.InventoryLive.ReorderPlanner` (`/manage/inventory/forecast/reorder`) with planning controls, service-level/horizon toggles, and `InventoryComponents.metrics_band/1` wiring.
+  - ✅ Owner metrics moved into dedicated `CraftplanWeb.InventoryLive.ReorderPlanner` (`/manage/inventory/forecast/reorder`) with planning controls, service-level/horizon toggles, and inline `metrics_band/1` rendering.
   - ⚠️ Session persistence + telemetry spans still pending; defaults reset on refresh until we add a storage hook.
-- [~] Introduce a metrics band component under `CraftplanWeb.Components.Inventory` with:
+- [x] Introduce a metrics band component within the Reorder Planner LiveView with:
   - Fixed columns: Material, On hand, On order, Avg/day, Demand variability, Lead-time demand, Safety stock, ROP.
   - Computed columns: Cover chip (color-coded), Stockout date, Order-by date, Suggested PO with CTA button.
   - Inline explainers using `<.tooltip>` / `<.icon_help>` patterns.
-  - ✅ `CraftplanWeb.Components.Inventory.metrics_band/1` now renders risk chips, numeric columns, empty/loading states, and stub CTA buttons injected into the LiveView (`#owner-metrics-band`).
+  - ✅ `CraftplanWeb.InventoryLive.ReorderPlanner.metrics_band/1` now renders risk chips, numeric columns, empty/loading states, and stub CTA buttons within the LiveView (`#owner-metrics-band`).
   - Component API: `metrics_band(assigns)` expects `rows`, `service_level`, and `horizon_days`; emits `phx-value-material-id` on CTAs and wraps risk chips via `risk_chip_classes/1`.
-  - 📅 Design review w/ Jules & Priya on 2025-10-27 to lock spacing, chip colors, glossary entrypoints, and button hierarchy.
+  - 📅 Schedule updated design review with Jules & Priya to lock spacing, chip colors, glossary entrypoints, and button hierarchy.
 - [~] Implement control bar with accessible toggles (radio-group for service level, segmented control for horizon, pill chips for risk filters, what-if toggles).
   - Use `<.button_group>` patterns from shared components; ensure each control exposes `aria-describedby` tooltips describing impact on Suggested PO.
   - Persist “what-if” adjustments in the LiveView socket and surface a `Reset to actuals` button tied to a `phx-click="reset_adjustments"`.
   - ✅ Service level + horizon toggles live in the Reorder Planner page; risk filters/what-if toggles still pending.
-- [ ] Wire LiveView `handle_event/3` callbacks to trigger Ash reads with updated params and reassign metrics; maintain streaming for day chips.
-  - Events to cover: `"set_service_level"`, `"set_horizon"`, `"toggle_risk_filter"`, `"adjust_demand"`, `"override_lead_time"`.
+- [~] Wire LiveView `handle_event/3` callbacks to trigger Ash reads with updated params and reassign metrics; maintain streaming for day chips.
+  - `"set_service_level"` and `"set_horizon"` already refresh metrics; risk filter, demand delta, and lead-time override events remain to be implemented.
   - Use `debounce` for sliders/toggles when appropriate and preserve `stream(:forecast_rows, ...)` for the day chips.
 - [ ] Add right-rail `<aside>` with glossary cards (including “How we calculate Suggested PO”), last PO activity (if available), and surfaced warnings when defaults or caps are applied.
   - Right rail pulls copy from a glossary data module to avoid inline prose; include activity list component that links back to Purchasing drafts.
 - [ ] Acceptance: LiveView tests confirm `<#forecast-grid>` updates risk state and suggested PO after changing controls; HTML diff limited to impacted rows.
-  - Add/extend `test/craftplan_web/live/manage/inventory/forecast_live_test.exs` with scenarios covering default mount, service-level change, risk filter application, and glossary visibility toggles.
+  - Add/extend `test/craftplan_web/live/manage/inventory/reorder_planner_live_test.exs` (new) with scenarios covering default mount, service-level change, risk filter application, and glossary visibility toggles.
 
 ### Milestone C — PO Flow & Advanced Interactions (2 dev days)
 
@@ -129,8 +129,8 @@ Status: Milestone B kickoff – LiveView defaults + component skeletons queued
 ## 5. Technical Breakdown & Owners
 
 - **Calculator & Actions** *(Backend engineer)*:
-  - Define metric functions with documented formulas and guard clauses.
-  - Extend Ash resources (`Inventory.Material`, `Inventory.ForecastEntry`) as needed.
+  - Maintain metric functions with documented formulas and guard clauses.
+  - Extend Ash resources (`Inventory.Material`, `Inventory.ForecastEntry`) as needed to supply pack size, lead time, and max cover metadata.
   - Ensure `Ash.load/3` invocations include the metrics aggregator to prevent N+1 queries.
 - **LiveView & Components** *(Full-stack engineer)*:
   - Build metrics band and controls as reusable components.
@@ -186,5 +186,6 @@ Outstanding questions: None for Phase 1. Revisit as new requirements emerge.
 1. Add telemetry + instrumentation for `CraftplanWeb.InventoryLive.ReorderPlanner` metrics loads (duration, row count, service level, horizon) and persist planner defaults to session/user settings.
 2. Partner with design to finalize the Reorder Planner control bar (risk filters, demand delta, lead-time override) and wire events into the LiveView.
 3. Implement what-if controls + risk filtering so the metrics band re-hydrates rows according to the toggles.
-4. Build the glossary/right-rail component and surface warnings when defaults (lead time, pack size) kick in.
-5. Hook the Suggested PO CTA into Purchasing (flow + navigation) and extend LiveView tests for CTA disabled states and risk filtering.
+4. Hydrate per-material lead time, pack size, and optional max-cover metadata in `InventoryForecasting.owner_grid_rows/3` so Suggested PO reflects real supplier data.
+5. Build the glossary/right-rail component and surface warnings when defaults (lead time, pack size) kick in.
+6. Hook the Suggested PO CTA into Purchasing (flow + navigation) and extend LiveView tests for CTA disabled states and risk filtering.
