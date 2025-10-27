@@ -2,6 +2,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   alias Craftplan.Inventory
 
   @impl true
@@ -230,27 +231,14 @@ defmodule CraftplanWeb.InventoryLive.Show do
       }
     ]
 
-    nav_sub_links = [
-      %{
-        label: "Materials",
-        navigate: ~p"/manage/inventory",
-        active: false
-      },
-      %{
-        label: "Forecast",
-        navigate: ~p"/manage/inventory/forecast",
-        active: false
-      }
-    ]
+    socket =
+      socket
+      |> assign(:page_title, page_title(live_action))
+      |> assign(:material, material)
+      |> assign(:open_po_items, open_po_items)
+      |> assign(:tabs_links, tabs_links)
 
-    {:noreply,
-     socket
-     |> assign(:page_title, page_title(live_action))
-     |> assign(:material, material)
-     |> assign(:open_po_items, open_po_items)
-     |> assign(:tabs_links, tabs_links)
-     |> assign(:nav_sub_links, nav_sub_links)
-     |> assign(:breadcrumbs, material_breadcrumbs(material, live_action))}
+    {:noreply, Navigation.assign(socket, :inventory, material_trail(material, live_action))}
   end
 
   # helper functions removed; calls now pass actor explicitly in mount
@@ -335,49 +323,29 @@ defmodule CraftplanWeb.InventoryLive.Show do
   defp page_title(:nutritional_facts), do: "Material Nutrition"
   defp page_title(:stock), do: "Material Stock"
 
-  defp material_breadcrumbs(material, live_action) do
-    base = [
-      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
-      %{
-        label: material.name,
-        path: ~p"/manage/inventory/#{material.sku}",
-        current?: live_action in [:show, :details]
-      }
+  defp material_trail(material, :allergens) do
+    [
+      Navigation.root(:inventory),
+      Navigation.resource(:material, material),
+      Navigation.page(:inventory, :material_allergens, material)
     ]
-
-    case live_action do
-      :allergens ->
-        base ++
-          [
-            %{
-              label: "Allergens",
-              path: ~p"/manage/inventory/#{material.sku}/allergens",
-              current?: true
-            }
-          ]
-
-      :nutritional_facts ->
-        base ++
-          [
-            %{
-              label: "Nutrition",
-              path: ~p"/manage/inventory/#{material.sku}/nutritional_facts",
-              current?: true
-            }
-          ]
-
-      :stock ->
-        base ++
-          [
-            %{
-              label: "Stock",
-              path: ~p"/manage/inventory/#{material.sku}/stock",
-              current?: true
-            }
-          ]
-
-      _ ->
-        List.update_at(base, 1, &Map.put(&1, :current?, true))
-    end
   end
+
+  defp material_trail(material, :nutritional_facts) do
+    [
+      Navigation.root(:inventory),
+      Navigation.resource(:material, material),
+      Navigation.page(:inventory, :material_nutrition, material)
+    ]
+  end
+
+  defp material_trail(material, :stock) do
+    [
+      Navigation.root(:inventory),
+      Navigation.resource(:material, material),
+      Navigation.page(:inventory, :material_stock, material)
+    ]
+  end
+
+  defp material_trail(material, _), do: [Navigation.root(:inventory), Navigation.resource(:material, material)]
 end

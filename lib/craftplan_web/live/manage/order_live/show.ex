@@ -2,6 +2,7 @@ defmodule CraftplanWeb.OrderLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   alias Craftplan.Catalog
   alias Craftplan.Catalog.Product.Photo
   alias Craftplan.CRM
@@ -231,9 +232,8 @@ defmodule CraftplanWeb.OrderLive.Show do
       |> assign(:page_title, page_title(live_action))
       |> assign(:order, order)
       |> assign(:tabs_links, tabs_links)
-      |> assign(:breadcrumbs, order_breadcrumbs(order, live_action))
 
-    {:noreply, socket}
+    {:noreply, Navigation.assign(socket, :orders, order_trail(order, live_action))}
   end
 
   @impl true
@@ -360,29 +360,13 @@ defmodule CraftplanWeb.OrderLive.Show do
   defp page_title(:details), do: "Order Details"
   defp page_title(:items), do: "Order Items"
 
-  defp order_breadcrumbs(order, live_action) do
-    base = [
-      %{label: "Orders", path: ~p"/manage/orders", current?: false},
-      %{
-        label: format_reference(order.reference),
-        path: ~p"/manage/orders/#{order.reference}",
-        current?: live_action in [:show, :details]
-      }
+  defp order_trail(order, :items) do
+    [
+      Navigation.root(:orders),
+      Navigation.resource(:order, order),
+      Navigation.page(:orders, :order_items, order)
     ]
-
-    case live_action do
-      :items ->
-        base ++
-          [
-            %{
-              label: "Items",
-              path: ~p"/manage/orders/#{order.reference}/items",
-              current?: true
-            }
-          ]
-
-      _ ->
-        List.update_at(base, 1, &Map.put(&1, :current?, true))
-    end
   end
+
+  defp order_trail(order, _), do: [Navigation.root(:orders), Navigation.resource(:order, order)]
 end

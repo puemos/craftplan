@@ -2,6 +2,7 @@ defmodule CraftplanWeb.PurchasingLive.Index do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   alias Craftplan.Inventory
   alias Craftplan.Inventory.Receiving
 
@@ -79,16 +80,13 @@ defmodule CraftplanWeb.PurchasingLive.Index do
     pos = load_purchase_orders(socket)
 
     {:ok,
-     socket
-     |> assign(
+     assign(socket,
        suppliers: suppliers,
        materials: materials,
        purchase_orders: pos,
        selected_po: nil,
        purchasing_tab: :purchase_orders
-     )
-     |> assign(:nav_sub_links, purchasing_sub_links())
-     |> assign(:breadcrumbs, purchasing_breadcrumbs(%{live_action: :index}))}
+     )}
   end
 
   @impl true
@@ -110,7 +108,7 @@ defmodule CraftplanWeb.PurchasingLive.Index do
           assign(socket, :selected_po, nil)
       end
 
-    {:noreply, assign(socket, :breadcrumbs, purchasing_breadcrumbs(socket.assigns))}
+    {:noreply, Navigation.assign(socket, :purchasing, purchasing_trail(socket.assigns))}
   end
 
   @impl true
@@ -136,44 +134,13 @@ defmodule CraftplanWeb.PurchasingLive.Index do
      |> push_event("close-modal", %{id: "po-item-modal"})}
   end
 
-  defp purchasing_sub_links do
-    [
-      %{
-        label: "Purchase Orders",
-        navigate: ~p"/manage/purchasing",
-        active: true
-      },
-      %{
-        label: "Suppliers",
-        navigate: ~p"/manage/purchasing/suppliers",
-        active: false
-      }
-    ]
-  end
+  defp purchasing_trail(%{live_action: :new}),
+    do: [Navigation.root(:purchasing), Navigation.page(:purchasing, :new_purchase_order)]
 
-  defp purchasing_breadcrumbs(%{live_action: :index}) do
-    [
-      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: true}
-    ]
-  end
+  defp purchasing_trail(%{live_action: :add_item, selected_po: %{} = po}),
+    do: [Navigation.root(:purchasing), Navigation.resource(:purchase_order, po)]
 
-  defp purchasing_breadcrumbs(%{live_action: :new}) do
-    [
-      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
-      %{label: "New Purchase Order", path: ~p"/manage/purchasing/new", current?: true}
-    ]
-  end
-
-  defp purchasing_breadcrumbs(%{live_action: :add_item, selected_po: %{} = po}) do
-    [
-      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
-      %{label: po.reference, path: ~p"/manage/purchasing/#{po.reference}", current?: true}
-    ]
-  end
-
-  defp purchasing_breadcrumbs(%{live_action: :add_item}), do: purchasing_breadcrumbs(%{live_action: :index})
-
-  defp purchasing_breadcrumbs(_), do: purchasing_breadcrumbs(%{live_action: :index})
+  defp purchasing_trail(_), do: [Navigation.root(:purchasing)]
 
   defp load_purchase_orders(socket) do
     Inventory.list_purchase_orders!(actor: socket.assigns[:current_user], load: [:supplier])

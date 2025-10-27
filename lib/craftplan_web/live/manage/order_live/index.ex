@@ -11,6 +11,7 @@ defmodule CraftplanWeb.OrderLive.Index do
   alias Craftplan.CRM
   alias Craftplan.Orders
   alias CraftplanWeb.Components.Page
+  alias CraftplanWeb.Navigation
 
   @type filter_options :: %{
           status: list(String.t()) | nil,
@@ -445,25 +446,15 @@ defmodule CraftplanWeb.OrderLive.Index do
     # Calculate days range for calendar
     days_range = calculate_days_range(socket.assigns[:current_week_start])
 
-    nav_sub_links = [
-      %{label: "Table", navigate: ~p"/manage/orders?view=table", active: view_mode == "table"},
-      %{
-        label: "Calendar",
-        navigate: ~p"/manage/orders?view=calendar",
-        active: view_mode == "calendar"
-      }
-    ]
-
     socket =
       socket
       |> assign(:view_mode, view_mode)
       |> assign(:orders, orders_for_calendar)
       |> assign(:calendar_events, calendar_events)
       |> assign(:days_range, days_range)
-      |> assign(:nav_sub_links, nav_sub_links)
       |> apply_action(socket.assigns.live_action, params)
 
-    {:noreply, assign(socket, :breadcrumbs, order_breadcrumbs(socket.assigns))}
+    {:noreply, Navigation.assign(socket, :orders, order_trail(socket.assigns))}
   end
 
   @impl true
@@ -685,20 +676,9 @@ defmodule CraftplanWeb.OrderLive.Index do
     |> assign(:order, nil)
   end
 
-  defp order_breadcrumbs(%{live_action: :new}) do
-    [
-      %{label: "Orders", path: ~p"/manage/orders", current?: false},
-      %{label: "New Order", path: ~p"/manage/orders/new", current?: true}
-    ]
-  end
+  defp order_trail(%{live_action: :new}), do: [Navigation.root(:orders), Navigation.page(:orders, :new)]
 
-  defp order_breadcrumbs(%{live_action: :index}) do
-    [
-      %{label: "Orders", path: ~p"/manage/orders", current?: true}
-    ]
-  end
-
-  defp order_breadcrumbs(_), do: order_breadcrumbs(%{live_action: :index})
+  defp order_trail(_), do: [Navigation.root(:orders)]
 
   @spec parse_filters(map()) :: filter_options()
   defp parse_filters(filters) do

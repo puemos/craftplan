@@ -2,6 +2,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   alias Craftplan.Inventory
   alias Craftplan.Settings
 
@@ -180,15 +181,9 @@ defmodule CraftplanWeb.SettingsLive.Index do
   def handle_params(params, _url, socket) do
     live_action = socket.assigns.live_action
 
-    nav_sub_links = settings_sub_links(live_action)
+    socket = apply_action(socket, live_action, params)
 
-    socket =
-      socket
-      |> assign(:nav_sub_links, nav_sub_links)
-      |> assign(:breadcrumbs, settings_breadcrumbs(live_action))
-      |> apply_action(live_action, params)
-
-    {:noreply, socket}
+    {:noreply, Navigation.assign(socket, :settings, settings_trail(live_action))}
   end
 
   @impl true
@@ -223,31 +218,6 @@ defmodule CraftplanWeb.SettingsLive.Index do
     assign(socket, :page_title, "Import & Export")
   end
 
-  defp settings_sub_links(live_action) do
-    [
-      %{
-        label: "General",
-        navigate: ~p"/manage/settings/general",
-        active: live_action in [:general, :index]
-      },
-      %{
-        label: "Allergens",
-        navigate: ~p"/manage/settings/allergens",
-        active: live_action == :allergens
-      },
-      %{
-        label: "Nutritional Facts",
-        navigate: ~p"/manage/settings/nutritional_facts",
-        active: live_action == :nutritional_facts
-      },
-      %{
-        label: "Import & Export",
-        navigate: ~p"/manage/settings/csv",
-        active: live_action == :csv
-      }
-    ]
-  end
-
   def csv_import_entities do
     [
       %{
@@ -274,41 +244,16 @@ defmodule CraftplanWeb.SettingsLive.Index do
     ]
   end
 
-  defp settings_breadcrumbs(:index) do
-    [
-      %{label: "Settings", path: ~p"/manage/settings", current?: true}
-    ]
-  end
+  defp settings_trail(:general), do: [Navigation.root(:settings), Navigation.page(:settings, :general)]
 
-  defp settings_breadcrumbs(:general) do
-    [
-      %{label: "Settings", path: ~p"/manage/settings", current?: false},
-      %{label: "General Settings", path: ~p"/manage/settings/general", current?: true}
-    ]
-  end
+  defp settings_trail(:allergens), do: [Navigation.root(:settings), Navigation.page(:settings, :allergens)]
 
-  defp settings_breadcrumbs(:allergens) do
-    [
-      %{label: "Settings", path: ~p"/manage/settings", current?: false},
-      %{label: "Allergens", path: ~p"/manage/settings/allergens", current?: true}
-    ]
-  end
+  defp settings_trail(:nutritional_facts),
+    do: [Navigation.root(:settings), Navigation.page(:settings, :nutritional_facts)]
 
-  defp settings_breadcrumbs(:nutritional_facts) do
-    [
-      %{label: "Settings", path: ~p"/manage/settings", current?: false},
-      %{label: "Nutritional Facts", path: ~p"/manage/settings/nutritional_facts", current?: true}
-    ]
-  end
+  defp settings_trail(:csv), do: [Navigation.root(:settings), Navigation.page(:settings, :csv)]
 
-  defp settings_breadcrumbs(:csv) do
-    [
-      %{label: "Settings", path: ~p"/manage/settings", current?: false},
-      %{label: "Import & Export", path: ~p"/manage/settings/csv", current?: true}
-    ]
-  end
-
-  defp settings_breadcrumbs(_), do: settings_breadcrumbs(:index)
+  defp settings_trail(_), do: [Navigation.root(:settings)]
 
   # Component close callback from ImportModalComponent
   @impl true

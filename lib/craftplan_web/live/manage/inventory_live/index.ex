@@ -6,6 +6,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
   alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
   alias CraftplanWeb.Components.Page
+  alias CraftplanWeb.Navigation
 
   @impl true
   def render(assigns) do
@@ -487,14 +488,9 @@ defmodule CraftplanWeb.InventoryLive.Index do
   def handle_params(params, _url, socket) do
     live_action = socket.assigns.live_action
 
-    nav_sub_links = inventory_sub_links(live_action)
+    socket = apply_action(socket, live_action, params)
 
-    socket =
-      socket
-      |> assign(:nav_sub_links, nav_sub_links)
-      |> apply_action(live_action, params)
-
-    {:noreply, assign(socket, :breadcrumbs, inventory_breadcrumbs(socket.assigns))}
+    {:noreply, Navigation.assign(socket, :inventory, inventory_trail(socket.assigns))}
   end
 
   defp apply_action(socket, :new, _params) do
@@ -693,56 +689,16 @@ defmodule CraftplanWeb.InventoryLive.Index do
     "Balance #{format_amount(unit, balance)}"
   end
 
-  defp inventory_sub_links(live_action) do
-    [
-      %{
-        label: "Materials",
-        navigate: ~p"/manage/inventory",
-        active: live_action in [:index, :new, :edit]
-      },
-      %{
-        label: "Usage Forecast",
-        navigate: ~p"/manage/inventory/forecast",
-        active: live_action == :forecast
-      },
-      %{
-        label: "Reorder Planner",
-        navigate: ~p"/manage/inventory/forecast/reorder",
-        active: live_action == :owner
-      }
-    ]
-  end
+  defp inventory_trail(%{live_action: :new}),
+    do: [Navigation.root(:inventory), Navigation.page(:inventory, :new_material)]
 
-  defp inventory_breadcrumbs(%{live_action: :index}) do
-    [
-      %{label: "Inventory", path: ~p"/manage/inventory", current?: true}
-    ]
-  end
+  defp inventory_trail(%{live_action: :forecast}),
+    do: [Navigation.root(:inventory), Navigation.page(:inventory, :forecast)]
 
-  defp inventory_breadcrumbs(%{live_action: :new}) do
-    [
-      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
-      %{label: "New Material", path: ~p"/manage/inventory/new", current?: true}
-    ]
-  end
+  defp inventory_trail(%{live_action: :edit, material: material}) when not is_nil(material),
+    do: [Navigation.root(:inventory), Navigation.resource(:material, material)]
 
-  defp inventory_breadcrumbs(%{live_action: :forecast}) do
-    [
-      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
-      %{label: "Usage Forecast", path: ~p"/manage/inventory/forecast", current?: true}
-    ]
-  end
-
-  defp inventory_breadcrumbs(%{live_action: :edit, material: material}) when not is_nil(material) do
-    [
-      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
-      %{label: material.name, path: ~p"/manage/inventory/#{material.sku}", current?: true}
-    ]
-  end
-
-  defp inventory_breadcrumbs(assigns) do
-    inventory_breadcrumbs(%{assigns | live_action: :index})
-  end
+  defp inventory_trail(_assigns), do: [Navigation.root(:inventory)]
 
   @doc """
   Generates a range of dates starting from a given date

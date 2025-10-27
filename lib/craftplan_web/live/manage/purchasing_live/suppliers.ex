@@ -2,6 +2,7 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   alias Craftplan.Inventory
 
   @impl true
@@ -52,11 +53,7 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
   def mount(_params, _session, socket) do
     suppliers = Inventory.list_suppliers!(actor: socket.assigns[:current_user])
 
-    {:ok,
-     socket
-     |> assign(suppliers: suppliers, supplier: nil, purchasing_tab: :suppliers)
-     |> assign(:nav_sub_links, purchasing_sub_links())
-     |> assign(:breadcrumbs, suppliers_breadcrumbs(%{live_action: :index}))}
+    {:ok, assign(socket, suppliers: suppliers, supplier: nil, purchasing_tab: :suppliers)}
   end
 
   @impl true
@@ -76,7 +73,7 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
           assign(socket, :supplier, nil)
       end
 
-    {:noreply, assign(socket, :breadcrumbs, suppliers_breadcrumbs(socket.assigns))}
+    {:noreply, Navigation.assign(socket, :purchasing, suppliers_trail(socket.assigns))}
   end
 
   @impl true
@@ -88,49 +85,21 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
      |> push_event("close-modal", %{id: "supplier-modal"})}
   end
 
-  defp purchasing_sub_links do
+  defp suppliers_trail(%{live_action: :new}) do
     [
-      %{
-        label: "Purchase Orders",
-        navigate: ~p"/manage/purchasing",
-        active: false
-      },
-      %{
-        label: "Suppliers",
-        navigate: ~p"/manage/purchasing/suppliers",
-        active: true
-      }
+      Navigation.root(:purchasing),
+      Navigation.page(:purchasing, :suppliers),
+      Navigation.page(:purchasing, :new_supplier)
     ]
   end
 
-  defp suppliers_breadcrumbs(%{live_action: :index}) do
+  defp suppliers_trail(%{live_action: :edit, supplier: %{} = supplier}) do
     [
-      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
-      %{label: "Suppliers", path: ~p"/manage/purchasing/suppliers", current?: true}
+      Navigation.root(:purchasing),
+      Navigation.page(:purchasing, :suppliers),
+      Navigation.resource(:supplier, supplier)
     ]
   end
 
-  defp suppliers_breadcrumbs(%{live_action: :new}) do
-    [
-      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
-      %{label: "Suppliers", path: ~p"/manage/purchasing/suppliers", current?: false},
-      %{label: "New Supplier", path: ~p"/manage/purchasing/suppliers/new", current?: true}
-    ]
-  end
-
-  defp suppliers_breadcrumbs(%{live_action: :edit, supplier: %{} = supplier}) do
-    [
-      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
-      %{label: "Suppliers", path: ~p"/manage/purchasing/suppliers", current?: false},
-      %{
-        label: supplier.name,
-        path: ~p"/manage/purchasing/suppliers/#{supplier.id}/edit",
-        current?: true
-      }
-    ]
-  end
-
-  defp suppliers_breadcrumbs(%{live_action: :edit}), do: suppliers_breadcrumbs(%{live_action: :new})
-
-  defp suppliers_breadcrumbs(_), do: suppliers_breadcrumbs(%{live_action: :index})
+  defp suppliers_trail(_), do: [Navigation.root(:purchasing), Navigation.page(:purchasing, :suppliers)]
 end

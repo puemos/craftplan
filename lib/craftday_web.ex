@@ -56,6 +56,8 @@ defmodule CraftplanWeb do
       use Phoenix.LiveView,
         layout: {CraftplanWeb.Layouts, :app}
 
+      alias CraftplanWeb.Navigation
+
       unquote(html_helpers())
     end
   end

@@ -4,6 +4,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   alias Craftplan.InventoryForecasting
   alias CraftplanWeb.Components.Page
+  alias CraftplanWeb.Navigation
   alias Decimal, as: D
 
   require Logger
@@ -185,12 +186,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   @impl true
   def handle_params(_params, _url, socket) do
-    socket =
-      socket
-      |> assign(:nav_sub_links, inventory_sub_links(:owner))
-      |> assign(:breadcrumbs, inventory_breadcrumbs())
-
-    {:noreply, socket}
+    {:noreply, Navigation.assign(socket, :inventory, reorder_trail())}
   end
 
   @impl true
@@ -357,30 +353,10 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   ## Navigation
 
-  defp inventory_sub_links(:owner) do
+  defp reorder_trail do
     [
-      %{
-        label: "Materials",
-        navigate: ~p"/manage/inventory",
-        active: false
-      },
-      %{
-        label: "Usage Forecast",
-        navigate: ~p"/manage/inventory/forecast",
-        active: false
-      },
-      %{
-        label: "Reorder Planner",
-        navigate: ~p"/manage/inventory/forecast/reorder",
-        active: true
-      }
-    ]
-  end
-
-  defp inventory_breadcrumbs do
-    [
-      %{label: "Inventory", path: ~p"/manage/inventory", current?: false},
-      %{label: "Reorder Planner", path: ~p"/manage/inventory/forecast/reorder", current?: true}
+      Navigation.root(:inventory),
+      Navigation.page(:inventory, :reorder)
     ]
   end
 

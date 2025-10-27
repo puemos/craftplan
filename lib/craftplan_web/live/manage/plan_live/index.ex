@@ -9,6 +9,7 @@ defmodule CraftplanWeb.PlanLive.Index do
   alias Craftplan.Orders.Consumption
   alias Craftplan.Production
   alias CraftplanWeb.Components.Page
+  alias CraftplanWeb.Navigation
 
   @impl true
   def render(assigns) do
@@ -861,9 +862,8 @@ defmodule CraftplanWeb.PlanLive.Index do
       socket
       |> maybe_assign_schedule_view(live_action, schedule_view)
       |> assign(:page_title, page_title(live_action))
-      |> assign(:nav_sub_links, plan_nav_sub_links(live_action, schedule_view))
 
-    {:noreply, assign(socket, :breadcrumbs, plan_breadcrumbs(socket.assigns))}
+    {:noreply, Navigation.assign(socket, :production, plan_trail(socket.assigns))}
   end
 
   @impl true
@@ -943,11 +943,12 @@ defmodule CraftplanWeb.PlanLive.Index do
           generate_week_range(monday, 7)
       end
 
-    {:noreply,
-     socket
-     |> assign(:schedule_view, schedule_view)
-     |> assign(:nav_sub_links, plan_nav_sub_links(socket.assigns.live_action, schedule_view))
-     |> update_for_range(days_range)}
+    socket =
+      socket
+      |> assign(:schedule_view, schedule_view)
+      |> update_for_range(days_range)
+
+    {:noreply, Navigation.assign(socket, :production, plan_trail(socket.assigns))}
   end
 
   @impl true
@@ -1393,52 +1394,15 @@ defmodule CraftplanWeb.PlanLive.Index do
     end
   end
 
-  defp plan_nav_sub_links(live_action, schedule_view) do
-    normalized_view = schedule_view || :day
+  defp plan_trail(%{live_action: :schedule}), do: [Navigation.root(:production), Navigation.page(:production, :schedule)]
 
-    [
-      %{label: "Overview", navigate: ~p"/manage/production", active: live_action == :index},
-      %{
-        label: "Weekly",
-        navigate: ~p"/manage/production/schedule?view=week",
-        active: live_action in [:schedule, :make_sheet] and normalized_view == :week
-      },
-      %{
-        label: "Daily",
-        navigate: ~p"/manage/production/schedule?view=day",
-        active: live_action in [:schedule, :make_sheet] and normalized_view == :day
-      }
-    ]
-  end
+  defp plan_trail(%{live_action: :make_sheet}),
+    do: [Navigation.root(:production), Navigation.page(:production, :make_sheet)]
 
-  defp plan_breadcrumbs(%{live_action: :index}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: true}
-    ]
-  end
+  defp plan_trail(%{live_action: :materials}),
+    do: [Navigation.root(:production), Navigation.page(:production, :materials)]
 
-  defp plan_breadcrumbs(%{live_action: :schedule}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: false},
-      %{label: "Schedule", path: ~p"/manage/production/schedule", current?: true}
-    ]
-  end
-
-  defp plan_breadcrumbs(%{live_action: :make_sheet}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: false},
-      %{label: "Make Sheet", path: ~p"/manage/production/make_sheet", current?: true}
-    ]
-  end
-
-  defp plan_breadcrumbs(%{live_action: :materials}) do
-    [
-      %{label: "Production", path: ~p"/manage/production", current?: false},
-      %{label: "Materials", path: ~p"/manage/production/materials", current?: true}
-    ]
-  end
-
-  defp plan_breadcrumbs(_), do: plan_breadcrumbs(%{live_action: :index})
+  defp plan_trail(_), do: [Navigation.root(:production)]
 
   defp progress_by_status(items, status) do
     zero = Decimal.new(0)

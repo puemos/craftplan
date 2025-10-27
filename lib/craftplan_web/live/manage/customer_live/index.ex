@@ -2,6 +2,7 @@ defmodule CraftplanWeb.CustomerLive.Index do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   @impl true
   def render(assigns) do
     ~H"""
@@ -61,9 +62,6 @@ defmodule CraftplanWeb.CustomerLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:breadcrumbs, [
-       %{label: "Customers", path: ~p"/manage/customers", current?: true}
-     ])
      |> stream(
        :customers,
        Ash.read!(Craftplan.CRM.Customer,
@@ -76,7 +74,9 @@ defmodule CraftplanWeb.CustomerLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    socket = apply_action(socket, socket.assigns.live_action, params)
+
+    {:noreply, Navigation.assign(socket, :customers, customer_index_trail(socket.assigns))}
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
@@ -114,6 +114,14 @@ defmodule CraftplanWeb.CustomerLive.Index do
     |> assign(:page_title, "Customers")
     |> assign(:customer, nil)
   end
+
+  defp customer_index_trail(%{live_action: :new}),
+    do: [Navigation.root(:customers), Navigation.page(:customers, :new_customer)]
+
+  defp customer_index_trail(%{live_action: :edit, customer: %{} = customer}),
+    do: [Navigation.root(:customers), Navigation.resource(:customer, customer)]
+
+  defp customer_index_trail(_), do: [Navigation.root(:customers)]
 
   @impl true
   def handle_info({{CraftplanWeb.CustomerLive.FormComponent, :saved, customer}}, socket) do

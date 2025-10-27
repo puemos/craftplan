@@ -2,6 +2,7 @@ defmodule CraftplanWeb.CustomerLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   alias Craftplan.CRM
 
   @impl true
@@ -128,12 +129,13 @@ defmodule CraftplanWeb.CustomerLive.Show do
       }
     ]
 
-    {:noreply,
-     socket
-     |> assign(:page_title, page_title(live_action))
-     |> assign(:customer, customer)
-     |> assign(:tabs_links, tabs_links)
-     |> assign(:breadcrumbs, customer_breadcrumbs(customer, live_action))}
+    socket =
+      socket
+      |> assign(:page_title, page_title(live_action))
+      |> assign(:customer, customer)
+      |> assign(:tabs_links, tabs_links)
+
+    {:noreply, Navigation.assign(socket, :customers, customer_trail(customer, live_action))}
   end
 
   defp page_title(:show), do: "Customer Details"
@@ -141,39 +143,21 @@ defmodule CraftplanWeb.CustomerLive.Show do
   defp page_title(:orders), do: "Customer Orders"
   defp page_title(:statistics), do: "Customer Statistics"
 
-  defp customer_breadcrumbs(customer, live_action) do
-    base = [
-      %{label: "Customers", path: ~p"/manage/customers", current?: false},
-      %{
-        label: customer.full_name,
-        path: ~p"/manage/customers/#{customer.reference}",
-        current?: live_action in [:show, :details]
-      }
+  defp customer_trail(customer, :orders) do
+    [
+      Navigation.root(:customers),
+      Navigation.resource(:customer, customer),
+      Navigation.page(:customers, :customer_orders, customer)
     ]
-
-    case live_action do
-      :orders ->
-        base ++
-          [
-            %{
-              label: "Orders",
-              path: ~p"/manage/customers/#{customer.reference}/orders",
-              current?: true
-            }
-          ]
-
-      :statistics ->
-        base ++
-          [
-            %{
-              label: "Statistics",
-              path: ~p"/manage/customers/#{customer.reference}/statistics",
-              current?: true
-            }
-          ]
-
-      _ ->
-        List.update_at(base, 1, &Map.put(&1, :current?, true))
-    end
   end
+
+  defp customer_trail(customer, :statistics) do
+    [
+      Navigation.root(:customers),
+      Navigation.resource(:customer, customer),
+      Navigation.page(:customers, :customer_statistics, customer)
+    ]
+  end
+
+  defp customer_trail(customer, _), do: [Navigation.root(:customers), Navigation.resource(:customer, customer)]
 end

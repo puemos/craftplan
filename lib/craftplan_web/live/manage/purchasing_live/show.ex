@@ -2,6 +2,7 @@ defmodule CraftplanWeb.PurchasingLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias CraftplanWeb.Navigation
   alias Craftplan.Inventory
   alias Craftplan.Inventory.Receiving
 
@@ -113,25 +114,12 @@ defmodule CraftplanWeb.PurchasingLive.Show do
           }
         ]
 
-        nav_sub_links = [
-          %{
-            label: "Purchase Orders",
-            navigate: ~p"/manage/purchasing",
-            active: false
-          },
-          %{
-            label: "Suppliers",
-            navigate: ~p"/manage/purchasing/suppliers",
-            active: false
-          }
-        ]
+        socket =
+          socket
+          |> assign(:po, po)
+          |> assign(:tabs_links, tabs_links)
 
-        {:noreply,
-         socket
-         |> assign(:po, po)
-         |> assign(:nav_sub_links, nav_sub_links)
-         |> assign(:tabs_links, tabs_links)
-         |> assign(:breadcrumbs, purchasing_po_breadcrumbs(po, live_action))}
+        {:noreply, Navigation.assign(socket, :purchasing, po_trail(po, live_action))}
 
       {:error, _} ->
         {:noreply,
@@ -162,34 +150,28 @@ defmodule CraftplanWeb.PurchasingLive.Show do
      |> push_event("close-modal", %{id: "po-item-modal"})}
   end
 
-  defp purchasing_po_breadcrumbs(po, live_action) do
-    base = [
-      %{label: "Purchasing", path: ~p"/manage/purchasing", current?: false},
-      %{label: "Orders", path: ~p"/manage/purchasing", current?: false},
-      %{
-        label: po.reference,
-        path: ~p"/manage/purchasing/#{po.reference}",
-        current?: live_action == :show
-      }
+  defp po_trail(po, :items) do
+    [
+      Navigation.root(:purchasing),
+      Navigation.page(:purchasing, :purchase_orders),
+      Navigation.resource(:purchase_order, po),
+      Navigation.page(:purchasing, :po_items, po)
     ]
-
-    case live_action do
-      :items ->
-        base ++
-          [%{label: "Items", path: ~p"/manage/purchasing/#{po.reference}/items", current?: true}]
-
-      :add_item ->
-        base ++
-          [
-            %{
-              label: "Add Item",
-              path: ~p"/manage/purchasing/#{po.reference}/add_item",
-              current?: true
-            }
-          ]
-
-      _ ->
-        List.update_at(base, 1, &Map.put(&1, :current?, true))
-    end
   end
+
+  defp po_trail(po, :add_item) do
+    [
+      Navigation.root(:purchasing),
+      Navigation.page(:purchasing, :purchase_orders),
+      Navigation.resource(:purchase_order, po),
+      Navigation.page(:purchasing, :po_add_item, po)
+    ]
+  end
+
+  defp po_trail(po, _),
+    do: [
+      Navigation.root(:purchasing),
+      Navigation.page(:purchasing, :purchase_orders),
+      Navigation.resource(:purchase_order, po)
+    ]
 end
