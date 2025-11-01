@@ -11,6 +11,13 @@ defmodule Craftplan.Catalog.BOM do
   postgres do
     table "catalog_boms"
     repo Craftplan.Repo
+
+    custom_indexes do
+      index [:product_id],
+        unique: true,
+        name: "catalog_boms_one_active_per_product",
+        where: "status = 'active'"
+    end
   end
 
   actions do
