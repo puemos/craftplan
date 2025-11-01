@@ -74,33 +74,22 @@ Last updated: 2025-11-01
 - [ ] Planner "Mark Done" dialog shows resulting batch code and actual cost snapshot.
 - [x] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
 
-### BOM Versioning (Switcher + History)
+### BOM Versioning (Simple UX)
 
-- [x] Add version switcher to the Product Recipe/BOM tab
-  - Shows current BOM (version, status, published_at)
-  - Dropdown lists all versions (vN · status · date)
-  - Selecting switches the editor to that version (read-only for archived)
-- [x] History table below editor
-  - Columns: Version, Status, Published, Notes, Unit Cost, Actions (View, Duplicate, Make Active, Archive)
-  - Read-only rendering for non-current versions
-- [x] Actions
-  - Duplicate → creates new draft (next version) with copied components & labor
-  - Make Active → sets selected draft to active (sets published_at)
-  - Archive → sets selected to archived (read-only)
-- [ ] Routing
-  - Support optional `?v=:version` param for preselecting a version
-- [x] Tests
-  - LiveView: switch versions, duplicate flow, promote to active, archive
-  - Domain: duplication service copies children; promote enforces single active
+- [x] Simple header (no dropdown). Shows “Version vN” and a “Latest” chip when on newest.
+- [x] When viewing an older version: show an in-page banner with “Go to latest”.
+- [x] Editing disabled on older versions; Save only appears on latest version.
+- [x] History surfaced via modal with actions: View, Make Active (no Duplicate/Archive in simple mode).
+- [x] Routing: `?v=:version` preselects version.
+- [x] Tests updated for banner, read-only behavior, and modal actions.
 
 ### Data & Constraints for Versioning
 
-- [ ] Enforce single active BOM per product with partial unique index
+- [x] Enforce single active BOM per product with partial unique index
   - `unique_index(:catalog_boms, [:product_id], where: "status = 'active'", name: "catalog_boms_one_active_per_product")`
-- [ ] Add `:promote` update action on `Catalog.BOM` (status -> :active, published_at -> now)
-- [ ] Add duplication service `Catalog.Services.BOMDuplicate` (copy + manage_relationship)
-- [ ] Ensure `AssignBOMVersion` supplies version on create (no default)
-- [ ] Refresh rollups after duplicate/promote/update
+- [x] `:promote` update action on `Catalog.BOM` (status -> :active; sets `published_at`).
+- [x] `AssignBOMVersion` supplies version on create (no default in DB).
+- [x] Rollups refreshed after create/update/promote.
 
 **Data & Migrations**
 
@@ -121,7 +110,8 @@ Last updated: 2025-11-01
 - [x] Replace `Material <-> Recipe` relationships with `Material <-> BOM` through `BOMComponent`
 - [x] Update planner/forecasting to load from BOMs instead of Recipes
 - [x] Update seeds/tests to use BOMs exclusively; remove recipe fixtures
-- [ ] Remove any documentation and references to Recipes
+- [x] Remove `advanced_recipe_versioning` feature flag setting (schema + DB + seeds). Simple mode is the only UX.
+- [ ] Remove any documentation and references to Recipes; update docs to reflect simple versioning.
 
 ### Acceptance Criteria
 

@@ -25,6 +25,7 @@ For detailed instructions on using Craftplan, check out our user guides:
 - [x] Allergen tracking (auto-aggregated from BOM components)
 - [x] Nutritional facts (auto-calculated from BOM components)
 - [x] Recipe/Bill of Materials management
+  - Simple versioning UX: edit only the latest version; older versions are read‑only with a “Go to latest” banner and a history modal (View / Make Active).
 - [ ] Variant management
 - [x] Default currency setting and money formatting
 
