@@ -69,6 +69,9 @@ Requirements
 - Data & Migrations
   - [x] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
   - [x] Backfill seeds with example recipes (bread, pastry) including labor.
+  - [x] Persisted BOM rollups (`catalog_bom_rollups`) with unique index on `bom_id`; auto-refresh on BOM/component/labor changes.
+  - [ ] Add DB index on `catalog_bom_rollups(product_id)` to speed product cost reads.
+  - [ ] Optional: materialized flattened components JSONB in rollups + GIN index for label/traceability queries.
 
 Deprecations & Removals (no backward compatibility)
 
@@ -112,10 +115,10 @@ Phase A — Adapter (UI parity on existing route)
 
 Phase B — Domain usage switch
 
-- [ ] Update product calculations to prefer active BOM unit cost (fallback not required)
-  - Replace `recipe.cost` references with calculator for `active_bom`
-- [ ] Update product label ingredients to read from BOM components
-- [ ] Update planner/forecast materials demand to use BOM components
+- [x] Update product calculations to prefer active BOM unit cost; DB rollups first, fallback to compute or recipe only when needed
+- [x] Update product label ingredients to read from BOM components; keep recipe fallback during transition
+- [ ] Update planner/forecast materials demand to use BOM components + rollups (remove recipe reliance)
+- [ ] Update consumption flows to use BOM components when completing items; align confirmation modal sources
 - [ ] Update seeds/fixtures to BOM only (remove recipe seeding)
 
 Phase C — Cleanup and removal
