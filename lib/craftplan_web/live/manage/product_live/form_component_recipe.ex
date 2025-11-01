@@ -16,19 +16,29 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <label class="text-sm text-stone-600">Version</label>
-          <select
-            phx-change="switch_version"
-            phx-target={@myself}
-            name="bom_version"
-            class="rounded border-stone-300 text-sm"
-          >
-            <option :if={(@boms || []) == []} value="">No BOMs</option>
-            <%= for b <- @boms || [] do %>
-              <option value={b.version} selected={@bom && @bom.version == b.version}>
-                v{b.version} · {b.status}{b.published_at && format_date(b.published_at)}
-              </option>
-            <% end %>
-          </select>
+          <%= if @settings.advanced_recipe_versioning do %>
+            <select
+              phx-change="switch_version"
+              phx-target={@myself}
+              name="bom_version"
+              class="rounded border-stone-300 text-sm"
+            >
+              <option :if={(@boms || []) == []} value="">No BOMs</option>
+              <%= for b <- @boms || [] do %>
+                <option value={b.version} selected={@bom && @bom.version == b.version}>
+                  v{b.version} · {b.status}{b.published_at && format_date(b.published_at)}
+                </option>
+              <% end %>
+            </select>
+          <% else %>
+            <div class="text-sm text-stone-700">
+              <%= if @bom && @bom.id do %>
+                v{@bom.version} · {@bom.status}{@bom.published_at && format_date(@bom.published_at)}
+              <% else %>
+                No BOM yet
+              <% end %>
+            </div>
+          <% end %>
         </div>
         <div class="flex items-center gap-2">
           <.button
@@ -237,8 +247,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             variant={:primary}
             type="submit"
             disabled={
-              (@bom && @bom.status == :archived) or
-                not @form.source.changed? or not @form.source.valid?
+              ((@bom && @bom.status == :archived)) ||
+                (((@bom && @bom.id) && (not @form.source.changed?))) ||
+                (not @form.source.valid?)
             }
             phx-disable-with="Saving..."
           >
