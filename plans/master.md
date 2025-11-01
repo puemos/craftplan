@@ -43,7 +43,7 @@ Last updated: 2025-11-01
 
 ---
 
-## Milestone 1 -- Production Costing Foundations (2-3 weeks)
+## Milestone 1 -- Production Costing Foundations
 
 **Status:** [ ] Not started [x] In progress [ ] Done
 
@@ -154,7 +154,7 @@ Last updated: 2025-11-01
 
 ---
 
-## Milestone 2 -- Traceability & Compliance (2 weeks)
+## Milestone 2 -- Traceability & Compliance
 
 **Status:** [ ] Not started [ ] In progress [ ] Done
 
@@ -203,7 +203,7 @@ Last updated: 2025-11-01
 
 ---
 
-## Milestone 3 -- Inventory Planning & Purchasing (2 weeks)
+## Milestone 3 -- Inventory Planning & Purchasing
 
 **Status:** [ ] Not started [x] In progress [ ] Done
 
@@ -263,7 +263,7 @@ Last updated: 2025-11-01
 
 ---
 
-## Milestone 4 -- WhatsApp Business Integration (2-3 weeks)
+## Milestone 4 -- WhatsApp Business Integration
 
 **Status:** [ ] Not started [ ] In progress [ ] Done
 
@@ -320,7 +320,7 @@ Last updated: 2025-11-01
 
 ---
 
-## Milestone 5 -- Insights & Pricing Intelligence (2 weeks)
+## Milestone 5 -- Insights & Pricing Intelligence
 
 **Status:** [ ] Not started [ ] In progress [ ] Done
 
@@ -367,7 +367,7 @@ Last updated: 2025-11-01
 
 ---
 
-## Milestone 6 -- Onboarding & Adoption (ongoing, 2 weeks)
+## Milestone 6 -- Onboarding & Adoption
 
 **Status:** [ ] Not started [ ] In progress [ ] Done
 
