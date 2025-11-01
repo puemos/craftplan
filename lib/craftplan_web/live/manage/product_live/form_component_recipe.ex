@@ -4,7 +4,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   alias AshPhoenix.Form
   alias Craftplan.Catalog
-  alias Craftplan.Catalog.Services.BOMDuplicate
   alias Craftplan.Catalog.Services.BOMRecipeSync
 
   @impl true
@@ -296,27 +295,27 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             end}
           </:col>
           <:action :let={b}>
-            <.button
-              :if={b.status != :active}
-              size={:sm}
-              variant={:outline}
-              phx-target={@myself}
-              phx-click="promote_row"
-              phx-value-bom_version={b.version}
-            >
-              Make Active
-            </.button>
-          </:action>
-          <:action :let={b}>
-            <.button
-              size={:sm}
-              variant={:outline}
-              phx-target={@myself}
-              phx-click="switch_version"
-              phx-value-bom_version={b.version}
-            >
-              View
-            </.button>
+            <div class="flex gap-2">
+              <.button
+                size={:sm}
+                variant={:outline}
+                phx-target={@myself}
+                phx-click="switch_version"
+                phx-value-bom_version={b.version}
+              >
+                View
+              </.button>
+              <.button
+                :if={b.status != :active}
+                size={:sm}
+                variant={:outline}
+                phx-target={@myself}
+                phx-click="promote_row"
+                phx-value-bom_version={b.version}
+              >
+                Make Active
+              </.button>
+            </div>
           </:action>
         </.table>
         <div class="mt-4 flex justify-end">
@@ -469,80 +468,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         _ -> nil
       end
 
-    socket = assign(socket, :selected_version, version)
+    socket = socket |> assign(:selected_version, version) |> assign(:show_history, false)
     {:noreply, assign_form(socket)}
   end
 
   @impl true
-  def handle_event("duplicate", _params, socket) do
-    actor = socket.assigns.current_user
-    bom = socket.assigns.bom
-
-    _new =
-      BOMDuplicate.duplicate!(bom, actor: actor, authorize?: false)
-
-    socket = assign_lists(socket)
-    {:noreply, socket |> assign_form() |> put_flash(:info, "BOM duplicated")}
-  end
-
-  @impl true
-  def handle_event("promote", _params, socket) do
-    actor = socket.assigns.current_user
-    bom = socket.assigns.bom
-
-    case Catalog.get_active_bom_for_product(%{product_id: socket.assigns.product.id},
-           actor: actor,
-           authorize?: false
-         ) do
-      {:ok, %Catalog.BOM{} = active} when active.id != bom.id ->
-        _ =
-          Ash.update(active, %{status: :archived},
-            action: :update,
-            actor: actor,
-            authorize?: false
-          )
-
-      _ ->
-        :ok
-    end
-
-    _ = Ash.update(bom, %{}, action: :promote, actor: actor, authorize?: false)
-    socket = assign_lists(socket)
-    {:noreply, socket |> assign_form() |> put_flash(:info, "BOM is now active")}
-  end
-
-  @impl true
-  def handle_event("revert", _params, socket) do
-    actor = socket.assigns.current_user
-    bom = socket.assigns.bom
-
-    if bom && bom.id && bom.status == :draft do
-      _ = Ash.destroy(bom, actor: actor, authorize?: false)
-    end
-
-    socket = assign_lists(socket)
-    {:noreply, socket |> assign_form() |> put_flash(:info, "Changes reverted")}
-  end
-
-  @impl true
-  def handle_event("try_variation", _params, socket) do
-    actor = socket.assigns.current_user
-    draft = Enum.find(socket.assigns.boms || [], fn b -> b.status == :draft end)
-
-    socket =
-      if draft do
-        assign(socket, :selected_version, draft.version)
-      else
-        bom = socket.assigns.bom
-
-        _new =
-          BOMDuplicate.duplicate!(bom, actor: actor, authorize?: false)
-
-        assign_lists(socket)
-      end
-
-    {:noreply, assign_form(socket)}
-  end
+  # duplicate/promote/revert/try_variation were removed from the UI in the cleanup
 
   @impl true
   def handle_event("promote_row", %{"bom_version" => v}, socket) do
@@ -575,14 +506,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   @impl true
-  def handle_event("archive_row", %{"bom_version" => v}, socket) do
-    actor = socket.assigns.current_user
-    version = parse_int(v)
-    bom = find_bom(socket.assigns.boms || [], version)
-    if bom, do: _ = Ash.update(bom, %{status: :archived}, actor: actor, authorize?: false)
-    socket = assign_lists(socket)
-    {:noreply, socket |> assign_form() |> put_flash(:info, "BOM archived")}
-  end
+  # archive_row was removed with UI cleanup (no Archive button in simple mode modal)
 
   @impl true
   def handle_event("remove_form", %{"path" => path}, socket) do
@@ -770,6 +694,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   defp latest_version([]), do: nil
   defp latest_version(nil), do: nil
+
   defp latest_version(boms) do
     boms
     |> Enum.map(& &1.version)
