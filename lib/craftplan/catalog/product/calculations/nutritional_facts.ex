@@ -13,6 +13,7 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
       active_bom: [
         components: [
           :component_type,
+          :quantity,
           material: [
             material_nutritional_facts: [
               :amount,
@@ -44,9 +45,12 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
   defp extract_nutritional_facts(components) do
     Enum.flat_map(components, fn component ->
       Enum.map(component.material.material_nutritional_facts, fn fact ->
+        qty = to_decimal(component.quantity)
+        amt = to_decimal(fact.amount)
+
         %{
           name: fact.nutritional_fact.name,
-          amount: Decimal.mult(fact.amount, component.quantity),
+          amount: Decimal.mult(amt, qty),
           unit: fact.unit
         }
       end)
@@ -69,4 +73,12 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
       Decimal.add(acc, fact.amount)
     end)
   end
+
+  defp to_decimal(%Decimal{} = d), do: d
+  defp to_decimal(%Ash.NotLoaded{}), do: Decimal.new(0)
+  defp to_decimal(nil), do: Decimal.new(0)
+  defp to_decimal(v) when is_binary(v), do: Decimal.new(v)
+  defp to_decimal(v) when is_integer(v), do: Decimal.new(v)
+  defp to_decimal(v) when is_float(v), do: Decimal.from_float(v)
+  defp to_decimal(_), do: Decimal.new(0)
 end

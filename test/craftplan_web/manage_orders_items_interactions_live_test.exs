@@ -3,8 +3,8 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.Product
-  alias Craftplan.Catalog.Recipe
   alias Craftplan.Inventory.Material
   alias Craftplan.Orders.Order
 
@@ -32,11 +32,13 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
       })
       |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
 
-    _recipe =
-      Recipe
+    _bom =
+      BOM
       |> Ash.Changeset.for_create(:create, %{
         product_id: prod.id,
-        components: [%{"material_id" => material.id, "quantity" => 1}]
+        components: [
+          %{"component_type" => :material, "material_id" => material.id, "quantity" => 1}
+        ]
       })
       |> Ash.create!()
 

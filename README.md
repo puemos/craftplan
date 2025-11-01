@@ -22,8 +22,8 @@ For detailed instructions on using Craftplan, check out our user guides:
 
 - [x] Product lifecycle management (draft/active/discontinued)
 - [x] Cost and margin analysis (materials cost, gross profit, markup)
-- [x] Allergen tracking (auto-aggregated from recipe materials)
-- [x] Nutritional facts (auto-calculated from recipe materials)
+- [x] Allergen tracking (auto-aggregated from BOM components)
+- [x] Nutritional facts (auto-calculated from BOM components)
 - [x] Recipe/Bill of Materials management
 - [ ] Variant management
 - [x] Default currency setting and money formatting

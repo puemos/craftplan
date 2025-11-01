@@ -43,23 +43,16 @@ defmodule Craftplan.Orders.ConsumptionTest do
       })
       |> Ash.create(actor: actor)
 
-    # Attach a recipe: 200g flour per piece
-    {:ok, _recipe} =
-      Catalog.Recipe
+    # Attach a BOM: 200g flour per piece
+    {:ok, _bom} =
+      Catalog.BOM
       |> Ash.Changeset.for_create(:create, %{
         product_id: product.id,
-        notes: ""
+        components: [
+          %{component_type: :material, material_id: flour.id, quantity: Decimal.new(200)}
+        ]
       })
       |> Ash.create(actor: actor)
-
-    recipe = Catalog.get_product_by_id!(product.id, load: [:recipe], actor: actor).recipe
-
-    {:ok, _} =
-      recipe
-      |> Ash.Changeset.for_update(:update, %{
-        components: [%{material_id: flour.id, quantity: Decimal.new(200)}]
-      })
-      |> Ash.update(actor: actor)
 
     {:ok, customer} =
       CRM.Customer

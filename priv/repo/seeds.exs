@@ -79,9 +79,14 @@ if Mix.env() == :dev do
   # ------------------------------------------------------------------------------
   Repo.delete_all(Orders.OrderItem)
   Repo.delete_all(Orders.Order)
-  Repo.delete_all(Catalog.RecipeMaterial)
-  Repo.delete_all(Catalog.Recipe)
-  # Clear products after recipes to avoid FK violations
+  # Legacy Recipe resources removed; no cleanup required
+  # Clear BOMs and related rollups/components before products to avoid FKs
+  Repo.delete_all(Catalog.BOMRollup)
+  Repo.delete_all(Catalog.BOMComponent)
+  Repo.delete_all(Catalog.LaborStep)
+  Repo.delete_all(Catalog.BOM)
+
+  # Clear products (after BOM cleanup)
   Repo.delete_all(Catalog.Product)
   Repo.delete_all(Inventory.Movement)
   Repo.delete_all(Inventory.MaterialNutritionalFact)
@@ -198,7 +203,8 @@ if Mix.env() == :dev do
         Map.put(attrs, :sequence, sequence)
       end)
 
-    Ash.Seed.seed!(Catalog.BOM, %{
+    Catalog.BOM
+    |> Ash.Changeset.for_create(:create, %{
       product_id: product.id,
       name: Keyword.get(opts, :name, "#{product.name} BOM"),
       status: status,
@@ -206,6 +212,7 @@ if Mix.env() == :dev do
       components: components,
       labor_steps: labor_steps
     })
+    |> Ash.create!(authorize?: false)
   end
 
   # Purchasing helpers
@@ -797,10 +804,7 @@ if Mix.env() == :dev do
   # Stock for new materials
   Enum.each(new_materials, fn {_k, m} -> add_initial_stock.(m, "3000") end)
 
-  # B) Make muffins actually use blueberries
-  link_recipe_material.(recipes.muffins, materials.blueberries, "120")
-
-  # C) New products and recipes
+  # C) New products
   new_products = %{
     sesame_bagel: seed_product.("Sesame Bagel", "BAGEL-001", "2.25"),
     pb_cookies: seed_product.("Peanut Butter Cookies", "COOK-003", "3.79")
@@ -814,34 +818,7 @@ if Mix.env() == :dev do
     |> Map.put(:sesame_bagel, update_product.(products.sesame_bagel, %{max_daily_quantity: 120}))
     |> Map.put(:pb_cookies, update_product.(products.pb_cookies, %{max_daily_quantity: 180}))
 
-  # Recipes for the new products
-  new_recipes = %{
-    sesame_bagel:
-      seed_recipe.(
-        products.sesame_bagel,
-        "Mix flour, yeast, salt; shape, boil briefly, top with sesame; bake at 220°C ~16 min."
-      ),
-    pb_cookies:
-      seed_recipe.(
-        products.pb_cookies,
-        "Cream peanut butter and sugar, add eggs and flour; scoop; bake 180°C ~10–12 min."
-      )
-  }
-
-  recipes = Map.merge(recipes, new_recipes)
-
-  # Link recipe materials
-  # Sesame Bagel
-  link_recipe_material.(recipes.sesame_bagel, materials.flour, "280")
-  link_recipe_material.(recipes.sesame_bagel, materials.yeast, "6")
-  link_recipe_material.(recipes.sesame_bagel, materials.salt, "8")
-  link_recipe_material.(recipes.sesame_bagel, materials.sesame_seeds, "20")
-
-  # Peanut Butter Cookies
-  link_recipe_material.(recipes.pb_cookies, materials.flour, "60")
-  link_recipe_material.(recipes.pb_cookies, materials.peanut_butter, "120")
-  link_recipe_material.(recipes.pb_cookies, materials.sugar, "60")
-  link_recipe_material.(recipes.pb_cookies, materials.eggs, "1")
+  # BOMs for these products can be added in future seed iterations
 
   # D) Inventory edge cases: spoilage, breakage, low stock and receipts
   adjust_stock.(materials.milk, "-1000", "Spoilage – fridge failure", -1)

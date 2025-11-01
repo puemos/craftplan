@@ -149,7 +149,7 @@ defmodule CraftplanWeb.OrderLive.Show do
       on_cancel={JS.push("cancel_consume")}
     >
       <p class="mb-3 text-sm text-stone-700">
-        Completing this item will consume materials per the product recipe. Review the quantities and confirm.
+        Completing this item will consume materials per the product's BOM. Review the quantities and confirm.
       </p>
       <.table id="order-consumption-recap" rows={@pending_consumption_recap}>
         <:col :let={row} label="Material">{row.material.name}</:col>
@@ -259,40 +259,26 @@ defmodule CraftplanWeb.OrderLive.Show do
               Orders.get_order_item_by_id!(updated_item.id,
                 load: [
                   :quantity,
-                  product: [
-                    active_bom: [components: [material: [:name, :unit, :current_stock]]],
-                    recipe: [components: [material: [:name, :unit, :current_stock]]]
-                  ]
+                  product: [active_bom: [components: [material: [:name, :unit, :current_stock]]]]
                 ],
                 actor: socket.assigns[:current_user]
               )
 
             recap =
-              cond do
-                item.product.active_bom && item.product.active_bom.components != nil ->
-                  item.product.active_bom.components
-                  |> Enum.map(fn c ->
-                    if c.component_type == :material do
-                      %{
-                        material: c.material,
-                        required: Decimal.mult(c.quantity, item.quantity),
-                        current_stock: c.material.current_stock
-                      }
-                    end
-                  end)
-                  |> Enum.reject(&is_nil/1)
-
-                item.product.recipe && item.product.recipe.components != nil ->
-                  Enum.map(item.product.recipe.components, fn c ->
+              if item.product.active_bom && item.product.active_bom.components != nil do
+                item.product.active_bom.components
+                |> Enum.map(fn c ->
+                  if c.component_type == :material do
                     %{
                       material: c.material,
                       required: Decimal.mult(c.quantity, item.quantity),
                       current_stock: c.material.current_stock
                     }
-                  end)
-
-                true ->
-                  []
+                  end
+                end)
+                |> Enum.reject(&is_nil/1)
+              else
+                []
               end
 
             socket

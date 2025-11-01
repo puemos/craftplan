@@ -74,6 +74,34 @@ Last updated: 2025-11-01
 - [ ] Planner "Mark Done" dialog shows resulting batch code and actual cost snapshot.
 - [x] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
 
+### BOM Versioning (Switcher + History)
+
+- [ ] Add version switcher to the Product Recipe/BOM tab
+  - Shows current BOM (version, status, published_at)
+  - Dropdown lists all versions (vN · status · date)
+  - Selecting switches the editor to that version (read-only for archived)
+- [ ] History table below editor
+  - Columns: Version, Status, Published, Notes, Unit Cost, Actions (View, Duplicate, Make Active, Archive)
+  - Read-only rendering for non-current versions
+- [ ] Actions
+  - Duplicate → creates new draft (next version) with copied components & labor
+  - Make Active → sets selected draft to active (sets published_at)
+  - Archive → sets selected to archived (read-only)
+- [ ] Routing
+  - Support optional `?v=:version` param for preselecting a version
+- [ ] Tests
+  - LiveView: switch versions, duplicate flow, promote to active, archive
+  - Domain: duplication service copies children; promote enforces single active
+
+### Data & Constraints for Versioning
+
+- [ ] Enforce single active BOM per product with partial unique index
+  - `unique_index(:catalog_boms, [:product_id], where: "status = 'active'", name: "catalog_boms_one_active_per_product")`
+- [ ] Add `:promote` update action on `Catalog.BOM` (status -> :active, published_at -> now)
+- [ ] Add duplication service `Catalog.Services.BOMDuplicate` (copy + manage_relationship)
+- [ ] Ensure `AssignBOMVersion` supplies version on create (no default)
+- [ ] Refresh rollups after duplicate/promote/update
+
 **Data & Migrations**
 
 - [x] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
@@ -84,15 +112,15 @@ Last updated: 2025-11-01
 
 **Deprecations & Removals** (no backward compatibility)
 
-- [ ] Remove legacy Recipe model usage in domain and UI
-  - [ ] Switch Product label ingredients to BOM components (fallback not required)
-  - [ ] Replace product financial calculations to prefer active BOM unit cost; remove recipe-based cost calcs
+- [x] Remove legacy Recipe model usage in domain and UI
+  - [x] Switch Product label ingredients to BOM components (fallback not required)
+  - [x] Replace product financial calculations to prefer active BOM unit cost; remove recipe-based cost calcs
   - [ ] Remove Recipe editor UI and tabs (`ProductLive.FormComponentRecipe`, show routes/tabs)
-  - [ ] Remove `Catalog.Recipe` and `Catalog.RecipeMaterial` resources from `Craftplan.Catalog`
-  - [ ] Drop `catalog_recipes` and `catalog_recipe_materials` tables via migration
-- [ ] Replace `Material <-> Recipe` relationships with `Material <-> BOM` through `BOMComponent`
-- [ ] Update planner/forecasting to load from BOMs instead of Recipes
-- [ ] Update seeds/tests to use BOMs exclusively; remove recipe fixtures
+  - [x] Remove `Catalog.Recipe` and `Catalog.RecipeMaterial` resources from `Craftplan.Catalog`
+  - [x] Drop `catalog_recipes` and `catalog_recipe_materials` tables via migration
+- [x] Replace `Material <-> Recipe` relationships with `Material <-> BOM` through `BOMComponent`
+- [x] Update planner/forecasting to load from BOMs instead of Recipes
+- [x] Update seeds/tests to use BOMs exclusively; remove recipe fixtures
 - [ ] Remove any documentation and references to Recipes
 
 ### Acceptance Criteria
@@ -126,15 +154,15 @@ Last updated: 2025-11-01
 
 - [x] Update product calculations to prefer active BOM unit cost; DB rollups first, fallback to compute or recipe only when needed
 - [x] Update product label ingredients to read from BOM components; keep recipe fallback during transition
-- [ ] Update planner/forecast materials demand to use BOM components + rollups (remove recipe reliance)
-- [ ] Update consumption flows to use BOM components when completing items; align confirmation modal sources
-- [ ] Update seeds/fixtures to BOM only (remove recipe seeding)
+- [x] Update planner/forecast materials demand to use BOM components + rollups (remove recipe reliance)
+- [x] Update consumption flows to use BOM components when completing items; align confirmation modal sources
+- [x] Update seeds/fixtures to BOM only (remove recipe seeding)
   - [x] Update dev seeds to BOM-only (removed recipe seeding)
 
 **Phase C — Cleanup and removal**
 
 - [ ] Rename the UI tab/labels from "Recipe" to "BOM" (route may remain for continuity or be redirected)
-- [ ] Remove Recipe resources from domain and UI
+- [x] Remove Recipe resources from domain and UI
   - Delete `Catalog.Recipe` and `Catalog.RecipeMaterial`
   - Remove LiveView recipe-specific code paths
   - Drop `catalog_recipes` and `catalog_recipe_materials` tables

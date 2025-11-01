@@ -38,9 +38,24 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
 
     case get_rollup(bom, actor, authorize?) do
       nil ->
-        BOMRollup
-        |> Ash.Changeset.for_create(:create, params)
-        |> Ash.create(actor: actor, authorize?: authorize?)
+        # Try to create; if a concurrent create happened, fall back to update
+        case BOMRollup
+             |> Ash.Changeset.for_create(:create, params)
+             |> Ash.create(actor: actor, authorize?: authorize?) do
+          {:ok, _} ->
+            :ok
+
+          {:error, _e} ->
+            case get_rollup(bom, actor, authorize?) do
+              %BOMRollup{} = existing ->
+                existing
+                |> Ash.Changeset.for_update(:update, Map.drop(params, [:bom_id, :product_id]))
+                |> Ash.update(actor: actor, authorize?: authorize?)
+
+              _ ->
+                :ok
+            end
+        end
 
       %BOMRollup{} = rollup ->
         rollup
@@ -88,7 +103,14 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
   end
 
   defp do_flatten(%BOM{} = bom, quantity, path, opts) do
-    Enum.reduce(bom.components || [], %{}, fn component, acc ->
+    components =
+      case Map.get(bom, :components) do
+        %Ash.NotLoaded{} -> []
+        nil -> []
+        comps -> comps
+      end
+
+    Enum.reduce(components, %{}, fn component, acc ->
       case component.component_type do
         :material ->
           mat_id = component.material && component.material.id

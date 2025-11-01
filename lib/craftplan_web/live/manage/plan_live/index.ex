@@ -747,7 +747,7 @@ defmodule CraftplanWeb.PlanLive.Index do
               Would you like to update materials stock?
             </div>
             <p class="mb-3 text-sm text-stone-700">
-              Completing this item will consume materials according to the product recipe. Review the quantities below and confirm.
+              Completing this item will consume materials according to the product BOM. Review the quantities below and confirm.
             </p>
             <.table id="consumption-recap" rows={@pending_consumption_recap}>
               <:col :let={row} label="Material">{row.material.name}</:col>
@@ -1038,24 +1038,20 @@ defmodule CraftplanWeb.PlanLive.Index do
               Orders.get_order_item_by_id!(updated_item.id,
                 load: [
                   :quantity,
-                  product: [recipe: [components: [material: [:name, :unit, :current_stock]]]]
+                  product: [active_bom: [components: [material: [:name, :unit, :current_stock]]]]
                 ]
               )
 
             recap =
-              case item.product.recipe do
-                nil ->
-                  []
-
-                recipe ->
-                  Enum.map(recipe.components, fn c ->
-                    %{
-                      material: c.material,
-                      required: Decimal.mult(c.quantity, item.quantity),
-                      current_stock: c.material.current_stock
-                    }
-                  end)
-              end
+              (item.product.active_bom.components || [])
+              |> Enum.filter(&(&1.component_type == :material))
+              |> Enum.map(fn c ->
+                %{
+                  material: c.material,
+                  required: Decimal.mult(c.quantity, item.quantity),
+                  current_stock: c.material.current_stock
+                }
+              end)
 
             socket
             |> assign(:pending_consumption_item_id, updated_item.id)
@@ -1342,7 +1338,10 @@ defmodule CraftplanWeb.PlanLive.Index do
           :items,
           items: [
             :quantity,
-            product: [:name, :recipe, recipe: [components: [material: [:id, :unit]]]]
+            product: [
+              :name,
+              active_bom: [components: [material: [:id, :unit]]]
+            ]
           ]
         ]
       )
@@ -1350,8 +1349,8 @@ defmodule CraftplanWeb.PlanLive.Index do
     order_items_using_material =
       for order <- orders,
           item <- order.items,
-          item.product.recipe != nil,
-          component <- item.product.recipe.components,
+          item.product.active_bom != nil,
+          component <- item.product.active_bom.components,
           component.material.id == material_id do
         material_quantity = Decimal.mult(component.quantity, item.quantity)
 

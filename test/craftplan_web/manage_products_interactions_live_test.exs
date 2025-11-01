@@ -78,4 +78,41 @@ defmodule CraftplanWeb.ManageProductsInteractionsLiveTest do
 
     assert render(view) =~ "Recipe updated successfully"
   end
+
+  @tag role: :staff
+  test "product recipe: added component persists across reload", %{conn: conn} do
+    product = create_product!()
+    material = create_material!()
+
+    {:ok, view, _} = live(conn, ~p"/manage/products/#{product.sku}/recipe")
+
+    view
+    |> element("button[phx-click=show_add_modal]")
+    |> render_click()
+
+    view
+    |> element("button[phx-click=add_material][phx-value-material-id='#{material.id}']")
+    |> render_click()
+
+    view
+    |> element("#recipe-form")
+    |> render_change(%{
+      "recipe" => %{"components" => %{"0" => %{"material_id" => material.id, "quantity" => "2"}}}
+    })
+
+    view
+    |> element("#recipe-form")
+    |> render_submit(%{
+      "recipe" => %{
+        "product_id" => product.id,
+        "components" => %{"0" => %{"material_id" => material.id, "quantity" => "2"}}
+      }
+    })
+
+    assert_patch(view, ~p"/manage/products/#{product.sku}/recipe")
+
+    # Reload
+    {:ok, _view2, html} = live(conn, ~p"/manage/products/#{product.sku}/recipe")
+    assert html =~ material.name
+  end
 end

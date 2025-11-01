@@ -15,11 +15,20 @@ defmodule Craftplan.Catalog.BOMRollup do
 
     create :create do
       primary? true
-      accept [:bom_id, :product_id, :material_cost, :labor_cost, :overhead_cost, :unit_cost]
+
+      accept [
+        :bom_id,
+        :product_id,
+        :material_cost,
+        :labor_cost,
+        :overhead_cost,
+        :unit_cost,
+        :components_map
+      ]
     end
 
     update :update do
-      accept [:material_cost, :labor_cost, :overhead_cost, :unit_cost]
+      accept [:material_cost, :labor_cost, :overhead_cost, :unit_cost, :components_map]
     end
   end
 

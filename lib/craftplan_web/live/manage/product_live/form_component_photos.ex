@@ -357,8 +357,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentPhotos do
   end
 
   defp assign_form(%{assigns: %{product: product}} = socket) when not is_nil(product) do
-    product = Ash.load!(product, [recipe: [:components]], actor: socket.assigns.current_user)
-
     form =
       AshPhoenix.Form.for_update(product, :update,
         as: "product",

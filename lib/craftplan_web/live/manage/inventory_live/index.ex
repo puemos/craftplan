@@ -561,7 +561,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
           :reference,
           items: [
             :quantity,
-            product: [:name, recipe: [components: [material: :id]]]
+            product: [:name, active_bom: [components: [material: :id]]]
           ]
         ]
       )

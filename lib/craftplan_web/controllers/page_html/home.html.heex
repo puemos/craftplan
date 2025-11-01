@@ -1,9 +1,13 @@
 <section class="flex min-h-screen items-center justify-center bg-stone-50 px-6 py-12 text-stone-800">
   <div class="flex flex-col items-center gap-8 text-center">
-    <p class="text-lg tracking-tight text-stone-600">
-      <span>Craftplan</span>
-      · <span class="text-base italic text-stone-400">{@release_version}</span>
-    </p>
+    <div class="flex flex-row items-center gap-2 text-center">
+      <img src="/images/bread.svg" alt="Craftplan Logo" class="h-6 w-6" />
+      <p class="text-lg tracking-tight text-stone-600">
+        <span>Craftplan</span>
+        · <span class="text-base italic text-stone-400">{@release_version}</span>
+      </p>
+    </div>
+
     <.link href={~p"/sign-in"} class="w-full sm:w-auto">
       <.button variant={:default} size={:lg} class="group w-full justify-center sm:min-w-[14rem]">
         <span class="mr-2 text-blue-500 transition-all group-hover:translate-x-1 group-hover:transform">

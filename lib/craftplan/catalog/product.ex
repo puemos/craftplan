@@ -140,10 +140,6 @@ defmodule Craftplan.Catalog.Product do
   end
 
   relationships do
-    has_one :recipe, Craftplan.Catalog.Recipe do
-      allow_nil? true
-    end
-
     has_many :boms, BOM
 
     has_one :active_bom, BOM do
@@ -164,13 +160,11 @@ defmodule Craftplan.Catalog.Product do
 
     calculate :markup_percentage,
               :decimal,
-              expr(if(bom_unit_cost == 0, 0, (price - bom_unit_cost) / bom_unit_cost)) do
+              Craftplan.Catalog.Product.Calculations.MarkupPercentage do
       description "The ratio of profit to cost, expressed as a decimal percentage"
     end
 
-    calculate :gross_profit,
-              :decimal,
-              expr(price - bom_unit_cost) do
+    calculate :gross_profit, :decimal, Craftplan.Catalog.Product.Calculations.GrossProfit do
       description "The profit amount calculated as selling price minus unit cost"
     end
 

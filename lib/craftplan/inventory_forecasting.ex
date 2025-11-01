@@ -17,7 +17,7 @@ defmodule Craftplan.InventoryForecasting do
   """
   def prepare_materials_requirements(days_range, actor \\ nil) when is_list(days_range) do
     orders = load_orders_for_forecast(days_range, actor)
-    materials_by_day_data = load_materials_requirements(days_range, orders)
+    materials_by_day_data = load_materials_requirements(days_range, orders, actor)
 
     Enum.map(materials_by_day_data, fn {material, quantities} ->
       total_quantity = total_material_quantity(quantities)
@@ -59,7 +59,7 @@ defmodule Craftplan.InventoryForecasting do
   @doc """
   Gets material requirements by day for the given date range
   """
-  def load_materials_requirements(days_range, orders) do
+  def load_materials_requirements(days_range, orders, actor) do
     materials_by_day =
       Enum.flat_map(orders, fn order ->
         day = DateTime.to_date(order.delivery_date)
@@ -67,21 +67,31 @@ defmodule Craftplan.InventoryForecasting do
         Enum.flat_map(order.items, fn item ->
           quantity = item.quantity || D.new(0)
 
-          cond do
-            item.product.active_bom && item.product.active_bom.components != nil ->
-              item.product.active_bom.components
+          if item.product.active_bom && item.product.active_bom.components != nil do
+            item.product.active_bom.components
+            |> Enum.filter(&(&1.component_type == :material))
+            |> Enum.map(fn component ->
+              {day, component.material, D.mult(component.quantity, quantity)}
+            end)
+          else
+            # Fallback to latest BOM for the product
+            bom =
+              %{product_id: item.product_id}
+              |> Craftplan.Catalog.list_boms_for_product!(actor: actor)
+              |> List.first()
+
+            if bom do
+              bom =
+                Ash.load!(bom, [components: [material: [:name, :unit, :current_stock]]], actor: actor)
+
+              bom.components
               |> Enum.filter(&(&1.component_type == :material))
               |> Enum.map(fn component ->
                 {day, component.material, D.mult(component.quantity, quantity)}
               end)
-
-            item.product.recipe && item.product.recipe.components != nil ->
-              Enum.map(item.product.recipe.components, fn component ->
-                {day, component.material, D.mult(component.quantity, quantity)}
-              end)
-
-            true ->
+            else
               []
+            end
           end
         end)
       end)
@@ -143,20 +153,13 @@ defmodule Craftplan.InventoryForecasting do
   defp material_usages_for_item(item, material) do
     quantity = item.quantity || D.new(0)
 
-    cond do
-      item.product.active_bom && item.product.active_bom.components != nil ->
-        item.product.active_bom.components
-        |> Enum.filter(&(&1.component_type == :material))
-        |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
-        |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
-
-      item.product.recipe && item.product.recipe.components != nil ->
-        item.product.recipe.components
-        |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
-        |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
-
-      true ->
-        []
+    if item.product.active_bom && item.product.active_bom.components != nil do
+      item.product.active_bom.components
+      |> Enum.filter(&(&1.component_type == :material))
+      |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
+      |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
+    else
+      []
     end
   end
 
@@ -198,7 +201,7 @@ defmodule Craftplan.InventoryForecasting do
 
     actual_usage_map =
       past_range
-      |> load_materials_requirements(past_orders)
+      |> load_materials_requirements(past_orders, actor)
       |> Map.new(fn {material, quantities} ->
         {material.id, Enum.map(quantities, fn {quantity, _day} -> quantity end)}
       end)

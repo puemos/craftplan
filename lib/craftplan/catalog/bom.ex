@@ -100,7 +100,6 @@ defmodule Craftplan.Catalog.BOM do
 
     attribute :version, :integer do
       allow_nil? false
-      default 1
       writable? false
     end
 

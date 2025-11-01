@@ -4,8 +4,8 @@ defmodule Craftplan.Test.Factory do
   Uses Ash actions and passes a default staff actor when needed.
   """
 
+  alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.Product
-  alias Craftplan.Catalog.Recipe
   alias Craftplan.CRM.Customer
   alias Craftplan.Inventory.Allergen
   alias Craftplan.Inventory.Material
@@ -58,10 +58,19 @@ defmodule Craftplan.Test.Factory do
     Ash.reload!(material, load: [:allergens])
   end
 
-  # Recipes
+  # Legacy name kept for compatibility: creates a BOM instead
   def create_recipe!(product, components, actor \\ staff_actor()) do
-    Recipe
-    |> Ash.Changeset.for_create(:create, %{product_id: product.id, components: components})
+    bom_components =
+      Enum.map(components, fn c ->
+        %{
+          component_type: :material,
+          material_id: c["material_id"] || c[:material_id],
+          quantity: c["quantity"] || c[:quantity]
+        }
+      end)
+
+    BOM
+    |> Ash.Changeset.for_create(:create, %{product_id: product.id, components: bom_components})
     |> Ash.create!(actor: actor)
   end
 

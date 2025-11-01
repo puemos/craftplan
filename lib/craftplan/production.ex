@@ -30,8 +30,7 @@ defmodule Craftplan.Production do
         product: [
           :name,
           :max_daily_quantity,
-          :recipe,
-          recipe: [components: [material: [:current_stock, :unit, :sku, :name]]]
+          active_bom: [components: [material: [:current_stock, :unit, :sku, :name]]]
         ]
       ]
     ]
@@ -188,7 +187,7 @@ defmodule Craftplan.Production do
           :items,
           items: [
             :quantity,
-            product: [:name, :recipe, recipe: [components: [material: [:id, :unit]]]]
+            product: [:name, active_bom: [components: [material: [:id, :unit]]]]
           ]
         ]
       )

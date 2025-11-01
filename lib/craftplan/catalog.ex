@@ -18,7 +18,6 @@ defmodule Craftplan.Catalog do
     resource Craftplan.Catalog.BOMRollup
     resource Craftplan.Catalog.BOMComponent
     resource Craftplan.Catalog.LaborStep
-    resource Craftplan.Catalog.Recipe
-    resource Craftplan.Catalog.RecipeMaterial
+    # Recipes removed (BOM-only)
   end
 end

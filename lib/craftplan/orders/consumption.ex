@@ -3,6 +3,7 @@ defmodule Craftplan.Orders.Consumption do
   Explicit consumption of materials for order items.
   """
 
+  alias Craftplan.Catalog
   alias Craftplan.Inventory
   alias Craftplan.Orders
 
@@ -15,12 +16,7 @@ defmodule Craftplan.Orders.Consumption do
 
     item =
       Orders.get_order_item_by_id!(order_item_id,
-        load: [
-          product: [
-            active_bom: [components: [material: [:id, :unit, :sku]]],
-            recipe: [components: [material: [:id, :unit, :sku]]]
-          ]
-        ],
+        load: [product: [active_bom: [:rollup, components: [material: [:id, :unit, :sku]]]]],
         actor: actor
       )
 
@@ -32,23 +28,44 @@ defmodule Craftplan.Orders.Consumption do
       # Fetch order to include reference in movement reason
       order = Orders.get_order_by_id!(item.order_id, actor: actor)
 
+      # Prefer the active BOM; if none, fall back to the latest BOM for the product
+      case_result =
+        case item.product.active_bom do
+          nil ->
+            %{product_id: item.product_id}
+            |> Catalog.list_boms_for_product!(actor: actor)
+            |> List.first()
+
+          bom ->
+            bom
+        end
+
+      bom =
+        case case_result do
+          nil -> nil
+          b -> Ash.load!(b, [:rollup, components: [material: [:id]]], actor: actor)
+        end
+
       movements =
         cond do
-          item.product.active_bom && item.product.active_bom.components != nil ->
-            item.product.active_bom.components
-            |> Enum.filter(&(&1.component_type == :material))
-            |> Enum.map(fn component ->
-              required = Decimal.mult(component.quantity, qty)
+          bom && Map.get(bom, :rollup) && bom.rollup.components_map != %{} ->
+            # Prefer persisted flattened components when available
+            Enum.map(bom.rollup.components_map, fn {material_id, per_unit_str} ->
+              per_unit = Decimal.new(per_unit_str)
+              required = Decimal.mult(per_unit, qty)
 
               %{
-                material_id: component.material.id,
+                material_id: material_id,
                 quantity: Decimal.mult(required, Decimal.new(-1)),
                 reason: "Order #{order.reference} item consumption"
               }
             end)
 
-          item.product.recipe && item.product.recipe.components != nil ->
-            Enum.map(item.product.recipe.components, fn component ->
+          bom && Map.get(bom, :components) != nil ->
+            # Fallback to direct components on the active BOM
+            bom.components
+            |> Enum.filter(&(&1.component_type == :material))
+            |> Enum.map(fn component ->
               required = Decimal.mult(component.quantity, qty)
 
               %{

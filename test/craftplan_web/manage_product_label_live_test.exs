@@ -3,8 +3,8 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.Product
-  alias Craftplan.Catalog.Recipe
   alias Craftplan.Inventory.Allergen
   alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.MaterialAllergen
@@ -52,16 +52,18 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
 
     material = create_material_with_allergen!("Flour")
 
-    _recipe =
-      Recipe
+    _bom =
+      BOM
       |> Ash.Changeset.for_create(:create, %{
         product_id: product.id,
-        components: [%{material_id: material.id, quantity: Decimal.new("500")}]
+        components: [
+          %{component_type: :material, material_id: material.id, quantity: Decimal.new("500")}
+        ]
       })
       |> Ash.create!(actor: staff)
 
-    # Load recipe/components and calculated allergens
-    Ash.reload!(product, load: [:allergens, recipe: [components: [material: [:name]]]])
+    # Load allergens via BOM path
+    Ash.reload!(product, load: [:allergens, active_bom: [components: [material: [:name]]]])
   end
 
   @tag role: :staff

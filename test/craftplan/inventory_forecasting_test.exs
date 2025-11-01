@@ -1,8 +1,8 @@
 defmodule Craftplan.InventoryForecastingTest do
   use Craftplan.DataCase, async: true
 
+  alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.Product
-  alias Craftplan.Catalog.Recipe
   alias Craftplan.Inventory.ForecastMetrics
   alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.Movement
@@ -33,13 +33,13 @@ defmodule Craftplan.InventoryForecastingTest do
       })
       |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
 
-    _recipe =
-      Recipe
+    _bom =
+      BOM
       |> Ash.Changeset.for_create(:create, %{
         product_id: p.id,
         components: [
-          %{"material_id" => m1.id, "quantity" => 2},
-          %{"material_id" => m2.id, "quantity" => 1}
+          %{"component_type" => :material, "material_id" => m1.id, "quantity" => 2},
+          %{"component_type" => :material, "material_id" => m2.id, "quantity" => 1}
         ]
       })
       |> Ash.create!()

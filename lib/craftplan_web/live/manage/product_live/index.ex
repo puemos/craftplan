@@ -110,8 +110,7 @@ defmodule CraftplanWeb.ProductLive.Index do
     products =
       Catalog.list_products!(
         actor: socket.assigns[:current_user],
-        stream?: true,
-        load: [:materials_cost, :markup_percentage, :gross_profit]
+        load: [:materials_cost, :bom_unit_cost, :markup_percentage, :gross_profit]
       )
 
     socket =
@@ -160,7 +159,9 @@ defmodule CraftplanWeb.ProductLive.Index do
   @impl true
   def handle_info({CraftplanWeb.ProductLive.FormComponent, {:saved, product}}, socket) do
     product =
-      Ash.load!(product, [:materials_cost, :markup_percentage, :gross_profit], actor: socket.assigns.current_user)
+      Ash.load!(product, [:materials_cost, :bom_unit_cost, :markup_percentage, :gross_profit],
+        actor: socket.assigns.current_user
+      )
 
     {:noreply, stream_insert(socket, :products, product)}
   end

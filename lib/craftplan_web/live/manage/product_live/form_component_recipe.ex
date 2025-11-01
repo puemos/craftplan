@@ -233,13 +233,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   def handle_event("save", %{"recipe" => recipe_params}, socket) do
     case Form.submit(socket.assigns.form, params: recipe_params) do
       {:ok, bom} ->
-        BOMRecipeSync.sync_recipe_from_bom(
-          socket.assigns.product,
-          bom,
-          actor: socket.assigns.current_user,
-          authorize?: false
-        )
-
         send(self(), {__MODULE__, {:saved, bom}})
 
         {:noreply,
@@ -393,7 +386,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   defp material_for_form(materials_map, components_form) do
-    material_id = components_form[:material_id].value
+    material_id =
+      components_form[:material_id].value ||
+        (components_form.data &&
+           (components_form.data.material_id ||
+              (components_form.data.material && components_form.data.material.id)))
 
     Map.get(materials_map, material_id)
   end

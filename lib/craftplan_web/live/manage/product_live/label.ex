@@ -56,19 +56,40 @@ defmodule CraftplanWeb.ProductLive.Label do
           :name,
           :sku,
           :allergens,
-          active_bom: [components: [:component_type, material: [:name]]],
-          recipe: [components: [material: [:name]]]
+          active_bom: [components: [:component_type, material: [:name]]]
         ],
         actor: socket.assigns[:current_user]
       )
 
-    ingredients =
+    bom_for_label =
       case product.active_bom do
         %NotLoaded{} ->
-          recipe_ingredients(product.recipe)
+          nil
 
         nil ->
-          recipe_ingredients(product.recipe)
+          %{product_id: product.id}
+          |> Catalog.list_boms_for_product!(actor: socket.assigns[:current_user])
+          |> List.first()
+
+        bom ->
+          bom
+      end
+
+    bom_for_label =
+      case bom_for_label do
+        nil ->
+          nil
+
+        b ->
+          Ash.load!(b, [components: [:component_type, material: [:name, allergens: [:name]]]],
+            actor: socket.assigns[:current_user]
+          )
+      end
+
+    ingredients =
+      case bom_for_label do
+        nil ->
+          []
 
         bom ->
           bom.components
@@ -80,7 +101,16 @@ defmodule CraftplanWeb.ProductLive.Label do
      socket
      |> assign(:product, product)
      |> assign(:ingredients, ingredients)
-     |> assign(:allergens, product.allergens || [])
+     |> assign(
+       :allergens,
+       (product.allergens != [] && product.allergens) ||
+         (bom_for_label &&
+            bom_for_label.components
+            |> Enum.filter(&(&1.component_type == :material))
+            |> Enum.flat_map(fn c -> Map.get(c.material, :allergens, []) end)
+            |> Enum.uniq_by(& &1.name)
+            |> Enum.sort_by(& &1.name)) || []
+     )
      |> assign(:today, Date.utc_today())}
   end
 
@@ -88,10 +118,5 @@ defmodule CraftplanWeb.ProductLive.Label do
     "B-" <> format_date(date, format: "%Y%m%d") <> "-" <> sku
   end
 
-  defp recipe_ingredients(%NotLoaded{}), do: []
-  defp recipe_ingredients(nil), do: []
-
-  defp recipe_ingredients(recipe) do
-    Enum.map(recipe.components, fn component -> component.material.name end)
-  end
+  # no recipe fallback
 end

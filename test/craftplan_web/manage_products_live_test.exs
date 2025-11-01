@@ -33,6 +33,27 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
       assert_patch(view, ~p"/manage/products")
       assert render(view) =~ "Product created successfully"
     end
+
+    @tag role: :staff
+    test "index renders products with cost calculations without crashing", %{conn: conn} do
+      # Create a product with a simple BOM so calculations run
+      material = Factory.create_material!(%{price: Decimal.new("1.00"), unit: :gram})
+      product = Factory.create_product!(%{price: Decimal.new("3.99"), status: :active})
+
+      _bom =
+        Craftplan.Catalog.BOM
+        |> Ash.Changeset.for_create(:create, %{
+          product_id: product.id,
+          components: [
+            %{component_type: :material, material_id: material.id, quantity: Decimal.new(1)}
+          ]
+        })
+        |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
+
+      {:ok, view, html} = live(conn, ~p"/manage/products")
+      assert has_element?(view, "#products")
+      assert html =~ product.name
+    end
   end
 
   describe "show tabs" do

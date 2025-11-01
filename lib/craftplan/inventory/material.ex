@@ -127,7 +127,7 @@ defmodule Craftplan.Inventory.Material do
     has_many :movements, Craftplan.Inventory.Movement
     has_many :material_allergens, MaterialAllergen
     has_many :material_nutritional_facts, MaterialNutritionalFact
-    many_to_many :recipes, Craftplan.Catalog.Recipe, through: Craftplan.Catalog.RecipeMaterial
+    # Recipes removed
 
     many_to_many :allergens, Craftplan.Inventory.Allergen, through: MaterialAllergen
 

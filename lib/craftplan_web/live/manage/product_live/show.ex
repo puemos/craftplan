@@ -182,7 +182,6 @@ defmodule CraftplanWeb.ProductLive.Show do
           :allergens,
           :nutritional_facts,
           :bom_unit_cost,
-          recipe: [components: [:material]],
           active_bom: [components: [:material, :product], labor_steps: []]
         ]
       )
@@ -233,7 +232,6 @@ defmodule CraftplanWeb.ProductLive.Show do
           :gross_profit,
           :nutritional_facts,
           :bom_unit_cost,
-          recipe: [components: [:material]],
           active_bom: [components: [:material, :product], labor_steps: []]
         ]
       )
@@ -255,7 +253,6 @@ defmodule CraftplanWeb.ProductLive.Show do
           :nutritional_facts,
           :allergens,
           :bom_unit_cost,
-          recipe: [components: [:material]],
           active_bom: [components: [:material, :product], labor_steps: []]
         ],
         actor: socket.assigns.current_user
@@ -277,7 +274,7 @@ defmodule CraftplanWeb.ProductLive.Show do
           :gross_profit,
           :nutritional_facts,
           :allergens,
-          recipe: [components: [:material]]
+          :bom_unit_cost
         ],
         actor: socket.assigns.current_user
       )
