@@ -25,17 +25,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           </div>
         </div>
         <div :if={@bom.version != nil} class="flex items-center gap-2">
-          <.link
-            :if={!@settings.advanced_recipe_versioning}
-            phx-click={JS.push("show_history", target: @myself)}
-            class="text-sm text-blue-700 hover:underline"
-          >
-            <.button
-              size={:sm}
-              variant={:outline}
-            >
-              Show version history
-            </.button>
+          <.link phx-click={JS.push("show_history", target: @myself)} class="text-sm text-blue-700 hover:underline">
+            <.button size={:sm} variant={:outline}>Show version history</.button>
           </.link>
         </div>
       </div>
@@ -137,6 +128,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                             min="0"
                             step="0.01"
                             inline_label={get_material_unit(@materials_map, components_form)}
+                            disabled={latest_version(@boms) != @bom.version}
                           />
                         </div>
                       </span>
@@ -157,18 +149,22 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
                   <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                     <div class="block py-4 pr-6">
-                      <label class="cursor-pointer">
-                        <input
-                          type="checkbox"
-                          phx-click="remove_form"
-                          phx-target={@myself}
-                          phx-value-path={components_form.name}
-                          class="hidden"
-                        />
-                        <span class="font-semibold leading-6 text-stone-900 hover:text-stone-700">
-                          Remove
-                        </span>
-                      </label>
+                      <%= if latest_version(@boms) != @bom.version do %>
+                        <span class="text-stone-400">Read-only</span>
+                      <% else %>
+                        <label class="cursor-pointer">
+                          <input
+                            type="checkbox"
+                            phx-click="remove_form"
+                            phx-target={@myself}
+                            phx-value-path={components_form.name}
+                            class="hidden"
+                          />
+                          <span class="font-semibold leading-6 text-stone-900 hover:text-stone-700">
+                            Remove
+                          </span>
+                        </label>
+                      <% end %>
                     </div>
                   </div>
                 </div>
@@ -181,9 +177,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   phx-target={@myself}
                   class={[
                     "inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50",
-                    Enum.empty?(@available_materials) && "cursor-not-allowed opacity-50"
+                    (Enum.empty?(@available_materials) || latest_version(@boms) != @bom.version) && "cursor-not-allowed opacity-50"
                   ]}
-                  disabled={Enum.empty?(@available_materials)}
+                  disabled={Enum.empty?(@available_materials) || latest_version(@boms) != @bom.version}
                 >
                   <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add Material
                 </button>
@@ -196,11 +192,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             field={@form[:notes]}
             type="textarea"
             label="Notes"
+            disabled={latest_version(@boms) != @bom.version}
           />
         </div>
 
         <:actions>
           <.button
+            :if={latest_version(@boms) == @bom.version}
             variant={:primary}
             type="submit"
             disabled={
@@ -246,37 +244,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         </.modal>
       <% end %>
 
-      <div :if={@settings.advanced_recipe_versioning} class="mt-8">
-        <h4 class="mb-2 text-sm font-semibold text-stone-700">Recipe History</h4>
-        <.table id="bom-history" rows={@boms || []}>
-          <:col :let={b} label="Version">v{b.version}</:col>
-          <:col :let={b} label="Status">{b.status}</:col>
-          <:col :let={b} label="Published">
-            {if b.published_at, do: format_date(b.published_at), else: "-"}
-          </:col>
-          <:col :let={b} label="Unit Cost">
-            {case b.rollup do
-              %{} = r -> format_money(@settings.currency, r.unit_cost)
-              _ -> "-"
-            end}
-          </:col>
-          <:action :let={b}>
-            <div class="flex gap-2">
-              <.button
-                size={:sm}
-                variant={:outline}
-                phx-target={@myself}
-                phx-click="switch_version"
-                phx-value-bom_version={b.version}
-              >
-                View
-              </.button>
-            </div>
-          </:action>
-        </.table>
-      </div>
       <.modal
-        :if={!@settings.advanced_recipe_versioning && @show_history}
+        :if={@show_history}
         id="bom-history-modal"
         show
         title="Recipe History"
@@ -356,22 +325,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   @impl true
   def handle_event("save", %{"recipe" => recipe_params}, socket) do
-    if socket.assigns.settings.advanced_recipe_versioning do
-      # advanced mode: keep existing version update behavior
-      case Form.submit(socket.assigns.form, params: recipe_params) do
-        {:ok, bom} ->
-          send(self(), {__MODULE__, {:saved, bom}})
-
-          {:noreply,
-           socket
-           |> assign(:bom, bom)
-           |> put_flash(:info, "Recipe saved successfully")
-           |> push_patch(to: socket.assigns.patch)}
-
-        {:error, form} ->
-          {:noreply, assign(socket, :form, form)}
-      end
-    else
       # simple mode: saving creates a new version and makes it active
       actor = socket.assigns.current_user
       product = socket.assigns.product
@@ -413,7 +366,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
        |> assign_form()
        |> put_flash(:info, "Recipe saved successfully")
        |> push_patch(to: socket.assigns.patch)}
-    end
   end
 
   @impl true
