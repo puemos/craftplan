@@ -3,6 +3,7 @@ defmodule CraftplanWeb.CustomerLive.Index do
   use CraftplanWeb, :live_view
 
   alias CraftplanWeb.Navigation
+
   @impl true
   def render(assigns) do
     ~H"""

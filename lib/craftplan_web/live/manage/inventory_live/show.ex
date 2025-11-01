@@ -2,8 +2,8 @@ defmodule CraftplanWeb.InventoryLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
-  alias CraftplanWeb.Navigation
   alias Craftplan.Inventory
+  alias CraftplanWeb.Navigation
 
   @impl true
   def render(assigns) do

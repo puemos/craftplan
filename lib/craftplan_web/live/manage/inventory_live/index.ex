@@ -345,16 +345,23 @@ defmodule CraftplanWeb.InventoryLive.Index do
                             </div>
                           </button>
                           <div class={[
-                            "min-w-[11rem] max-w-[14rem] text-[11px] pointer-events-none absolute top-0 left-0 z-10 hidden -translate-y-full flex-col gap-1 rounded-md border bg-white p-3 shadow-lg ring-1 group-focus-within:flex group-hover:flex",
+                            "min-w-[11rem] max-w-[14rem] text-[11px] pointer-events-none absolute top-0 left-0 z-10 z-30 hidden -translate-y-full flex-col gap-1 rounded-md border bg-white p-3 shadow-lg ring-1 group-focus-within:flex group-hover:flex",
                             forecast_popover_class(status)
                           ]}>
-                            <p class="font-medium text-stone-700">
-                              Required {format_amount(material.unit, day_quantity)}
+                            <p class="text-stone-600">
+                              Projected balance
+                              <span class="font-bold">
+                                {format_amount(material.unit, day_balance)}
+                              </span>
                             </p>
                             <p class="text-stone-600">
-                              Projected balance {format_amount(material.unit, day_balance)}
+                              Required
+                              <span class="font-bold">
+                                {format_amount(material.unit, day_quantity)}
+                              </span>
                             </p>
-                            <p class={["text-xs font-semibold", forecast_popover_label_class(status)]}>
+                            <hr class="text-stone-300" />
+                            <p class={[forecast_popover_label_class(status)]}>
                               {popover_label(status, material.unit, day_quantity, day_balance)}
                             </p>
                           </div>
@@ -668,10 +675,12 @@ defmodule CraftplanWeb.InventoryLive.Index do
   defp forecast_popover_label_class(:balanced), do: "text-emerald-600"
   defp forecast_popover_label_class(_), do: "text-stone-600"
 
-  defp forecast_status_chip(:shortage), do: "border-rose-200 bg-rose-50 text-rose-700"
-  defp forecast_status_chip(:watch), do: "border-amber-200 bg-amber-50 text-amber-700"
-  defp forecast_status_chip(:balanced), do: ""
-  defp forecast_status_chip(_), do: "border-stone-200 bg-stone-50 text-stone-500"
+  defp forecast_status_chip(:shortage), do: "border border-rose-300 bg-rose-50 text-rose-700"
+  defp forecast_status_chip(:watch), do: "border border-amber-300 bg-amber-50 text-amber-700"
+
+  defp forecast_status_chip(:balanced), do: "border border-emerald-300 bg-emerald-50 text-emerald-700"
+
+  defp forecast_status_chip(_), do: "border border-stone-200 bg-stone-50 text-stone-500"
 
   defp popover_label(:shortage, unit, required, balance) do
     shortfall = Decimal.max(Decimal.sub(required, balance), Decimal.new(0))

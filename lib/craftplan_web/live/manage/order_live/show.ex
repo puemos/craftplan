@@ -2,11 +2,11 @@ defmodule CraftplanWeb.OrderLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
-  alias CraftplanWeb.Navigation
   alias Craftplan.Catalog
   alias Craftplan.Catalog.Product.Photo
   alias Craftplan.CRM
   alias Craftplan.Orders
+  alias CraftplanWeb.Navigation
 
   @default_order_load [
     :total_cost,

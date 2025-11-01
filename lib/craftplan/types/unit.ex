@@ -92,7 +92,8 @@ defmodule Craftplan.Types.Unit do
   def abbreviation(:piece, 0), do: "no pieces"
   def abbreviation(:piece, 1), do: "1 #{@singular_names.piece}"
   def abbreviation(:piece, -1), do: "-1 #{@singular_names.piece}"
-  def abbreviation(:piece, value), do: "#{value} #{@plural_names.piece}"
+
+  def abbreviation(:piece, value), do: "#{:erlang.float_to_binary(value, decimals: 0)} #{@plural_names.piece}"
 
   @doc """
   Returns just the abbreviation for a unit.

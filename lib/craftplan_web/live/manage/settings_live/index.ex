@@ -2,9 +2,9 @@ defmodule CraftplanWeb.SettingsLive.Index do
   @moduledoc false
   use CraftplanWeb, :live_view
 
-  alias CraftplanWeb.Navigation
   alias Craftplan.Inventory
   alias Craftplan.Settings
+  alias CraftplanWeb.Navigation
 
   @impl true
   def render(assigns) do
