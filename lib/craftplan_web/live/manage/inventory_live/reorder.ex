@@ -35,7 +35,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
       <Page.section>
         <div class="space-y-4">
-          <Page.surface padding="p-5">
+          <Page.surface>
             <:header>
               <div>
                 <h3 class="text-sm font-semibold text-stone-900">Planning controls</h3>

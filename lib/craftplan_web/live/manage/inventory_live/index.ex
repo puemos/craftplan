@@ -203,7 +203,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
         >
           <div class="space-y-4">
             <div id="controls">
-              <Page.surface padding="p-4">
+              <Page.surface>
                 <:header>
                   <div>
                     <h3 class="text-sm font-semibold text-stone-900">

@@ -250,8 +250,10 @@ defmodule CraftplanWeb.OrderLive.Index do
                       [
                         "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
                         index > 0 && "pl-4",
-                        is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
-                        is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300"
+                        index > 0 && "border-l",
+                        index < 6 && "border-r",
+                        is_today?(day) && "bg-indigo-100/50 border-r-indigo-300",
+                        is_today?(Date.add(day, 1)) && "border-r-indigo-300"
                       ]
                       |> Enum.filter(& &1)
                       |> Enum.join("  ")
@@ -275,12 +277,11 @@ defmodule CraftplanWeb.OrderLive.Index do
                     :for={{day, index} <- Enum.with_index(@days_range |> Enum.take(7))}
                     class={
                       [
-                        "border-t border-t-stone-200",
+                        "min-h-[200px] w-1/7 overflow-hidden border-t border-stone-200 border-t-stone-200 p-2 align-top",
                         index > 0 && "border-l",
                         index < 6 && "border-r",
-                        is_today?(day) && "bg-indigo-100/50 border border-indigo-300",
-                        is_today?(Date.add(day, 1)) && "border-r border-r-indigo-300",
-                        "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top"
+                        is_today?(day) && "bg-indigo-100/50 border-r-indigo-300",
+                        is_today?(Date.add(day, 1)) && "border-r-indigo-300"
                       ]
                       |> Enum.filter(& &1)
                       |> Enum.join("  ")
