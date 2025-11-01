@@ -13,6 +13,14 @@ defmodule CraftplanWeb.PurchasingLive.Suppliers do
       |> assign_new(:breadcrumbs, fn -> [] end)
 
     ~H"""
+    <.header>
+      Suppliers
+      <:actions>
+        <.link patch={~p"/manage/purchasing/suppliers/new"}>
+          <.button variant={:primary}>New Supplier</.button>
+        </.link>
+      </:actions>
+    </.header>
     <div class="mt-4">
       <.table
         id="suppliers"

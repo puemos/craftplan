@@ -14,6 +14,15 @@ defmodule CraftplanWeb.PurchasingLive.Index do
       |> assign_new(:breadcrumbs, fn -> [] end)
 
     ~H"""
+    <.header>
+      Purchasing
+      <:actions>
+        <.link patch={~p"/manage/purchasing/new"}>
+          <.button variant={:primary}>New Purchase Order</.button>
+        </.link>
+      </:actions>
+    </.header>
+
     <div class="mt-4">
       <.table
         id="purchase-orders"
@@ -30,7 +39,7 @@ defmodule CraftplanWeb.PurchasingLive.Index do
 
         <:action :let={po}>
           <.link :if={po.status != :received} phx-click={JS.push("receive", value: %{id: po.id})}>
-            <.button size={:sm} variant={:primary}>Mark Received</.button>
+            <.button size={:sm}>Mark Received</.button>
           </.link>
         </:action>
       </.table>
