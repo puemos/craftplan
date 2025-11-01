@@ -12,6 +12,23 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     ~H"""
     <div>
+      <div class="mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-stone-600">Version</label>
+          <select phx-change="switch_version" phx-target={@myself} name="bom_version" class="rounded border-stone-300 text-sm">
+            <option :if={(@boms || []) == []} value="">No BOMs</option>
+            <%= for b <- @boms || [] do %>
+              <option value={b.version} selected={@bom && @bom.version == b.version}>
+                v{b.version} · {b.status}{b.published_at && ", " <> Calendar.strftime(b.published_at, "%Y-%m-%d")}
+              </option>
+            <% end %>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <.button :if={@bom && @bom.status != :active} phx-click="promote" phx-target={@myself} size={:sm} variant={:outline}>Make Active</.button>
+          <.button :if={@bom} phx-click="duplicate" phx-target={@myself} size={:sm} variant={:secondary}>Duplicate</.button>
+        </div>
+      </div>
       <.simple_form
         for={@form}
         id="recipe-form"
@@ -207,6 +224,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   def update(assigns, socket) do
     socket = assign(socket, assigns)
 
+    socket = assign_lists(socket)
     socket = assign_form(socket)
 
     materials_map =
@@ -281,6 +299,43 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   @impl true
+  def handle_event("switch_version", %{"bom_version" => v}, socket) do
+    version =
+      case Integer.parse(to_string(v)) do
+        {n, _} -> n
+        _ -> nil
+      end
+
+    socket = assign(socket, :selected_version, version)
+    {:noreply, assign_form(socket)}
+  end
+
+  @impl true
+  def handle_event("duplicate", _params, socket) do
+    actor = socket.assigns.current_user
+    bom = socket.assigns.bom
+    _new = Craftplan.Catalog.Services.BOMDuplicate.duplicate!(bom, actor: actor, authorize?: false)
+    socket = assign_lists(socket)
+    {:noreply, assign_form(socket) |> put_flash(:info, "BOM duplicated")}
+  end
+
+  @impl true
+  def handle_event("promote", _params, socket) do
+    actor = socket.assigns.current_user
+    bom = socket.assigns.bom
+
+    case Catalog.get_active_bom_for_product(%{product_id: socket.assigns.product.id}, actor: actor, authorize?: false) do
+      {:ok, %Catalog.BOM{} = active} when active.id != bom.id ->
+        _ = Ash.update(active, %{status: :archived}, actor: actor, authorize?: false)
+      _ -> :ok
+    end
+
+    _ = Ash.update(bom, %{}, action: :promote, actor: actor, authorize?: false)
+    socket = assign_lists(socket)
+    {:noreply, assign_form(socket) |> put_flash(:info, "BOM is now active")}
+  end
+
+  @impl true
   def handle_event("remove_form", %{"path" => path}, socket) do
     form = Form.remove_form(socket.assigns.form, path)
 
@@ -295,12 +350,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   defp assign_form(socket) do
     actor = socket.assigns.current_user
-
-    bom =
-      BOMRecipeSync.load_bom_for_product(socket.assigns.product,
-        actor: actor,
-        authorize?: false
-      )
+    bom = select_bom(socket, actor)
 
     form =
       bom
@@ -310,6 +360,27 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     socket
     |> assign(:bom, bom)
     |> assign(:form, form)
+  end
+
+  defp assign_lists(socket) do
+    actor = socket.assigns.current_user
+    case Catalog.list_boms_for_product(%{product_id: socket.assigns.product.id}, actor: actor, authorize?: false) do
+      {:ok, boms} -> assign(socket, :boms, boms)
+      _ -> assign(socket, :boms, [])
+    end
+  end
+
+  defp select_bom(socket, actor) do
+    selected = Map.get(socket.assigns, :selected_version) || Map.get(socket.assigns, :selected_version, nil)
+    cond do
+      is_integer(selected) ->
+        case Catalog.list_boms_for_product(%{product_id: socket.assigns.product.id}, actor: actor, authorize?: false) do
+          {:ok, [first | _] = boms} -> Enum.find(boms, first, fn b -> b.version == selected end)
+          _ -> BOMRecipeSync.load_bom_for_product(socket.assigns.product, actor: actor, authorize?: false)
+        end
+      true ->
+        BOMRecipeSync.load_bom_for_product(socket.assigns.product, actor: actor, authorize?: false)
+    end
   end
 
   defp form_for_bom(bom, actor) do

@@ -66,6 +66,24 @@ defmodule Craftplan.Catalog.BOM do
              end)
     end
 
+    update :promote do
+      require_atomic? false
+
+      change set_attribute(:status, :active)
+      change fn cs, _ ->
+        Ash.Changeset.set_attribute(cs, :published_at, DateTime.utc_now())
+      end
+
+      change after_action(fn changeset, result, _ctx ->
+               BOMRollup.refresh!(result,
+                 actor: changeset.context[:actor],
+                 authorize?: false
+               )
+
+               {:ok, result}
+             end)
+    end
+
     read :list_for_product do
       argument :product_id, :uuid, allow_nil?: false
 

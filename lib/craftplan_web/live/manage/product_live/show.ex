@@ -109,6 +109,7 @@ defmodule CraftplanWeb.ProductLive.Show do
           current_user={@current_user}
           settings={@settings}
           materials={@materials_available}
+          selected_version={@selected_bom_version}
           patch={~p"/manage/products/#{@product.sku}/recipe"}
           on_cancel={hide_modal("product-material-modal")}
         />
@@ -187,6 +188,15 @@ defmodule CraftplanWeb.ProductLive.Show do
       )
 
     live_action = socket.assigns.live_action
+    selected_bom_version =
+      case Map.get(socket.assigns, :params) do
+        %{ "v" => v } ->
+          case Integer.parse(v) do
+            {ver, _} -> ver
+            _ -> nil
+          end
+        _ -> nil
+      end
 
     tabs_links = [
       %{
@@ -215,6 +225,7 @@ defmodule CraftplanWeb.ProductLive.Show do
       socket
       |> assign(:page_title, page_title(live_action))
       |> assign(:product, product)
+      |> assign(:selected_bom_version, selected_bom_version)
       |> assign(:status_form, to_form(%{"status" => product.status}))
       |> assign(:tabs_links, tabs_links)
       |> assign(:breadcrumbs, product_breadcrumbs(product, live_action))
