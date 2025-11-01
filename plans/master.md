@@ -1,8 +1,8 @@
-Craftplan Product Plan -- Bakery ERP Roadmap
+# Craftplan Product Plan -- Bakery ERP Roadmap
 
-Last updated: 2025-10-25
+Last updated: 2025-11-01
 
-Progress Snapshot
+## Progress Snapshot
 
 - Overall: [ ] Not started / [x] In progress / [ ] Done
 - Current Cycle (Oct 2025): Stabilize internal print flows + prep costing foundations.
@@ -11,11 +11,11 @@ Progress Snapshot
   - [ ] M1: Production Costing Foundations
   - [ ] M2: Traceability & Compliance
   - [x] M3: Inventory Planning & Purchasing
-  - [ ] M4: Commerce & Channel Sync (Optional)
+  - [ ] M4: WhatsApp Business Integration
   - [ ] M5: Insights & Pricing Intelligence
   - [ ] M6: Onboarding & Adoption
 
-Recently Completed
+## Recently Completed
 
 - Planner split into Overview/Schedule tabs; schedule calendar isolates day view.
 - Over-capacity highlights in planner with metrics modal across tabs.
@@ -25,7 +25,7 @@ Recently Completed
 - CSV import LiveComponent refactor with reusable wizard, per-entity configs, and LiveView tests.
 - Orders and Inventory LiveViews aligned to settings-inspired layout primitives with shared components.
 
-Competitive Insights -- Craftybase Highlights
+## Competitive Insights -- Craftybase Highlights
 
 - Multi-stage BOMs with components/sub-assemblies and labor costing; generates real-time cost rollups and pricing suggestions.
 - Compliance and traceability tooling: lot/batch tracking, recall workflows, audit-friendly reports.
@@ -34,46 +34,55 @@ Competitive Insights -- Craftybase Highlights
 - Integrated channel sync (Shopify, Etsy, Square, Faire, Wix, WooCommerce, Amazon Handmade) with real-time stock updates.
 - Templates and calculators (pricing, production planning) supporting onboarding and ongoing price optimization.
 
-Guiding Principles
+## Guiding Principles
 
 - Operate -> Make -> Stock remains the primary loop; extend with costing and compliance primitives rather than bespoke workflows.
 - Self-host friendly and offline tolerant: webhooks/integrations should degrade gracefully to CSV or manual sync.
 - Favor declarative Ash resources and LiveView streams; keep imperative logic in services only when needed.
 - Every new surface must support printable artifacts (labels, planner, invoices, compliance reports).
 
-Milestone 1 -- Production Costing Foundations (2-3 weeks)
-Status: [ ] Not started [x] In progress [ ] Done
-Goals
+---
+
+## Milestone 1 -- Production Costing Foundations (2-3 weeks)
+
+**Status:** [ ] Not started [x] In progress [ ] Done
+
+### Goals
 
 - Match competitor parity on multi-stage recipes, labor costing, and automated batch cost rollups.
 - Provide pricing guidance hooks that later feed Insights.
 
-User Stories
+### User Stories
 
 - As a product developer, I build a BOM with components, sub-assemblies, and labor entries.
 - As an operator, completing a batch generates actual cost per unit and suggested price ranges.
 - As a planner, I see batch codes auto-generated when marking production done.
 
-Requirements
+### Requirements
 
-- Domain
-  - [x] New Ash resources for BOM structures: `Catalog.BOM`, `Catalog.BOMComponent`, `Catalog.LaborStep` with versioning.
-  - [x] Link BOM to `Catalog.Product`; support status (`draft`, `active`).
-  - [x] Labor rates and overhead settings in `Settings` (hourly rate, markup defaults).
-  - [x] Batch cost calculation service generating `material_cost`, `labor_cost`, `overhead_cost`, `unit_cost`.
-  - [x] Auto-generate `batch_code` (`B-YYYYMMDD-SKU-SEQ`) when order items marked done; persist to order items.
-- UI
-  - [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries (UI parity with current Recipe editor).
-  - [ ] Planner “Mark Done” dialog shows resulting batch code and actual cost snapshot.
-  - [ ] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
-- Data & Migrations
-  - [x] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
-  - [x] Backfill seeds with example recipes (bread, pastry) including labor.
-  - [x] Persisted BOM rollups (`catalog_bom_rollups`) with unique index on `bom_id`; auto-refresh on BOM/component/labor changes.
-  - [ ] Add DB index on `catalog_bom_rollups(product_id)` to speed product cost reads.
-  - [ ] Optional: materialized flattened components JSONB in rollups + GIN index for label/traceability queries.
+**Domain**
 
-Deprecations & Removals (no backward compatibility)
+- [x] New Ash resources for BOM structures: `Catalog.BOM`, `Catalog.BOMComponent`, `Catalog.LaborStep` with versioning.
+- [x] Link BOM to `Catalog.Product`; support status (`draft`, `active`).
+- [x] Labor rates and overhead settings in `Settings` (hourly rate, markup defaults).
+- [x] Batch cost calculation service generating `material_cost`, `labor_cost`, `overhead_cost`, `unit_cost`.
+- [x] Auto-generate `batch_code` (`B-YYYYMMDD-SKU-SEQ`) when order items marked done; persist to order items.
+
+**UI**
+
+- [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries (UI parity with current Recipe editor).
+- [ ] Planner "Mark Done" dialog shows resulting batch code and actual cost snapshot.
+- [ ] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
+
+**Data & Migrations**
+
+- [x] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
+- [x] Backfill seeds with example recipes (bread, pastry) including labor.
+- [x] Persisted BOM rollups (`catalog_bom_rollups`) with unique index on `bom_id`; auto-refresh on BOM/component/labor changes.
+- [ ] Add DB index on `catalog_bom_rollups(product_id)` to speed product cost reads.
+- [ ] Optional: materialized flattened components JSONB in rollups + GIN index for label/traceability queries.
+
+**Deprecations & Removals** (no backward compatibility)
 
 - [ ] Remove legacy Recipe model usage in domain and UI
   - [ ] Switch Product label ingredients to BOM components (fallback not required)
@@ -86,20 +95,20 @@ Deprecations & Removals (no backward compatibility)
 - [ ] Update seeds/tests to use BOMs exclusively; remove recipe fixtures
 - [ ] Remove any documentation and references to Recipes
 
-Acceptance Criteria
+### Acceptance Criteria
 
 - Batch completion persists cost breakdown and batch code on order item; totals flow into invoices.
 - Pricing helper toggles between markup types (percent/fixed) and respects inclusive/exclusive tax.
 - BOM editor enforces valid graphs (no cycles) and supports saving draft vs publish.
 
-Recipe → BOM Migration Plan (UI Parity)
+### Recipe → BOM Migration Plan (UI Parity)
 
-Goal: keep the current Recipe editor UX intact while switching the backend to BOMs (no back-compat required), then cleanly remove Recipe.
+**Goal:** keep the current Recipe editor UX intact while switching the backend to BOMs (no back-compat required), then cleanly remove Recipe.
 
-Phase A — Adapter (UI parity on existing route)
+**Phase A — Adapter (UI parity on existing route)**
 
 - [ ] Replace Recipe editor internals with BOM-backed component while preserving DOM ids, events, and layout
-  - Keep route and tab labels the same for now (e.g., “Recipe”) to avoid UX regression
+  - Keep route and tab labels the same for now (e.g., "Recipe") to avoid UX regression
   - Files to migrate:
     - `lib/craftplan_web/live/manage/product_live/form_component_recipe.ex`
     - `lib/craftplan_web/live/manage/product_live/show.ex`
@@ -113,7 +122,7 @@ Phase A — Adapter (UI parity on existing route)
   - Tests
     - Keep existing selectors/ids; update test setup to create BOMs in place of Recipes
 
-Phase B — Domain usage switch
+**Phase B — Domain usage switch**
 
 - [x] Update product calculations to prefer active BOM unit cost; DB rollups first, fallback to compute or recipe only when needed
 - [x] Update product label ingredients to read from BOM components; keep recipe fallback during transition
@@ -121,9 +130,9 @@ Phase B — Domain usage switch
 - [ ] Update consumption flows to use BOM components when completing items; align confirmation modal sources
 - [ ] Update seeds/fixtures to BOM only (remove recipe seeding)
 
-Phase C — Cleanup and removal
+**Phase C — Cleanup and removal**
 
-- [ ] Rename the UI tab/labels from “Recipe” to “BOM” (route may remain for continuity or be redirected)
+- [ ] Rename the UI tab/labels from "Recipe" to "BOM" (route may remain for continuity or be redirected)
 - [ ] Remove Recipe resources from domain and UI
   - Delete `Catalog.Recipe` and `Catalog.RecipeMaterial`
   - Remove LiveView recipe-specific code paths
@@ -131,13 +140,13 @@ Phase C — Cleanup and removal
 - [ ] Replace `Material <-> Recipe` relationship with `Material <-> BOM` through `BOMComponent`
 - [ ] Update docs to refer to BOMs exclusively
 
-Acceptance Criteria (UI parity)
+**Acceptance Criteria (UI parity)**
 
 - The editor form keeps the same structure, ids, and interactions; users can add/edit materials and see totals like before
 - Sub-assemblies and labor steps are available without changing the overall layout
 - Product label, pricing calcs, and planner derive data from BOMs
 
-Implementation Notes
+### Implementation Notes
 
 - Consider `Ash.Flow` for multi-step BOM creation to reuse validations.
 - Add unit tests for cost calculator (material shrinkage, multi-step components).
@@ -145,39 +154,48 @@ Implementation Notes
 
 ---
 
-Milestone 2 -- Traceability & Compliance (2 weeks)
-Status: [ ] Not started [ ] In progress [ ] Done
-Goals
+## Milestone 2 -- Traceability & Compliance (2 weeks)
+
+**Status:** [ ] Not started [ ] In progress [ ] Done
+
+> ⚠️ **NEEDS FLESHING OUT** - Requires detailed data model design, UI wireframes, and acceptance test scenarios
+
+### Goals
 
 - Deliver lot tracking, recall readiness, and audit-friendly exports ahead of competitor parity claims.
 
-User Stories
+### User Stories
 
 - As a quality lead, I can trace which batches used a recalled material and export affected orders.
 - As an operator, I can record certifications/expiry on materials and be alerted during production.
 - As a regulator, I can receive printable compliance reports showing batch lineage and disposition.
 
-Requirements
+### Requirements
 
-- Domain
-  - [ ] Extend inventory movements to capture `lot_number`, `expiry_date`, `certifications`.
-  - [ ] Batch-to-material usage join resource for trace queries.
-  - [ ] Recall log resource with status (`investigating`, `resolved`).
-- UI
-  - [ ] Traceability dashboard under `/manage/traceability` summarizing recent batches, open recalls, expiring materials.
-  - [ ] Batch detail view linking orders, materials, and printable compliance sheet.
-  - [ ] Warnings in planner when scheduled production will use expiring lots.
-- Ops/Reports
-  - [ ] Generate compliance export (CSV/HTML) for selected batch or date range.
-  - [ ] Add audit trail events for lot assignments and recall resolutions.
+**Domain**
 
-Acceptance Criteria
+- [ ] Extend inventory movements to capture `lot_number`, `expiry_date`, `certifications`.
+- [ ] Batch-to-material usage join resource for trace queries.
+- [ ] Recall log resource with status (`investigating`, `resolved`).
+
+**UI**
+
+- [ ] Traceability dashboard under `/manage/traceability` summarizing recent batches, open recalls, expiring materials.
+- [ ] Batch detail view linking orders, materials, and printable compliance sheet.
+- [ ] Warnings in planner when scheduled production will use expiring lots.
+
+**Ops/Reports**
+
+- [ ] Generate compliance export (CSV/HTML) for selected batch or date range.
+- [ ] Add audit trail events for lot assignments and recall resolutions.
+
+### Acceptance Criteria
 
 - Given a recalled material lot, system lists all batches and orders containing it within seconds.
 - Expiry warnings show within planner cards and block completion unless overridden with reason.
 - Compliance exports include signature block and can be printed cleanly.
 
-Implementation Notes
+### Implementation Notes
 
 - Add composite indexes for lot/batch lookups.
 - Build LiveView stream for traceability dashboard; include empty-state messaging.
@@ -185,52 +203,59 @@ Implementation Notes
 
 ---
 
-Milestone 3 -- Inventory Planning & Purchasing (2 weeks)
-Status: [ ] Not started [x] In progress [ ] Done
-Goals
+## Milestone 3 -- Inventory Planning & Purchasing (2 weeks)
+
+**Status:** [ ] Not started [x] In progress [ ] Done
+
+### Goals
 
 - Move beyond low-stock alerts to actionable purchase workflows with location awareness.
 
-Progress
+### Progress
 
 - ✅ Forecast calculator + Ash `:owner_grid_metrics` action shipped (Milestone A per [plans/inventory_forecast_grid.md](./inventory_forecast_grid.md)).
 - ✅ Milestone B kickoff: split the Usage Forecast grid from the new Reorder Planner (`/manage/inventory/forecast/reorder`), which now hosts the metrics band + service-level controls; telemetry + risk filters land next.
 - 📋 LiveView + Purchasing dependencies tracked in `plans/inventory_forecast_grid.md` Next Steps section;
 
-Next Up
+### Next Up
 
 - Implement ForecastLive control defaults + event wiring, then land metrics band & right-rail glossary.
 - Align Inventory Overview and Purchasing LiveViews to consume the new metrics payloads for PO creation.
 
-User Stories
+### User Stories
 
 - As a purchasing manager, I review reorder suggestions by supplier and raise a PO in one click.
 - As a stock controller, I transfer inventory between locations and consignments with audit history.
 - As an owner, I perform rolling stocktakes that feed accuracy metrics without shutting down operations.
 
-Requirements
+### Requirements
 
-- Inventory & Locations
-  - [ ] Introduce `Inventory.Location` resource, transfer actions, and consignment tracking.
-  - [ ] Location revenue/expense reporting aligned with orders.
-  - [ ] Reorder engine considers lead time, safety stock, and upcoming production.
-- UI
-  - [x] Owner-facing forecast grid delivered per [plans/inventory_forecast_grid.md](./inventory_forecast_grid.md) (metrics band, controls, glossary rail, PO CTA).
-  - [ ] Inventory Overview tab: low-stock banner, forecast chart, reorder table grouped by supplier.
-  - [ ] Purchasing LiveView: PO quick-create from suggestions, status tracker.
-  - [ ] Stocktake workflow LiveView with guided counts (random/category/age-based selection) and variance report.
-- Data & Integrations
-  - [ ] Optional barcode import/export hooks for stocktakes (CSV upload now, future scanner integration).
-  - [ ] Seeds include multi-location scenario (main bakery + farmer's market consignment).
+**Inventory & Locations**
 
-Acceptance Criteria
+- [ ] Introduce `Inventory.Location` resource, transfer actions, and consignment tracking.
+- [ ] Location revenue/expense reporting aligned with orders.
+- [ ] Reorder engine considers lead time, safety stock, and upcoming production.
+
+**UI**
+
+- [x] Owner-facing forecast grid delivered per [plans/inventory_forecast_grid.md](./inventory_forecast_grid.md) (metrics band, controls, glossary rail, PO CTA).
+- [ ] Inventory Overview tab: low-stock banner, forecast chart, reorder table grouped by supplier.
+- [ ] Purchasing LiveView: PO quick-create from suggestions, status tracker.
+- [ ] Stocktake workflow LiveView with guided counts (random/category/age-based selection) and variance report.
+
+**Data & Integrations**
+
+- [ ] Optional barcode import/export hooks for stocktakes (CSV upload now, future scanner integration).
+- [ ] Seeds include multi-location scenario (main bakery + farmer's market consignment).
+
+### Acceptance Criteria
 
 - Reorder suggestions compute quantity with formula (forecast demand + safety stock - on hand - on order) and surface supplier.
-- Forecast grid refresh stays under 200 ms server-side for 500 materials × 28-day horizon while surfacing risk state, stockout/order-by dates, and suggested PO per plan.
+- Forecast grid refresh stays under 200 ms server-side for 500 materials × 28-day horizon while surfacing risk state, stockout/order-by dates, and suggested PO per plan.
 - Stocktake completion generates variance adjustment entries and accuracy metrics.
 - Purchasing flow updates inventory upon receiving and closes suggestion.
 
-Implementation Notes
+### Implementation Notes
 
 - Extend `InventoryForecasting` module; add tests covering location splits.
 - Use LiveView streams for long reorder lists.
@@ -238,109 +263,145 @@ Implementation Notes
 
 ---
 
-Milestone 4 -- Commerce & Channel Sync (Optional, 3 weeks)
-Status: [ ] Not started [ ] In progress [ ] Done
-Goals
+## Milestone 4 -- WhatsApp Business Integration (2-3 weeks)
 
-- Offer a lightweight integration path with major commerce channels while keeping self-host deployments viable.
+**Status:** [ ] Not started [ ] In progress [ ] Done
 
-User Stories
+> ⚠️ **NEEDS FLESHING OUT** - Requires API research, webhook design, message template specs, and conversation flow diagrams
 
-- As a seller, I sync orders from Shopify/Etsy into Craftplan and keep inventory levels aligned.
-- As a bakery without integrations, I import daily orders via CSV template with the same validation flow.
-- As an operator, I toggle Stripe checkout and redirect customers for payment when enabled.
+### Goals
 
-Requirements
+- Enable direct customer messaging, order taking, and catalog sharing via WhatsApp Business API
+- Provide a channel-agnostic integration pattern that future commerce syncs can reuse
 
-- Integrations
-  - [ ] Provide integration adapters (start with Shopify + Etsy) using API keys stored encrypted.
-  - [ ] Deliver WhatsApp Business integration per [plans/whatsapp_integration.md](./whatsapp_integration.md) to cover messaging, catalog sync, and provider behaviour reused by future channels.
-  - [ ] Background job (Oban) to fetch orders/products and reconcile inventory.
-  - [ ] Manual CSV import/export remains available as fallback.
-- Storefront
-  - [ ] Checkout LiveView optionally creates Stripe Checkout Session (using `stripity_stripe`).
-  - [ ] Daily capacity and availability gating stays enforced across imported orders.
-- Security & Config
-  - [ ] Admin settings UI for API credentials, sync frequency, and dry-run preview.
-  - [ ] Audit log for outbound API calls and failures.
+### User Stories
 
-Acceptance Criteria
+- As a bakery owner, I receive order messages via WhatsApp and convert them to Craftplan orders with validation
+- As a customer service rep, I share product catalogs and availability directly in WhatsApp threads
+- As an operator, I send order confirmations and ready-for-pickup notifications through WhatsApp
 
-- Inventory adjusts within one sync cycle after external order/import.
-- Sync failures surface actionable errors and do not break manual order entry.
-- Stripe-enabled checkout redirects correctly and records payment status.
+### Requirements
 
-Implementation Notes
+**Integration** (per `plans/whatsapp_integration.md`)
 
-- Start with read-only integrations (orders/products); write-backs can follow later.
-- Provide mix task for manual sync trigger for self-host installs.
+- [ ] WhatsApp Business API adapter with webhook handlers for incoming messages
+- [ ] Message templates for order confirmations, status updates, and availability queries
+- [ ] Catalog sync to WhatsApp Business API (products + availability)
+- [ ] Two-way conversation flow: customer inquiry → order draft → confirmation → tracking
+- [ ] Background jobs (Oban) for async message delivery and status tracking
+
+**UI & Admin**
+
+- [ ] `/manage/settings/integrations/whatsapp` config page for Business API credentials and phone number
+- [ ] Message inbox LiveView showing conversations, with quick-order-creation from messages
+- [ ] Template editor for customizing automated messages
+- [ ] Dry-run mode for testing without sending real messages
+
+**Security & Compliance**
+
+- [ ] Webhook signature verification per WhatsApp requirements
+- [ ] Rate limiting and message queue management
+- [ ] Audit log for all sent/received messages
+- [ ] Customer consent tracking for marketing messages
+
+### Acceptance Criteria
+
+- Incoming WhatsApp order converts to Craftplan order draft with capacity/availability validation
+- Catalog sync updates WhatsApp within sync cycle when products change
+- Message templates render correctly with order-specific data (items, totals, pickup time)
+- Failed messages surface in admin UI with retry options
+
+### Implementation Notes
+
+- Build generic channel adapter pattern that Shopify/Etsy can later implement
+- Use pattern matching for message parsing (order intent, product queries, status requests)
+- Consider storing conversation context in memory vs. DB (cost/speed tradeoff)
+- Manual CSV import remains available as fallback for offline/no-integration scenarios
 
 ---
 
-Milestone 5 -- Insights & Pricing Intelligence (2 weeks)
-Status: [ ] Not started [ ] In progress [ ] Done
-Goals
+## Milestone 5 -- Insights & Pricing Intelligence (2 weeks)
+
+**Status:** [ ] Not started [ ] In progress [ ] Done
+
+> ⚠️ **NEEDS FLESHING OUT** - Requires COGS calculation specs, dashboard wireframes, alert rule definitions, and report export formats
+
+### Goals
 
 - Deliver GAAP-aligned cost reporting, profitability dashboards, and pricing recommendations that leverage data from earlier milestones.
 
-User Stories
+### User Stories
 
 - As an owner, I see capacity utilization, margin by product, and sales trends in one dashboard.
 - As a pricing analyst, I receive recommendations when costs drift or margins fall below thresholds.
 - As an auditor, I export COGS reports with methodology notes.
 
-Requirements
+### Requirements
 
-- Data
-  - [ ] New `Craftplan.Insights` context aggregating orders, batch costs, inventory adjustments.
-  - [ ] GAAP/IRS-compliant COGS calculations with configurable costing method (FIFO/rolling average).
-  - [ ] Alert engine for margin thresholds and over-capacity warnings.
-- UI
-  - [ ] `/manage/reports` LiveView with stat cards (capacity utilization, gross margin, top products/customers) and tables.
-  - [ ] Price drift alerts appearing on product overview tab; ability to accept suggested price.
-  - [ ] Export buttons (CSV/print) for each report section.
-- Docs
-  - [ ] Guides detailing costing assumptions and how to configure pricing rules.
+**Data**
 
-Acceptance Criteria
+- [ ] New `Craftplan.Insights` context aggregating orders, batch costs, inventory adjustments.
+- [ ] GAAP/IRS-compliant COGS calculations with configurable costing method (FIFO/rolling average).
+- [ ] Alert engine for margin thresholds and over-capacity warnings.
+
+**UI**
+
+- [ ] `/manage/reports` LiveView with stat cards (capacity utilization, gross margin, top products/customers) and tables.
+- [ ] Price drift alerts appearing on product overview tab; ability to accept suggested price.
+- [ ] Export buttons (CSV/print) for each report section.
+
+**Docs**
+
+- [ ] Guides detailing costing assumptions and how to configure pricing rules.
+
+### Acceptance Criteria
 
 - COGS report reconciles with inventory movements and passes automated test suite with sample data.
 - Pricing suggestions display inputs (unit cost, target margin) and allow quick apply to product.
 - Dashboards perform within acceptable response times (<500ms typical dataset).
 
-Implementation Notes
+### Implementation Notes
 
 - Preload data via `Ash.Query.load/2`; avoid N+1 queries.
 - Add LiveView tests for KPI surfaces using fixtures.
 
 ---
 
-Milestone 6 -- Onboarding & Adoption (ongoing, 2 weeks)
-Status: [ ] Not started [ ] In progress [ ] Done
-Goals
+## Milestone 6 -- Onboarding & Adoption (ongoing, 2 weeks)
+
+**Status:** [ ] Not started [ ] In progress [ ] Done
+
+> ⚠️ **NEEDS FLESHING OUT** - Requires CSV template specs, demo scenario design, calculator wireframes, and onboarding checklist UX
+
+### Goals
 
 - Remove friction during setup with better CSV flows, demo assets, and calculators similar to competitor positioning.
 
-User Stories
+### User Stories
 
 - As a new tenant, I import products, materials, recipes, and customers with dry-run validation and contextual help.
 - As a prospect, I explore a seeded bakery scenario, watch a short primer video, and print sample planner/labels.
 - As a maker, I access calculators (pricing, production planning) from within the app.
 
-Requirements
+### Requirements
 
-- CSV & Importers
-  - [ ] Wire product/material/customer importers to the wizard component; keep dry-run step.
-  - [ ] Add recipe importer supporting SKU lookups and BOM version assignment.
-  - [ ] Provide exporters for orders/customers/inventory movements.
-- Demo & Content
-  - [ ] Expand seeds to include multi-location bakery scenario and sample reports.
-  - [ ] Add quickstart guide (Markdown/LiveView) with embedded screenshots/video links.
-  - [ ] Surface calculators/templates (pricing, production planning) similar to Craftybase resources.
-- UX Support
-  - [ ] In-app checklist for onboarding tasks (mix of LiveView + persistent settings flags).
+**CSV & Importers**
 
-Acceptance Criteria
+- [ ] Wire product/material/customer importers to the wizard component; keep dry-run step.
+- [ ] Add recipe importer supporting SKU lookups and BOM version assignment.
+- [ ] Provide exporters for orders/customers/inventory movements.
+
+**Demo & Content**
+
+- [ ] Expand seeds to include multi-location bakery scenario and sample reports.
+- [ ] Add quickstart guide (Markdown/LiveView) with embedded screenshots/video links.
+- [ ] Surface calculators/templates (pricing, production planning) similar to Craftybase resources.
+
+**UX Support**
+
+- [ ] In-app checklist for onboarding tasks (mix of LiveView + persistent settings flags).
+
+### Acceptance Criteria
 
 - CSV wizard completes import with granular error reporting and generates summary results.
 - Demo tenant can run through Operate -> Make -> Stock loop including costing and reporting surfaces.
@@ -348,7 +409,28 @@ Acceptance Criteria
 
 ---
 
-Tracking & Delivery
+## Backlog -- E-commerce Channel Sync
+
+**Target:** Post-MVP (after M6 completion)
+
+**Scope:** Shopify, Etsy, Square, Faire integrations for automated order import and inventory sync
+
+**Rationale for deferring:**
+
+- WhatsApp covers direct customer communication (higher priority for bakeries)
+- CSV import handles bulk order scenarios
+- Channel sync becomes more valuable once costing, forecasting, and insights are proven
+- Can validate channel adapter pattern with WhatsApp first
+
+**Future User Stories:**
+
+- As a seller, I sync orders from Shopify/Etsy into Craftplan and keep inventory levels aligned
+- As an operator, I receive marketplace orders alongside WhatsApp/manual orders in unified queue
+- As a multi-channel seller, I see inventory automatically reserved across all channels
+
+---
+
+## Tracking & Delivery
 
 - Keep `PLAN.md` milestone checkboxes in sync with progress; update "Last updated" date per change.
 - Run `mix ash_postgres.generate_migrations` after domain changes and commit snapshots.
@@ -356,7 +438,7 @@ Tracking & Delivery
   - BOM cost calculator edge cases (`test/craftplan/catalog`).
   - Traceability recall flow (`test/craftplan/traceability`).
   - Reorder suggestion algorithm (`test/craftplan/inventory`).
-  - Integration sync adapters (mock API clients).
+  - WhatsApp integration adapters (mock API clients).
   - Insights dashboard LiveView tests using fixtures.
 - Documentation touchpoints: update README feature matrix + guides after each milestone.
 - Competitive watch: review Craftybase roadmap quarterly and fold learnings into this plan.

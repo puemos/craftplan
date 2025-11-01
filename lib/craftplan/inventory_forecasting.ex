@@ -64,14 +64,25 @@ defmodule Craftplan.InventoryForecasting do
       Enum.flat_map(orders, fn order ->
         day = DateTime.to_date(order.delivery_date)
 
-        Enum.flat_map(order.items, fn
-          %{product: %{recipe: nil}} ->
-            []
+        Enum.flat_map(order.items, fn item ->
+          quantity = item.quantity || D.new(0)
 
-          %{product: %{recipe: recipe}, quantity: quantity} ->
-            Enum.map(recipe.components, fn component ->
-              {day, component.material, D.mult(component.quantity, quantity)}
-            end)
+          cond do
+            item.product.active_bom && item.product.active_bom.components != nil ->
+              item.product.active_bom.components
+              |> Enum.filter(&(&1.component_type == :material))
+              |> Enum.map(fn component ->
+                {day, component.material, D.mult(component.quantity, quantity)}
+              end)
+
+            item.product.recipe && item.product.recipe.components != nil ->
+              Enum.map(item.product.recipe.components, fn component ->
+                {day, component.material, D.mult(component.quantity, quantity)}
+              end)
+
+            true ->
+              []
+          end
         end)
       end)
 
@@ -112,11 +123,8 @@ defmodule Craftplan.InventoryForecasting do
     order_items_using_material =
       for order <- orders,
           item <- order.items,
-          item.product.recipe != nil,
-          component <- item.product.recipe.components,
-          component.material.id == material.id do
-        material_quantity = D.mult(component.quantity, item.quantity)
-
+          {component, material_quantity} <- material_usages_for_item(item, material) do
+        
         %{
           order: %{reference: order.reference},
           product: item.product,
@@ -131,6 +139,26 @@ defmodule Craftplan.InventoryForecasting do
       {product, %{total_quantity: total_quantity, order_items: items}}
     end)
     |> Enum.sort_by(fn {product, _} -> product.name end)
+  end
+
+  defp material_usages_for_item(item, material) do
+    quantity = item.quantity || D.new(0)
+
+    cond do
+      item.product.active_bom && item.product.active_bom.components != nil ->
+        item.product.active_bom.components
+        |> Enum.filter(&(&1.component_type == :material))
+        |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
+        |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
+
+      item.product.recipe && item.product.recipe.components != nil ->
+        item.product.recipe.components
+        |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
+        |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
+
+      true ->
+        []
+    end
   end
 
   @doc """

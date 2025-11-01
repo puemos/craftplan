@@ -15,7 +15,12 @@ defmodule Craftplan.Orders.Consumption do
 
     item =
       Orders.get_order_item_by_id!(order_item_id,
-        load: [product: [:recipe, recipe: [components: [material: [:id, :unit, :sku]]]]],
+        load: [
+          product: [
+            active_bom: [components: [material: [:id, :unit, :sku]]],
+            recipe: [components: [material: [:id, :unit, :sku]]]
+          ]
+        ],
         actor: actor
       )
 
@@ -28,12 +33,11 @@ defmodule Craftplan.Orders.Consumption do
       order = Orders.get_order_by_id!(item.order_id, actor: actor)
 
       movements =
-        case item.product.recipe do
-          nil ->
-            []
-
-          recipe ->
-            Enum.map(recipe.components, fn component ->
+        cond do
+          item.product.active_bom && item.product.active_bom.components != nil ->
+            item.product.active_bom.components
+            |> Enum.filter(&(&1.component_type == :material))
+            |> Enum.map(fn component ->
               required = Decimal.mult(component.quantity, qty)
 
               %{
@@ -42,6 +46,20 @@ defmodule Craftplan.Orders.Consumption do
                 reason: "Order #{order.reference} item consumption"
               }
             end)
+
+          item.product.recipe && item.product.recipe.components != nil ->
+            Enum.map(item.product.recipe.components, fn component ->
+              required = Decimal.mult(component.quantity, qty)
+
+              %{
+                material_id: component.material.id,
+                quantity: Decimal.mult(required, Decimal.new(-1)),
+                reason: "Order #{order.reference} item consumption"
+              }
+            end)
+
+          true ->
+            []
         end
 
       Enum.each(movements, fn mv ->

@@ -259,24 +259,41 @@ defmodule CraftplanWeb.OrderLive.Show do
               Orders.get_order_item_by_id!(updated_item.id,
                 load: [
                   :quantity,
-                  product: [recipe: [components: [material: [:name, :unit, :current_stock]]]]
+                  product: [
+                    active_bom: [components: [material: [:name, :unit, :current_stock]]],
+                    recipe: [components: [material: [:name, :unit, :current_stock]]]
+                  ]
                 ],
                 actor: socket.assigns[:current_user]
               )
 
             recap =
-              case item.product.recipe do
-                nil ->
-                  []
+              cond do
+                item.product.active_bom && item.product.active_bom.components != nil ->
+                  Enum.map(item.product.active_bom.components, fn c ->
+                    if c.component_type == :material do
+                      %{
+                        material: c.material,
+                        required: Decimal.mult(c.quantity, item.quantity),
+                        current_stock: c.material.current_stock
+                      }
+                    else
+                      nil
+                    end
+                  end)
+                  |> Enum.reject(&is_nil/1)
 
-                recipe ->
-                  Enum.map(recipe.components, fn c ->
+                item.product.recipe && item.product.recipe.components != nil ->
+                  Enum.map(item.product.recipe.components, fn c ->
                     %{
                       material: c.material,
                       required: Decimal.mult(c.quantity, item.quantity),
                       current_stock: c.material.current_stock
                     }
                   end)
+
+                true ->
+                  []
               end
 
             socket
