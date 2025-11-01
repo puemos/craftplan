@@ -446,10 +446,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
               class="border-t border-stone-200"
             >
               <td class="sticky left-0 z-10 border-r border-stone-200 bg-white px-3 py-2 text-left font-medium shadow-sm">
-                <div class="font-semibold text-stone-900">
-                  {row.material_name || "Unassigned"}
-                </div>
-                <p class="text-xs text-stone-500">Lead time {row.lead_time_days || 0} days</p>
+                {row.material_name || "Unassigned"}
               </td>
 
               <td class="relative border-t border-r border-t-stone-200 border-r-stone-200 p-3 text-right last:border-r-0">
