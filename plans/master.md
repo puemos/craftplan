@@ -129,6 +129,7 @@ Last updated: 2025-11-01
 - [ ] Update planner/forecast materials demand to use BOM components + rollups (remove recipe reliance)
 - [ ] Update consumption flows to use BOM components when completing items; align confirmation modal sources
 - [ ] Update seeds/fixtures to BOM only (remove recipe seeding)
+  - [x] Update dev seeds to BOM-only (removed recipe seeding)
 
 **Phase C — Cleanup and removal**
 

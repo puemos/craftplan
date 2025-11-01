@@ -166,20 +166,7 @@ if Mix.env() == :dev do
     })
   end
 
-  seed_recipe = fn product, notes ->
-    Ash.Seed.seed!(Catalog.Recipe, %{
-      product_id: product.id,
-      notes: notes
-    })
-  end
-
-  link_recipe_material = fn recipe, material, quantity ->
-    Ash.Seed.seed!(Catalog.RecipeMaterial, %{
-      recipe_id: recipe.id,
-      material_id: material.id,
-      quantity: Decimal.new(quantity)
-    })
-  end
+  # No recipe helpers (BOM-only seeding)
 
   seed_bom = fn product, component_defs, labor_defs, opts ->
     opts = opts || []
@@ -448,127 +435,7 @@ if Mix.env() == :dev do
     cheese_danish: update_product.(products.cheese_danish, %{max_daily_quantity: 100})
   }
 
-  # -- 3.10 Seed recipes
-  recipes = %{
-    almond_cookies:
-      seed_recipe.(
-        products.almond_cookies,
-        "Mix flour, ground almonds, sugar, and butter. Add eggs. Bake at 180°C for 12 minutes."
-      ),
-    choc_cake:
-      seed_recipe.(
-        products.choc_cake,
-        "Combine dry and wet ingredients; bake at 170°C for 45 minutes, then let cool."
-      ),
-    bread:
-      seed_recipe.(
-        products.bread,
-        "Proof for 2 hours, shape loaves, bake at 220°C for 35 minutes."
-      ),
-    muffins:
-      seed_recipe.(
-        products.muffins,
-        "Combine mixture, fill muffin tins 3/4. Bake at 190°C for 20 minutes."
-      ),
-    croissants:
-      seed_recipe.(
-        products.croissants,
-        "Laminate dough with butter, shape, proof, bake at 200°C for 15-20 minutes."
-      ),
-    gf_cupcakes:
-      seed_recipe.(
-        products.gf_cupcakes,
-        "Use GF flour, sugar, eggs, butter, vanilla. Bake at 180°C for 15-18 minutes."
-      ),
-    rye_loaf:
-      seed_recipe.(
-        products.rye_loaf,
-        "Combine rye and all-purpose flours, proof 1.5 hours, bake at 210°C."
-      ),
-    carrot_cake:
-      seed_recipe.(
-        products.carrot_cake,
-        "Mix shredded carrots, flour, sugar, eggs, cinnamon. Bake at 175°C for ~40 minutes."
-      ),
-    oatmeal_cookies:
-      seed_recipe.(
-        products.oatmeal_cookies,
-        "Blend oats, flour, brown sugar, butter, eggs. Bake at 180°C for 10-12 minutes."
-      ),
-    cheese_danish:
-      seed_recipe.(
-        products.cheese_danish,
-        "Fill pastry dough w/ sweet cream cheese, bake at 190°C for 15 minutes."
-      )
-  }
-
-  # -- 3.11 Link recipes to their materials
-  # Almond Cookies
-  link_recipe_material.(recipes.almond_cookies, materials.flour, "50")
-  link_recipe_material.(recipes.almond_cookies, materials.almonds, "25")
-  link_recipe_material.(recipes.almond_cookies, materials.sugar, "30")
-  link_recipe_material.(recipes.almond_cookies, materials.butter, "25")
-  link_recipe_material.(recipes.almond_cookies, materials.eggs, "1")
-
-  # Chocolate Cake
-  link_recipe_material.(recipes.choc_cake, materials.flour, "200")
-  link_recipe_material.(recipes.choc_cake, materials.chocolate, "150")
-  link_recipe_material.(recipes.choc_cake, materials.sugar, "180")
-  link_recipe_material.(recipes.choc_cake, materials.eggs, "4")
-  link_recipe_material.(recipes.choc_cake, materials.milk, "250")
-  link_recipe_material.(recipes.choc_cake, materials.butter, "100")
-
-  # Artisan Bread
-  link_recipe_material.(recipes.bread, materials.flour, "500")
-  link_recipe_material.(recipes.bread, materials.yeast, "7")
-  link_recipe_material.(recipes.bread, materials.salt, "10")
-
-  # Blueberry Muffins
-  link_recipe_material.(recipes.muffins, materials.flour, "250")
-  link_recipe_material.(recipes.muffins, materials.sugar, "100")
-  link_recipe_material.(recipes.muffins, materials.eggs, "2")
-  link_recipe_material.(recipes.muffins, materials.milk, "150")
-  link_recipe_material.(recipes.muffins, materials.butter, "75")
-
-  # Butter Croissants
-  link_recipe_material.(recipes.croissants, materials.flour, "300")
-  link_recipe_material.(recipes.croissants, materials.butter, "200")
-  link_recipe_material.(recipes.croissants, materials.yeast, "5")
-  link_recipe_material.(recipes.croissants, materials.milk, "100")
-
-  # Gluten-Free Cupcakes
-  link_recipe_material.(recipes.gf_cupcakes, materials.gluten_free_mix, "200")
-  link_recipe_material.(recipes.gf_cupcakes, materials.sugar, "100")
-  link_recipe_material.(recipes.gf_cupcakes, materials.eggs, "2")
-  link_recipe_material.(recipes.gf_cupcakes, materials.butter, "50")
-  link_recipe_material.(recipes.gf_cupcakes, materials.vanilla, "5")
-
-  # Rye Loaf
-  link_recipe_material.(recipes.rye_loaf, materials.rye_flour, "250")
-  link_recipe_material.(recipes.rye_loaf, materials.flour, "150")
-  link_recipe_material.(recipes.rye_loaf, materials.salt, "8")
-  link_recipe_material.(recipes.rye_loaf, materials.yeast, "7")
-
-  # Carrot Cake
-  link_recipe_material.(recipes.carrot_cake, materials.flour, "200")
-  link_recipe_material.(recipes.carrot_cake, materials.sugar, "150")
-  link_recipe_material.(recipes.carrot_cake, materials.eggs, "3")
-  link_recipe_material.(recipes.carrot_cake, materials.butter, "75")
-  link_recipe_material.(recipes.carrot_cake, materials.cinnamon, "5")
-
-  # Oatmeal Cookies
-  link_recipe_material.(recipes.oatmeal_cookies, materials.flour, "50")
-  link_recipe_material.(recipes.oatmeal_cookies, materials.oats, "100")
-  link_recipe_material.(recipes.oatmeal_cookies, materials.brown_sugar, "40")
-  link_recipe_material.(recipes.oatmeal_cookies, materials.butter, "30")
-  link_recipe_material.(recipes.oatmeal_cookies, materials.eggs, "1")
-
-  # Cheese Danish
-  link_recipe_material.(recipes.cheese_danish, materials.flour, "200")
-  link_recipe_material.(recipes.cheese_danish, materials.cream_cheese, "100")
-  link_recipe_material.(recipes.cheese_danish, materials.sugar, "50")
-  link_recipe_material.(recipes.cheese_danish, materials.butter, "50")
-  link_recipe_material.(recipes.cheese_danish, materials.eggs, "1")
+  # BOM-only seeding (recipes omitted)
 
   # -- 3.11.1 Seed BOMs with labor steps and sub-assemblies
   _boms = %{

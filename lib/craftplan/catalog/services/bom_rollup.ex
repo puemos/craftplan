@@ -112,7 +112,10 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
 
                 if nested_bom do
                   comp_qty = D.mult(quantity, component.quantity || D.new(0))
-                  nested_map = do_flatten(nested_bom, comp_qty, MapSet.put(path, product_id), opts)
+
+                  nested_map =
+                    do_flatten(nested_bom, comp_qty, MapSet.put(path, product_id), opts)
+
                   merge_decimal_maps(acc, nested_map)
                 else
                   acc

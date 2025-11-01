@@ -74,13 +74,19 @@ defmodule CraftplanWeb.ProductLive.Show do
               <div>
                 <span class="text-stone-500">Retail:</span>
                 <span class="ml-2 font-medium">
-                  {format_money(@settings.currency, suggested_price(:retail, @product.bom_unit_cost, @settings))}
+                  {format_money(
+                    @settings.currency,
+                    suggested_price(:retail, @product.bom_unit_cost, @settings)
+                  )}
                 </span>
               </div>
               <div>
                 <span class="text-stone-500">Wholesale:</span>
                 <span class="ml-2 font-medium">
-                  {format_money(@settings.currency, suggested_price(:wholesale, @product.bom_unit_cost, @settings))}
+                  {format_money(
+                    @settings.currency,
+                    suggested_price(:wholesale, @product.bom_unit_cost, @settings)
+                  )}
                 </span>
               </div>
             </div>

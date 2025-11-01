@@ -9,4 +9,3 @@ defmodule Craftplan.Repo.Migrations.AddComponentsMapToBomRollups do
     execute "CREATE INDEX IF NOT EXISTS catalog_bom_rollups_components_map_gin ON catalog_bom_rollups USING GIN (components_map)"
   end
 end
-

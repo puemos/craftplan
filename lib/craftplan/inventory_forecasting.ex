@@ -123,8 +123,7 @@ defmodule Craftplan.InventoryForecasting do
     order_items_using_material =
       for order <- orders,
           item <- order.items,
-          {component, material_quantity} <- material_usages_for_item(item, material) do
-        
+          {_component, material_quantity} <- material_usages_for_item(item, material) do
         %{
           order: %{reference: order.reference},
           product: item.product,

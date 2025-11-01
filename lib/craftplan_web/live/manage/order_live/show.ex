@@ -270,15 +270,14 @@ defmodule CraftplanWeb.OrderLive.Show do
             recap =
               cond do
                 item.product.active_bom && item.product.active_bom.components != nil ->
-                  Enum.map(item.product.active_bom.components, fn c ->
+                  item.product.active_bom.components
+                  |> Enum.map(fn c ->
                     if c.component_type == :material do
                       %{
                         material: c.material,
                         required: Decimal.mult(c.quantity, item.quantity),
                         current_stock: c.material.current_stock
                       }
-                    else
-                      nil
                     end
                   end)
                   |> Enum.reject(&is_nil/1)
