@@ -143,12 +143,6 @@ defmodule Craftplan.Settings.Settings do
       constraints min: 0
     end
 
-    attribute :advanced_recipe_versioning, :boolean do
-      public? true
-      allow_nil? false
-      default false
-
-      description "Expose advanced recipe/BOM versioning controls (version switcher & inline history)."
-    end
+    # advanced_recipe_versioning removed; simple mode is the only mode
   end
 end

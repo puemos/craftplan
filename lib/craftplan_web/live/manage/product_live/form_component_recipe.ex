@@ -14,11 +14,14 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     <div>
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <div :if={@bom.version != nil} class="text-sm text-stone-700">
+          <div :if={@bom.version != nil} class="text-sm text-stone-700 flex items-center gap-2">
             <span>Version</span>
             <span>v{@bom.version}</span>
+            <%= if latest_version(@boms) == @bom.version do %>
+              <span class="rounded bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">Latest</span>
+            <% end %>
             <span> · </span>
-            <span> Changed on</span>
+            <span>Changed on</span>
             <span class="underline decoration-stone-400 decoration-dashed">
               {@bom.published_at && format_date(@bom.published_at)}
             </span>
