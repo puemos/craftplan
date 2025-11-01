@@ -63,7 +63,7 @@ Requirements
   - [x] Batch cost calculation service generating `material_cost`, `labor_cost`, `overhead_cost`, `unit_cost`.
   - [x] Auto-generate `batch_code` (`B-YYYYMMDD-SKU-SEQ`) when order items marked done; persist to order items.
 - UI
-  - [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries.
+  - [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries (UI parity with current Recipe editor).
   - [ ] Planner “Mark Done” dialog shows resulting batch code and actual cost snapshot.
   - [ ] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
 - Data & Migrations
@@ -88,6 +88,51 @@ Acceptance Criteria
 - Batch completion persists cost breakdown and batch code on order item; totals flow into invoices.
 - Pricing helper toggles between markup types (percent/fixed) and respects inclusive/exclusive tax.
 - BOM editor enforces valid graphs (no cycles) and supports saving draft vs publish.
+
+Recipe → BOM Migration Plan (UI Parity)
+
+Goal: keep the current Recipe editor UX intact while switching the backend to BOMs (no back-compat required), then cleanly remove Recipe.
+
+Phase A — Adapter (UI parity on existing route)
+
+- [ ] Replace Recipe editor internals with BOM-backed component while preserving DOM ids, events, and layout
+  - Keep route and tab labels the same for now (e.g., “Recipe”) to avoid UX regression
+  - Files to migrate:
+    - `lib/craftplan_web/live/manage/product_live/form_component_recipe.ex`
+    - `lib/craftplan_web/live/manage/product_live/show.ex`
+  - Form mapping
+    - Materials list -> BOM components (`component_type: :material`)
+    - Add optional sub-assembly picker (`component_type: :product`)
+    - Add labor steps editor (sequence, duration_minutes, rate_override)
+  - Reads/writes
+    - Load product `:active_bom` (or create one if missing)
+    - Save components/labor via BOM create/update arguments: `components`, `labor_steps`
+  - Tests
+    - Keep existing selectors/ids; update test setup to create BOMs in place of Recipes
+
+Phase B — Domain usage switch
+
+- [ ] Update product calculations to prefer active BOM unit cost (fallback not required)
+  - Replace `recipe.cost` references with calculator for `active_bom`
+- [ ] Update product label ingredients to read from BOM components
+- [ ] Update planner/forecast materials demand to use BOM components
+- [ ] Update seeds/fixtures to BOM only (remove recipe seeding)
+
+Phase C — Cleanup and removal
+
+- [ ] Rename the UI tab/labels from “Recipe” to “BOM” (route may remain for continuity or be redirected)
+- [ ] Remove Recipe resources from domain and UI
+  - Delete `Catalog.Recipe` and `Catalog.RecipeMaterial`
+  - Remove LiveView recipe-specific code paths
+  - Drop `catalog_recipes` and `catalog_recipe_materials` tables
+- [ ] Replace `Material <-> Recipe` relationship with `Material <-> BOM` through `BOMComponent`
+- [ ] Update docs to refer to BOMs exclusively
+
+Acceptance Criteria (UI parity)
+
+- The editor form keeps the same structure, ids, and interactions; users can add/edit materials and see totals like before
+- Sub-assemblies and labor steps are available without changing the overall layout
+- Product label, pricing calcs, and planner derive data from BOMs
 
 Implementation Notes
 
