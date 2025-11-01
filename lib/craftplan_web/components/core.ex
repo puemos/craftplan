@@ -282,7 +282,11 @@ defmodule CraftplanWeb.Components.Core do
   # For full width/height
   attr :expanding, :boolean, default: false
   attr :size, :atom, default: :base, values: [:sm, :base, :lg]
-  attr :variant, :atom, default: :default, values: [:default, :danger, :outline, :primary]
+
+  attr :variant, :atom,
+    default: :default,
+    values: [:default, :secondary, :danger, :outline, :primary]
+
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true

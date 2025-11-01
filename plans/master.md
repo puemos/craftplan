@@ -70,26 +70,26 @@ Last updated: 2025-11-01
 
 **UI**
 
-- [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries (UI parity with current Recipe editor).
+- [x] BOM editor (Recipe tab) backed by BOMs with simple mode save (creates new active version).
 - [ ] Planner "Mark Done" dialog shows resulting batch code and actual cost snapshot.
 - [x] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
 
 ### BOM Versioning (Switcher + History)
 
-- [ ] Add version switcher to the Product Recipe/BOM tab
+- [x] Add version switcher to the Product Recipe/BOM tab
   - Shows current BOM (version, status, published_at)
   - Dropdown lists all versions (vN · status · date)
   - Selecting switches the editor to that version (read-only for archived)
-- [ ] History table below editor
+- [x] History table below editor
   - Columns: Version, Status, Published, Notes, Unit Cost, Actions (View, Duplicate, Make Active, Archive)
   - Read-only rendering for non-current versions
-- [ ] Actions
+- [x] Actions
   - Duplicate → creates new draft (next version) with copied components & labor
   - Make Active → sets selected draft to active (sets published_at)
   - Archive → sets selected to archived (read-only)
 - [ ] Routing
   - Support optional `?v=:version` param for preselecting a version
-- [ ] Tests
+- [x] Tests
   - LiveView: switch versions, duplicate flow, promote to active, archive
   - Domain: duplication service copies children; promote enforces single active
 
@@ -166,7 +166,7 @@ Last updated: 2025-11-01
   - Delete `Catalog.Recipe` and `Catalog.RecipeMaterial`
   - Remove LiveView recipe-specific code paths
   - Drop `catalog_recipes` and `catalog_recipe_materials` tables
-- [ ] Replace `Material <-> Recipe` relationship with `Material <-> BOM` through `BOMComponent`
+- [x] Replace `Material <-> Recipe` relationship with `Material <-> BOM` through `BOMComponent`
 - [ ] Update docs to refer to BOMs exclusively
 
 **Acceptance Criteria (UI parity)**

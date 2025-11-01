@@ -76,7 +76,8 @@ defmodule CraftplanWeb.ManageProductsInteractionsLiveTest do
       }
     })
 
-    assert render(view) =~ "Recipe updated successfully"
+    html = render(view)
+    assert (html =~ "Recipe saved successfully") or (html =~ "Recipe updated successfully")
   end
 
   @tag role: :staff

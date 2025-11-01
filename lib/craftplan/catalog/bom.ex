@@ -71,7 +71,7 @@ defmodule Craftplan.Catalog.BOM do
 
       change set_attribute(:status, :active)
       change fn cs, _ ->
-        Ash.Changeset.set_attribute(cs, :published_at, DateTime.utc_now())
+        Ash.Changeset.change_attribute(cs, :published_at, DateTime.utc_now())
       end
 
       change after_action(fn changeset, result, _ctx ->
