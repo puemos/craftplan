@@ -19,13 +19,13 @@ defmodule Craftplan.DecimalHelpers do
   def to_decimal(%D{} = d), do: d
   def to_decimal(i) when is_integer(i), do: D.new(i)
   def to_decimal(f) when is_float(f), do: f |> D.from_float() |> D.round(4)
+
   def to_decimal(s) when is_binary(s) do
-    try do
-      D.new(s)
-    rescue
-      _ -> D.new(0)
-    end
+    D.new(s)
+  rescue
+    _ -> D.new(0)
   end
+
   def to_decimal(nil), do: D.new(0)
 
   def to_decimal(other) do

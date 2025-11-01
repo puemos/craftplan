@@ -53,11 +53,15 @@ defmodule CraftplanWeb.ManageProductsRecipeHistoryLiveTest do
     # Change to quantity 2 and save (creates new active version)
     view
     |> element("#recipe-form")
-    |> render_change(%{"recipe" => %{"components" => %{"0" => %{"material_id" => m.id, "quantity" => "2"}}}})
+    |> render_change(%{
+      "recipe" => %{"components" => %{"0" => %{"material_id" => m.id, "quantity" => "2"}}}
+    })
 
     view
     |> element("#recipe-form")
-    |> render_submit(%{"recipe" => %{"components" => %{"0" => %{"material_id" => m.id, "quantity" => "2"}}}})
+    |> render_submit(%{
+      "recipe" => %{"components" => %{"0" => %{"material_id" => m.id, "quantity" => "2"}}}
+    })
 
     assert render(view) =~ "Recipe saved successfully"
 

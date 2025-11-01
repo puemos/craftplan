@@ -15,52 +15,46 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     <div>
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <label class="text-sm text-stone-600">Version</label>
-          <%= if @settings.advanced_recipe_versioning do %>
-            <select
-              phx-change="switch_version"
-              phx-target={@myself}
-              name="bom_version"
-              class="rounded border-stone-300 text-sm"
-            >
-              <option :if={(@boms || []) == []} value="">No BOMs</option>
-              <%= for b <- @boms || [] do %>
-                <option value={b.version} selected={@bom && @bom.version == b.version}>
-                  v{b.version} · {b.status}{b.published_at && format_date(b.published_at)}
-                </option>
-              <% end %>
-            </select>
-          <% else %>
-            <div class="text-sm text-stone-700">
-              <%= if @bom && @bom.id do %>
-                v{@bom.version} · {@bom.status}{@bom.published_at && format_date(@bom.published_at)}
-              <% else %>
-                No BOM yet
-              <% end %>
-            </div>
-          <% end %>
+          <div :if={@bom.version != nil} class="text-sm text-stone-700">
+            <span>Version</span>
+            <span>v{@bom.version}</span>
+            <span> · </span>
+            <span> Changed on</span>
+            <span class="underline decoration-stone-400 decoration-dashed">
+              {@bom.published_at && format_date(@bom.published_at)}
+            </span>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <.button
-            :if={@bom && @bom.status != :active}
-            phx-click="promote"
-            phx-target={@myself}
-            size={:sm}
-            variant={:outline}
+        <div :if={@bom.version != nil} class="flex items-center gap-2">
+          <.link
+            :if={!@settings.advanced_recipe_versioning}
+            phx-click={JS.push("show_history", target: @myself)}
+            class="text-sm text-blue-700 hover:underline"
           >
-            Make Active
-          </.button>
-          <.button
-            :if={@bom}
-            phx-click="duplicate"
-            phx-target={@myself}
-            size={:sm}
-            variant={:outline}
-          >
-            Duplicate
-          </.button>
+            <.button
+              size={:sm}
+              variant={:outline}
+            >
+              Show version history
+            </.button>
+          </.link>
         </div>
       </div>
+      <%= if Enum.any?(@boms || []) and @bom && @bom.id && latest_version(@boms) != @bom.version do %>
+        <div class="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          You are viewing an older version (v{@bom.version}). Latest is v{latest_version(@boms)}.
+          <.button
+            class="ml-2"
+            size={:sm}
+            variant={:outline}
+            phx-click="switch_version"
+            phx-target={@myself}
+            phx-value-bom_version={latest_version(@boms)}
+          >
+            Go to latest
+          </.button>
+        </div>
+      <% end %>
       <.simple_form
         for={@form}
         id="recipe-form"
@@ -73,42 +67,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
           <h3 class="text-lg font-medium">Recipe</h3>
           <p class="mb-2 text-sm text-stone-500">Add materials needed for this product</p>
-          <div class="mb-4 flex items-center gap-2">
-            <.button
-              :if={(!@settings.advanced_recipe_versioning and @bom) && @bom.status == :active}
-              phx-click="try_variation"
-              phx-target={@myself}
-              size={:sm}
-              variant={:outline}
-            >
-              Try a variation
-            </.button>
-            <.button
-              :if={(!@settings.advanced_recipe_versioning and @bom) && @bom.status == :draft}
-              phx-click="promote"
-              phx-target={@myself}
-              size={:sm}
-              variant={:primary}
-            >
-              Publish
-            </.button>
-            <.button
-              :if={(!@settings.advanced_recipe_versioning and @bom) && @bom.status == :draft}
-              phx-click="revert"
-              phx-target={@myself}
-              size={:sm}
-              variant={:outline}
-            >
-              Revert
-            </.button>
-            <.link
-              :if={!@settings.advanced_recipe_versioning}
-              phx-click={JS.push("show_history", target: @myself)}
-              class="text-sm text-blue-700 hover:underline"
-            >
-              Show version history
-            </.link>
-          </div>
 
           <div id="recipe-materials-list">
             <div
@@ -247,9 +205,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             variant={:primary}
             type="submit"
             disabled={
-              ((@bom && @bom.status == :archived)) ||
-                (((@bom && @bom.id) && (not @form.source.changed?))) ||
-                (not @form.source.valid?)
+              (@bom && @bom.status == :archived) ||
+                (@bom && @bom.id && not @form.source.changed?) ||
+                not @form.source.valid?
             }
             phx-disable-with="Saving..."
           >
@@ -314,29 +272,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               >
                 View
               </.button>
-              <.button size={:sm} variant={:outline} phx-target={@myself} phx-click="duplicate">
-                Duplicate
-              </.button>
-              <.button
-                :if={b.status != :active}
-                size={:sm}
-                variant={:outline}
-                phx-target={@myself}
-                phx-click="promote_row"
-                phx-value-bom_version={b.version}
-              >
-                Make Active
-              </.button>
-              <.button
-                :if={b.status != :archived}
-                size={:sm}
-                variant={:danger}
-                phx-target={@myself}
-                phx-click="archive_row"
-                phx-value-bom_version={b.version}
-              >
-                Archive
-              </.button>
             </div>
           </:action>
         </.table>
@@ -352,7 +287,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           <:col :let={b} label="Version">v{b.version}</:col>
           <:col :let={b} label="Status">{b.status}</:col>
           <:col :let={b} label="Published">
-            {if b.published_at, do: Calendar.strftime(b.published_at, "%Y-%m-%d"), else: "-"}
+            {if b.published_at, do: format_date(b.published_at, format: :short), else: "-"}
           </:col>
           <:col :let={b} label="Unit Cost">
             {case b.rollup do
@@ -361,40 +296,27 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             end}
           </:col>
           <:action :let={b}>
-            <div class="flex gap-2">
-              <.button
-                size={:sm}
-                variant={:outline}
-                phx-target={@myself}
-                phx-click="switch_version"
-                phx-value-bom_version={b.version}
-              >
-                View
-              </.button>
-              <.button size={:sm} variant={:outline} phx-target={@myself} phx-click="duplicate">
-                Duplicate
-              </.button>
-              <.button
-                :if={b.status != :active}
-                size={:sm}
-                variant={:outline}
-                phx-target={@myself}
-                phx-click="promote_row"
-                phx-value-bom_version={b.version}
-              >
-                Make Active
-              </.button>
-              <.button
-                :if={b.status != :archived}
-                size={:sm}
-                variant={:danger}
-                phx-target={@myself}
-                phx-click="archive_row"
-                phx-value-bom_version={b.version}
-              >
-                Archive
-              </.button>
-            </div>
+            <.button
+              :if={b.status != :active}
+              size={:sm}
+              variant={:outline}
+              phx-target={@myself}
+              phx-click="promote_row"
+              phx-value-bom_version={b.version}
+            >
+              Make Active
+            </.button>
+          </:action>
+          <:action :let={b}>
+            <.button
+              size={:sm}
+              variant={:outline}
+              phx-target={@myself}
+              phx-click="switch_version"
+              phx-value-bom_version={b.version}
+            >
+              View
+            </.button>
           </:action>
         </.table>
         <div class="mt-4 flex justify-end">
@@ -461,7 +383,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
              authorize?: false
            ) do
         {:ok, %Catalog.BOM{} = active} ->
-          _ = Ash.update(active, %{status: :archived}, action: :update, actor: actor, authorize?: false)
+          _ =
+            Ash.update(active, %{status: :archived},
+              action: :update,
+              actor: actor,
+              authorize?: false
+            )
 
         _ ->
           :ok
@@ -568,7 +495,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
            authorize?: false
          ) do
       {:ok, %Catalog.BOM{} = active} when active.id != bom.id ->
-        _ = Ash.update(active, %{status: :archived}, action: :update, actor: actor, authorize?: false)
+        _ =
+          Ash.update(active, %{status: :archived},
+            action: :update,
+            actor: actor,
+            authorize?: false
+          )
 
       _ ->
         :ok
@@ -624,7 +556,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
              authorize?: false
            ) do
         {:ok, %Catalog.BOM{} = active} when active.id != bom.id ->
-          _ = Ash.update(active, %{status: :archived}, action: :update, actor: actor, authorize?: false)
+          _ =
+            Ash.update(active, %{status: :archived},
+              action: :update,
+              actor: actor,
+              authorize?: false
+            )
 
         _ ->
           :ok
@@ -702,7 +639,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
            ) do
         {:ok, [first | _] = boms} ->
           bom = Enum.find(boms, first, fn b -> b.version == selected end)
-          Ash.load!(bom, [components: [:material, :product], labor_steps: []], actor: actor, authorize?: false)
+
+          Ash.load!(bom, [components: [:material, :product], labor_steps: []],
+            actor: actor,
+            authorize?: false
+          )
 
         _ ->
           BOMRecipeSync.load_bom_for_product(socket.assigns.product,
@@ -825,6 +766,14 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               (components_form.data.material && components_form.data.material.id)))
 
     Map.get(materials_map, material_id)
+  end
+
+  defp latest_version([]), do: nil
+  defp latest_version(nil), do: nil
+  defp latest_version(boms) do
+    boms
+    |> Enum.map(& &1.version)
+    |> Enum.max()
   end
 
   defp format_material_cost(currency, nil, _quantity) do

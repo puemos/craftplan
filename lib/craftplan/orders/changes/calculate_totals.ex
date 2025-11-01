@@ -100,8 +100,12 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
 
   defp sum_items(items) do
     Enum.reduce(items, Decimal.new(0), fn item, acc ->
-      quantity = DecimalHelpers.to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
-      unit_price = DecimalHelpers.to_decimal(Map.get(item, :unit_price) || Map.get(item, "unit_price") || 0)
+      quantity =
+        DecimalHelpers.to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
+
+      unit_price =
+        DecimalHelpers.to_decimal(Map.get(item, :unit_price) || Map.get(item, "unit_price") || 0)
+
       Decimal.add(acc, Decimal.mult(quantity, unit_price))
     end)
   end

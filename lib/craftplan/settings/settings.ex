@@ -147,6 +147,7 @@ defmodule Craftplan.Settings.Settings do
       public? true
       allow_nil? false
       default false
+
       description "Expose advanced recipe/BOM versioning controls (version switcher & inline history)."
     end
   end

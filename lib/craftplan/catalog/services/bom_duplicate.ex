@@ -8,7 +8,24 @@ defmodule Craftplan.Catalog.Services.BOMDuplicate do
     actor = Keyword.get(opts, :actor)
     authorize? = Keyword.get(opts, :authorize?, false)
 
-    bom = Ash.load!(bom, [components: [:component_type, :quantity, :position, :waste_percent, :notes, :material_id, :product_id], labor_steps: [:name, :sequence, :duration_minutes, :rate_override, :notes]], actor: actor, authorize?: authorize?)
+    bom =
+      Ash.load!(
+        bom,
+        [
+          components: [
+            :component_type,
+            :quantity,
+            :position,
+            :waste_percent,
+            :notes,
+            :material_id,
+            :product_id
+          ],
+          labor_steps: [:name, :sequence, :duration_minutes, :rate_override, :notes]
+        ],
+        actor: actor,
+        authorize?: authorize?
+      )
 
     components =
       Enum.map(bom.components || [], fn c ->
@@ -34,10 +51,10 @@ defmodule Craftplan.Catalog.Services.BOMDuplicate do
         }
       end)
 
-    Catalog.BOM
+    BOM
     |> Ash.Changeset.for_create(:create, %{
       product_id: bom.product_id,
-      name: (bom.name && (bom.name <> " (Copy)")) || "BOM Copy",
+      name: (bom.name && bom.name <> " (Copy)") || "BOM Copy",
       status: :draft,
       components: components,
       labor_steps: labor_steps
@@ -45,4 +62,3 @@ defmodule Craftplan.Catalog.Services.BOMDuplicate do
     |> Ash.create!(actor: actor, authorize?: authorize?)
   end
 end
-

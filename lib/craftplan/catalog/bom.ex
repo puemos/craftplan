@@ -70,6 +70,7 @@ defmodule Craftplan.Catalog.BOM do
       require_atomic? false
 
       change set_attribute(:status, :active)
+
       change fn cs, _ ->
         Ash.Changeset.change_attribute(cs, :published_at, DateTime.utc_now())
       end

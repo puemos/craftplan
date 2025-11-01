@@ -188,6 +188,7 @@ defmodule CraftplanWeb.ProductLive.Show do
       )
 
     live_action = socket.assigns.live_action
+
     selected_bom_version =
       case Map.get(params, "v") do
         v when is_binary(v) ->
@@ -195,7 +196,9 @@ defmodule CraftplanWeb.ProductLive.Show do
             {ver, _} -> ver
             _ -> nil
           end
-        _ -> nil
+
+        _ ->
+          nil
       end
 
     tabs_links = [
