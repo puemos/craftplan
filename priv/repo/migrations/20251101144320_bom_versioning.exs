@@ -19,14 +19,12 @@ defmodule Craftplan.Repo.Migrations.BomVersioning do
     end
 
     alter table(:catalog_bom_rollups) do
-      add :components_map, :map, null: false, default: %{}
+      add_if_not_exists :components_map, :map, null: false, default: %{}
     end
   end
 
   def down do
-    alter table(:catalog_bom_rollups) do
-      remove :components_map
-    end
+    execute "ALTER TABLE catalog_bom_rollups DROP COLUMN IF EXISTS components_map"
 
     alter table(:catalog_boms) do
       modify :version, :bigint, default: 1
