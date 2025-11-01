@@ -85,6 +85,10 @@ defmodule Craftplan.InventoryForecastingTest do
   test "prepare_materials_requirements aggregates by day and material" do
     m1 = material!("Flour")
     m2 = material!("Sugar")
+
+    stock!(m1, "15")
+    stock!(m2, "10")
+
     p = product_with_recipe!(m1, m2)
 
     today = Date.utc_today()
@@ -112,6 +116,8 @@ defmodule Craftplan.InventoryForecastingTest do
     assert flour_data.quantities |> Enum.at(1) |> elem(0) == Decimal.new(6)
     # total = 8
     assert flour_data.total_quantity == Decimal.new(8)
+    assert Decimal.equal?(flour_data.final_balance, Decimal.new(7))
+    assert flour_data.balance_cells == [Decimal.new("15"), Decimal.new("13")]
   end
 
   test "owner_grid_rows builds forecast rows with blended metrics" do

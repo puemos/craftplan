@@ -485,7 +485,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
               </td>
 
               <td class="relative border-t border-r border-t-stone-200 border-r-stone-200 p-3 text-right last:border-r-0">
-                <span class="text-base font-semibold text-stone-900">
+                <span class="font-semibold text-stone-900">
                   {decimal_display(row.suggested_po_qty)}
                 </span>
               </td>
@@ -566,7 +566,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   defp risk_chip_classes(state) do
     @risk_styles
     |> Map.get(state, @risk_styles.balanced)
-    |> Kernel.<>(" inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset")
+    |> Kernel.<>(" inline-flex items-center px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset")
   end
 
   defp cta_disabled?(_row, nil), do: true

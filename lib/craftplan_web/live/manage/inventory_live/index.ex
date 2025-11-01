@@ -360,11 +360,15 @@ defmodule CraftplanWeb.InventoryLive.Index do
                           </div>
                         </div>
                       </td>
-                      <td class="border-t border-t-stone-200 p-2 text-right">
-                        {format_amount(
-                          material.unit,
-                          Map.get(material_data, :weekly_total, material_data.total_quantity)
-                        )}
+                      <td class={[
+                        "border-t border-t-stone-200 p-2 text-right",
+                        forecast_status_chip(
+                          if Decimal.gt?(0, material_data.final_balance),
+                            do: :shortage,
+                            else: :balanced
+                        )
+                      ]}>
+                        {format_amount(material.unit, material_data.final_balance)}
                       </td>
                     </tr>
                   </tbody>
