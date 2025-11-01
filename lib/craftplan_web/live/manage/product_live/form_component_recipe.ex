@@ -4,6 +4,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   alias AshPhoenix.Form
   alias Craftplan.Catalog
+  alias Craftplan.Catalog.Services.BOMRecipeSync
 
   @impl true
   def render(assigns) do
@@ -55,20 +56,28 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
               <.inputs_for :let={components_form} field={@form[:components]}>
                 <div role="row" class="group col-span-4 grid grid-cols-4 hover:bg-stone-200/40">
+                  <% material = material_for_form(@materials_map, components_form) %>
                   <div class="relative border-r border-b border-stone-200 p-0 last:border-r-0 ">
                     <div class="block py-4 pr-6">
                       <span class="relative">
                         <.link
-                          navigate={
-                            ~p"/manage/inventory/#{@materials_map[components_form[:material_id].value].sku}"
-                          }
+                          :if={material}
+                          navigate={~p"/manage/inventory/#{material.sku}"}
                           class="hover:text-blue-800 hover:underline"
                         >
-                          {@materials_map[components_form[:material_id].value].name}
+                          {material.name}
                         </.link>
+                        <span :if={!material} class="text-stone-400">
+                          Select material
+                        </span>
                         <.input
                           field={components_form[:material_id]}
                           value={components_form[:material_id].value}
+                          type="hidden"
+                        />
+                        <.input
+                          field={components_form[:component_type]}
+                          value={components_form[:component_type].value || :material}
                           type="hidden"
                         />
                       </span>
@@ -95,12 +104,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                     <div class="block py-4 pr-6">
                       <span class="relative">
-                        {format_money(
+                        {format_material_cost(
                           @settings.currency,
-                          Decimal.mult(
-                            @materials_map[components_form[:material_id].value].price || 0,
-                            components_form[:quantity].value || 0
-                          )
+                          material,
+                          components_form[:quantity].value
                         )}
                       </span>
                     </div>
@@ -225,11 +232,19 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   @impl true
   def handle_event("save", %{"recipe" => recipe_params}, socket) do
     case Form.submit(socket.assigns.form, params: recipe_params) do
-      {:ok, recipe} ->
-        send(self(), {__MODULE__, {:saved, recipe}})
+      {:ok, bom} ->
+        BOMRecipeSync.sync_recipe_from_bom(
+          socket.assigns.product,
+          bom,
+          actor: socket.assigns.current_user,
+          authorize?: false
+        )
+
+        send(self(), {__MODULE__, {:saved, bom}})
 
         {:noreply,
          socket
+         |> assign(:bom, bom)
          |> put_flash(:info, "Recipe saved successfully")
          |> push_patch(to: socket.assigns.patch)}
 
@@ -258,7 +273,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     # Add a new component form with the selected material
     form =
       Form.add_form(socket.assigns.form, socket.assigns.form[:components].name,
-        params: %{material_id: material_id, quantity: 0}
+        params: %{material_id: material_id, quantity: 0, component_type: :material}
       )
 
     # Recompute available materials after adding this one
@@ -285,42 +300,55 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      |> assign(:available_materials, available_materials)}
   end
 
-  defp assign_form(%{assigns: %{recipe: recipe}} = socket) do
-    form =
-      if recipe do
-        Form.for_update(recipe, :update,
-          as: "recipe",
-          actor: socket.assigns.current_user,
-          forms: [
-            components: [
-              type: :list,
-              data: recipe.components,
-              resource: Catalog.RecipeMaterial,
-              create_action: :create,
-              update_action: :update
-            ]
-          ]
-        )
-      else
-        Form.for_create(Catalog.Recipe, :create,
-          as: "recipe",
-          actor: socket.assigns.current_user,
-          forms: [
-            components: [
-              type: :list,
-              resource: Catalog.RecipeMaterial,
-              create_action: :create,
-              update_action: :update
-            ]
-          ]
-        )
-      end
+  defp assign_form(socket) do
+    actor = socket.assigns.current_user
 
-    assign(socket, :form, to_form(form))
+    bom =
+      BOMRecipeSync.load_bom_for_product(socket.assigns.product,
+        actor: actor,
+        authorize?: false
+      )
+
+    form =
+      bom
+      |> form_for_bom(actor)
+      |> to_form()
+
+    socket
+    |> assign(:bom, bom)
+    |> assign(:form, form)
+  end
+
+  defp form_for_bom(bom, actor) do
+    nested_forms = [
+      components: [
+        type: :list,
+        data: bom.components || [],
+        resource: Catalog.BOMComponent,
+        create_action: :create,
+        update_action: :update
+      ]
+    ]
+
+    base_opts = [
+      as: "recipe",
+      actor: actor,
+      forms: nested_forms
+    ]
+
+    if bom.id do
+      Form.for_update(bom, :update, base_opts)
+    else
+      Form.for_create(
+        Catalog.BOM,
+        :create,
+        Keyword.put(base_opts, :params, %{"product_id" => bom.product_id})
+      )
+    end
   end
 
   defp get_material_unit(materials_map, components_form) do
-    case Map.get(materials_map, components_form[:material_id].value) do
+    case material_for_form(materials_map, components_form) do
       nil -> ""
       material -> material.unit
     end
@@ -330,8 +358,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     existing_material_ids =
       (form.source.forms[:components] || [])
       |> Enum.map(fn recipe_mat_form ->
-        recipe_mat_form.params[:material_id] ||
-          (recipe_mat_form.data && recipe_mat_form.data.material_id)
+        if material_component?(recipe_mat_form) do
+          recipe_mat_form.params[:material_id] ||
+            (recipe_mat_form.data && recipe_mat_form.data.material_id)
+        end
       end)
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
@@ -347,4 +377,42 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     {available_materials, selected_material}
   end
+
+  defp material_component?(component_form) do
+    type =
+      component_form.params[:component_type] ||
+        (component_form.data && component_form.data.component_type) ||
+        :material
+
+    case type do
+      type when is_binary(type) -> String.to_existing_atom(type)
+      type -> type
+    end == :material
+  rescue
+    ArgumentError -> false
+  end
+
+  defp material_for_form(materials_map, components_form) do
+    material_id = components_form[:material_id].value
+
+    Map.get(materials_map, material_id)
+  end
+
+  defp format_material_cost(currency, nil, _quantity) do
+    format_money(currency, 0)
+  end
+
+  defp format_material_cost(currency, material, quantity) do
+    price = material.price || Decimal.new(0)
+    qty = normalize_decimal(quantity)
+
+    format_money(currency, Decimal.mult(price, qty))
+  end
+
+  defp normalize_decimal(%Decimal{} = value), do: value
+  defp normalize_decimal(nil), do: Decimal.new(0)
+  defp normalize_decimal(value) when is_binary(value), do: Decimal.new(value)
+  defp normalize_decimal(value) when is_integer(value), do: Decimal.new(value)
+  defp normalize_decimal(value) when is_float(value), do: Decimal.from_float(value)
+  defp normalize_decimal(_), do: Decimal.new(0)
 end

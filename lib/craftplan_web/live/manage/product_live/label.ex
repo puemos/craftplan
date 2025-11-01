@@ -2,6 +2,7 @@ defmodule CraftplanWeb.ProductLive.Label do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias Ash.NotLoaded
   alias Craftplan.Catalog
 
   @impl true
@@ -55,15 +56,24 @@ defmodule CraftplanWeb.ProductLive.Label do
           :name,
           :sku,
           :allergens,
+          active_bom: [components: [:component_type, material: [:name]]],
           recipe: [components: [material: [:name]]]
         ],
         actor: socket.assigns[:current_user]
       )
 
     ingredients =
-      case product.recipe do
-        nil -> []
-        recipe -> Enum.map(recipe.components, fn c -> c.material.name end)
+      case product.active_bom do
+        %NotLoaded{} ->
+          recipe_ingredients(product.recipe)
+
+        nil ->
+          recipe_ingredients(product.recipe)
+
+        bom ->
+          bom.components
+          |> Enum.filter(&(&1.component_type == :material))
+          |> Enum.map(fn component -> component.material.name end)
       end
 
     {:ok,
@@ -76,5 +86,12 @@ defmodule CraftplanWeb.ProductLive.Label do
 
   defp batch_code(date, sku) do
     "B-" <> format_date(date, format: "%Y%m%d") <> "-" <> sku
+  end
+
+  defp recipe_ingredients(%NotLoaded{}), do: []
+  defp recipe_ingredients(nil), do: []
+
+  defp recipe_ingredients(recipe) do
+    Enum.map(recipe.components, fn component -> component.material.name end)
   end
 end

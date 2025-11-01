@@ -1,6 +1,6 @@
 defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
   @moduledoc """
-  Calculates all the nutritional facts for a product based on its recipe.
+  Calculates all the nutritional facts for a product based on its active BOM.
   """
   use Ash.Resource.Calculation
 
@@ -10,11 +10,13 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
   @impl true
   def load(_query, _opts, _context) do
     [
-      recipe: [
+      active_bom: [
         components: [
+          :component_type,
           material: [
             material_nutritional_facts: [
               :amount,
+              :unit,
               nutritional_fact: [:name]
             ]
           ]
@@ -28,21 +30,15 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
     Enum.map(records, &calculate_nutritional_facts/1)
   end
 
-  defp calculate_nutritional_facts(%{recipe: nil}), do: []
+  defp calculate_nutritional_facts(%{active_bom: %Ash.NotLoaded{}}), do: []
+  defp calculate_nutritional_facts(%{active_bom: nil}), do: []
 
-  defp calculate_nutritional_facts(%{recipe: recipe}) do
-    recipe = load_recipe_with_nutritional_facts(recipe)
-
-    recipe.components
+  defp calculate_nutritional_facts(%{active_bom: bom}) do
+    bom.components
+    |> Enum.filter(&(&1.component_type == :material))
     |> extract_nutritional_facts()
     |> group_and_sum_facts()
     |> Enum.sort_by(& &1.name)
-  end
-
-  defp load_recipe_with_nutritional_facts(recipe) do
-    Ash.load!(recipe,
-      components: [material: [material_nutritional_facts: [nutritional_fact: [:name]]]]
-    )
   end
 
   defp extract_nutritional_facts(components) do

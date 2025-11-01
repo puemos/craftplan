@@ -83,7 +83,6 @@ defmodule CraftplanWeb.ProductLive.Show do
           module={CraftplanWeb.ProductLive.FormComponentRecipe}
           id="material-form"
           product={@product}
-          recipe={@product.recipe || nil}
           current_user={@current_user}
           settings={@settings}
           materials={@materials_available}
@@ -159,7 +158,9 @@ defmodule CraftplanWeb.ProductLive.Show do
           :materials_cost,
           :allergens,
           :nutritional_facts,
-          recipe: [components: [:material]]
+          :bom_unit_cost,
+          recipe: [components: [:material]],
+          active_bom: [components: [:material, :product], labor_steps: []]
         ]
       )
 
@@ -208,7 +209,9 @@ defmodule CraftplanWeb.ProductLive.Show do
           :materials_cost,
           :gross_profit,
           :nutritional_facts,
-          recipe: [components: [:material]]
+          :bom_unit_cost,
+          recipe: [components: [:material]],
+          active_bom: [components: [:material, :product], labor_steps: []]
         ]
       )
 
@@ -228,7 +231,9 @@ defmodule CraftplanWeb.ProductLive.Show do
           :gross_profit,
           :nutritional_facts,
           :allergens,
-          recipe: [components: [:material]]
+          :bom_unit_cost,
+          recipe: [components: [:material]],
+          active_bom: [components: [:material, :product], labor_steps: []]
         ],
         actor: socket.assigns.current_user
       )

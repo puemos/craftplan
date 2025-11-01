@@ -26,6 +26,14 @@ defmodule Craftplan.Catalog.BOM do
       change manage_relationship(:components, type: :direct_control)
       change manage_relationship(:labor_steps, type: :direct_control)
       change {AssignBOMVersion, []}
+      change after_action(fn changeset, result, _ctx ->
+        Craftplan.Catalog.Services.BOMRollup.refresh!(result,
+          actor: changeset.context[:actor],
+          authorize?: false
+        )
+
+        {:ok, result}
+      end)
     end
 
     update :update do
@@ -38,6 +46,14 @@ defmodule Craftplan.Catalog.BOM do
 
       change manage_relationship(:components, type: :direct_control)
       change manage_relationship(:labor_steps, type: :direct_control)
+      change after_action(fn changeset, result, _ctx ->
+        Craftplan.Catalog.Services.BOMRollup.refresh!(result,
+          actor: changeset.context[:actor],
+          authorize?: false
+        )
+
+        {:ok, result}
+      end)
     end
 
     read :list_for_product do
@@ -100,6 +116,8 @@ defmodule Craftplan.Catalog.BOM do
     has_many :components, Craftplan.Catalog.BOMComponent
 
     has_many :labor_steps, Craftplan.Catalog.LaborStep
+
+    has_one :rollup, Craftplan.Catalog.BOMRollup
   end
 
   identities do

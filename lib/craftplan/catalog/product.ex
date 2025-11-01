@@ -154,20 +154,24 @@ defmodule Craftplan.Catalog.Product do
   end
 
   calculations do
-    calculate :materials_cost, :decimal, expr(recipe.cost) do
-      description "The total cost of the product."
+    calculate :materials_cost, :decimal, Craftplan.Catalog.Product.Calculations.MaterialCost do
+      description "Material cost per unit based on the active BOM."
+    end
+
+    calculate :bom_unit_cost, :decimal, Craftplan.Catalog.Product.Calculations.UnitCost do
+      description "Total unit cost (materials + labor + overhead) derived from the active BOM."
     end
 
     calculate :markup_percentage,
               :decimal,
-              expr(if(recipe.cost == 0, 0, (price - recipe.cost) / recipe.cost)) do
+              expr(if(bom_unit_cost == 0, 0, (price - bom_unit_cost) / bom_unit_cost)) do
       description "The ratio of profit to cost, expressed as a decimal percentage"
     end
 
     calculate :gross_profit,
               :decimal,
-              expr(price - recipe.cost) do
-      description "The profit amount calculated as selling price minus material cost"
+              expr(price - bom_unit_cost) do
+      description "The profit amount calculated as selling price minus unit cost"
     end
 
     calculate :allergens, :vector, Craftplan.Catalog.Product.Calculations.Allergens

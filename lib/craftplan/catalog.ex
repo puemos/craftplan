@@ -15,6 +15,7 @@ defmodule Craftplan.Catalog do
       define :get_active_bom_for_product, action: :get_active
     end
 
+    resource Craftplan.Catalog.BOMRollup
     resource Craftplan.Catalog.BOMComponent
     resource Craftplan.Catalog.LaborStep
     resource Craftplan.Catalog.Recipe
