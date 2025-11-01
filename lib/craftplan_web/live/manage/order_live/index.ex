@@ -189,7 +189,7 @@ defmodule CraftplanWeb.OrderLive.Index do
         >
           <:header>
             <div class="text-sm font-medium text-stone-700">
-              {Calendar.strftime(List.first(@days_range), "%B %Y")}
+              {format_date(List.first(@days_range), format: "%B %Y")}
             </div>
           </:header>
           <:actions>
@@ -482,7 +482,7 @@ defmodule CraftplanWeb.OrderLive.Index do
   def handle_event("prev_week", _params, socket) do
     # Move the date range backward by 7 days
     new_start = Date.add(List.first(socket.assigns.days_range), -7)
-    days_range = generate_week_range(new_start)
+    days_range = date_range(new_start)
 
     filter_opts = parse_filters(socket.assigns.filters)
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
@@ -498,7 +498,7 @@ defmodule CraftplanWeb.OrderLive.Index do
   def handle_event("next_week", _params, socket) do
     # Move the date range forward by 7 days
     new_start = Date.add(List.first(socket.assigns.days_range), 7)
-    days_range = generate_week_range(new_start)
+    days_range = date_range(new_start)
 
     filter_opts = parse_filters(socket.assigns.filters)
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
@@ -707,18 +707,12 @@ defmodule CraftplanWeb.OrderLive.Index do
 
   # Helper functions for the calendar view
   defp calculate_days_range(start_date \\ nil) do
-    start_date = start_date || Date.beginning_of_week(Date.utc_today())
-    generate_week_range(start_date)
+    start_date = start_date || beginning_of_week(Date.utc_today())
+    date_range(start_date)
   end
 
-  defp generate_week_range(start_date, days \\ 7) do
-    Enum.map(0..(days - 1), fn day_offset ->
-      Date.add(start_date, day_offset)
-    end)
-  end
-
-  defp format_day_name(date) do
-    Calendar.strftime(date, "%a")
+  defp beginning_of_week(date) do
+    Date.add(date, -(Date.day_of_week(date) - 1))
   end
 
   defp get_orders_for_day(day, orders) do

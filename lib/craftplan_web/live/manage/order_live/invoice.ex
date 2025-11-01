@@ -15,7 +15,7 @@ defmodule CraftplanWeb.OrderLive.Invoice do
             Reference:
             <.kbd>{@order.reference}</.kbd>
           </div>
-          <div class="text-sm text-stone-600">Issued: {Calendar.strftime(@now, "%Y-%m-%d")}</div>
+          <div class="text-sm text-stone-600">Issued: {format_date(@now, format: "%Y-%m-%d")}</div>
         </div>
         <div class="text-right text-sm">
           <div class="font-medium">Customer</div>

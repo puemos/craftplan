@@ -115,7 +115,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                   zebra
                   no_margin
                 >
-                  <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+                  <:col :let={row} label="Day">{format_date(row.day, format: "%a %d")}</:col>
                   <:col :let={row} label="Product">{row.product.name}</:col>
                   <:col :let={row} label="Scheduled" align={:right}>{row.qty}</:col>
                   <:col :let={row} label="Max" align={:right}>{row.max}</:col>
@@ -143,7 +143,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                   zebra
                   no_margin
                 >
-                  <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+                  <:col :let={row} label="Day">{format_date(row.day, format: "%a %d")}</:col>
                   <:col :let={row} label="Orders" align={:right}>{row.count}</:col>
                   <:col :let={row} label="Cap" align={:right}>{row.cap}</:col>
                   <:empty>
@@ -172,7 +172,7 @@ defmodule CraftplanWeb.PlanLive.Index do
                   no_margin
                   row_click={fn row -> JS.navigate("/manage/inventory/#{row.material.sku}") end}
                 >
-                  <:col :let={row} label="Day">{Calendar.strftime(row.day, "%a %d")}</:col>
+                  <:col :let={row} label="Day">{format_date(row.day, format: "%a %d")}</:col>
                   <:col :let={row} label="Material">{row.material.name}</:col>
                   <:col :let={row} label="Required" align={:right}>
                     {format_amount(row.material.unit, row.required)}
@@ -350,7 +350,7 @@ defmodule CraftplanWeb.PlanLive.Index do
             <div class="absolute left-1/2 -translate-x-1/2 transform">
               <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
                 <span>
-                  {Calendar.strftime(List.first(@days_range), "%B %Y")}
+                  {format_date(List.first(@days_range), format: "%B %Y")}
                 </span>
                 <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
                   <span>
@@ -820,7 +820,7 @@ defmodule CraftplanWeb.PlanLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = date_range(today)
 
     socket =
       socket
@@ -898,7 +898,7 @@ defmodule CraftplanWeb.PlanLive.Index do
     step = if socket.assigns.schedule_view == :day, do: 1, else: 7
     monday = List.first(socket.assigns.days_range)
     new_start = Date.add(monday, -step)
-    days_range = generate_week_range(new_start)
+    days_range = date_range(new_start, days: length(socket.assigns.days_range))
     {:noreply, update_for_range(socket, days_range)}
   end
 
@@ -907,7 +907,7 @@ defmodule CraftplanWeb.PlanLive.Index do
     step = if socket.assigns.schedule_view == :day, do: 1, else: 7
     monday = List.first(socket.assigns.days_range)
     new_start = Date.add(monday, step)
-    days_range = generate_week_range(new_start)
+    days_range = date_range(new_start, days: length(socket.assigns.days_range))
     {:noreply, update_for_range(socket, days_range)}
   end
 
@@ -917,8 +917,8 @@ defmodule CraftplanWeb.PlanLive.Index do
 
     days_range =
       case socket.assigns.schedule_view do
-        :day -> generate_week_range(today, 1)
-        _ -> generate_current_week_range()
+        :day -> date_range(today, days: 1)
+        _ -> today |> beginning_of_week() |> date_range()
       end
 
     {:noreply,
@@ -936,11 +936,12 @@ defmodule CraftplanWeb.PlanLive.Index do
     days_range =
       case schedule_view do
         :day ->
-          generate_week_range(anchor, 1)
+          date_range(anchor, days: 1)
 
         :week ->
-          monday = Date.add(anchor, -(Date.day_of_week(anchor) - 1))
-          generate_week_range(monday, 7)
+          anchor
+          |> beginning_of_week()
+          |> date_range()
       end
 
     socket =
@@ -1215,19 +1216,8 @@ defmodule CraftplanWeb.PlanLive.Index do
      |> assign(:pending_consumption_recap, [])}
   end
 
-  defp generate_current_week_range do
-    today = Date.utc_today()
-    monday = Date.add(today, -(Date.day_of_week(today) - 1))
-    Enum.map(0..6, &Date.add(monday, &1))
-  end
-
-  defp generate_week_range(start_date, days \\ 7) do
-    Enum.map(0..(days - 1), fn offset -> Date.add(start_date, offset) end)
-  end
-
-  defp format_day_name(date) do
-    day_names = ~w(Mon Tue Wed Thu Fri Sat Sun)
-    Enum.at(day_names, Date.day_of_week(date) - 1)
+  defp beginning_of_week(date) do
+    Date.add(date, -(Date.day_of_week(date) - 1))
   end
 
   defp load_production_items(socket, days_range) do

@@ -28,9 +28,9 @@ defmodule CraftplanWeb.InventoryLive.Index do
     ~H"""
     <Page.page>
       <.header>
-        Materials
+        Usage Forecast
         <:subtitle>
-          Keep production ready by managing raw stock and forecasting demand.
+          Review usage forecast for materials and adjust stock levels accordingly.
         </:subtitle>
         <:actions :if={@live_action in [:index, :forecast]}>
           <.link patch={~p"/manage/inventory/new"}>
@@ -320,10 +320,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
                         <% day_balance = Enum.at(material_data.balance_cells, index) %>
                         <% status = forecast_status(day_quantity, day_balance) %>
 
-                        <div
-                          :if={Decimal.compare(day_quantity, Decimal.new(0)) == :gt}
-                          class="group relative mt-3 inline-flex"
-                        >
+                        <div class="group relative mt-3 inline-flex">
                           <button
                             type="button"
                             phx-click="view_material_details"
@@ -335,10 +332,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
                             ]}
                           >
                             <div class="grid-row-2 grid">
-                              <%!-- <div class="grid-row-2 grid">
-                                  <div>Need</div>
-                                  <div>{format_amount(material.unit, day_quantity)}</div>
-                                </div> --%>
                               <div class="grid-row-2 grid">
                                 <div>{format_amount(material.unit, day_balance)}</div>
                               </div>
@@ -365,13 +358,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
                               {popover_label(status, material.unit, day_quantity, day_balance)}
                             </p>
                           </div>
-                        </div>
-
-                        <div
-                          :if={Decimal.compare(day_quantity, Decimal.new(0)) != :gt}
-                          class="mt-3 text-xs text-stone-300"
-                        >
-                          —
                         </div>
                       </td>
                       <td class="border-t border-t-stone-200 p-2 text-right">
@@ -473,7 +459,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = date_range(today)
 
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
@@ -523,7 +509,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
 
   defp apply_action(socket, :forecast, _params) do
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = date_range(today)
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
     socket
@@ -602,7 +588,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
   def handle_event("next_week", _params, socket) do
     # Move the date range forward by 7 days
     new_start = Date.add(List.first(socket.assigns.days_range), 7)
-    days_range = generate_week_range(new_start)
+    days_range = date_range(new_start)
 
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
@@ -616,7 +602,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
   def handle_event("today", _params, socket) do
     # Reset to current day and forward
     today = Date.utc_today()
-    days_range = generate_week_range(today)
+    days_range = date_range(today)
 
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
@@ -648,11 +634,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
     material = Ash.load!(material, :current_stock, actor: socket.assigns.current_user)
 
     {:noreply, stream_insert(socket, :materials, material)}
-  end
-
-  defp format_day_name(date) do
-    day_of_week = Date.day_of_week(date)
-    Enum.at(~w(Mon Tue Wed Thu Fri Sat Sun), day_of_week - 1)
   end
 
   defp forecast_status(day_quantity, balance) do
@@ -708,16 +689,6 @@ defmodule CraftplanWeb.InventoryLive.Index do
     do: [Navigation.root(:inventory), Navigation.resource(:material, material)]
 
   defp inventory_trail(_assigns), do: [Navigation.root(:inventory)]
-
-  @doc """
-  Generates a range of dates starting from a given date
-  """
-  def generate_week_range(start_date, days \\ 7) do
-    # Generate range starting from the day itself
-    Enum.map(0..(days - 1), fn day_offset ->
-      Date.add(start_date, day_offset)
-    end)
-  end
 
   defp prepare_materials_requirements(socket, days_range) do
     InventoryForecasting.prepare_materials_requirements(days_range, socket.assigns.current_user)

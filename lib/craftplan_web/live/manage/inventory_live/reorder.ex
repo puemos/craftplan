@@ -478,10 +478,10 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
               </td>
 
               <td class="relative border-t border-r border-t-stone-200 border-r-stone-200 p-3 text-left text-stone-600 last:border-r-0">
-                {format_date(row.stockout_date)}
+                {format_short_date(row.stockout_date, missing: "—")}
               </td>
               <td class="relative border-t border-r border-t-stone-200 border-r-stone-200 p-3 text-left text-stone-600 last:border-r-0">
-                {format_date(row.order_by_date)}
+                {format_short_date(row.order_by_date, missing: "—")}
               </td>
 
               <td class="relative border-t border-r border-t-stone-200 border-r-stone-200 p-3 text-right last:border-r-0">
@@ -559,12 +559,6 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
     value
     |> as_decimal()
     |> cover_label()
-  end
-
-  defp format_date(nil), do: "—"
-
-  defp format_date(%Date{} = date) do
-    Calendar.strftime(date, "%m/%d")
   end
 
   defp risk_chip_classes(nil), do: risk_chip_classes(:balanced)
