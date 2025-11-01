@@ -42,7 +42,7 @@ Guiding Principles
 - Every new surface must support printable artifacts (labels, planner, invoices, compliance reports).
 
 Milestone 1 -- Production Costing Foundations (2-3 weeks)
-Status: [ ] Not started [ ] In progress [ ] Done
+Status: [ ] Not started [x] In progress [ ] Done
 Goals
 
 - Match competitor parity on multi-stage recipes, labor costing, and automated batch cost rollups.
@@ -57,18 +57,31 @@ User Stories
 Requirements
 
 - Domain
-  - [ ] New Ash resources for BOM structures: `Catalog.BOM`, `Catalog.BOMComponent`, `Catalog.LaborStep` with versioning.
-  - [ ] Link BOM to `Catalog.Product`; support status (`draft`, `active`).
-  - [ ] Labor rates and overhead settings in `Settings` (hourly rate, markup defaults).
-  - [ ] Batch cost calculation service generating `material_cost`, `labor_cost`, `overhead_cost`, `unit_cost`.
-  - [ ] Auto-generate `batch_code` (`B-YYYYMMDD-SKU-SEQ`) when order items marked done; persist to order items.
+  - [x] New Ash resources for BOM structures: `Catalog.BOM`, `Catalog.BOMComponent`, `Catalog.LaborStep` with versioning.
+  - [x] Link BOM to `Catalog.Product`; support status (`draft`, `active`).
+  - [x] Labor rates and overhead settings in `Settings` (hourly rate, markup defaults).
+  - [x] Batch cost calculation service generating `material_cost`, `labor_cost`, `overhead_cost`, `unit_cost`.
+  - [x] Auto-generate `batch_code` (`B-YYYYMMDD-SKU-SEQ`) when order items marked done; persist to order items.
 - UI
   - [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries.
   - [ ] Planner “Mark Done” dialog shows resulting batch code and actual cost snapshot.
   - [ ] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
 - Data & Migrations
-  - [ ] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
-  - [ ] Backfill seeds with example recipes (bread, pastry) including labor.
+  - [x] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
+  - [x] Backfill seeds with example recipes (bread, pastry) including labor.
+
+Deprecations & Removals (no backward compatibility)
+
+- [ ] Remove legacy Recipe model usage in domain and UI
+  - [ ] Switch Product label ingredients to BOM components (fallback not required)
+  - [ ] Replace product financial calculations to prefer active BOM unit cost; remove recipe-based cost calcs
+  - [ ] Remove Recipe editor UI and tabs (`ProductLive.FormComponentRecipe`, show routes/tabs)
+  - [ ] Remove `Catalog.Recipe` and `Catalog.RecipeMaterial` resources from `Craftplan.Catalog`
+  - [ ] Drop `catalog_recipes` and `catalog_recipe_materials` tables via migration
+- [ ] Replace `Material <-> Recipe` relationships with `Material <-> BOM` through `BOMComponent`
+- [ ] Update planner/forecasting to load from BOMs instead of Recipes
+- [ ] Update seeds/tests to use BOMs exclusively; remove recipe fixtures
+- [ ] Remove any documentation and references to Recipes
 
 Acceptance Criteria
 

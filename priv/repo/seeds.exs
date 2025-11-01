@@ -181,6 +181,46 @@ if Mix.env() == :dev do
     })
   end
 
+  seed_bom = fn product, component_defs, labor_defs, opts ->
+    opts = opts || []
+
+    status = Keyword.get(opts, :status, :draft)
+
+    published_at =
+      case Keyword.get(opts, :published_at) do
+        nil ->
+          if status == :active do
+            DateTime.utc_now()
+          end
+
+        value ->
+          value
+      end
+
+    components =
+      component_defs
+      |> Enum.with_index(1)
+      |> Enum.map(fn {attrs, position} ->
+        Map.put(attrs, :position, position)
+      end)
+
+    labor_steps =
+      labor_defs
+      |> Enum.with_index(1)
+      |> Enum.map(fn {attrs, sequence} ->
+        Map.put(attrs, :sequence, sequence)
+      end)
+
+    Ash.Seed.seed!(Catalog.BOM, %{
+      product_id: product.id,
+      name: Keyword.get(opts, :name, "#{product.name} BOM"),
+      status: status,
+      published_at: published_at,
+      components: components,
+      labor_steps: labor_steps
+    })
+  end
+
   # Purchasing helpers
   seed_supplier = fn name, email ->
     Ash.Seed.seed!(Inventory.Supplier, %{
@@ -251,7 +291,13 @@ if Mix.env() == :dev do
     offers_delivery: true,
     lead_time_days: 1,
     daily_capacity: 25,
-    shipping_flat: Decimal.new("5.00")
+    shipping_flat: Decimal.new("5.00"),
+    labor_hourly_rate: Decimal.new("18.50"),
+    labor_overhead_percent: Decimal.new("0.15"),
+    retail_markup_mode: :percent,
+    retail_markup_value: Decimal.new("35"),
+    wholesale_markup_mode: :percent,
+    wholesale_markup_value: Decimal.new("20")
   })
 
   # -- 3.3 Allergen data
@@ -523,6 +569,197 @@ if Mix.env() == :dev do
   link_recipe_material.(recipes.cheese_danish, materials.sugar, "50")
   link_recipe_material.(recipes.cheese_danish, materials.butter, "50")
   link_recipe_material.(recipes.cheese_danish, materials.eggs, "1")
+
+  # -- 3.11.1 Seed BOMs with labor steps and sub-assemblies
+  _boms = %{
+    almond_cookies:
+      seed_bom.(
+        products.almond_cookies,
+        [
+          %{
+            component_type: :material,
+            material_id: materials.flour.id,
+            quantity: Decimal.new("50")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.almonds.id,
+            quantity: Decimal.new("25")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.sugar.id,
+            quantity: Decimal.new("30")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.butter.id,
+            quantity: Decimal.new("25"),
+            waste_percent: Decimal.new("0.03")
+          },
+          %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("1")}
+        ],
+        [
+          %{name: "Prep dough", duration_minutes: Decimal.new("10")},
+          %{name: "Sheet & cut", duration_minutes: Decimal.new("8")},
+          %{
+            name: "Bake trays",
+            duration_minutes: Decimal.new("12"),
+            rate_override: Decimal.new("25")
+          }
+        ],
+        status: :active,
+        name: "Almond Cookies BOM v1"
+      ),
+    almond_cookies_r_d:
+      seed_bom.(
+        products.almond_cookies,
+        [
+          %{
+            component_type: :material,
+            material_id: materials.flour.id,
+            quantity: Decimal.new("48")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.almonds.id,
+            quantity: Decimal.new("27")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.brown_sugar.id,
+            quantity: Decimal.new("28")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.butter.id,
+            quantity: Decimal.new("26"),
+            waste_percent: Decimal.new("0.05")
+          },
+          %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("1")}
+        ],
+        [
+          %{name: "Prep dough", duration_minutes: Decimal.new("11")},
+          %{name: "Bake tests", duration_minutes: Decimal.new("14")}
+        ],
+        status: :draft,
+        name: "Almond Cookies BOM R&D"
+      ),
+    bread:
+      seed_bom.(
+        products.bread,
+        [
+          %{
+            component_type: :material,
+            material_id: materials.flour.id,
+            quantity: Decimal.new("500"),
+            waste_percent: Decimal.new("0.05")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.yeast.id,
+            quantity: Decimal.new("7")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.salt.id,
+            quantity: Decimal.new("10")
+          }
+        ],
+        [
+          %{name: "Mix & knead", duration_minutes: Decimal.new("15")},
+          %{
+            name: "Bulk proof",
+            duration_minutes: Decimal.new("60"),
+            rate_override: Decimal.new("18")
+          },
+          %{name: "Bake loaves", duration_minutes: Decimal.new("35")}
+        ],
+        status: :active,
+        name: "Artisan Bread BOM v1"
+      ),
+    carrot_cake:
+      seed_bom.(
+        products.carrot_cake,
+        [
+          %{
+            component_type: :material,
+            material_id: materials.flour.id,
+            quantity: Decimal.new("200")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.sugar.id,
+            quantity: Decimal.new("150")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.eggs.id,
+            quantity: Decimal.new("3")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.butter.id,
+            quantity: Decimal.new("75")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.cinnamon.id,
+            quantity: Decimal.new("5")
+          },
+          %{
+            component_type: :product,
+            product_id: products.almond_cookies.id,
+            quantity: Decimal.new("0.2")
+          }
+        ],
+        [
+          %{name: "Mix batter", duration_minutes: Decimal.new("12")},
+          %{name: "Bake layers", duration_minutes: Decimal.new("45")},
+          %{
+            name: "Frost & decorate",
+            duration_minutes: Decimal.new("10"),
+            rate_override: Decimal.new("22")
+          }
+        ],
+        status: :active,
+        name: "Carrot Cake BOM v1"
+      ),
+    croissants:
+      seed_bom.(
+        products.croissants,
+        [
+          %{
+            component_type: :material,
+            material_id: materials.flour.id,
+            quantity: Decimal.new("300")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.butter.id,
+            quantity: Decimal.new("200"),
+            waste_percent: Decimal.new("0.08")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.yeast.id,
+            quantity: Decimal.new("5")
+          },
+          %{
+            component_type: :material,
+            material_id: materials.milk.id,
+            quantity: Decimal.new("100")
+          }
+        ],
+        [
+          %{name: "Laminate butter", duration_minutes: Decimal.new("45")},
+          %{name: "Proof", duration_minutes: Decimal.new("90")},
+          %{name: "Bake", duration_minutes: Decimal.new("20")}
+        ],
+        status: :draft,
+        name: "Croissant BOM iteration"
+      )
+  }
 
   # -- 3.12 Seed customers
   customers = %{

@@ -6,6 +6,8 @@ defmodule Craftplan.Orders.OrderItem do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
+  alias Craftplan.Orders.Changes.AssignBatchCodeAndCost
+
   postgres do
     table "orders_items"
     repo Craftplan.Repo
@@ -17,12 +19,16 @@ defmodule Craftplan.Orders.OrderItem do
     create :create do
       primary? true
       accept [:product_id, :quantity, :unit_price, :status]
+
+      change {AssignBatchCodeAndCost, []}
     end
 
     update :update do
       primary? true
       require_atomic? false
       accept [:quantity, :status, :consumed_at]
+
+      change {AssignBatchCodeAndCost, []}
     end
 
     read :in_range do
@@ -96,6 +102,35 @@ defmodule Craftplan.Orders.OrderItem do
       description "Timestamp indicating materials were consumed for this item"
     end
 
+    attribute :batch_code, :string do
+      allow_nil? true
+      description "Production batch identifier generated when marking the item done"
+    end
+
+    attribute :material_cost, :decimal do
+      allow_nil? false
+      default 0
+      description "Material cost allocated to this order item during batch completion"
+    end
+
+    attribute :labor_cost, :decimal do
+      allow_nil? false
+      default 0
+      description "Labor cost allocated to this order item during batch completion"
+    end
+
+    attribute :overhead_cost, :decimal do
+      allow_nil? false
+      default 0
+      description "Overhead cost allocated to this order item during batch completion"
+    end
+
+    attribute :unit_cost, :decimal do
+      allow_nil? false
+      default 0
+      description "Per-unit production cost captured at batch completion"
+    end
+
     timestamps()
   end
 
@@ -106,6 +141,10 @@ defmodule Craftplan.Orders.OrderItem do
 
     belongs_to :product, Craftplan.Catalog.Product do
       allow_nil? false
+    end
+
+    belongs_to :bom, Craftplan.Catalog.BOM do
+      allow_nil? true
     end
   end
 

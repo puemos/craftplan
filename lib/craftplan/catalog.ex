@@ -10,6 +10,13 @@ defmodule Craftplan.Catalog do
       define :list_products_with_keyset, action: :keyset
     end
 
+    resource Craftplan.Catalog.BOM do
+      define :list_boms_for_product, action: :list_for_product
+      define :get_active_bom_for_product, action: :get_active
+    end
+
+    resource Craftplan.Catalog.BOMComponent
+    resource Craftplan.Catalog.LaborStep
     resource Craftplan.Catalog.Recipe
     resource Craftplan.Catalog.RecipeMaterial
   end

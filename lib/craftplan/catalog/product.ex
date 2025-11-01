@@ -6,6 +6,8 @@ defmodule Craftplan.Catalog.Product do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
+  alias Craftplan.Catalog.BOM
+
   postgres do
     table "catalog_products"
     repo Craftplan.Repo
@@ -140,6 +142,12 @@ defmodule Craftplan.Catalog.Product do
   relationships do
     has_one :recipe, Craftplan.Catalog.Recipe do
       allow_nil? true
+    end
+
+    has_many :boms, BOM
+
+    has_one :active_bom, BOM do
+      filter expr(status == :active)
     end
 
     has_many :items, Craftplan.Orders.OrderItem

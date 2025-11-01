@@ -98,5 +98,49 @@ defmodule Craftplan.Settings.Settings do
       allow_nil? false
       default 0
     end
+
+    attribute :labor_hourly_rate, :decimal do
+      public? true
+      allow_nil? false
+      default 0
+      constraints min: 0
+      description "Default hourly labor rate used for cost calculations."
+    end
+
+    attribute :labor_overhead_percent, :decimal do
+      public? true
+      allow_nil? false
+      default 0
+      constraints min: 0
+      description "Applied as a percentage (0.0-1.0) of material + labor costs."
+    end
+
+    attribute :retail_markup_mode, :atom do
+      public? true
+      allow_nil? false
+      default :percent
+      constraints one_of: [:percent, :fixed]
+    end
+
+    attribute :retail_markup_value, :decimal do
+      public? true
+      allow_nil? false
+      default 0
+      constraints min: 0
+    end
+
+    attribute :wholesale_markup_mode, :atom do
+      public? true
+      allow_nil? false
+      default :percent
+      constraints one_of: [:percent, :fixed]
+    end
+
+    attribute :wholesale_markup_value, :decimal do
+      public? true
+      allow_nil? false
+      default 0
+      constraints min: 0
+    end
   end
 end

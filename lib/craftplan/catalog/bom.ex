@@ -1,0 +1,108 @@
+defmodule Craftplan.Catalog.BOM do
+  @moduledoc false
+  use Ash.Resource,
+    otp_app: :craftplan,
+    domain: Craftplan.Catalog,
+    data_layer: AshPostgres.DataLayer
+
+  alias Craftplan.Catalog.Changes.AssignBOMVersion
+
+  postgres do
+    table "catalog_boms"
+    repo Craftplan.Repo
+  end
+
+  actions do
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+
+      accept [:name, :notes, :status, :product_id, :published_at]
+
+      argument :components, {:array, :map}
+      argument :labor_steps, {:array, :map}
+
+      change manage_relationship(:components, type: :direct_control)
+      change manage_relationship(:labor_steps, type: :direct_control)
+      change {AssignBOMVersion, []}
+    end
+
+    update :update do
+      require_atomic? false
+
+      accept [:name, :notes, :status, :published_at]
+
+      argument :components, {:array, :map}
+      argument :labor_steps, {:array, :map}
+
+      change manage_relationship(:components, type: :direct_control)
+      change manage_relationship(:labor_steps, type: :direct_control)
+    end
+
+    read :list_for_product do
+      argument :product_id, :uuid, allow_nil?: false
+
+      prepare build(
+                sort: [version: :desc],
+                filter: expr(product_id == ^arg(:product_id))
+              )
+    end
+
+    read :get_active do
+      get? true
+
+      argument :product_id, :uuid, allow_nil?: false
+
+      prepare build(
+                sort: [version: :desc],
+                filter: expr(product_id == ^arg(:product_id) and status == :active)
+              )
+    end
+  end
+
+  attributes do
+    uuid_primary_key :id
+
+    attribute :name, :string do
+      public? true
+    end
+
+    attribute :notes, :string do
+      public? true
+    end
+
+    attribute :status, :atom do
+      allow_nil? false
+      default :draft
+      constraints one_of: [:draft, :active, :archived]
+      public? true
+    end
+
+    attribute :version, :integer do
+      allow_nil? false
+      default 1
+      writable? false
+    end
+
+    attribute :published_at, :utc_datetime do
+      allow_nil? true
+    end
+
+    timestamps()
+  end
+
+  relationships do
+    belongs_to :product, Craftplan.Catalog.Product do
+      allow_nil? false
+    end
+
+    has_many :components, Craftplan.Catalog.BOMComponent
+
+    has_many :labor_steps, Craftplan.Catalog.LaborStep
+  end
+
+  identities do
+    identity :product_version, [:product_id, :version]
+  end
+end
