@@ -63,4 +63,3 @@ defmodule Craftplan.Catalog.BOMRollup do
     identity :unique_bom, [:bom_id]
   end
 end
-

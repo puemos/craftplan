@@ -6,6 +6,7 @@ defmodule Craftplan.Catalog.BOM do
     data_layer: AshPostgres.DataLayer
 
   alias Craftplan.Catalog.Changes.AssignBOMVersion
+  alias Craftplan.Catalog.Services.BOMRollup
 
   postgres do
     table "catalog_boms"
@@ -26,14 +27,15 @@ defmodule Craftplan.Catalog.BOM do
       change manage_relationship(:components, type: :direct_control)
       change manage_relationship(:labor_steps, type: :direct_control)
       change {AssignBOMVersion, []}
-      change after_action(fn changeset, result, _ctx ->
-        Craftplan.Catalog.Services.BOMRollup.refresh!(result,
-          actor: changeset.context[:actor],
-          authorize?: false
-        )
 
-        {:ok, result}
-      end)
+      change after_action(fn changeset, result, _ctx ->
+               BOMRollup.refresh!(result,
+                 actor: changeset.context[:actor],
+                 authorize?: false
+               )
+
+               {:ok, result}
+             end)
     end
 
     update :update do
@@ -46,14 +48,15 @@ defmodule Craftplan.Catalog.BOM do
 
       change manage_relationship(:components, type: :direct_control)
       change manage_relationship(:labor_steps, type: :direct_control)
-      change after_action(fn changeset, result, _ctx ->
-        Craftplan.Catalog.Services.BOMRollup.refresh!(result,
-          actor: changeset.context[:actor],
-          authorize?: false
-        )
 
-        {:ok, result}
-      end)
+      change after_action(fn changeset, result, _ctx ->
+               BOMRollup.refresh!(result,
+                 actor: changeset.context[:actor],
+                 authorize?: false
+               )
+
+               {:ok, result}
+             end)
     end
 
     read :list_for_product do

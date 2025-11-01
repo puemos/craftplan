@@ -2,13 +2,14 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
   @moduledoc false
 
   import Ash.Expr
-  require Ash.Query
+
   alias Ash.Query
-  alias Ash
-  alias Craftplan.Catalog
-  alias Craftplan.Catalog.{BOM, BOMRollup}
+  alias Craftplan.Catalog.BOM
+  alias Craftplan.Catalog.BOMRollup
   alias Craftplan.Catalog.Services.BatchCostCalculator
   alias Decimal, as: D
+
+  require Query
 
   @spec refresh!(BOM.t(), keyword) :: :ok
   def refresh!(%BOM{} = bom, opts \\ []) do
@@ -51,9 +52,8 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
     actor = Keyword.get(opts, :actor)
     authorize? = Keyword.get(opts, :authorize?, false)
 
-    with {:ok, bom} <- Ash.get(BOM, bom_id, actor: actor, authorize?: authorize?) do
-      refresh!(bom, opts)
-    else
+    case Ash.get(BOM, bom_id, actor: actor, authorize?: authorize?) do
+      {:ok, bom} -> refresh!(bom, opts)
       _ -> :ok
     end
   end

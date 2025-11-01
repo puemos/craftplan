@@ -6,6 +6,7 @@ defmodule Craftplan.Catalog.BOMComponent do
     data_layer: AshPostgres.DataLayer
 
   alias Craftplan.Catalog.Changes.ValidateComponentTarget
+  alias Craftplan.Catalog.Services.BOMRollup
 
   postgres do
     table "catalog_bom_components"
@@ -29,17 +30,18 @@ defmodule Craftplan.Catalog.BOMComponent do
       ]
 
       change {ValidateComponentTarget, []}
+
       change after_action(fn changeset, result, _ctx ->
-        bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
+               bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
 
-        Craftplan.Catalog.Services.BOMRollup.refresh_by_bom_id!(
-          bom_id,
-          actor: changeset.context[:actor],
-          authorize?: false
-        )
+               BOMRollup.refresh_by_bom_id!(
+                 bom_id,
+                 actor: changeset.context[:actor],
+                 authorize?: false
+               )
 
-        {:ok, result}
-      end)
+               {:ok, result}
+             end)
     end
 
     update :update do
@@ -57,17 +59,18 @@ defmodule Craftplan.Catalog.BOMComponent do
       ]
 
       change {ValidateComponentTarget, []}
+
       change after_action(fn changeset, result, _ctx ->
-        bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
+               bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
 
-        Craftplan.Catalog.Services.BOMRollup.refresh_by_bom_id!(
-          bom_id,
-          actor: changeset.context[:actor],
-          authorize?: false
-        )
+               BOMRollup.refresh_by_bom_id!(
+                 bom_id,
+                 actor: changeset.context[:actor],
+                 authorize?: false
+               )
 
-        {:ok, result}
-      end)
+               {:ok, result}
+             end)
     end
   end
 

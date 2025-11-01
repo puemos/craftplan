@@ -5,6 +5,8 @@ defmodule Craftplan.Catalog.LaborStep do
     domain: Craftplan.Catalog,
     data_layer: AshPostgres.DataLayer
 
+  alias Craftplan.Catalog.Services.BOMRollup
+
   postgres do
     table "catalog_labor_steps"
     repo Craftplan.Repo
@@ -16,34 +18,36 @@ defmodule Craftplan.Catalog.LaborStep do
     create :create do
       primary? true
       accept [:name, :sequence, :duration_minutes, :rate_override, :notes]
+
       change after_action(fn changeset, result, _ctx ->
-        bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
+               bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
 
-        Craftplan.Catalog.Services.BOMRollup.refresh_by_bom_id!(
-          bom_id,
-          actor: changeset.context[:actor],
-          authorize?: false
-        )
+               BOMRollup.refresh_by_bom_id!(
+                 bom_id,
+                 actor: changeset.context[:actor],
+                 authorize?: false
+               )
 
-        {:ok, result}
-      end)
+               {:ok, result}
+             end)
     end
 
     update :update do
       primary? true
       require_atomic? false
       accept [:name, :sequence, :duration_minutes, :rate_override, :notes]
+
       change after_action(fn changeset, result, _ctx ->
-        bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
+               bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
 
-        Craftplan.Catalog.Services.BOMRollup.refresh_by_bom_id!(
-          bom_id,
-          actor: changeset.context[:actor],
-          authorize?: false
-        )
+               BOMRollup.refresh_by_bom_id!(
+                 bom_id,
+                 actor: changeset.context[:actor],
+                 authorize?: false
+               )
 
-        {:ok, result}
-      end)
+               {:ok, result}
+             end)
     end
   end
 
