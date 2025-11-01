@@ -46,6 +46,12 @@ defmodule Craftplan.Catalog.BOMRollup do
       default 0
     end
 
+    # Flattened materials used per unit (JSONB map: material_id => quantity as string)
+    attribute :components_map, :map do
+      allow_nil? false
+      default %{}
+    end
+
     timestamps()
   end
 

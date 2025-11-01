@@ -24,13 +24,16 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
         authorize?: authorize?
       )
 
+    components_map = flatten_components(bom, D.new(1), actor: actor, authorize?: authorize?)
+
     params = %{
       bom_id: bom.id,
       product_id: bom.product_id,
       material_cost: costs.material_cost,
       labor_cost: costs.labor_cost,
       overhead_cost: costs.overhead_cost,
-      unit_cost: costs.unit_cost
+      unit_cost: costs.unit_cost,
+      components_map: stringify_decimal_map(components_map)
     }
 
     case get_rollup(bom, actor, authorize?) do
@@ -69,5 +72,67 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
       {:ok, %BOMRollup{} = rollup} -> rollup
       _ -> nil
     end
+  end
+
+  defp flatten_components(%BOM{} = bom, quantity, opts) do
+    authorize? = Keyword.get(opts, :authorize?, false)
+    actor = Keyword.get(opts, :actor)
+
+    bom =
+      Ash.load!(bom, [components: [:component_type, :quantity, :product, :material]],
+        actor: actor,
+        authorize?: authorize?
+      )
+
+    do_flatten(bom, quantity, MapSet.new(), opts)
+  end
+
+  defp do_flatten(%BOM{} = bom, quantity, path, opts) do
+    Enum.reduce(bom.components || [], %{}, fn component, acc ->
+      case component.component_type do
+        :material ->
+          mat_id = component.material && component.material.id
+          comp_qty = D.mult(quantity, component.quantity || D.new(0))
+          Map.update(acc, mat_id, comp_qty, &D.add(&1, comp_qty))
+
+        :product ->
+          case component.product do
+            %{id: product_id} ->
+              if MapSet.member?(path, product_id) do
+                acc
+              else
+                nested_bom =
+                  case Craftplan.Catalog.get_active_bom_for_product(%{product_id: product_id},
+                         actor: Keyword.get(opts, :actor),
+                         authorize?: Keyword.get(opts, :authorize?, false)
+                       ) do
+                    {:ok, %BOM{} = nested} -> nested
+                    _ -> nil
+                  end
+
+                if nested_bom do
+                  comp_qty = D.mult(quantity, component.quantity || D.new(0))
+                  nested_map = do_flatten(nested_bom, comp_qty, MapSet.put(path, product_id), opts)
+                  merge_decimal_maps(acc, nested_map)
+                else
+                  acc
+                end
+              end
+
+            _ ->
+              acc
+          end
+      end
+    end)
+  end
+
+  defp merge_decimal_maps(a, b) do
+    Map.merge(a, b, fn _k, v1, v2 -> D.add(v1, v2) end)
+  end
+
+  defp stringify_decimal_map(map) do
+    map
+    |> Enum.reject(fn {k, _} -> is_nil(k) end)
+    |> Map.new(fn {k, v} -> {k, D.to_string(v)} end)
   end
 end
