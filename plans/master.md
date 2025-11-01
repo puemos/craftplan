@@ -72,15 +72,15 @@ Last updated: 2025-11-01
 
 - [ ] BOM editor LiveView with step builder, sub-assembly selector, labor entries (UI parity with current Recipe editor).
 - [ ] Planner "Mark Done" dialog shows resulting batch code and actual cost snapshot.
-- [ ] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
+- [x] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
 
 **Data & Migrations**
 
 - [x] Tables for BOMs/components/labor; migrations keep existing products unaffected until BOM assigned.
 - [x] Backfill seeds with example recipes (bread, pastry) including labor.
 - [x] Persisted BOM rollups (`catalog_bom_rollups`) with unique index on `bom_id`; auto-refresh on BOM/component/labor changes.
-- [ ] Add DB index on `catalog_bom_rollups(product_id)` to speed product cost reads.
-- [ ] Optional: materialized flattened components JSONB in rollups + GIN index for label/traceability queries.
+- [x] Add DB index on `catalog_bom_rollups(product_id)` to speed product cost reads.
+- [x] Optional: materialized flattened components JSONB in rollups + GIN index for label/traceability queries.
 
 **Deprecations & Removals** (no backward compatibility)
 

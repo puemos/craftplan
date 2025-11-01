@@ -69,6 +69,23 @@ defmodule CraftplanWeb.ProductLive.Show do
             {format_percentage(@product.markup_percentage)}%
           </:item>
 
+          <:item title="Suggested Prices">
+            <div class="space-y-1">
+              <div>
+                <span class="text-stone-500">Retail:</span>
+                <span class="ml-2 font-medium">
+                  {format_money(@settings.currency, suggested_price(:retail, @product.bom_unit_cost, @settings))}
+                </span>
+              </div>
+              <div>
+                <span class="text-stone-500">Wholesale:</span>
+                <span class="ml-2 font-medium">
+                  {format_money(@settings.currency, suggested_price(:wholesale, @product.bom_unit_cost, @settings))}
+                </span>
+              </div>
+            </div>
+          </:item>
+
           <:item
             :if={@product.max_daily_quantity && @product.max_daily_quantity > 0}
             title="Max units per day"
@@ -326,5 +343,30 @@ defmodule CraftplanWeb.ProductLive.Show do
 
   defp list_available_materials do
     Inventory.list_materials!()
+  end
+
+  # Pricing helper
+  defp suggested_price(:retail, unit_cost, settings) do
+    apply_markup(unit_cost, settings.retail_markup_mode, settings.retail_markup_value)
+  end
+
+  defp suggested_price(:wholesale, unit_cost, settings) do
+    apply_markup(unit_cost, settings.wholesale_markup_mode, settings.wholesale_markup_value)
+  end
+
+  defp apply_markup(unit_cost, mode, value) do
+    unit = unit_cost || Decimal.new(0)
+    val = value || Decimal.new(0)
+
+    case mode do
+      :percent ->
+        Decimal.add(unit, Decimal.mult(unit, Decimal.div(val, Decimal.new(100))))
+
+      :fixed ->
+        Decimal.add(unit, val)
+
+      _ ->
+        unit
+    end
   end
 end
