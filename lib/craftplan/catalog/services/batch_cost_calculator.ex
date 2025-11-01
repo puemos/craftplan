@@ -82,48 +82,64 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
   end
 
   defp component_cost(%BOMComponent{component_type: :product} = component, quantity, opts, settings, path) do
-    product = Map.get(component, :product)
+    total_quantity = 
+      quantity
+      |> D.mult(DecimalHelpers.to_decimal(component.quantity))
+      |> D.mult(waste_multiplier(component))
 
-    case product do
-      %{id: product_id} ->
-        multiplier = waste_multiplier(component)
-        total_quantity = quantity |> D.mult(DecimalHelpers.to_decimal(component.quantity)) |> D.mult(multiplier)
+    actor = Keyword.get(opts, :actor)
+    authorize? = Keyword.get(opts, :authorize?, true)
 
-        if MapSet.member?(path, product_id) do
-          D.new(0)
-        else
-          authorize? = Keyword.get(opts, :authorize?, true)
-          actor = Keyword.get(opts, :actor)
-
-          case Catalog.get_active_bom_for_product(%{product_id: product_id},
-                 actor: actor,
-                 authorize?: authorize?
-               ) do
-            {:ok, bom} when not is_nil(bom) ->
-              nested =
-                do_calculate(
-                  bom,
-                  D.new(1),
-                  opts,
-                  settings,
-                  MapSet.put(path, product_id)
-                )
-
-              D.mult(total_quantity, nested.unit_cost)
-
-            _ ->
-              fallback_price =
-                product
-                |> Map.get(:price)
-                |> DecimalHelpers.to_decimal()
-
-              D.mult(total_quantity, fallback_price)
-          end
-        end
-
-      _ ->
-        D.new(0)
+    with {:ok, product} <- get_product_from_component(component),
+         :ok <- check_for_circular_dependency(product.id, path),
+         {:ok, bom} <- get_active_bom_for_product(product.id, actor, authorize?) do
+      nested_cost = calculate_nested_cost(bom, opts, settings, MapSet.put(path, product.id))
+      D.mult(total_quantity, nested_cost)
+    else
+      _error ->
+        # Fallback to the product's price if any step fails
+        product = Map.get(component, :product)
+        fallback_price = product |> Map.get(:price) |> DecimalHelpers.to_decimal()
+        D.mult(total_quantity, fallback_price)
     end
+  end
+
+  defp get_product_from_component(component) do
+    case Map.get(component, :product) do
+      nil -> {:error, :no_product}
+      product -> {:ok, product}
+    end
+  end
+
+  defp check_for_circular_dependency(product_id, path) do
+    if MapSet.member?(path, product_id) do
+      {:error, :circular_dependency}
+    else
+      :ok
+    end
+  end
+
+  defp get_active_bom_for_product(product_id, actor, authorize?) do
+    case Catalog.get_active_bom_for_product(%{product_id: product_id},
+      actor: actor,
+      authorize?: authorize?
+    ) do
+      {:ok, bom} when not is_nil(bom) -> {:ok, bom}
+      _ -> {:error, :no_active_bom}
+    end
+  end
+
+  defp calculate_nested_cost(bom, opts, settings, path) do
+    nested = 
+      do_calculate(
+        bom,
+        D.new(1),
+        opts,
+        settings,
+        path
+      )
+    
+    nested.unit_cost
   end
 
   defp waste_multiplier(component) do
