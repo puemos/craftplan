@@ -40,7 +40,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           <.input field={@form[:product_id]} type="hidden" value={@product.id} />
 
           <h3 class="text-lg font-medium">Recipe</h3>
-          <p class="mb-4 text-sm text-stone-500">Add materials needed for this product</p>
+          <p class="mb-2 text-sm text-stone-500">Add materials needed for this product</p>
+          <div class="mb-4 flex items-center gap-2">
+            <.button :if={!@settings.advanced_recipe_versioning and @bom && @bom.status == :active} phx-click="try_variation" phx-target={@myself} size={:sm} variant={:outline}>Try a variation</.button>
+            <.button :if={!@settings.advanced_recipe_versioning and @bom && @bom.status == :draft} phx-click="promote" phx-target={@myself} size={:sm} variant={:primary}>Publish</.button>
+            <.button :if={!@settings.advanced_recipe_versioning and @bom && @bom.status == :draft} phx-click="revert" phx-target={@myself} size={:sm} variant={:outline}>Revert</.button>
+            <.link :if={!@settings.advanced_recipe_versioning} phx-click={JS.push("show_history", target: @myself)} class="text-sm text-blue-700 hover:underline">Show version history</.link>
+          </div>
 
           <div id="recipe-materials-list">
             <div
@@ -178,7 +184,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           <.button
             variant={:primary}
             type="submit"
-            disabled={not @form.source.changed? || not @form.source.valid?}
+            disabled={(@bom && @bom.status == :archived) or (!@settings.advanced_recipe_versioning and @bom && @bom.status == :active) or not @form.source.changed? or not @form.source.valid?}
             phx-disable-with="Saving..."
           >
             Save Recipe
@@ -216,6 +222,55 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           <.button phx-click="hide_modal" phx-target={@myself} class="mt-5">Cancel</.button>
         </.modal>
       <% end %>
+
+      <div :if={@settings.advanced_recipe_versioning} class="mt-8">
+        <h4 class="mb-2 text-sm font-semibold text-stone-700">Recipe History</h4>
+        <.table id="bom-history" rows={@boms || []}>
+          <:col :let={b} label="Version">v{b.version}</:col>
+          <:col :let={b} label="Status">{b.status}</:col>
+          <:col :let={b} label="Published">
+            {if b.published_at, do: Calendar.strftime(b.published_at, "%Y-%m-%d"), else: "-"}
+          </:col>
+          <:col :let={b} label="Unit Cost">
+            {case b.rollup do
+              %{} = r -> r.unit_cost
+              _ -> "-"
+            end}
+          </:col>
+          <:action :let={b}>
+            <div class="flex gap-2">
+              <.button size={:sm} variant={:outline} phx-target={@myself} phx-click="switch_version" phx-value-bom_version={b.version}>View</.button>
+              <.button size={:sm} variant={:outline} phx-target={@myself} phx-click="duplicate">Duplicate</.button>
+              <.button :if={b.status != :active} size={:sm} variant={:outline} phx-target={@myself} phx-click="promote_row" phx-value-bom_version={b.version}>Make Active</.button>
+              <.button :if={b.status != :archived} size={:sm} variant={:danger} phx-target={@myself} phx-click="archive_row" phx-value-bom_version={b.version}>Archive</.button>
+            </div>
+          </:action>
+        </.table>
+      </div>
+      <.modal :if={!@settings.advanced_recipe_versioning && @show_history} id="bom-history-modal" show title="Recipe History" on_cancel={JS.push("hide_history", target: @myself)}>
+        <.table id="bom-history-modal-table" rows={@boms || []}>
+          <:col :let={b} label="Version">v{b.version}</:col>
+          <:col :let={b} label="Status">{b.status}</:col>
+          <:col :let={b} label="Published">
+            {if b.published_at, do: Calendar.strftime(b.published_at, "%Y-%m-%d"), else: "-"}
+          </:col>
+          <:col :let={b} label="Unit Cost">
+            {case b.rollup do
+              %{} = r -> r.unit_cost
+              _ -> "-"
+            end}
+          </:col>
+          <:action :let={b}>
+            <div class="flex gap-2">
+              <.button size={:sm} variant={:outline} phx-target={@myself} phx-click="switch_version" phx-value-bom_version={b.version}>View</.button>
+              <.button size={:sm} variant={:outline} phx-target={@myself} phx-click="duplicate">Duplicate</.button>
+              <.button :if={b.status != :active} size={:sm} variant={:outline} phx-target={@myself} phx-click="promote_row" phx-value-bom_version={b.version}>Make Active</.button>
+              <.button :if={b.status != :archived} size={:sm} variant={:danger} phx-target={@myself} phx-click="archive_row" phx-value-bom_version={b.version}>Archive</.button>
+            </div>
+          </:action>
+        </.table>
+        <div class="mt-4 flex justify-end"><.button variant={:outline} phx-click="hide_history" phx-target={@myself}>Close</.button></div>
+      </.modal>
     </div>
     """
   end
@@ -238,7 +293,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      |> assign(:changed, false)
      |> assign(:materials_map, materials_map)
      |> assign(:available_materials, available_materials)
-     |> assign(:show_modal, false)}
+     |> assign(:show_modal, false)
+     |> assign_new(:show_history, fn -> false end)}
   end
 
   @impl true
@@ -277,6 +333,16 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   @impl true
   def handle_event("hide_modal", _, socket) do
     {:noreply, assign(socket, :show_modal, false)}
+  end
+
+  @impl true
+  def handle_event("show_history", _, socket) do
+    {:noreply, assign(socket, :show_history, true)}
+  end
+
+  @impl true
+  def handle_event("hide_history", _, socket) do
+    {:noreply, assign(socket, :show_history, false)}
   end
 
   @impl true
@@ -336,6 +402,63 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   @impl true
+  def handle_event("revert", _params, socket) do
+    actor = socket.assigns.current_user
+    bom = socket.assigns.bom
+    if bom && bom.id && bom.status == :draft do
+      _ = Ash.destroy(bom, actor: actor, authorize?: false)
+    end
+    socket = assign_lists(socket)
+    {:noreply, assign_form(socket) |> put_flash(:info, "Changes reverted")}
+  end
+
+  @impl true
+  def handle_event("try_variation", _params, socket) do
+    actor = socket.assigns.current_user
+    draft = Enum.find(socket.assigns.boms || [], fn b -> b.status == :draft end)
+    socket =
+      if draft do
+        assign(socket, :selected_version, draft.version)
+      else
+        bom = socket.assigns.bom
+        _new = Craftplan.Catalog.Services.BOMDuplicate.duplicate!(bom, actor: actor, authorize?: false)
+        assign_lists(socket)
+      end
+
+    {:noreply, assign_form(socket)}
+  end
+
+  @impl true
+  def handle_event("promote_row", %{"bom_version" => v}, socket) do
+    actor = socket.assigns.current_user
+    version = parse_int(v)
+    bom = find_bom(socket.assigns.boms || [], version)
+
+    if bom do
+      case Catalog.get_active_bom_for_product(%{product_id: socket.assigns.product.id}, actor: actor, authorize?: false) do
+        {:ok, %Catalog.BOM{} = active} when active.id != bom.id ->
+          _ = Ash.update(active, %{status: :archived}, actor: actor, authorize?: false)
+        _ -> :ok
+      end
+
+      _ = Ash.update(bom, %{}, action: :promote, actor: actor, authorize?: false)
+    end
+
+    socket = assign_lists(socket)
+    {:noreply, assign_form(socket) |> put_flash(:info, "BOM is now active")}
+  end
+
+  @impl true
+  def handle_event("archive_row", %{"bom_version" => v}, socket) do
+    actor = socket.assigns.current_user
+    version = parse_int(v)
+    bom = find_bom(socket.assigns.boms || [], version)
+    if bom, do: _ = Ash.update(bom, %{status: :archived}, actor: actor, authorize?: false)
+    socket = assign_lists(socket)
+    {:noreply, assign_form(socket) |> put_flash(:info, "BOM archived")}
+  end
+
+  @impl true
   def handle_event("remove_form", %{"path" => path}, socket) do
     form = Form.remove_form(socket.assigns.form, path)
 
@@ -365,7 +488,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   defp assign_lists(socket) do
     actor = socket.assigns.current_user
     case Catalog.list_boms_for_product(%{product_id: socket.assigns.product.id}, actor: actor, authorize?: false) do
-      {:ok, boms} -> assign(socket, :boms, boms)
+      {:ok, boms} ->
+        boms = Ash.load!(boms, [:rollup], actor: actor, authorize?: false)
+        assign(socket, :boms, boms)
       _ -> assign(socket, :boms, [])
     end
   end
@@ -382,6 +507,17 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         BOMRecipeSync.load_bom_for_product(socket.assigns.product, actor: actor, authorize?: false)
     end
   end
+
+  defp parse_int(v) when is_integer(v), do: v
+  defp parse_int(v) do
+    case Integer.parse(to_string(v)) do
+      {n, _} -> n
+      _ -> nil
+    end
+  end
+
+  defp find_bom(boms, nil), do: nil
+  defp find_bom(boms, ver), do: Enum.find(boms, fn b -> b.version == ver end)
 
   defp form_for_bom(bom, actor) do
     nested_forms = [

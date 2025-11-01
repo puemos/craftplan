@@ -291,7 +291,8 @@ if Mix.env() == :dev do
     retail_markup_mode: :percent,
     retail_markup_value: Decimal.new("35"),
     wholesale_markup_mode: :percent,
-    wholesale_markup_value: Decimal.new("20")
+    wholesale_markup_value: Decimal.new("20"),
+    advanced_recipe_versioning: false
   })
 
   # -- 3.3 Allergen data

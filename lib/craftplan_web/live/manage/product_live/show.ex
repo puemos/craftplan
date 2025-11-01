@@ -173,7 +173,7 @@ defmodule CraftplanWeb.ProductLive.Show do
   end
 
   @impl true
-  def handle_params(%{"sku" => sku}, _, socket) do
+  def handle_params(%{"sku" => sku} = params, _, socket) do
     product =
       Craftplan.Catalog.get_product_by_sku!(sku,
         load: [
@@ -189,8 +189,8 @@ defmodule CraftplanWeb.ProductLive.Show do
 
     live_action = socket.assigns.live_action
     selected_bom_version =
-      case Map.get(socket.assigns, :params) do
-        %{ "v" => v } ->
+      case Map.get(params, "v") do
+        v when is_binary(v) ->
           case Integer.parse(v) do
             {ver, _} -> ver
             _ -> nil
