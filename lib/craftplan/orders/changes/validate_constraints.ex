@@ -13,6 +13,7 @@ defmodule Craftplan.Orders.Changes.ValidateConstraints do
   use Ash.Resource.Change
 
   alias Ash.Changeset
+  alias Craftplan.DecimalHelpers
   alias Craftplan.Orders.OrderItem
 
   @impl true
@@ -214,7 +215,7 @@ defmodule Craftplan.Orders.Changes.ValidateConstraints do
   defp sum_by_product(items) do
     Enum.reduce(items, %{}, fn item, acc ->
       pid = Map.get(item, :product_id) || Map.get(item, "product_id")
-      qty = to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
+      qty = DecimalHelpers.to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
 
       if is_nil(pid) do
         acc
@@ -223,19 +224,6 @@ defmodule Craftplan.Orders.Changes.ValidateConstraints do
       end
     end)
   end
-
-  defp to_decimal(%Decimal{} = d), do: d
-  defp to_decimal(i) when is_integer(i), do: Decimal.new(i)
-  defp to_decimal(f) when is_float(f), do: f |> Decimal.from_float() |> Decimal.round(2)
-  defp to_decimal(<<_::binary>> = s), do: Decimal.new(s)
-  defp to_decimal(nil), do: Decimal.new(0)
-
-  defp to_decimal(other),
-    do:
-      (case Decimal.cast(other) do
-         {:ok, d} -> d
-         :error -> Decimal.new(0)
-       end)
 
   defp safe_get_settings do
     Craftplan.Settings.get_settings!()

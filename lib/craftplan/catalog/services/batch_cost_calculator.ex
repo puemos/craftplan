@@ -4,6 +4,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
   alias Craftplan.Catalog
   alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.BOMComponent
+  alias Craftplan.DecimalHelpers
   alias Craftplan.Settings
   alias Decimal, as: D
 
@@ -32,7 +33,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
         authorize?: authorize?
       )
 
-    quantity = to_decimal(quantity)
+    quantity = DecimalHelpers.to_decimal(quantity)
 
     path = maybe_track_product(path, bom.product_id)
 
@@ -69,11 +70,11 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
   defp component_cost(%BOMComponent{component_type: :material} = component, quantity, _opts, _settings, _path) do
     multiplier = waste_multiplier(component)
-    total_quantity = quantity |> D.mult(to_decimal(component.quantity)) |> D.mult(multiplier)
+    total_quantity = quantity |> D.mult(DecimalHelpers.to_decimal(component.quantity)) |> D.mult(multiplier)
 
     price =
       case component.material do
-        %{price: price} -> to_decimal(price)
+        %{price: price} -> DecimalHelpers.to_decimal(price)
         _ -> D.new(0)
       end
 
@@ -86,7 +87,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     case product do
       %{id: product_id} ->
         multiplier = waste_multiplier(component)
-        total_quantity = quantity |> D.mult(to_decimal(component.quantity)) |> D.mult(multiplier)
+        total_quantity = quantity |> D.mult(DecimalHelpers.to_decimal(component.quantity)) |> D.mult(multiplier)
 
         if MapSet.member?(path, product_id) do
           D.new(0)
@@ -114,7 +115,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
               fallback_price =
                 product
                 |> Map.get(:price)
-                |> to_decimal()
+                |> DecimalHelpers.to_decimal()
 
               D.mult(total_quantity, fallback_price)
           end
@@ -128,18 +129,18 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
   defp waste_multiplier(component) do
     component
     |> Map.get(:waste_percent)
-    |> to_decimal()
+    |> DecimalHelpers.to_decimal()
     |> D.add(D.new(1))
   end
 
   defp labor_cost(labor_steps, quantity, settings) do
-    base_quantity = to_decimal(quantity)
+    base_quantity = DecimalHelpers.to_decimal(quantity)
 
     labor_steps
     |> Enum.sort_by(& &1.sequence)
     |> Enum.reduce(D.new(0), fn step, acc ->
-      minutes = to_decimal(step.duration_minutes)
-      hourly_rate = to_decimal(step.rate_override || settings.labor_hourly_rate)
+      minutes = DecimalHelpers.to_decimal(step.duration_minutes)
+      hourly_rate = DecimalHelpers.to_decimal(step.rate_override || settings.labor_hourly_rate)
       hours = D.div(minutes, D.new(60))
       per_unit_cost = D.mult(hours, hourly_rate)
       D.add(acc, D.mult(per_unit_cost, base_quantity))
@@ -161,8 +162,8 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
       {:ok, settings} ->
         Map.merge(default_settings(), %{
-          labor_hourly_rate: to_decimal(settings.labor_hourly_rate),
-          labor_overhead_percent: to_decimal(settings.labor_overhead_percent)
+          labor_hourly_rate: DecimalHelpers.to_decimal(settings.labor_hourly_rate),
+          labor_overhead_percent: DecimalHelpers.to_decimal(settings.labor_overhead_percent)
         })
 
       {:error, _} ->
@@ -176,17 +177,4 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
   defp maybe_track_product(path, nil), do: path
   defp maybe_track_product(path, product_id), do: MapSet.put(path, product_id)
-
-  defp to_decimal(%D{} = decimal), do: decimal
-  defp to_decimal(nil), do: D.new(0)
-  defp to_decimal(value) when is_integer(value), do: D.new(value)
-  defp to_decimal(value) when is_float(value), do: D.from_float(value)
-  defp to_decimal(value) when is_binary(value), do: D.new(value)
-
-  defp to_decimal(value) do
-    case D.cast(value) do
-      {:ok, decimal} -> decimal
-      :error -> D.new(0)
-    end
-  end
 end

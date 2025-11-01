@@ -4,6 +4,7 @@ defmodule Craftplan.Catalog.Product.Calculations.MarkupPercentage do
   use Ash.Resource.Calculation
 
   alias Ash.NotLoaded
+  alias Craftplan.DecimalHelpers
   alias Decimal, as: D
 
   @impl true
@@ -15,7 +16,7 @@ defmodule Craftplan.Catalog.Product.Calculations.MarkupPercentage do
   @impl true
   def calculate(records, _opts, _context) do
     Enum.map(records, fn record ->
-      price = to_decimal(record.price)
+      price = DecimalHelpers.to_decimal(record.price)
 
       case record.bom_unit_cost do
         %NotLoaded{} ->
@@ -25,7 +26,7 @@ defmodule Craftplan.Catalog.Product.Calculations.MarkupPercentage do
           D.new(0)
 
         unit_cost ->
-          unit_cost = to_decimal(unit_cost)
+          unit_cost = DecimalHelpers.to_decimal(unit_cost)
 
           if D.compare(unit_cost, D.new(0)) == :eq do
             D.new(0)
@@ -35,11 +36,4 @@ defmodule Craftplan.Catalog.Product.Calculations.MarkupPercentage do
       end
     end)
   end
-
-  defp to_decimal(%D{} = d), do: d
-  defp to_decimal(nil), do: D.new(0)
-  defp to_decimal(val) when is_binary(val), do: D.new(val)
-  defp to_decimal(val) when is_integer(val), do: D.new(val)
-  defp to_decimal(val) when is_float(val), do: D.from_float(val)
-  defp to_decimal(_), do: D.new("0")
 end

@@ -11,6 +11,8 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
 
   use Ash.Resource.Change
 
+  alias Craftplan.DecimalHelpers
+
   @impl true
   def change(changeset, _opts, _context) do
     import Ash.Changeset
@@ -98,23 +100,10 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
 
   defp sum_items(items) do
     Enum.reduce(items, Decimal.new(0), fn item, acc ->
-      quantity = to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
-      unit_price = to_decimal(Map.get(item, :unit_price) || Map.get(item, "unit_price") || 0)
+      quantity = DecimalHelpers.to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
+      unit_price = DecimalHelpers.to_decimal(Map.get(item, :unit_price) || Map.get(item, "unit_price") || 0)
       Decimal.add(acc, Decimal.mult(quantity, unit_price))
     end)
-  end
-
-  defp to_decimal(%Decimal{} = d), do: d
-  defp to_decimal(i) when is_integer(i), do: Decimal.new(i)
-  defp to_decimal(f) when is_float(f), do: f |> Decimal.from_float() |> Decimal.round(2)
-  defp to_decimal(<<_::binary>> = s), do: Decimal.new(s)
-  defp to_decimal(nil), do: Decimal.new(0)
-
-  defp to_decimal(other) do
-    case Decimal.cast(other) do
-      {:ok, d} -> d
-      :error -> Decimal.new(0)
-    end
   end
 
   defp safe_get_settings do

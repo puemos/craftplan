@@ -4,6 +4,8 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
   """
   use Ash.Resource.Calculation
 
+  alias Craftplan.DecimalHelpers
+
   @impl true
   def init(_opts), do: {:ok, []}
 
@@ -45,8 +47,8 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
   defp extract_nutritional_facts(components) do
     Enum.flat_map(components, fn component ->
       Enum.map(component.material.material_nutritional_facts, fn fact ->
-        qty = to_decimal(component.quantity)
-        amt = to_decimal(fact.amount)
+        qty = DecimalHelpers.to_decimal(component.quantity)
+        amt = DecimalHelpers.to_decimal(fact.amount)
 
         %{
           name: fact.nutritional_fact.name,
@@ -73,12 +75,4 @@ defmodule Craftplan.Catalog.Product.Calculations.NutritionalFacts do
       Decimal.add(acc, fact.amount)
     end)
   end
-
-  defp to_decimal(%Decimal{} = d), do: d
-  defp to_decimal(%Ash.NotLoaded{}), do: Decimal.new(0)
-  defp to_decimal(nil), do: Decimal.new(0)
-  defp to_decimal(v) when is_binary(v), do: Decimal.new(v)
-  defp to_decimal(v) when is_integer(v), do: Decimal.new(v)
-  defp to_decimal(v) when is_float(v), do: Decimal.from_float(v)
-  defp to_decimal(_), do: Decimal.new(0)
 end

@@ -12,6 +12,7 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
   alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.Product
   alias Craftplan.Catalog.Services.BatchCostCalculator
+  alias Craftplan.DecimalHelpers
   alias Craftplan.Orders.OrderItem
   alias Decimal, as: D
 
@@ -33,7 +34,7 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
         quantity =
           Changeset.get_attribute(changeset, :quantity) || get_data_field(changeset, :quantity)
 
-        batch_quantity = to_decimal(quantity)
+        batch_quantity = DecimalHelpers.to_decimal(quantity)
         bom = resolve_bom(changeset, product)
         authorize? = false
 
@@ -213,18 +214,6 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
 
   defp actor_from(changeset) do
     Map.get(changeset.context || %{}, :actor)
-  end
-
-  defp to_decimal(%D{} = decimal), do: decimal
-  defp to_decimal(nil), do: D.new(0)
-  defp to_decimal(value) when is_integer(value), do: D.new(value)
-  defp to_decimal(value) when is_binary(value), do: D.new(value)
-
-  defp to_decimal(value) do
-    case D.cast(value) do
-      {:ok, decimal} -> decimal
-      :error -> D.new(0)
-    end
   end
 
   defp to_integer(string, default) when is_binary(string) do
