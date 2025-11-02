@@ -76,6 +76,55 @@ defmodule CraftplanWeb.ManageProductsRecipeSimpleLiveTest do
   end
 
   @tag role: :staff
+  test "simple mode: editing labor steps persists", %{conn: conn} do
+    m = material!()
+    p = product!()
+
+    _active =
+      BOM
+      |> Ash.Changeset.for_create(:create, %{
+        product_id: p.id,
+        status: :active,
+        components: [%{component_type: :material, material_id: m.id, quantity: Decimal.new(1)}],
+        labor_steps: [%{name: "Mix dough", duration_minutes: Decimal.new(10)}]
+      })
+      |> Ash.create!(actor: staff())
+
+    {:ok, view, _html} = live(conn, ~p"/manage/products/#{p.sku}/recipe")
+
+    assert render(view) =~ "Labor steps"
+
+    params = %{
+      "recipe" => %{
+        "components" => %{"0" => %{"material_id" => m.id, "quantity" => "1"}},
+        "labor_steps" => %{
+          "0" => %{
+            "name" => "Mix dough",
+            "duration_minutes" => "15",
+            "units_per_run" => "12",
+            "rate_override" => "20"
+          }
+        },
+        "notes" => ""
+      }
+    }
+
+    view
+    |> element("#recipe-form")
+    |> render_submit(params)
+
+    assert render(view) =~ "Recipe saved successfully"
+
+    {:ok, active_bom} = Catalog.get_active_bom_for_product(%{product_id: p.id}, actor: staff())
+    active_bom = Ash.load!(active_bom, [labor_steps: []], actor: staff(), authorize?: false)
+    [step | _] = active_bom.labor_steps
+
+    assert step.duration_minutes == Decimal.new("15")
+    assert step.rate_override == Decimal.new("20")
+    assert step.units_per_run == Decimal.new("12")
+  end
+
+  @tag role: :staff
   test "simple mode: banner when viewing older version, and navigate to latest", %{conn: conn} do
     m = material!()
     p = product!()

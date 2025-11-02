@@ -160,8 +160,18 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
       minutes = DecimalHelpers.to_decimal(step.duration_minutes)
       hourly_rate = DecimalHelpers.to_decimal(step.rate_override || settings.labor_hourly_rate)
       hours = D.div(minutes, D.new(60))
-      per_unit_cost = D.mult(hours, hourly_rate)
-      D.add(acc, D.mult(per_unit_cost, base_quantity))
+      per_run_cost = D.mult(hours, hourly_rate)
+
+      units_per_run =
+        step
+        |> Map.get(:units_per_run)
+        |> DecimalHelpers.to_decimal()
+        |> then(fn value ->
+          if D.compare(value, D.new(0)) == :gt, do: value, else: D.new(1)
+        end)
+
+      runs = D.div(base_quantity, units_per_run)
+      D.add(acc, D.mult(per_run_cost, runs))
     end)
   end
 

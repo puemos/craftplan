@@ -227,7 +227,9 @@ if Mix.env() == :dev do
       labor_defs
       |> Enum.with_index(1)
       |> Enum.map(fn {attrs, sequence} ->
-        Map.put(attrs, :sequence, sequence)
+        attrs
+        |> Map.put(:sequence, sequence)
+        |> Map.put_new(:units_per_run, Decimal.new("1"))
       end)
 
     Catalog.BOM
@@ -707,9 +709,21 @@ if Mix.env() == :dev do
     seed_bom.(
       products.almond_cookies,
       [
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("50")},
-        %{component_type: :material, material_id: materials.almonds.id, quantity: Decimal.new("25")},
-        %{component_type: :material, material_id: materials.sugar.id, quantity: Decimal.new("30")},
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("50")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.almonds.id,
+          quantity: Decimal.new("25")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.sugar.id,
+          quantity: Decimal.new("30")
+        },
         %{
           component_type: :material,
           material_id: materials.butter.id,
@@ -719,9 +733,22 @@ if Mix.env() == :dev do
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("1")}
       ],
       [
-        %{name: "Prep dough", duration_minutes: Decimal.new("10")},
-        %{name: "Sheet & cut", duration_minutes: Decimal.new("8")},
-        %{name: "Bake trays", duration_minutes: Decimal.new("12"), rate_override: Decimal.new("25")}
+        %{
+          name: "Prep dough",
+          duration_minutes: Decimal.new("10"),
+          units_per_run: Decimal.new("48")
+        },
+        %{
+          name: "Sheet & cut",
+          duration_minutes: Decimal.new("8"),
+          units_per_run: Decimal.new("48")
+        },
+        %{
+          name: "Bake trays",
+          duration_minutes: Decimal.new("12"),
+          rate_override: Decimal.new("25"),
+          units_per_run: Decimal.new("48")
+        }
       ],
       status: :active,
       name: "Almond Cookies BOM v1"
@@ -731,9 +758,21 @@ if Mix.env() == :dev do
     seed_bom.(
       products.almond_cookies,
       [
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("48")},
-        %{component_type: :material, material_id: materials.almonds.id, quantity: Decimal.new("27")},
-        %{component_type: :material, material_id: materials.brown_sugar.id, quantity: Decimal.new("28")},
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("48")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.almonds.id,
+          quantity: Decimal.new("27")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.brown_sugar.id,
+          quantity: Decimal.new("28")
+        },
         %{
           component_type: :material,
           material_id: materials.butter.id,
@@ -743,8 +782,16 @@ if Mix.env() == :dev do
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("1")}
       ],
       [
-        %{name: "Prep dough", duration_minutes: Decimal.new("11")},
-        %{name: "Bake tests", duration_minutes: Decimal.new("14")}
+        %{
+          name: "Prep dough",
+          duration_minutes: Decimal.new("11"),
+          units_per_run: Decimal.new("48")
+        },
+        %{
+          name: "Bake tests",
+          duration_minutes: Decimal.new("14"),
+          units_per_run: Decimal.new("48")
+        }
       ],
       status: :archived,
       name: "Almond Cookies BOM R&D"
@@ -754,11 +801,27 @@ if Mix.env() == :dev do
     seed_bom.(
       products.choc_cake,
       [
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("220")},
-        %{component_type: :material, material_id: materials.sugar.id, quantity: Decimal.new("180")},
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("220")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.sugar.id,
+          quantity: Decimal.new("180")
+        },
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("4")},
-        %{component_type: :material, material_id: materials.butter.id, quantity: Decimal.new("90")},
-        %{component_type: :material, material_id: materials.chocolate.id, quantity: Decimal.new("120")},
+        %{
+          component_type: :material,
+          material_id: materials.butter.id,
+          quantity: Decimal.new("90")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.chocolate.id,
+          quantity: Decimal.new("120")
+        },
         %{component_type: :material, material_id: materials.milk.id, quantity: Decimal.new("140")}
       ],
       [
@@ -784,9 +847,21 @@ if Mix.env() == :dev do
         %{component_type: :material, material_id: materials.salt.id, quantity: Decimal.new("10")}
       ],
       [
-        %{name: "Mix & knead", duration_minutes: Decimal.new("15")},
-        %{name: "Bulk proof", duration_minutes: Decimal.new("60"), rate_override: Decimal.new("18")},
-        %{name: "Bake loaves", duration_minutes: Decimal.new("35")}
+        %{
+          name: "Mix & knead",
+          duration_minutes: Decimal.new("15"),
+          units_per_run: Decimal.new("12")
+        },
+        %{
+          name: "Bulk proof",
+          duration_minutes: Decimal.new("60"),
+          rate_override: Decimal.new("18")
+        },
+        %{
+          name: "Bake loaves",
+          duration_minutes: Decimal.new("35"),
+          units_per_run: Decimal.new("12")
+        }
       ],
       status: :active,
       name: "Artisan Bread BOM v1"
@@ -796,17 +871,45 @@ if Mix.env() == :dev do
     seed_bom.(
       products.muffins,
       [
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("120")},
-        %{component_type: :material, material_id: materials.sugar.id, quantity: Decimal.new("80")},
-        %{component_type: :material, material_id: materials.butter.id, quantity: Decimal.new("60")},
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("120")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.sugar.id,
+          quantity: Decimal.new("80")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.butter.id,
+          quantity: Decimal.new("60")
+        },
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("2")},
-        %{component_type: :material, material_id: materials.milk.id, quantity: Decimal.new("100")},
-        %{component_type: :material, material_id: materials.blueberries.id, quantity: Decimal.new("90")}
+        %{
+          component_type: :material,
+          material_id: materials.milk.id,
+          quantity: Decimal.new("100")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.blueberries.id,
+          quantity: Decimal.new("90")
+        }
       ],
       [
-        %{name: "Mix batter", duration_minutes: Decimal.new("8")},
-        %{name: "Fill tins", duration_minutes: Decimal.new("4")},
-        %{name: "Bake", duration_minutes: Decimal.new("18")}
+        %{
+          name: "Mix batter",
+          duration_minutes: Decimal.new("8"),
+          units_per_run: Decimal.new("24")
+        },
+        %{
+          name: "Fill tins",
+          duration_minutes: Decimal.new("4"),
+          units_per_run: Decimal.new("24")
+        },
+        %{name: "Bake", duration_minutes: Decimal.new("18"), units_per_run: Decimal.new("24")}
       ],
       status: :active,
       name: "Blueberry Muffins BOM v1"
@@ -816,7 +919,11 @@ if Mix.env() == :dev do
     seed_bom.(
       products.croissants,
       [
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("300")},
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("300")
+        },
         %{
           component_type: :material,
           material_id: materials.butter.id,
@@ -827,9 +934,13 @@ if Mix.env() == :dev do
         %{component_type: :material, material_id: materials.milk.id, quantity: Decimal.new("100")}
       ],
       [
-        %{name: "Laminate butter", duration_minutes: Decimal.new("45")},
-        %{name: "Proof", duration_minutes: Decimal.new("90")},
-        %{name: "Bake", duration_minutes: Decimal.new("20")}
+        %{
+          name: "Laminate butter",
+          duration_minutes: Decimal.new("45"),
+          units_per_run: Decimal.new("20")
+        },
+        %{name: "Proof", duration_minutes: Decimal.new("90"), units_per_run: Decimal.new("20")},
+        %{name: "Bake", duration_minutes: Decimal.new("20"), units_per_run: Decimal.new("12")}
       ],
       status: :active,
       name: "Croissant BOM v1"
@@ -839,16 +950,36 @@ if Mix.env() == :dev do
     seed_bom.(
       products.gf_cupcakes,
       [
-        %{component_type: :material, material_id: materials.gluten_free_mix.id, quantity: Decimal.new("140")},
-        %{component_type: :material, material_id: materials.sugar.id, quantity: Decimal.new("90")},
+        %{
+          component_type: :material,
+          material_id: materials.gluten_free_mix.id,
+          quantity: Decimal.new("140")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.sugar.id,
+          quantity: Decimal.new("90")
+        },
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("2")},
-        %{component_type: :material, material_id: materials.butter.id, quantity: Decimal.new("60")},
-        %{component_type: :material, material_id: materials.vanilla.id, quantity: Decimal.new("8")}
+        %{
+          component_type: :material,
+          material_id: materials.butter.id,
+          quantity: Decimal.new("60")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.vanilla.id,
+          quantity: Decimal.new("8")
+        }
       ],
       [
-        %{name: "Mix batter", duration_minutes: Decimal.new("9")},
-        %{name: "Pipe", duration_minutes: Decimal.new("5")},
-        %{name: "Bake", duration_minutes: Decimal.new("20")}
+        %{
+          name: "Mix batter",
+          duration_minutes: Decimal.new("9"),
+          units_per_run: Decimal.new("12")
+        },
+        %{name: "Pipe", duration_minutes: Decimal.new("5"), units_per_run: Decimal.new("12")},
+        %{name: "Bake", duration_minutes: Decimal.new("20"), units_per_run: Decimal.new("20")}
       ],
       status: :active,
       name: "Gluten-Free Cupcakes BOM v1"
@@ -858,15 +989,27 @@ if Mix.env() == :dev do
     seed_bom.(
       products.rye_loaf,
       [
-        %{component_type: :material, material_id: materials.rye_flour.id, quantity: Decimal.new("350")},
-        %{component_type: :material, material_id: materials.whole_wheat.id, quantity: Decimal.new("150")},
+        %{
+          component_type: :material,
+          material_id: materials.rye_flour.id,
+          quantity: Decimal.new("350")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.whole_wheat.id,
+          quantity: Decimal.new("150")
+        },
         %{component_type: :material, material_id: materials.yeast.id, quantity: Decimal.new("6")},
         %{component_type: :material, material_id: materials.salt.id, quantity: Decimal.new("9")}
       ],
       [
-        %{name: "Mix dough", duration_minutes: Decimal.new("14")},
-        %{name: "Proof", duration_minutes: Decimal.new("55")},
-        %{name: "Bake", duration_minutes: Decimal.new("38")}
+        %{
+          name: "Mix dough",
+          duration_minutes: Decimal.new("14"),
+          units_per_run: Decimal.new("8")
+        },
+        %{name: "Proof", duration_minutes: Decimal.new("55"), units_per_run: Decimal.new("8")},
+        %{name: "Bake", duration_minutes: Decimal.new("38"), units_per_run: Decimal.new("8")}
       ],
       status: :active,
       name: "Rye Loaf BOM v1"
@@ -876,17 +1019,50 @@ if Mix.env() == :dev do
     seed_bom.(
       products.carrot_cake,
       [
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("200")},
-        %{component_type: :material, material_id: materials.sugar.id, quantity: Decimal.new("150")},
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("200")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.sugar.id,
+          quantity: Decimal.new("150")
+        },
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("3")},
-        %{component_type: :material, material_id: materials.butter.id, quantity: Decimal.new("75")},
-        %{component_type: :material, material_id: materials.cinnamon.id, quantity: Decimal.new("5")},
-        %{component_type: :product, product_id: products.almond_cookies.id, quantity: Decimal.new("0.2")}
+        %{
+          component_type: :material,
+          material_id: materials.butter.id,
+          quantity: Decimal.new("75")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.cinnamon.id,
+          quantity: Decimal.new("5")
+        },
+        %{
+          component_type: :product,
+          product_id: products.almond_cookies.id,
+          quantity: Decimal.new("0.2")
+        }
       ],
       [
-        %{name: "Mix batter", duration_minutes: Decimal.new("12")},
-        %{name: "Bake layers", duration_minutes: Decimal.new("45")},
-        %{name: "Frost & decorate", duration_minutes: Decimal.new("10"), rate_override: Decimal.new("22")}
+        %{
+          name: "Mix batter",
+          duration_minutes: Decimal.new("12"),
+          units_per_run: Decimal.new("1")
+        },
+        %{
+          name: "Bake layers",
+          duration_minutes: Decimal.new("45"),
+          units_per_run: Decimal.new("1")
+        },
+        %{
+          name: "Frost & decorate",
+          duration_minutes: Decimal.new("10"),
+          rate_override: Decimal.new("22"),
+          units_per_run: Decimal.new("1")
+        }
       ],
       status: :active,
       name: "Carrot Cake BOM v1"
@@ -896,17 +1072,45 @@ if Mix.env() == :dev do
     seed_bom.(
       products.oatmeal_cookies,
       [
-        %{component_type: :material, material_id: materials.oats.id, quantity: Decimal.new("120")},
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("80")},
-        %{component_type: :material, material_id: materials.brown_sugar.id, quantity: Decimal.new("70")},
-        %{component_type: :material, material_id: materials.butter.id, quantity: Decimal.new("60")},
+        %{
+          component_type: :material,
+          material_id: materials.oats.id,
+          quantity: Decimal.new("120")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("80")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.brown_sugar.id,
+          quantity: Decimal.new("70")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.butter.id,
+          quantity: Decimal.new("60")
+        },
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("1")},
-        %{component_type: :material, material_id: materials.cinnamon.id, quantity: Decimal.new("4")}
+        %{
+          component_type: :material,
+          material_id: materials.cinnamon.id,
+          quantity: Decimal.new("4")
+        }
       ],
       [
-        %{name: "Cream butter & sugar", duration_minutes: Decimal.new("6")},
-        %{name: "Fold dry ingredients", duration_minutes: Decimal.new("5")},
-        %{name: "Bake", duration_minutes: Decimal.new("16")}
+        %{
+          name: "Cream butter & sugar",
+          duration_minutes: Decimal.new("6"),
+          units_per_run: Decimal.new("48")
+        },
+        %{
+          name: "Fold dry ingredients",
+          duration_minutes: Decimal.new("5"),
+          units_per_run: Decimal.new("48")
+        },
+        %{name: "Bake", duration_minutes: Decimal.new("16"), units_per_run: Decimal.new("48")}
       ],
       status: :active,
       name: "Oatmeal Cookies BOM v1"
@@ -916,16 +1120,40 @@ if Mix.env() == :dev do
     seed_bom.(
       products.cheese_danish,
       [
-        %{component_type: :material, material_id: materials.flour.id, quantity: Decimal.new("220")},
-        %{component_type: :material, material_id: materials.butter.id, quantity: Decimal.new("160")},
-        %{component_type: :material, material_id: materials.cream_cheese.id, quantity: Decimal.new("100")},
-        %{component_type: :material, material_id: materials.sugar.id, quantity: Decimal.new("60")},
+        %{
+          component_type: :material,
+          material_id: materials.flour.id,
+          quantity: Decimal.new("220")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.butter.id,
+          quantity: Decimal.new("160")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.cream_cheese.id,
+          quantity: Decimal.new("100")
+        },
+        %{
+          component_type: :material,
+          material_id: materials.sugar.id,
+          quantity: Decimal.new("60")
+        },
         %{component_type: :material, material_id: materials.eggs.id, quantity: Decimal.new("1")}
       ],
       [
-        %{name: "Laminate dough", duration_minutes: Decimal.new("35")},
-        %{name: "Prepare filling", duration_minutes: Decimal.new("8")},
-        %{name: "Bake", duration_minutes: Decimal.new("18")}
+        %{
+          name: "Laminate dough",
+          duration_minutes: Decimal.new("35"),
+          units_per_run: Decimal.new("24")
+        },
+        %{
+          name: "Prepare filling",
+          duration_minutes: Decimal.new("8"),
+          units_per_run: Decimal.new("24")
+        },
+        %{name: "Bake", duration_minutes: Decimal.new("18"), units_per_run: Decimal.new("24")}
       ],
       status: :active,
       name: "Cheese Danish BOM v1"

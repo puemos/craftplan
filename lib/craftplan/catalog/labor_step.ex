@@ -17,7 +17,7 @@ defmodule Craftplan.Catalog.LaborStep do
 
     create :create do
       primary? true
-      accept [:name, :sequence, :duration_minutes, :rate_override, :notes]
+      accept [:name, :sequence, :duration_minutes, :rate_override, :units_per_run, :notes]
 
       change after_action(fn changeset, result, _ctx ->
                bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
@@ -35,7 +35,7 @@ defmodule Craftplan.Catalog.LaborStep do
     update :update do
       primary? true
       require_atomic? false
-      accept [:name, :sequence, :duration_minutes, :rate_override, :notes]
+      accept [:name, :sequence, :duration_minutes, :rate_override, :units_per_run, :notes]
 
       change after_action(fn changeset, result, _ctx ->
                bom_id = Map.get(result, :bom_id) || Map.get(changeset.data, :bom_id)
@@ -72,6 +72,12 @@ defmodule Craftplan.Catalog.LaborStep do
 
     attribute :rate_override, :decimal do
       allow_nil? true
+    end
+
+    attribute :units_per_run, :decimal do
+      allow_nil? false
+      default 1
+      constraints min: 0
     end
 
     attribute :notes, :string do

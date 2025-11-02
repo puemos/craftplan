@@ -5,6 +5,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   alias AshPhoenix.Form
   alias Craftplan.Catalog
   alias Craftplan.Catalog.Services.BOMRecipeSync
+  alias Decimal, as: D
 
   @impl true
   def render(assigns) do
@@ -77,6 +78,25 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         />
       </div>
 
+      <div class="mt-4 rounded-md border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="font-medium text-stone-700">Labor defaults</p>
+            <p>
+              Hourly rate: {format_money(@settings.currency, @settings.labor_hourly_rate)} · Overhead: {format_percentage(
+                @settings.labor_overhead_percent
+              )}%
+            </p>
+          </div>
+          <.link
+            navigate={~p"/manage/settings/general"}
+            class="text-sm font-medium text-blue-700 hover:underline"
+          >
+            Update in settings
+          </.link>
+        </div>
+      </div>
+
       <.simple_form
         for={@form}
         id="recipe-form"
@@ -87,17 +107,17 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         <div class="space-y-4">
           <.input field={@form[:product_id]} type="hidden" value={@product.id} />
 
-          <h3 class="text-lg font-medium">Recipe</h3>
+          <h3 class="text-lg font-medium">Materials</h3>
           <p class="mb-2 text-sm text-stone-500">Add materials needed for this product</p>
 
           <div id="recipe-materials-list">
             <div
               id="recipe"
-              class="mt-2 grid w-full grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
+              class="mt-2 grid w-full grid-cols-5 gap-x-4 text-sm leading-6 text-stone-700"
             >
               <div
                 role="row"
-                class="col-span-4 grid grid-cols-4 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                class="col-span-5 grid grid-cols-5 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
               >
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 ">
                   Material
@@ -113,7 +133,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </div>
 
-              <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
+              <div role="row" class="col-span-5 hidden py-4 text-stone-400 last:block">
                 <div>
                   No materials in recipe
                 </div>
@@ -202,7 +222,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </.inputs_for>
 
-              <div role="row" class="col-span-4 py-4">
+              <div role="row" class="col-span-5 py-4">
                 <button
                   type="button"
                   phx-click="show_add_modal"
@@ -218,6 +238,167 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 >
                   <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add Material
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8">
+            <h3 class="text-lg font-medium">Labor steps</h3>
+            <p class="mb-2 text-sm text-stone-500">
+              Track each step that consumes paid time. Override the hourly rate per step to fine-tune costs.
+            </p>
+            <div class="mt-4 rounded-md border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p>
+                    Hourly rate: {format_money(@settings.currency, @settings.labor_hourly_rate)} · Overhead: {format_percentage(
+                      @settings.labor_overhead_percent
+                    )}%
+                  </p>
+                </div>
+                <.link
+                  navigate={~p"/manage/settings/general"}
+                  class="text-sm font-medium text-blue-700 hover:underline"
+                >
+                  Update in settings
+                </.link>
+              </div>
+            </div>
+
+            <div id="recipe-labor-list">
+              <div
+                id="labor"
+                class="mt-2 grid w-full grid-cols-5 gap-x-4 text-sm leading-6 text-stone-700"
+              >
+                <div
+                  role="row"
+                  class="col-span-5 grid grid-cols-5 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                >
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0">
+                    Step
+                  </div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                    Minutes
+                  </div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                    Units per run
+                  </div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                    Hourly rate override
+                  </div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                    <span class="opacity-0">Actions</span>
+                  </div>
+                </div>
+
+                <div role="row" class="col-span-5 hidden py-4 text-stone-400 last:block">
+                  <div>No labor steps yet</div>
+                </div>
+
+                <.inputs_for :let={labor_form} field={@form[:labor_steps]}>
+                  <div role="row" class="col-span-5 grid grid-cols-5">
+                    <div class="relative border-r border-b border-stone-200 p-0 pr-6 last:border-r-0">
+                      <div class="block py-4">
+                        <div class="border-b border-dashed border-stone-300">
+                          <.input
+                            flat={true}
+                            field={labor_form[:name]}
+                            type="text"
+                            placeholder="e.g. Mix dough"
+                            disabled={latest_version(@boms) != @bom.version}
+                          />
+                        </div>
+                        <.input
+                          field={labor_form[:sequence]}
+                          type="hidden"
+                          value={labor_form[:sequence].value}
+                        />
+                      </div>
+                    </div>
+
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                      <div class="block py-4 pr-6">
+                        <div class="border-b border-dashed border-stone-300">
+                          <.input
+                            flat={true}
+                            field={labor_form[:duration_minutes]}
+                            type="number"
+                            min="0"
+                            step="1"
+                            inline_label="min"
+                            disabled={latest_version(@boms) != @bom.version}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                      <div class="block py-4 pr-6">
+                        <div class="border-b border-dashed border-stone-300">
+                          <.input
+                            flat={true}
+                            field={labor_form[:units_per_run]}
+                            type="number"
+                            min="1"
+                            step="0.01"
+                            placeholder="Default 1"
+                            disabled={latest_version(@boms) != @bom.version}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                      <div class="block py-4 pr-6">
+                        <.input
+                          flat={true}
+                          field={labor_form[:rate_override]}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Uses default when blank"
+                          disabled={latest_version(@boms) != @bom.version}
+                        />
+                      </div>
+                    </div>
+
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                      <div class="block py-4 pr-6">
+                        <%= if latest_version(@boms) != @bom.version do %>
+                          <span class="text-stone-400">Read-only</span>
+                        <% else %>
+                          <label class="cursor-pointer">
+                            <input
+                              type="checkbox"
+                              phx-click="remove_form"
+                              phx-target={@myself}
+                              phx-value-path={labor_form.name}
+                              class="hidden"
+                            />
+                            <span class="font-semibold leading-6 text-stone-900 hover:text-stone-700">
+                              Remove
+                            </span>
+                          </label>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </.inputs_for>
+
+                <div role="row" class="col-span-5 py-4">
+                  <button
+                    type="button"
+                    phx-click="add_labor_step"
+                    phx-target={@myself}
+                    class={[
+                      "inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50",
+                      latest_version(@boms) != @bom.version && "cursor-not-allowed opacity-50"
+                    ]}
+                    disabled={latest_version(@boms) != @bom.version}
+                  >
+                    <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add labor step
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -371,6 +552,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     end
 
     components = build_components_from_params(recipe_params["components"] || %{})
+    labor_steps = build_labor_steps_from_params(recipe_params["labor_steps"] || %{})
+    notes = blank_to_nil(recipe_params["notes"])
 
     new_bom =
       Catalog.BOM
@@ -378,7 +561,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         product_id: product.id,
         status: :active,
         published_at: DateTime.utc_now(),
-        components: components
+        notes: notes,
+        components: components,
+        labor_steps: labor_steps
       })
       |> Ash.create!(actor: actor, authorize?: false)
 
@@ -437,6 +622,20 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   @impl true
+  def handle_event("add_labor_step", _params, socket) do
+    if latest_version(socket.assigns.boms) == socket.assigns.bom.version do
+      form =
+        Form.add_form(socket.assigns.form, socket.assigns.form[:labor_steps].name,
+          params: %{name: "", duration_minutes: 0, units_per_run: 1, rate_override: nil}
+        )
+
+      {:noreply, assign(socket, :form, form)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_event("switch_version", %{"bom_version" => v}, socket) do
     version =
       case Integer.parse(to_string(v)) do
@@ -472,7 +671,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     bom =
       if bom && bom.id do
-        Ash.load!(bom, [:rollup], actor: actor, authorize?: false)
+        Ash.load!(bom, [:rollup, labor_steps: []], actor: actor, authorize?: false)
       else
         bom
       end
@@ -495,7 +694,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
            authorize?: false
          ) do
       {:ok, boms} ->
-        boms = Ash.load!(boms, [:rollup], actor: actor, authorize?: false)
+        boms = Ash.load!(boms, [:rollup, labor_steps: []], actor: actor, authorize?: false)
         assign(socket, :boms, boms)
 
       _ ->
@@ -543,6 +742,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         resource: Catalog.BOMComponent,
         create_action: :create,
         update_action: :update
+      ],
+      labor_steps: [
+        type: :list,
+        data: bom.labor_steps || [],
+        resource: Catalog.LaborStep,
+        create_action: :create,
+        update_action: :update
       ]
     ]
 
@@ -565,7 +771,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   defp build_components_from_params(components_map) when is_map(components_map) do
     components_map
-    |> Enum.sort_by(fn {k, _} -> k end)
+    |> Enum.sort_by(fn {k, _} -> to_integer(k) end)
     |> Enum.with_index(1)
     |> Enum.map(fn {{_k, comp}, idx} ->
       %{
@@ -576,6 +782,24 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       }
     end)
   end
+
+  defp build_labor_steps_from_params(labor_map) when is_map(labor_map) do
+    labor_map
+    |> Enum.sort_by(fn {k, _} -> to_integer(k) end)
+    |> Enum.with_index(1)
+    |> Enum.map(fn {{_key, step}, sequence} ->
+      %{
+        name: blank_to_nil(step["name"] || step[:name]),
+        duration_minutes: normalize_decimal(step["duration_minutes"] || step[:duration_minutes] || 0),
+        units_per_run: normalize_units_per_run(step["units_per_run"] || step[:units_per_run]),
+        rate_override: normalize_optional_decimal(step["rate_override"] || step[:rate_override]),
+        sequence: sequence
+      }
+    end)
+    |> Enum.reject(&is_nil(&1.name))
+  end
+
+  defp build_labor_steps_from_params(_), do: []
 
   defp get_material_unit(materials_map, components_form) do
     case material_for_form(materials_map, components_form) do
@@ -632,8 +856,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     Map.get(materials_map, material_id)
   end
 
-  defp cost_value(%{} = rollup, key), do: Map.get(rollup, key) || Decimal.new(0)
-  defp cost_value(_rollup, _key), do: Decimal.new(0)
+  defp cost_value(%{} = rollup, key), do: Map.get(rollup, key) || D.new(0)
+  defp cost_value(_rollup, _key), do: D.new(0)
 
   defp latest_version([]), do: nil
   defp latest_version(nil), do: nil
@@ -649,16 +873,51 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   defp format_material_cost(currency, material, quantity) do
-    price = material.price || Decimal.new(0)
+    price = material.price || D.new(0)
     qty = normalize_decimal(quantity)
 
-    format_money(currency, Decimal.mult(price, qty))
+    format_money(currency, D.mult(price, qty))
   end
 
-  defp normalize_decimal(%Decimal{} = value), do: value
-  defp normalize_decimal(nil), do: Decimal.new(0)
-  defp normalize_decimal(value) when is_binary(value), do: Decimal.new(value)
-  defp normalize_decimal(value) when is_integer(value), do: Decimal.new(value)
-  defp normalize_decimal(value) when is_float(value), do: Decimal.from_float(value)
-  defp normalize_decimal(_), do: Decimal.new(0)
+  defp normalize_optional_decimal(nil), do: nil
+  defp normalize_optional_decimal(""), do: nil
+  defp normalize_optional_decimal(value), do: normalize_decimal(value)
+
+  defp normalize_units_per_run(nil), do: D.new(1)
+  defp normalize_units_per_run(""), do: D.new(1)
+
+  defp normalize_units_per_run(value) do
+    value
+    |> normalize_decimal()
+    |> then(fn
+      %D{} = decimal ->
+        zero = D.new(0)
+        if D.compare(decimal, zero) == :gt, do: decimal, else: D.new(1)
+
+      _ ->
+        D.new(1)
+    end)
+  end
+
+  defp blank_to_nil(nil), do: nil
+  defp blank_to_nil(""), do: nil
+  defp blank_to_nil(value), do: value
+
+  defp to_integer(value) when is_integer(value), do: value
+
+  defp to_integer(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, _} -> int
+      :error -> 0
+    end
+  end
+
+  defp to_integer(_), do: 0
+
+  defp normalize_decimal(%D{} = value), do: value
+  defp normalize_decimal(nil), do: D.new(0)
+  defp normalize_decimal(value) when is_binary(value), do: D.new(value)
+  defp normalize_decimal(value) when is_integer(value), do: D.new(value)
+  defp normalize_decimal(value) when is_float(value), do: D.from_float(value)
+  defp normalize_decimal(_), do: D.new(0)
 end
