@@ -121,9 +121,10 @@ Last updated: 2025-11-01 (refined priorities for M1→M2)
 
 ### Next Actions (M1)
 
-- [ ] Documentation refresh: BOM editor (simple versioning), planner cost snapshot, pricing guidance.
+- [ ] Documentation refresh: BOM editor (simple versioning), planner cost snapshot, pricing guidance, and labor scaling guidance.
 - [ ] Performance pass: profile product index + planner with large seeds and verify rollup-first loads.
 - [ ] Usability polish: add optional “Total required” footer in consumption recap (defer if timeboxed).
+- [ ] LiveView QA: cover labor step add/remove edge cases (empty names, zero units per run).
 
 ### Recipe → BOM Migration Plan (UI Parity)
 
@@ -131,20 +132,20 @@ Last updated: 2025-11-01 (refined priorities for M1→M2)
 
 **Phase A — Adapter (UI parity on existing route)**
 
-- [ ] Replace Recipe editor internals with BOM-backed component while preserving DOM ids, events, and layout
+- [x] Replace Recipe editor internals with BOM-backed component while preserving DOM ids, events, and layout
   - Keep route and tab labels the same for now (e.g., "Recipe") to avoid UX regression
-  - Files to migrate:
+  - Files migrated:
     - `lib/craftplan_web/live/manage/product_live/form_component_recipe.ex`
     - `lib/craftplan_web/live/manage/product_live/show.ex`
   - Form mapping
     - Materials list -> BOM components (`component_type: :material`)
-    - Add optional sub-assembly picker (`component_type: :product`)
-    - Add labor steps editor (sequence, duration_minutes, rate_override)
+    - Optional sub-assembly picker (`component_type: :product`)
+    - Labor steps editor (sequence, duration_minutes, rate_override, units_per_run)
   - Reads/writes
     - Load product `:active_bom` (or create one if missing)
     - Save components/labor via BOM create/update arguments: `components`, `labor_steps`
   - Tests
-    - Keep existing selectors/ids; update test setup to create BOMs in place of Recipes
+    - Keep existing selectors/ids; LiveView tests exercise save + history flows
 
 **Phase B — Domain usage switch**
 
