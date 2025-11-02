@@ -109,18 +109,21 @@ defmodule Craftplan.CSV.Importers.Customers do
   end
 
   defp upsert_customer(attrs, actor) do
-    case Craftplan.CRM.get_customer_by_email(attrs.email, actor: actor) do
-      {:ok, customer} ->
-        case Ash.update(customer, attrs, actor: actor) do
-          {:ok, _} -> {:ok, :updated}
-          {:error, reason} -> {:error, reason}
-        end
+    attrs
+    |> Map.fetch!(:email)
+    |> Craftplan.CRM.get_customer_by_email(actor: actor)
+    |> do_upsert_customer(attrs, actor)
+  end
 
-      {:error, _} ->
-        case Ash.create(Craftplan.CRM.Customer, attrs, actor: actor) do
-          {:ok, _} -> {:ok, :inserted}
-          {:error, reason} -> {:error, reason}
-        end
+  defp do_upsert_customer({:ok, customer}, attrs, actor) do
+    with {:ok, _} <- Ash.update(customer, attrs, actor: actor) do
+      {:ok, :updated}
+    end
+  end
+
+  defp do_upsert_customer({:error, _reason}, attrs, actor) do
+    with {:ok, _} <- Ash.create(Craftplan.CRM.Customer, attrs, actor: actor) do
+      {:ok, :inserted}
     end
   end
 

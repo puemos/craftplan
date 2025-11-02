@@ -10,45 +10,38 @@ defmodule Craftplan.Catalog.Changes.AssignBOMVersion do
   @impl true
   def change(changeset, _opts, _context) do
     case Changeset.get_attribute(changeset, :product_id) do
-      nil ->
-        changeset
-
-      product_id ->
-        maybe_assign_version(changeset, product_id)
+      product_id when not is_nil(product_id) -> maybe_assign_version(changeset, product_id)
+      _ -> changeset
     end
   end
 
   defp maybe_assign_version(changeset, product_id) do
-    case Changeset.get_attribute(changeset, :version) do
-      nil ->
-        actor = changeset.context[:actor]
+    with nil <- Changeset.get_attribute(changeset, :version),
+         {:ok, next_version} <- compute_next_version(product_id, changeset.context[:actor]) do
+      Changeset.force_change_attribute(changeset, :version, next_version)
+    else
+      _ -> changeset
+    end
+  end
 
-        next_version =
-          product_id
-          |> latest_version(actor)
-          |> case do
-            nil -> 1
-            version -> version + 1
-          end
-
-        Changeset.force_change_attribute(changeset, :version, next_version)
-
-      _version ->
-        changeset
+  defp compute_next_version(product_id, actor) do
+    case latest_version(product_id, actor) do
+      {:ok, version} -> {:ok, version + 1}
+      :not_found -> {:ok, 1}
+      {:error, reason} -> {:error, reason}
     end
   end
 
   defp latest_version(product_id, actor) do
-    BOM
-    |> Query.new()
-    |> Query.filter(product_id == ^product_id)
-    |> Query.sort(version: :desc)
-    |> Query.limit(1)
-    |> Ash.read_one(actor: actor, authorize?: false)
-    |> case do
-      {:ok, nil} -> nil
-      {:ok, %{version: version}} -> version
-      {:error, _reason} -> nil
+    case BOM
+         |> Query.new()
+         |> Query.filter(product_id == ^product_id)
+         |> Query.sort(version: :desc)
+         |> Query.limit(1)
+         |> Ash.read_one(actor: actor, authorize?: false) do
+      {:ok, %{version: version}} -> {:ok, version}
+      {:ok, nil} -> :not_found
+      {:error, reason} -> {:error, reason}
     end
   end
 end

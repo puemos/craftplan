@@ -108,19 +108,21 @@ defmodule Craftplan.CSV.Importers.Products do
   end
 
   defp upsert_product(attrs, actor) do
-    # Try to get by SKU and update; otherwise create
-    case Craftplan.Catalog.get_product_by_sku(attrs.sku, actor: actor) do
-      {:ok, product} ->
-        case Ash.update(product, attrs, actor: actor) do
-          {:ok, _} -> {:ok, :updated}
-          {:error, reason} -> {:error, reason}
-        end
+    attrs
+    |> Map.fetch!(:sku)
+    |> Craftplan.Catalog.get_product_by_sku(actor: actor)
+    |> do_upsert_product(attrs, actor)
+  end
 
-      {:error, _} ->
-        case Ash.create(Craftplan.Catalog.Product, attrs, actor: actor) do
-          {:ok, _} -> {:ok, :inserted}
-          {:error, reason} -> {:error, reason}
-        end
+  defp do_upsert_product({:ok, product}, attrs, actor) do
+    with {:ok, _} <- Ash.update(product, attrs, actor: actor) do
+      {:ok, :updated}
+    end
+  end
+
+  defp do_upsert_product({:error, _reason}, attrs, actor) do
+    with {:ok, _} <- Ash.create(Craftplan.Catalog.Product, attrs, actor: actor) do
+      {:ok, :inserted}
     end
   end
 

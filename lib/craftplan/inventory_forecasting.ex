@@ -3,6 +3,7 @@ defmodule Craftplan.InventoryForecasting do
   Module for inventory forecasting operations
   """
 
+  alias Ash.NotLoaded
   alias Craftplan.Inventory.ForecastRow
   alias Craftplan.Inventory.PurchaseOrderItem
   alias Craftplan.Orders
@@ -67,32 +68,12 @@ defmodule Craftplan.InventoryForecasting do
         Enum.flat_map(order.items, fn item ->
           quantity = item.quantity || D.new(0)
 
-          if item.product.active_bom && item.product.active_bom.components != nil do
-            item.product.active_bom.components
-            |> Enum.filter(&(&1.component_type == :material))
-            |> Enum.map(fn component ->
-              {day, component.material, D.mult(component.quantity, quantity)}
-            end)
-          else
-            # Fallback to latest BOM for the product
-            bom =
-              %{product_id: item.product_id}
-              |> Craftplan.Catalog.list_boms_for_product!(actor: actor)
-              |> List.first()
-
-            if bom do
-              bom =
-                Ash.load!(bom, [components: [material: [:name, :unit, :current_stock]]], actor: actor)
-
-              bom.components
-              |> Enum.filter(&(&1.component_type == :material))
-              |> Enum.map(fn component ->
-                {day, component.material, D.mult(component.quantity, quantity)}
-              end)
-            else
-              []
-            end
-          end
+          item
+          |> components_for_item(actor)
+          |> Enum.filter(&(&1.component_type == :material))
+          |> Enum.map(fn component ->
+            {day, component.material, D.mult(component.quantity, quantity)}
+          end)
         end)
       end)
 
@@ -153,13 +134,15 @@ defmodule Craftplan.InventoryForecasting do
   defp material_usages_for_item(item, material) do
     quantity = item.quantity || D.new(0)
 
-    if item.product.active_bom && item.product.active_bom.components != nil do
-      item.product.active_bom.components
-      |> Enum.filter(&(&1.component_type == :material))
-      |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
-      |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
-    else
-      []
+    case active_bom_components(item) do
+      {:ok, components} ->
+        components
+        |> Enum.filter(&(&1.component_type == :material))
+        |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
+        |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
+
+      _ ->
+        []
     end
   end
 
@@ -167,22 +150,14 @@ defmodule Craftplan.InventoryForecasting do
   Gets info about a specific material on a specific day from the forecast data
   """
   def get_material_day_info(material, date, materials_requirements) do
-    case Enum.find(materials_requirements, fn {m, _} -> m.id == material.id end) do
-      {_, material_data} ->
-        case Enum.find_index(material_data.quantities, fn {_, d} ->
-               Date.compare(d, date) == :eq
-             end) do
-          nil ->
-            {D.new(0), D.new(0)}
-
-          day_index ->
-            {quantity, _} = Enum.at(material_data.quantities, day_index)
-            balance = Enum.at(material_data.balance_cells, day_index)
-            {quantity, balance}
-        end
-
-      nil ->
-        {D.new(0), D.new(0)}
+    with {_, material_data} <-
+           Enum.find(materials_requirements, fn {m, _} -> m.id == material.id end),
+         {:ok, day_index} <- find_day_index(material_data.quantities, date),
+         {:ok, {quantity, _}} <- Enum.fetch(material_data.quantities, day_index) do
+      balance = Enum.at(material_data.balance_cells, day_index)
+      {quantity, balance || D.new(0)}
+    else
+      _ -> {D.new(0), D.new(0)}
     end
   end
 
@@ -301,5 +276,72 @@ defmodule Craftplan.InventoryForecasting do
   defp service_level_to_z(value) when is_float(value) and value > 0 do
     # Default to 95% when unrecognised
     service_level_to_z(0.95)
+  end
+
+  defp components_for_item(item, actor) do
+    case active_bom_components(item, actor) do
+      {:ok, components} -> components
+      _ -> fallback_components(item.product_id, actor)
+    end
+  end
+
+  defp active_bom_components(item, actor \\ nil)
+
+  defp active_bom_components(%{product: %{active_bom: %{} = bom}}, actor) do
+    case Map.get(bom, :components) do
+      components when is_list(components) ->
+        {:ok, components}
+
+      %NotLoaded{} ->
+        if actor do
+          bom =
+            Ash.load!(bom, [components: [material: [:name, :unit, :current_stock]]], actor: actor)
+
+          {:ok, Map.get(bom, :components, [])}
+        else
+          :error
+        end
+
+      _ ->
+        :error
+    end
+  end
+
+  defp active_bom_components(_, _), do: :error
+
+  defp fallback_components(nil, _actor), do: []
+
+  defp fallback_components(product_id, actor) do
+    product_id
+    |> latest_bom(actor)
+    |> case do
+      nil -> []
+      bom -> ensure_components_loaded(bom, actor)
+    end
+  end
+
+  defp latest_bom(nil, _actor), do: nil
+
+  defp latest_bom(product_id, actor) do
+    %{product_id: product_id}
+    |> Craftplan.Catalog.list_boms_for_product!(actor: actor)
+    |> List.first()
+  end
+
+  defp ensure_components_loaded(%{components: %NotLoaded{}} = bom, actor) do
+    bom
+    |> Ash.load!([components: [material: [:name, :unit, :current_stock]]], actor: actor)
+    |> Map.get(:components, [])
+  end
+
+  defp ensure_components_loaded(%{components: components}, _actor) when is_list(components), do: components
+
+  defp ensure_components_loaded(_bom, _actor), do: []
+
+  defp find_day_index(quantities, date) do
+    case Enum.find_index(quantities, fn {_, d} -> Date.compare(d, date) == :eq end) do
+      nil -> {:error, :not_found}
+      idx -> {:ok, idx}
+    end
   end
 end

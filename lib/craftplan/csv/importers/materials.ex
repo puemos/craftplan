@@ -104,18 +104,21 @@ defmodule Craftplan.CSV.Importers.Materials do
   end
 
   defp upsert_material(attrs, actor) do
-    case Craftplan.Inventory.get_material_by_sku(attrs.sku, actor: actor) do
-      {:ok, material} ->
-        case Ash.update(material, attrs, actor: actor) do
-          {:ok, _} -> {:ok, :updated}
-          {:error, reason} -> {:error, reason}
-        end
+    attrs
+    |> Map.fetch!(:sku)
+    |> Craftplan.Inventory.get_material_by_sku(actor: actor)
+    |> do_upsert_material(attrs, actor)
+  end
 
-      {:error, _} ->
-        case Ash.create(Craftplan.Inventory.Material, attrs, actor: actor) do
-          {:ok, _} -> {:ok, :inserted}
-          {:error, reason} -> {:error, reason}
-        end
+  defp do_upsert_material({:ok, material}, attrs, actor) do
+    with {:ok, _} <- Ash.update(material, attrs, actor: actor) do
+      {:ok, :updated}
+    end
+  end
+
+  defp do_upsert_material({:error, _reason}, attrs, actor) do
+    with {:ok, _} <- Ash.create(Craftplan.Inventory.Material, attrs, actor: actor) do
+      {:ok, :inserted}
     end
   end
 

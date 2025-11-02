@@ -18,105 +18,115 @@ defmodule Craftplan.Orders.Consumption do
   def consume_item(order_item_id, opts \\ []) do
     actor = Keyword.get(opts, :actor)
 
+    with {:ok, item} <- fetch_item(order_item_id, actor),
+         :ok <- ensure_not_consumed(item),
+         {:ok, order} <- fetch_order(item.order_id, actor),
+         {:ok, bom} <- resolve_bom(item, actor),
+         :ok <- process_consumption(item, order, bom, actor) do
+      Orders.update_item(item, %{status: item.status, consumed_at: DateTime.utc_now()}, actor: actor)
+    else
+      {:error, :already_consumed} -> {:ok, :already_consumed}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp fetch_item(order_item_id, actor) do
     item =
       Orders.get_order_item_by_id!(order_item_id,
         load: [product: [active_bom: [:rollup, components: [material: [:id, :unit, :sku]]]]],
         actor: actor
       )
 
-    if item.consumed_at do
-      {:ok, :already_consumed}
-    else
-      qty = item.quantity || Decimal.new(0)
+    {:ok, item}
+  end
 
-      # Fetch order to include reference in movement reason
-      order = Orders.get_order_by_id!(item.order_id, actor: actor)
+  defp ensure_not_consumed(%{consumed_at: nil}), do: :ok
+  defp ensure_not_consumed(_item), do: {:error, :already_consumed}
 
-      # Prefer the active BOM; if none, fall back to the latest BOM for the product
-      case_result =
-        case item.product.active_bom do
-          nil ->
-            %{product_id: item.product_id}
-            |> Catalog.list_boms_for_product!(actor: actor)
-            |> List.first()
+  defp fetch_order(order_id, actor) do
+    {:ok, Orders.get_order_by_id!(order_id, actor: actor)}
+  end
 
-          bom ->
-            bom
-        end
+  defp resolve_bom(item, actor) do
+    bom =
+      item
+      |> preferred_bom(actor)
+      |> maybe_load_bom(actor)
 
-      bom =
-        case case_result do
-          nil -> nil
-          b -> Ash.load!(b, [:rollup, components: [material: [:id]]], actor: actor)
-        end
+    {:ok, bom}
+  end
 
-      # Prefer flattened components to guide allocations
-      _ =
-        if bom && Map.get(bom, :rollup) && bom.rollup.components_map != %{} do
-          allocate_and_consume_lots!(item, order, bom.rollup.components_map, qty, actor)
-        else
-          # Fallback: consume without lot tracking
-          movements =
-            (bom && Map.get(bom, :components) && bom.components) ||
-              []
-              |> Enum.filter(&(&1.component_type == :material))
-              |> Enum.map(fn component ->
-                required = Decimal.mult(component.quantity, qty)
+  defp preferred_bom(item, actor) do
+    case Map.get(item.product, :active_bom) do
+      nil ->
+        %{product_id: item.product_id}
+        |> Catalog.list_boms_for_product!(actor: actor)
+        |> List.first()
 
-                %{
-                  material_id: component.material.id,
-                  quantity: Decimal.mult(required, Decimal.new(-1)),
-                  reason: "Order #{order.reference} item consumption"
-                }
-              end)
-
-          Enum.each(movements, fn mv ->
-            _ =
-              Inventory.adjust_stock(
-                %{
-                  material_id: mv.material_id,
-                  quantity: mv.quantity,
-                  reason: mv.reason
-                },
-                actor: actor
-              )
-          end)
-        end
-
-      Orders.update_item(item, %{status: item.status, consumed_at: DateTime.utc_now()}, actor: actor)
+      bom ->
+        bom
     end
   end
 
-  defp allocate_and_consume_lots!(item, order, components_map, qty, actor) do
+  defp maybe_load_bom(nil, _actor), do: nil
+
+  defp maybe_load_bom(bom, actor) do
+    Ash.load!(bom, [:rollup, components: [material: [:id]]], actor: actor)
+  end
+
+  defp process_consumption(item, order, bom, actor) do
+    quantity = item.quantity || Decimal.new(0)
+
+    case rollup_components(bom) do
+      {:ok, components_map} -> consume_with_lots(item, order, components_map, quantity, actor)
+      _ -> consume_without_lots(item, order, bom, quantity, actor)
+    end
+  end
+
+  defp rollup_components(%{rollup: %{components_map: map}}) when map != %{}, do: {:ok, map}
+  defp rollup_components(_), do: :error
+
+  defp consume_with_lots(_item, _order, %{} = components_map, _qty, _actor) when map_size(components_map) == 0, do: :ok
+
+  defp consume_with_lots(item, order, components_map, qty, actor) do
     Enum.each(components_map, fn {material_id, per_unit_str} ->
       per_unit = Decimal.new(per_unit_str)
       required_total = Decimal.mult(per_unit, qty)
-      remaining = required_total
+      allocate_material(item, order, material_id, required_total, actor)
+    end)
 
-      lots =
-        Craftplan.Inventory.Lot
-        |> Ash.Query.new()
-        |> Ash.Query.filter(expr(material_id == ^material_id))
-        |> Ash.read!(actor: actor, authorize?: false)
-        |> Ash.load!([:current_stock], actor: actor, authorize?: false)
-        |> Enum.sort_by(fn l ->
-          {l.expiry_date || ~D[9999-12-31], l.received_at || DateTime.from_naive!(~N[0000-01-01 00:00:00], "Etc/UTC")}
-        end)
+    :ok
+  end
 
-      if Enum.empty?(lots) do
-        # No lots exist for this material; fall back to non-lot stock adjustment
-        _ =
-          Inventory.adjust_stock(
-            %{
-              material_id: material_id,
-              quantity: Decimal.mult(required_total, Decimal.new(-1)),
-              reason: "Order #{order.reference} item consumption"
-            },
-            actor: actor
-          )
-      else
-        do_allocate(item, order, lots, remaining, actor)
-      end
+  defp allocate_material(item, order, material_id, required_total, actor) do
+    lots = available_lots(material_id, actor)
+
+    case lots do
+      [] ->
+        Inventory.adjust_stock(
+          %{
+            material_id: material_id,
+            quantity: Decimal.mult(required_total, Decimal.new(-1)),
+            reason: "Order #{order.reference} item consumption"
+          },
+          actor: actor
+        )
+
+      lots_list ->
+        do_allocate(item, order, lots_list, required_total, actor)
+    end
+  end
+
+  defp available_lots(material_id, actor) do
+    Craftplan.Inventory.Lot
+    |> Ash.Query.new()
+    |> Ash.Query.filter(expr(material_id == ^material_id))
+    |> Ash.read!(actor: actor, authorize?: false)
+    |> Ash.load!([:current_stock], actor: actor, authorize?: false)
+    |> Enum.sort_by(fn lot ->
+      {lot.expiry_date || ~D[9999-12-31],
+       lot.received_at ||
+         DateTime.from_naive!(~N[0000-01-01 00:00:00], "Etc/UTC")}
     end)
   end
 
@@ -124,43 +134,68 @@ defmodule Craftplan.Orders.Consumption do
 
   defp do_allocate(item, order, [lot | rest], remaining, actor) do
     current = lot.current_stock || Decimal.new(0)
+    take_qty = Decimal.min(current, remaining)
 
-    take_qty =
-      case Decimal.compare(current, remaining) do
-        :lt -> current
-        _ -> remaining
-      end
+    apply_lot_consumption(lot, take_qty, item, order, actor)
 
+    remaining
+    |> Decimal.sub(take_qty)
+    |> continue_allocation(item, order, rest, actor)
+  end
+
+  defp apply_lot_consumption(lot, take_qty, item, order, actor) do
     if Decimal.compare(take_qty, Decimal.new(0)) == :gt do
-      # consume movement with lot
-      _ =
-        Inventory.adjust_stock(
-          %{
-            material_id: lot.material_id,
-            lot_id: lot.id,
-            quantity: Decimal.mult(take_qty, Decimal.new(-1)),
-            reason: "Order #{order.reference} item consumption"
-          },
-          actor: actor
-        )
-
-      # persist allocation
-      _ =
-        Craftplan.Orders.OrderItemLot
-        |> Ash.Changeset.for_create(:create, %{
-          order_item_id: item.id,
+      Inventory.adjust_stock(
+        %{
+          material_id: lot.material_id,
           lot_id: lot.id,
-          quantity_used: take_qty
-        })
-        |> Ash.create!(actor: actor, authorize?: false)
-    end
+          quantity: Decimal.mult(take_qty, Decimal.new(-1)),
+          reason: "Order #{order.reference} item consumption"
+        },
+        actor: actor
+      )
 
-    remaining2 = Decimal.sub(remaining, take_qty)
+      Craftplan.Orders.OrderItemLot
+      |> Ash.Changeset.for_create(:create, %{
+        order_item_id: item.id,
+        lot_id: lot.id,
+        quantity_used: take_qty
+      })
+      |> Ash.create!(actor: actor, authorize?: false)
 
-    if Decimal.compare(remaining2, Decimal.new(0)) == :gt do
-      do_allocate(item, order, rest, remaining2, actor)
+      :ok
     else
       :ok
     end
+  end
+
+  defp continue_allocation(remaining, item, order, lots, actor) do
+    if Decimal.compare(remaining, Decimal.new(0)) == :gt do
+      do_allocate(item, order, lots, remaining, actor)
+    else
+      :ok
+    end
+  end
+
+  defp consume_without_lots(_item, _order, nil, _qty, _actor), do: :ok
+
+  defp consume_without_lots(_item, order, bom, qty, actor) do
+    bom.components
+    |> List.wrap()
+    |> Enum.filter(&(&1.component_type == :material))
+    |> Enum.each(fn component ->
+      required = Decimal.mult(component.quantity, qty)
+
+      Inventory.adjust_stock(
+        %{
+          material_id: component.material.id,
+          quantity: Decimal.mult(required, Decimal.new(-1)),
+          reason: "Order #{order.reference} item consumption"
+        },
+        actor: actor
+      )
+    end)
+
+    :ok
   end
 end
