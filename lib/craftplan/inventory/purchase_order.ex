@@ -29,6 +29,54 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     update :update do
       accept [:supplier_id, :status, :ordered_at, :received_at]
     end
+
+    update :receive do
+      require_atomic? false
+
+      argument :lot_receipts, {:array, :map} do
+        allow_nil? true
+        default []
+        description "List of %{material_id, lot_code, quantity, expiry_date?} to receive"
+      end
+
+      change set_attribute(:status, :received)
+      change set_attribute(:received_at, &DateTime.utc_now/0)
+
+      change after_action(fn changeset, po, _ctx ->
+               actor = changeset.context[:actor]
+               receipts = Ash.Changeset.get_argument(changeset, :lot_receipts) || []
+
+               Enum.each(receipts, fn r ->
+                 material_id = Map.get(r, :material_id) || Map.get(r, "material_id")
+                 lot_code = Map.get(r, :lot_code) || Map.get(r, "lot_code")
+                 expiry = Map.get(r, :expiry_date) || Map.get(r, "expiry_date")
+                 qty = Map.get(r, :quantity) || Map.get(r, "quantity")
+
+                 # Create/find lot
+                 lot =
+                   Ash.Seed.seed!(Craftplan.Inventory.Lot, %{
+                     lot_code: lot_code,
+                     material_id: material_id,
+                     supplier_id: po.supplier_id,
+                     received_at: DateTime.utc_now(),
+                     expiry_date: expiry
+                   })
+
+                 # Create movement with lot
+                 Craftplan.Inventory.adjust_stock(
+                   %{
+                     material_id: material_id,
+                     lot_id: lot.id,
+                     quantity: qty,
+                     reason: "PO #{po.reference} receive"
+                   },
+                   actor: actor
+                 )
+               end)
+
+               {:ok, po}
+             end)
+    end
   end
 
   policies do

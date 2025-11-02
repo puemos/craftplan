@@ -70,4 +70,3 @@ defmodule Craftplan.Inventory.Lot do
     sum :current_stock, :movements, :quantity
   end
 end
-

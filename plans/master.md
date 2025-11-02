@@ -80,7 +80,7 @@ Last updated: 2025-11-01 (refined priorities for M1→M2)
 - [x] Simple header (no dropdown). Shows “Version vN” and a “Latest” chip when on newest.
 - [x] When viewing an older version: show an in-page banner with “Go to latest”.
 - [x] Editing disabled on older versions; Save only appears on latest version.
-- [x] History surfaced via modal with actions: View, Make Active (no Duplicate/Archive in simple mode).
+- [x] History surfaced via modal with action: View (no promote/duplicate/archive in simple mode). Older versions are read-only with an in-page "Go to latest" button.
 - [x] Routing: `?v=:version` preselects version.
 - [x] Tests updated for banner, read-only behavior, and modal actions.
 

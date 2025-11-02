@@ -48,6 +48,7 @@ defmodule Craftplan.Orders.ConsumptionTest do
       Catalog.BOM
       |> Ash.Changeset.for_create(:create, %{
         product_id: product.id,
+        status: :active,
         components: [
           %{component_type: :material, material_id: flour.id, quantity: Decimal.new(200)}
         ]

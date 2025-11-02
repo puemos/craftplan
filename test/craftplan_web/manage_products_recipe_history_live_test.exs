@@ -35,7 +35,7 @@ defmodule CraftplanWeb.ManageProductsRecipeHistoryLiveTest do
   end
 
   @tag role: :staff
-  test "history modal: revert to previous active", %{conn: conn} do
+  test "history modal: view older version and return to latest", %{conn: conn} do
     m = material!()
     p = product!()
 
@@ -70,16 +70,25 @@ defmodule CraftplanWeb.ManageProductsRecipeHistoryLiveTest do
     |> element("a.text-blue-700", "Show version history")
     |> render_click()
 
-    # Make previous version active again (first promote_row button targets archived v1)
+    # In simple mode, we no longer promote from the modal.
+    # Instead, click "View" on v1, assert read-only banner, then go back to latest (v2).
+
+    # Click View on version 1
     view
-    |> element("#bom-history-modal-table button[phx-click=promote_row]")
+    |> element("#bom-history-modal-table button[phx-click=switch_version][phx-value-bom_version=\"1\"]")
     |> render_click()
 
-    # Reload and assert quantity reverted to 1
-    {:ok, _view2, html} = live(conn, ~p"/manage/products/#{p.sku}/recipe")
+    # Older version banner is shown and the quantity is 1 (read-only)
+    html = render(view)
+    assert html =~ "You are viewing an older version"
     assert html =~ "value=\"1\""
 
-    {:ok, boms} = Catalog.list_boms_for_product(%{product_id: p.id}, actor: staff())
-    assert Enum.any?(boms, &(&1.status == :active))
+    # Go to latest (version 2) via the in-page banner button
+    view
+    |> element("button[phx-click=switch_version][phx-value-bom_version=\"2\"]", "Go to latest")
+    |> render_click()
+
+    html = render(view)
+    assert html =~ "value=\"2\""
   end
 end

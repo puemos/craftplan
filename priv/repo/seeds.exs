@@ -7,7 +7,7 @@ alias Craftplan.Inventory
 alias Craftplan.Orders
 alias Craftplan.Repo
 alias Craftplan.Settings
-import Ash.Expr
+
 require Ash.Query
 
 # ------------------------------------------------------------------------------

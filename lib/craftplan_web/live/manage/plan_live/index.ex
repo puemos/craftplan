@@ -2,6 +2,8 @@ defmodule CraftplanWeb.PlanLive.Index do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  import Ash.Expr
+
   alias Craftplan.Catalog
   alias Craftplan.Inventory
   alias Craftplan.InventoryForecasting
@@ -10,7 +12,7 @@ defmodule CraftplanWeb.PlanLive.Index do
   alias Craftplan.Production
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
-  import Ash.Expr
+
   require Ash.Query
 
   @impl true
@@ -775,19 +777,33 @@ defmodule CraftplanWeb.PlanLive.Index do
               </div>
               <div>
                 <div class="text-stone-500">Material</div>
-                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.material_cost || Decimal.new(0))}</div>
+                <div class="font-medium">
+                  {format_money(
+                    @settings.currency,
+                    @completion_snapshot.material_cost || Decimal.new(0)
+                  )}
+                </div>
               </div>
               <div>
                 <div class="text-stone-500">Labor</div>
-                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.labor_cost || Decimal.new(0))}</div>
+                <div class="font-medium">
+                  {format_money(@settings.currency, @completion_snapshot.labor_cost || Decimal.new(0))}
+                </div>
               </div>
               <div>
                 <div class="text-stone-500">Overhead</div>
-                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.overhead_cost || Decimal.new(0))}</div>
+                <div class="font-medium">
+                  {format_money(
+                    @settings.currency,
+                    @completion_snapshot.overhead_cost || Decimal.new(0)
+                  )}
+                </div>
               </div>
               <div>
                 <div class="text-stone-500">Unit Cost</div>
-                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.unit_cost || Decimal.new(0))}</div>
+                <div class="font-medium">
+                  {format_money(@settings.currency, @completion_snapshot.unit_cost || Decimal.new(0))}
+                </div>
               </div>
             </div>
           </div>
@@ -1072,7 +1088,9 @@ defmodule CraftplanWeb.PlanLive.Index do
                   :labor_cost,
                   :overhead_cost,
                   :unit_cost,
-                  product: [active_bom: [:rollup, components: [material: [:name, :unit, :current_stock]]]]
+                  product: [
+                    active_bom: [:rollup, components: [material: [:name, :unit, :current_stock]]]
+                  ]
                 ],
                 actor: socket.assigns.current_user
               )
@@ -1087,7 +1105,10 @@ defmodule CraftplanWeb.PlanLive.Index do
                     |> Ash.Query.new()
                     |> Ash.Query.filter(expr(id in ^ids))
                     |> Ash.read!(actor: socket.assigns.current_user, authorize?: false)
-                    |> Ash.load!([:current_stock], actor: socket.assigns.current_user, authorize?: false)
+                    |> Ash.load!([:current_stock],
+                      actor: socket.assigns.current_user,
+                      authorize?: false
+                    )
 
                   materials_by_id = Map.new(materials, &{&1.id, &1})
 
@@ -1118,7 +1139,8 @@ defmodule CraftplanWeb.PlanLive.Index do
             socket
             |> assign(:pending_consumption_item_id, updated_item.id)
             |> assign(:pending_consumption_recap, recap)
-            |> assign(:completion_snapshot,
+            |> assign(
+              :completion_snapshot,
               %{
                 batch_code: item.batch_code,
                 material_cost: item.material_cost,

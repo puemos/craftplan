@@ -50,4 +50,3 @@ defmodule Craftplan.Orders.OrderItemLot do
     end
   end
 end
-

@@ -55,26 +55,26 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       <% end %>
 
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <.stat_card
-            title="Materials"
-            value={format_money(@settings.currency, cost_value(@bom.rollup, :material_cost))}
-            size={:sm}
-          />
-          <.stat_card
-            title="Labor"
-            value={format_money(@settings.currency, cost_value(@bom.rollup, :labor_cost))}
-            size={:sm}
-          />
-          <.stat_card
-            title="Overhead"
-            value={format_money(@settings.currency, cost_value(@bom.rollup, :overhead_cost))}
-            size={:sm}
-          />
-          <.stat_card
-            title="Unit Cost"
-            value={format_money(@settings.currency, cost_value(@bom.rollup, :unit_cost))}
-            size={:sm}
-          />
+        <.stat_card
+          title="Materials"
+          value={format_money(@settings.currency, cost_value(@bom.rollup, :material_cost))}
+          size={:sm}
+        />
+        <.stat_card
+          title="Labor"
+          value={format_money(@settings.currency, cost_value(@bom.rollup, :labor_cost))}
+          size={:sm}
+        />
+        <.stat_card
+          title="Overhead"
+          value={format_money(@settings.currency, cost_value(@bom.rollup, :overhead_cost))}
+          size={:sm}
+        />
+        <.stat_card
+          title="Unit Cost"
+          value={format_money(@settings.currency, cost_value(@bom.rollup, :unit_cost))}
+          size={:sm}
+        />
       </div>
 
       <.simple_form
@@ -284,6 +284,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         id="bom-history-modal"
         show
         title="Recipe History"
+        max_width="max-w-4xl"
         on_cancel={JS.push("hide_history", target: @myself)}
       >
         <.table id="bom-history-modal-table" rows={@boms || []}>
@@ -299,27 +300,15 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             end}
           </:col>
           <:action :let={b}>
-            <div class="flex gap-2">
-              <.button
-                size={:sm}
-                variant={:outline}
-                phx-target={@myself}
-                phx-click="switch_version"
-                phx-value-bom_version={b.version}
-              >
-                View
-              </.button>
-              <.button
-                :if={b.status != :active}
-                size={:sm}
-                variant={:outline}
-                phx-target={@myself}
-                phx-click="promote_row"
-                phx-value-bom_version={b.version}
-              >
-                Make Active
-              </.button>
-            </div>
+            <.button
+              size={:sm}
+              variant={:outline}
+              phx-target={@myself}
+              phx-click="switch_version"
+              phx-value-bom_version={b.version}
+            >
+              View
+            </.button>
           </:action>
         </.table>
         <div class="mt-4 flex justify-end">
@@ -464,40 +453,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     {:noreply, socket |> assign(:show_history, false) |> push_patch(to: to)}
   end
 
-  # duplicate/promote/revert/try_variation were removed from the UI in the cleanup
-
-  @impl true
-  def handle_event("promote_row", %{"bom_version" => v}, socket) do
-    actor = socket.assigns.current_user
-    version = parse_int(v)
-    bom = find_bom(socket.assigns.boms || [], version)
-
-    if bom do
-      case Catalog.get_active_bom_for_product(%{product_id: socket.assigns.product.id},
-             actor: actor,
-             authorize?: false
-           ) do
-        {:ok, %Catalog.BOM{} = active} when active.id != bom.id ->
-          _ =
-            Ash.update(active, %{status: :archived},
-              action: :update,
-              actor: actor,
-              authorize?: false
-            )
-
-        _ ->
-          :ok
-      end
-
-      _ = Ash.update(bom, %{}, action: :promote, actor: actor, authorize?: false)
-    end
-
-    socket = assign_lists(socket)
-    {:noreply, socket |> assign_form() |> put_flash(:info, "BOM is now active")}
-  end
-
-  # archive_row was removed with UI cleanup (no Archive button in simple mode modal)
-
   @impl true
   def handle_event("remove_form", %{"path" => path}, socket) do
     form = Form.remove_form(socket.assigns.form, path)
@@ -579,18 +534,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       )
     end
   end
-
-  defp parse_int(v) when is_integer(v), do: v
-
-  defp parse_int(v) do
-    case Integer.parse(to_string(v)) do
-      {n, _} -> n
-      _ -> nil
-    end
-  end
-
-  defp find_bom(_boms, nil), do: nil
-  defp find_bom(boms, ver), do: Enum.find(boms, fn b -> b.version == ver end)
 
   defp form_for_bom(bom, actor) do
     nested_forms = [

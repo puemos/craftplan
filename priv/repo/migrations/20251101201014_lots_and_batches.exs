@@ -27,7 +27,8 @@ defmodule Craftplan.Repo.Migrations.LotsAndBatches do
             name: "orders_production_batches_product_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
 
       add :bom_id,
           references(:catalog_boms,
@@ -71,7 +72,8 @@ defmodule Craftplan.Repo.Migrations.LotsAndBatches do
             name: "orders_item_lots_order_item_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
 
       add :lot_id, :uuid, null: false
     end
@@ -123,7 +125,8 @@ defmodule Craftplan.Repo.Migrations.LotsAndBatches do
             name: "inventory_lots_material_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
 
       add :supplier_id,
           references(:inventory_suppliers,

@@ -13,4 +13,3 @@ defmodule Craftplan.Repo.Migrations.DropAdvancedRecipeVersioningFromSettings do
     end
   end
 end
-

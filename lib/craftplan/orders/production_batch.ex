@@ -59,4 +59,3 @@ defmodule Craftplan.Orders.ProductionBatch do
     has_many :order_items, Craftplan.Orders.OrderItem
   end
 end
-

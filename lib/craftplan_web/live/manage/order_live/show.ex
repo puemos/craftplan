@@ -3,13 +3,14 @@ defmodule CraftplanWeb.OrderLive.Show do
   use CraftplanWeb, :live_view
 
   import Ash.Expr
-  require Ash.Query
 
   alias Craftplan.Catalog
   alias Craftplan.Catalog.Product.Photo
   alias Craftplan.CRM
   alias Craftplan.Orders
   alias CraftplanWeb.Navigation
+
+  require Ash.Query
 
   @default_order_load [
     :total_cost,

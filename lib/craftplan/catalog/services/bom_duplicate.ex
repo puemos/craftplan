@@ -1,7 +1,6 @@
 defmodule Craftplan.Catalog.Services.BOMDuplicate do
   @moduledoc false
 
-  alias Craftplan.Catalog
   alias Craftplan.Catalog.BOM
 
   def duplicate!(%BOM{} = bom, opts \\ []) do

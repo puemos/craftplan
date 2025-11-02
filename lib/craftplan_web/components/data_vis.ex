@@ -218,10 +218,11 @@ defmodule CraftplanWeb.Components.DataVis do
   attr :title, :string, default: nil, doc: "The title of the statistic"
   attr :value, :any, default: nil, doc: "The main value to display"
   attr :description, :string, default: nil, doc: "Additional context for the statistic"
+
   attr :size, :atom,
     default: :md,
     values: [:sm, :md],
-    doc: "Visual size variant (\":sm\" or \":md\")."
+    doc: ~s{Visual size variant (":sm" or ":md").}
 
   def stat_card(assigns) do
     ~H"""
