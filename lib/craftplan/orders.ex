@@ -16,5 +16,14 @@ defmodule Craftplan.Orders do
       define :get_order_item_by_id, action: :read, get_by: [:id]
       define :update_item, action: :update
     end
+
+    resource Craftplan.Orders.ProductionBatch do
+      define :get_production_batch_by_id, action: :read, get_by: [:id]
+      define :list_production_batches, action: :read
+    end
+
+    resource Craftplan.Orders.OrderItemLot do
+      define :list_order_item_lots, action: :read
+    end
   end
 end

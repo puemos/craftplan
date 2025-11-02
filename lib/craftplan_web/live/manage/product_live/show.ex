@@ -183,7 +183,7 @@ defmodule CraftplanWeb.ProductLive.Show do
           :allergens,
           :nutritional_facts,
           :bom_unit_cost,
-          active_bom: [components: [:material, :product], labor_steps: []]
+          active_bom: [:rollup, components: [:material, :product], labor_steps: []]
         ]
       )
 

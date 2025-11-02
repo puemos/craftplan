@@ -1,12 +1,12 @@
 # Craftplan Product Plan -- Bakery ERP Roadmap
 
-Last updated: 2025-11-01
+Last updated: 2025-11-01 (refined priorities for M1→M2)
 
 ## Progress Snapshot
 
 - Overall: [ ] Not started / [x] In progress / [ ] Done
 - Current Cycle (Oct 2025): Stabilize internal print flows + prep costing foundations.
-- Active Initiative: Inventory Forecast Grid Milestone B (LiveView controls + metrics band).
+- Active Initiative: Close M1 (costing UX) → kick off M2 (Traceability & Compliance).
 - Milestone Health
   - [ ] M1: Production Costing Foundations
   - [ ] M2: Traceability & Compliance
@@ -71,8 +71,9 @@ Last updated: 2025-11-01
 **UI**
 
 - [x] BOM editor (Recipe tab) backed by BOMs with simple mode save (creates new active version).
-- [ ] Planner "Mark Done" dialog shows resulting batch code and actual cost snapshot.
+- [x] Planner "Mark Done" dialog shows resulting batch code and actual cost snapshot.
 - [x] Pricing helper card on product detail showing suggested retail/wholesale prices (based on markup settings).
+- [x] Cost summary on Recipe tab (read-only rollup: material/labor/overhead/unit). Updates on save/promote.
 
 ### BOM Versioning (Simple UX)
 
@@ -98,26 +99,31 @@ Last updated: 2025-11-01
 - [x] Persisted BOM rollups (`catalog_bom_rollups`) with unique index on `bom_id`; auto-refresh on BOM/component/labor changes.
 - [x] Add DB index on `catalog_bom_rollups(product_id)` to speed product cost reads.
 - [x] Optional: materialized flattened components JSONB in rollups + GIN index for label/traceability queries.
+ - [x] Prefer persisted rollups in product lists/details; avoid ad-hoc recalculation in LiveViews.
 
 **Deprecations & Removals** (no backward compatibility)
 
 - [x] Remove legacy Recipe model usage in domain and UI
   - [x] Switch Product label ingredients to BOM components (fallback not required)
   - [x] Replace product financial calculations to prefer active BOM unit cost; remove recipe-based cost calcs
-  - [ ] Remove Recipe editor UI and tabs (`ProductLive.FormComponentRecipe`, show routes/tabs)
   - [x] Remove `Catalog.Recipe` and `Catalog.RecipeMaterial` resources from `Craftplan.Catalog`
   - [x] Drop `catalog_recipes` and `catalog_recipe_materials` tables via migration
 - [x] Replace `Material <-> Recipe` relationships with `Material <-> BOM` through `BOMComponent`
 - [x] Update planner/forecasting to load from BOMs instead of Recipes
 - [x] Update seeds/tests to use BOMs exclusively; remove recipe fixtures
 - [x] Remove `advanced_recipe_versioning` feature flag setting (schema + DB + seeds). Simple mode is the only UX.
-- [ ] Remove any documentation and references to Recipes; update docs to reflect simple versioning.
 
 ### Acceptance Criteria
 
 - Batch completion persists cost breakdown and batch code on order item; totals flow into invoices.
 - Pricing helper toggles between markup types (percent/fixed) and respects inclusive/exclusive tax.
 - BOM editor enforces valid graphs (no cycles) and supports saving draft vs publish.
+
+### Next Actions (M1)
+
+- [ ] Documentation refresh: BOM editor (simple versioning), planner cost snapshot, pricing guidance.
+- [ ] Performance pass: profile product index + planner with large seeds and verify rollup-first loads.
+- [ ] Usability polish: add optional “Total required” footer in consumption recap (defer if timeboxed).
 
 ### Recipe → BOM Migration Plan (UI Parity)
 
@@ -151,13 +157,11 @@ Last updated: 2025-11-01
 
 **Phase C — Cleanup and removal**
 
-- [ ] Rename the UI tab/labels from "Recipe" to "BOM" (route may remain for continuity or be redirected)
 - [x] Remove Recipe resources from domain and UI
   - Delete `Catalog.Recipe` and `Catalog.RecipeMaterial`
   - Remove LiveView recipe-specific code paths
   - Drop `catalog_recipes` and `catalog_recipe_materials` tables
 - [x] Replace `Material <-> Recipe` relationship with `Material <-> BOM` through `BOMComponent`
-- [ ] Update docs to refer to BOMs exclusively
 
 **Acceptance Criteria (UI parity)**
 
@@ -175,38 +179,46 @@ Last updated: 2025-11-01
 
 ## Milestone 2 -- Traceability & Compliance
 
-**Status:** [ ] Not started [ ] In progress [ ] Done
-
-> ⚠️ **NEEDS FLESHING OUT** - Requires detailed data model design, UI wireframes, and acceptance test scenarios
+**Status:** [ ] Not started [x] In progress [ ] Done
 
 ### Goals
 
-- Deliver lot tracking, recall readiness, and audit-friendly exports ahead of competitor parity claims.
+- Ship pragmatic, printable traceability: lots on materials, batches on products, one-click recall export.
+- Keep operator UX simple: defaults to FIFO; advanced lot selection optional.
 
 ### User Stories
 
-- As a quality lead, I can trace which batches used a recalled material and export affected orders.
-- As an operator, I can record certifications/expiry on materials and be alerted during production.
-- As a regulator, I can receive printable compliance reports showing batch lineage and disposition.
+- As a quality lead, I trace which orders used a recalled lot and export affected orders.
+- As an operator, I record supplier lot and expiry on receipt and see warnings during production.
+- As a regulator/customer, I print a batch label and lot usage report on demand.
 
 ### Requirements
 
 **Domain**
 
-- [ ] Extend inventory movements to capture `lot_number`, `expiry_date`, `certifications`.
-- [ ] Batch-to-material usage join resource for trace queries.
-- [ ] Recall log resource with status (`investigating`, `resolved`).
+- [ ] Add `Inventory.Lot` (lot_code, supplier_id, expiry_date, received_at, material_id, quantity_on_hand).
+- [ ] Extend `Inventory.Movement` to reference `lot_id` when applicable; default FIFO on consumption.
+- [ ] Add `ProductionBatch` (batch_code, product_id, bom_id, produced_at) to group order-item completions.
+- [ ] Track `OrderItemLot` allocation (order_item_id, lot_id, quantity_used) during consumption.
+- [ ] Ensure components_map guides lot allocations for nested sub-assemblies (aggregate per material).
 
 **UI**
 
-- [ ] Traceability dashboard under `/manage/traceability` summarizing recent batches, open recalls, expiring materials.
+- [ ] Receiving: add lot capture (lot code, expiry) on PO receive; allocate received qty to lot.
+- [ ] Planner/Orders: consumption modal shows per-material lots (FIFO default) with optional override.
+- [ ] Batch label print (QR/Code128): batch_code + product + date + key materials lots.
+- [ ] Traceability: lot view → downstream products/orders; batch view → upstream lots; printable report.
+
+**Reports & Exports**
+
+- [ ] CSV/print exports for lot recall: affected orders, quantities, contact list.
+
+**Data & Migrations**
+
+- [ ] Migrations for Lot, ProductionBatch, and join records; indexes on lot_code, batch_code, FKs.
+- [ ] Seeds include example lots and batch flows.
 - [ ] Batch detail view linking orders, materials, and printable compliance sheet.
 - [ ] Warnings in planner when scheduled production will use expiring lots.
-
-**Ops/Reports**
-
-- [ ] Generate compliance export (CSV/HTML) for selected batch or date range.
-- [ ] Add audit trail events for lot assignments and recall resolutions.
 
 ### Acceptance Criteria
 
@@ -216,9 +228,9 @@ Last updated: 2025-11-01
 
 ### Implementation Notes
 
-- Add composite indexes for lot/batch lookups.
-- Build LiveView stream for traceability dashboard; include empty-state messaging.
-- Tests: traceability query unit tests + LiveView flow for marking recall resolved.
+- Start with write path + reports; lot reallocation UI is a phase-2 if needed.
+- Keep `Orders.Consumption` the single entry point; inject lot selection there.
+- Build queries via `Ash.Query.load/2` and `components_map` to avoid recomputation.
 
 ---
 

@@ -218,18 +218,34 @@ defmodule CraftplanWeb.Components.DataVis do
   attr :title, :string, default: nil, doc: "The title of the statistic"
   attr :value, :any, default: nil, doc: "The main value to display"
   attr :description, :string, default: nil, doc: "Additional context for the statistic"
+  attr :size, :atom,
+    default: :md,
+    values: [:sm, :md],
+    doc: "Visual size variant (\":sm\" or \":md\")."
 
   def stat_card(assigns) do
     ~H"""
-    <div class="rounded border border-stone-200 bg-white p-3">
-      <dt :if={@title} class="mb-5 text-base font-medium text-stone-600">{@title}</dt>
+    <div class={["rounded border border-stone-200 bg-white", stat_card_container_classes(@size)]}>
+      <dt :if={@title} class={stat_card_title_classes(@size)}>{@title}</dt>
       <dd class="mt-1">
-        <div class="text-xl font-semibold text-stone-900">{@value}</div>
-        <div :if={@description} class="text-sm text-stone-500">{@description}</div>
+        <div class={stat_card_value_classes(@size)}>{@value}</div>
+        <div :if={@description} class={stat_card_desc_classes(@size)}>{@description}</div>
       </dd>
     </div>
     """
   end
+
+  defp stat_card_container_classes(:sm), do: "p-2"
+  defp stat_card_container_classes(:md), do: "p-3"
+
+  defp stat_card_title_classes(:sm), do: "mb-3 text-sm font-medium text-stone-600"
+  defp stat_card_title_classes(:md), do: "mb-5 text-base font-medium text-stone-600"
+
+  defp stat_card_value_classes(:sm), do: "text-lg font-semibold text-stone-900"
+  defp stat_card_value_classes(:md), do: "text-xl font-semibold text-stone-900"
+
+  defp stat_card_desc_classes(:sm), do: "text-xs text-stone-500"
+  defp stat_card_desc_classes(:md), do: "text-sm text-stone-500"
 
   @doc """
   Renders a table card with a title and table content.

@@ -15,7 +15,7 @@ defmodule Craftplan.Inventory.Movement do
     defaults [:read, :destroy]
 
     create :adjust_stock do
-      accept [:quantity, :reason, :material_id]
+      accept [:quantity, :reason, :material_id, :lot_id]
 
       change set_attribute(:occurred_at, &DateTime.utc_now/0)
     end
@@ -53,6 +53,10 @@ defmodule Craftplan.Inventory.Movement do
   relationships do
     belongs_to :material, Craftplan.Inventory.Material do
       allow_nil? false
+    end
+
+    belongs_to :lot, Craftplan.Inventory.Lot do
+      allow_nil? true
     end
   end
 end

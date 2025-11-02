@@ -2,6 +2,9 @@ defmodule CraftplanWeb.OrderLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  import Ash.Expr
+  require Ash.Query
+
   alias Craftplan.Catalog
   alias Craftplan.Catalog.Product.Photo
   alias Craftplan.CRM
@@ -10,7 +13,17 @@ defmodule CraftplanWeb.OrderLive.Show do
 
   @default_order_load [
     :total_cost,
-    items: [:cost, :status, :consumed_at, product: [:name, :sku]],
+    items: [
+      :cost,
+      :status,
+      :consumed_at,
+      :batch_code,
+      :material_cost,
+      :labor_cost,
+      :overhead_cost,
+      :unit_cost,
+      product: [:name, :sku]
+    ],
     customer: [:full_name, shipping_address: [:full_address]]
   ]
 
@@ -137,6 +150,12 @@ defmodule CraftplanWeb.OrderLive.Show do
               Consumed
             </span>
           </:col>
+          <:col :let={item} label="Batch">
+            <span class="text-xs text-stone-600">{item.batch_code || "-"}</span>
+          </:col>
+          <:col :let={item} label="Unit Cost">
+            {format_money(@settings.currency, item.unit_cost || Decimal.new(0))}
+          </:col>
         </.table>
       </.tabs_content>
     </div>
@@ -259,26 +278,58 @@ defmodule CraftplanWeb.OrderLive.Show do
               Orders.get_order_item_by_id!(updated_item.id,
                 load: [
                   :quantity,
-                  product: [active_bom: [components: [material: [:name, :unit, :current_stock]]]]
+                  product: [
+                    active_bom: [:rollup, components: [material: [:name, :unit, :current_stock]]]
+                  ]
                 ],
                 actor: socket.assigns[:current_user]
               )
 
             recap =
-              if item.product.active_bom && item.product.active_bom.components != nil do
-                item.product.active_bom.components
-                |> Enum.map(fn c ->
-                  if c.component_type == :material do
+              case item.product.active_bom do
+                %{rollup: %{components_map: components_map}} when map_size(components_map) > 0 ->
+                  ids = Map.keys(components_map)
+
+                  materials =
+                    Craftplan.Inventory.Material
+                    |> Ash.Query.new()
+                    |> Ash.Query.filter(expr(id in ^ids))
+                    |> Ash.read!(actor: socket.assigns[:current_user], authorize?: false)
+                    |> Ash.load!([:current_stock],
+                      actor: socket.assigns[:current_user],
+                      authorize?: false
+                    )
+
+                  materials_by_id = Map.new(materials, &{&1.id, &1})
+
+                  Enum.map(ids, fn id ->
+                    per_unit = Decimal.new(Map.get(components_map, id))
+                    required = Decimal.mult(per_unit, item.quantity)
+                    material = Map.get(materials_by_id, id)
+
                     %{
-                      material: c.material,
-                      required: Decimal.mult(c.quantity, item.quantity),
-                      current_stock: c.material.current_stock
+                      material: material,
+                      required: required,
+                      current_stock: material && material.current_stock
                     }
+                  end)
+
+                _ ->
+                  if item.product.active_bom && item.product.active_bom.components != nil do
+                    item.product.active_bom.components
+                    |> Enum.map(fn c ->
+                      if c.component_type == :material do
+                        %{
+                          material: c.material,
+                          required: Decimal.mult(c.quantity, item.quantity),
+                          current_stock: c.material.current_stock
+                        }
+                      end
+                    end)
+                    |> Enum.reject(&is_nil/1)
+                  else
+                    []
                   end
-                end)
-                |> Enum.reject(&is_nil/1)
-              else
-                []
               end
 
             socket

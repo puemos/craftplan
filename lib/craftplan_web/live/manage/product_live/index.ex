@@ -110,7 +110,13 @@ defmodule CraftplanWeb.ProductLive.Index do
     products =
       Catalog.list_products!(
         actor: socket.assigns[:current_user],
-        load: [:materials_cost, :bom_unit_cost, :markup_percentage, :gross_profit]
+        load: [
+          :materials_cost,
+          :bom_unit_cost,
+          :markup_percentage,
+          :gross_profit,
+          active_bom: [:rollup]
+        ]
       )
 
     socket =

@@ -146,6 +146,12 @@ defmodule Craftplan.Orders.OrderItem do
     belongs_to :bom, Craftplan.Catalog.BOM do
       allow_nil? true
     end
+
+    belongs_to :production_batch, Craftplan.Orders.ProductionBatch do
+      allow_nil? true
+    end
+
+    has_many :order_item_lots, Craftplan.Orders.OrderItemLot
   end
 
   calculations do

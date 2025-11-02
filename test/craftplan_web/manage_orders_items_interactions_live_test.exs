@@ -87,5 +87,10 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
     |> render_click()
 
     assert render(view) =~ "Materials consumed"
+
+    # After completion, batch code and unit cost should be displayed in items table
+    html = render(view)
+    assert html =~ "Batch"
+    assert html =~ "Unit Cost"
   end
 end

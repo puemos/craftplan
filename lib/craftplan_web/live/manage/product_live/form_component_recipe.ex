@@ -14,11 +14,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     <div>
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <div :if={@bom.version != nil} class="text-sm text-stone-700 flex items-center gap-2">
-            <span>Version</span>
-            <span>v{@bom.version}</span>
+          <div :if={@bom.version != nil} class="flex items-center gap-2 text-sm text-stone-700">
+            <span>Version <span>v{@bom.version}</span></span>
+
             <%= if latest_version(@boms) == @bom.version do %>
-              <span class="rounded bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">Latest</span>
+              <span class="text-[11px] rounded bg-green-100 px-1 py-0.5 font-medium text-green-700">
+                Latest
+              </span>
             <% end %>
             <span> · </span>
             <span>Changed on</span>
@@ -28,7 +30,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           </div>
         </div>
         <div :if={@bom.version != nil} class="flex items-center gap-2">
-          <.link phx-click={JS.push("show_history", target: @myself)} class="text-sm text-blue-700 hover:underline">
+          <.link
+            phx-click={JS.push("show_history", target: @myself)}
+            class="text-sm text-blue-700 hover:underline"
+          >
             <.button size={:sm} variant={:outline}>Show version history</.button>
           </.link>
         </div>
@@ -48,6 +53,30 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           </.button>
         </div>
       <% end %>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <.stat_card
+            title="Materials"
+            value={format_money(@settings.currency, cost_value(@bom.rollup, :material_cost))}
+            size={:sm}
+          />
+          <.stat_card
+            title="Labor"
+            value={format_money(@settings.currency, cost_value(@bom.rollup, :labor_cost))}
+            size={:sm}
+          />
+          <.stat_card
+            title="Overhead"
+            value={format_money(@settings.currency, cost_value(@bom.rollup, :overhead_cost))}
+            size={:sm}
+          />
+          <.stat_card
+            title="Unit Cost"
+            value={format_money(@settings.currency, cost_value(@bom.rollup, :unit_cost))}
+            size={:sm}
+          />
+      </div>
+
       <.simple_form
         for={@form}
         id="recipe-form"
@@ -180,9 +209,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   phx-target={@myself}
                   class={[
                     "inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50",
-                    (Enum.empty?(@available_materials) || latest_version(@boms) != @bom.version) && "cursor-not-allowed opacity-50"
+                    (Enum.empty?(@available_materials) || latest_version(@boms) != @bom.version) &&
+                      "cursor-not-allowed opacity-50"
                   ]}
-                  disabled={Enum.empty?(@available_materials) || latest_version(@boms) != @bom.version}
+                  disabled={
+                    Enum.empty?(@available_materials) || latest_version(@boms) != @bom.version
+                  }
                 >
                   <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add Material
                 </button>
@@ -328,47 +360,47 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   @impl true
   def handle_event("save", %{"recipe" => recipe_params}, socket) do
-      # simple mode: saving creates a new version and makes it active
-      actor = socket.assigns.current_user
-      product = socket.assigns.product
+    # simple mode: saving creates a new version and makes it active
+    actor = socket.assigns.current_user
+    product = socket.assigns.product
 
-      # Demote existing active to archived (if any)
-      case Catalog.get_active_bom_for_product(%{product_id: product.id},
-             actor: actor,
-             authorize?: false
-           ) do
-        {:ok, %Catalog.BOM{} = active} ->
-          _ =
-            Ash.update(active, %{status: :archived},
-              action: :update,
-              actor: actor,
-              authorize?: false
-            )
+    # Demote existing active to archived (if any)
+    case Catalog.get_active_bom_for_product(%{product_id: product.id},
+           actor: actor,
+           authorize?: false
+         ) do
+      {:ok, %Catalog.BOM{} = active} ->
+        _ =
+          Ash.update(active, %{status: :archived},
+            action: :update,
+            actor: actor,
+            authorize?: false
+          )
 
-        _ ->
-          :ok
-      end
+      _ ->
+        :ok
+    end
 
-      components = build_components_from_params(recipe_params["components"] || %{})
+    components = build_components_from_params(recipe_params["components"] || %{})
 
-      new_bom =
-        Catalog.BOM
-        |> Ash.Changeset.for_create(:create, %{
-          product_id: product.id,
-          status: :active,
-          published_at: DateTime.utc_now(),
-          components: components
-        })
-        |> Ash.create!(actor: actor, authorize?: false)
+    new_bom =
+      Catalog.BOM
+      |> Ash.Changeset.for_create(:create, %{
+        product_id: product.id,
+        status: :active,
+        published_at: DateTime.utc_now(),
+        components: components
+      })
+      |> Ash.create!(actor: actor, authorize?: false)
 
-      socket = assign_lists(socket)
+    socket = assign_lists(socket)
 
-      {:noreply,
-       socket
-       |> assign(:selected_version, new_bom.version)
-       |> assign_form()
-       |> put_flash(:info, "Recipe saved successfully")
-       |> push_patch(to: socket.assigns.patch)}
+    {:noreply,
+     socket
+     |> assign(:selected_version, new_bom.version)
+     |> assign_form()
+     |> put_flash(:info, "Recipe saved successfully")
+     |> push_patch(to: socket.assigns.patch)}
   end
 
   @impl true
@@ -423,11 +455,15 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         _ -> nil
       end
 
-    socket = socket |> assign(:selected_version, version) |> assign(:show_history, false)
-    {:noreply, assign_form(socket)}
+    to =
+      case version do
+        nil -> socket.assigns.patch
+        n -> socket.assigns.patch <> "?v=" <> Integer.to_string(n)
+      end
+
+    {:noreply, socket |> assign(:show_history, false) |> push_patch(to: to)}
   end
 
-  @impl true
   # duplicate/promote/revert/try_variation were removed from the UI in the cleanup
 
   @impl true
@@ -460,7 +496,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     {:noreply, socket |> assign_form() |> put_flash(:info, "BOM is now active")}
   end
 
-  @impl true
   # archive_row was removed with UI cleanup (no Archive button in simple mode modal)
 
   @impl true
@@ -479,6 +514,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   defp assign_form(socket) do
     actor = socket.assigns.current_user
     bom = select_bom(socket, actor)
+
+    bom =
+      if bom && bom.id do
+        Ash.load!(bom, [:rollup], actor: actor, authorize?: false)
+      else
+        bom
+      end
 
     form =
       bom
@@ -646,6 +688,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     Map.get(materials_map, material_id)
   end
+
+  defp cost_value(%{} = rollup, key), do: Map.get(rollup, key) || Decimal.new(0)
+  defp cost_value(_rollup, _key), do: Decimal.new(0)
 
   defp latest_version([]), do: nil
   defp latest_version(nil), do: nil

@@ -10,6 +10,8 @@ defmodule CraftplanWeb.PlanLive.Index do
   alias Craftplan.Production
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
+  import Ash.Expr
+  require Ash.Query
 
   @impl true
   def render(assigns) do
@@ -764,6 +766,32 @@ defmodule CraftplanWeb.PlanLive.Index do
             </div>
           </div>
 
+          <div :if={@completion_snapshot} class="mb-4 rounded border border-stone-200 bg-stone-50 p-4">
+            <div class="mb-2 text-base font-medium text-stone-900">Completion Snapshot</div>
+            <div class="grid grid-cols-5 gap-4 text-sm">
+              <div>
+                <div class="text-stone-500">Batch</div>
+                <div class="font-medium">{@completion_snapshot.batch_code || "-"}</div>
+              </div>
+              <div>
+                <div class="text-stone-500">Material</div>
+                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.material_cost || Decimal.new(0))}</div>
+              </div>
+              <div>
+                <div class="text-stone-500">Labor</div>
+                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.labor_cost || Decimal.new(0))}</div>
+              </div>
+              <div>
+                <div class="text-stone-500">Overhead</div>
+                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.overhead_cost || Decimal.new(0))}</div>
+              </div>
+              <div>
+                <div class="text-stone-500">Unit Cost</div>
+                <div class="font-medium">{format_money(@settings.currency, @completion_snapshot.unit_cost || Decimal.new(0))}</div>
+              </div>
+            </div>
+          </div>
+
           <div :if={@selected_details} class="space-y-4">
             <.table id="product-orders" rows={@selected_details}>
               <:col :let={item} label="Reference">
@@ -840,6 +868,7 @@ defmodule CraftplanWeb.PlanLive.Index do
       |> assign(:material_day_balance, nil)
       |> assign(:pending_consumption_item_id, nil)
       |> assign(:pending_consumption_recap, [])
+      |> assign(:completion_snapshot, nil)
 
     {:ok, socket}
   end
@@ -1038,24 +1067,66 @@ defmodule CraftplanWeb.PlanLive.Index do
               Orders.get_order_item_by_id!(updated_item.id,
                 load: [
                   :quantity,
-                  product: [active_bom: [components: [material: [:name, :unit, :current_stock]]]]
-                ]
+                  :batch_code,
+                  :material_cost,
+                  :labor_cost,
+                  :overhead_cost,
+                  :unit_cost,
+                  product: [active_bom: [:rollup, components: [material: [:name, :unit, :current_stock]]]]
+                ],
+                actor: socket.assigns.current_user
               )
 
             recap =
-              (item.product.active_bom.components || [])
-              |> Enum.filter(&(&1.component_type == :material))
-              |> Enum.map(fn c ->
-                %{
-                  material: c.material,
-                  required: Decimal.mult(c.quantity, item.quantity),
-                  current_stock: c.material.current_stock
-                }
-              end)
+              case item.product.active_bom do
+                %{rollup: %{components_map: components_map}} when map_size(components_map) > 0 ->
+                  ids = Map.keys(components_map)
+
+                  materials =
+                    Craftplan.Inventory.Material
+                    |> Ash.Query.new()
+                    |> Ash.Query.filter(expr(id in ^ids))
+                    |> Ash.read!(actor: socket.assigns.current_user, authorize?: false)
+                    |> Ash.load!([:current_stock], actor: socket.assigns.current_user, authorize?: false)
+
+                  materials_by_id = Map.new(materials, &{&1.id, &1})
+
+                  Enum.map(ids, fn id ->
+                    per_unit = Decimal.new(Map.get(components_map, id))
+                    required = Decimal.mult(per_unit, item.quantity)
+                    material = Map.get(materials_by_id, id)
+
+                    %{
+                      material: material,
+                      required: required,
+                      current_stock: material && material.current_stock
+                    }
+                  end)
+
+                _ ->
+                  (item.product.active_bom.components || [])
+                  |> Enum.filter(&(&1.component_type == :material))
+                  |> Enum.map(fn c ->
+                    %{
+                      material: c.material,
+                      required: Decimal.mult(c.quantity, item.quantity),
+                      current_stock: c.material.current_stock
+                    }
+                  end)
+              end
 
             socket
             |> assign(:pending_consumption_item_id, updated_item.id)
             |> assign(:pending_consumption_recap, recap)
+            |> assign(:completion_snapshot,
+              %{
+                batch_code: item.batch_code,
+                material_cost: item.material_cost,
+                labor_cost: item.labor_cost,
+                overhead_cost: item.overhead_cost,
+                unit_cost: item.unit_cost
+              }
+            )
           else
             socket
           end

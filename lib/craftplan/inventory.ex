@@ -3,6 +3,10 @@ defmodule Craftplan.Inventory do
   use Ash.Domain
 
   resources do
+    resource Craftplan.Inventory.Lot do
+      define :get_lot_by_id, action: :read, get_by: [:id]
+      define :list_lots, action: :read
+    end
     resource Craftplan.Inventory.Material do
       define :get_material_by_id, action: :read, get_by: [:id]
       define :get_material_by_sku, action: :read, get_by: [:sku]

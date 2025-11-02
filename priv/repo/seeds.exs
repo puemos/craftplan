@@ -7,6 +7,8 @@ alias Craftplan.Inventory
 alias Craftplan.Orders
 alias Craftplan.Repo
 alias Craftplan.Settings
+import Ash.Expr
+require Ash.Query
 
 # ------------------------------------------------------------------------------
 # 1. Define helper functions for readability and code organization
@@ -77,6 +79,7 @@ if Mix.env() == :dev do
   # ------------------------------------------------------------------------------
   # 2. Clear existing data (cleanup for repeated seeds in dev)
   # ------------------------------------------------------------------------------
+  Repo.delete_all(Orders.OrderItemLot)
   Repo.delete_all(Orders.OrderItem)
   Repo.delete_all(Orders.Order)
   # Legacy Recipe resources removed; no cleanup required
@@ -89,6 +92,7 @@ if Mix.env() == :dev do
   # Clear products (after BOM cleanup)
   Repo.delete_all(Catalog.Product)
   Repo.delete_all(Inventory.Movement)
+  Repo.delete_all(Inventory.Lot)
   Repo.delete_all(Inventory.MaterialNutritionalFact)
   Repo.delete_all(Inventory.NutritionalFact)
   Repo.delete_all(Inventory.MaterialAllergen)
@@ -96,6 +100,7 @@ if Mix.env() == :dev do
   Repo.delete_all(Inventory.PurchaseOrderItem)
   Repo.delete_all(Inventory.PurchaseOrder)
   Repo.delete_all(Inventory.Supplier)
+  Repo.delete_all(Orders.ProductionBatch)
   Repo.delete_all(Inventory.Material)
   Repo.delete_all(Inventory.Allergen)
   Repo.delete_all(CRM.Customer)
@@ -160,6 +165,28 @@ if Mix.env() == :dev do
       quantity: Decimal.new(quantity),
       reason: "Initial stock"
     })
+  end
+
+  # Seed a lot for a material and receive quantity into that lot
+  seed_lot_for = fn material, supplier, lot_code, quantity, expiry_in_days ->
+    lot =
+      Ash.Seed.seed!(Inventory.Lot, %{
+        lot_code: lot_code,
+        material_id: material.id,
+        supplier_id: supplier && supplier.id,
+        received_at: DateTime.utc_now(),
+        expiry_date: Date.add(Date.utc_today(), expiry_in_days)
+      })
+
+    Ash.Seed.seed!(Inventory.Movement, %{
+      material_id: material.id,
+      lot_id: lot.id,
+      occurred_at: DateTime.utc_now(),
+      quantity: Decimal.new(quantity),
+      reason: "Received lot #{lot_code}"
+    })
+
+    lot
   end
 
   seed_product = fn name, sku, price ->
@@ -405,6 +432,45 @@ if Mix.env() == :dev do
   po2 = seed_purchase_order.(suppliers.dairy, :ordered)
   seed_purchase_order_item.(po2, materials.butter, "2000", "0.009")
   seed_purchase_order_item.(po2, materials.milk, "5000", "0.0025")
+
+  # -- 3.8.2 Seed example lots for FIFO/traceability testing
+  # Dairy lots (perishables)
+  _milk_lot1 =
+    seed_lot_for.(
+      materials.milk,
+      suppliers.dairy,
+      "LOT-MILK-#{Date.to_string(Date.utc_today())}-001",
+      "1500",
+      7
+    )
+
+  _milk_lot2 =
+    seed_lot_for.(
+      materials.milk,
+      suppliers.dairy,
+      "LOT-MILK-#{Date.to_string(Date.utc_today())}-002",
+      "1200",
+      14
+    )
+
+  _butter_lot =
+    seed_lot_for.(
+      materials.butter,
+      suppliers.dairy,
+      "LOT-BUTTER-#{Date.to_string(Date.utc_today())}-001",
+      "800",
+      60
+    )
+
+  # Flour lot (non-perishable)
+  _flour_lot =
+    seed_lot_for.(
+      materials.flour,
+      suppliers.miller,
+      "LOT-FLOUR-#{Date.to_string(Date.utc_today())}-A",
+      "2000",
+      365
+    )
 
   # -- 3.9 Seed products
   products = %{
@@ -1071,6 +1137,21 @@ if Mix.env() == :dev do
     |> Ash.Changeset.for_update(:update, %{})
     |> Ash.update!()
   end
+
+  # -- 6. Backfill: ensure completed items have batch_code/costs
+  # Some completed items may have been created without triggering the status transition
+  # hook. Toggle status to re-run costing & batch assignment.
+  missing_batch_items =
+    Craftplan.Orders.OrderItem
+    |> Ash.Query.new()
+    |> Ash.Query.filter(status == :done and is_nil(batch_code))
+    |> Ash.read!(authorize?: false)
+
+  Enum.each(missing_batch_items, fn item ->
+    # Toggle to in_progress then back to done to drive AssignBatchCodeAndCost
+    _ = Orders.update_item(item, %{status: :in_progress}, actor: nil)
+    _ = Orders.update_item(item, %{status: :done}, actor: nil)
+  end)
 
   IO.puts("Done!")
 else
