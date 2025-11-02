@@ -55,48 +55,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         </div>
       <% end %>
 
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <.stat_card
-          title="Materials"
-          value={format_money(@settings.currency, cost_value(@bom.rollup, :material_cost))}
-          size={:sm}
-        />
-        <.stat_card
-          title="Labor"
-          value={format_money(@settings.currency, cost_value(@bom.rollup, :labor_cost))}
-          size={:sm}
-        />
-        <.stat_card
-          title="Overhead"
-          value={format_money(@settings.currency, cost_value(@bom.rollup, :overhead_cost))}
-          size={:sm}
-        />
-        <.stat_card
-          title="Unit Cost"
-          value={format_money(@settings.currency, cost_value(@bom.rollup, :unit_cost))}
-          size={:sm}
-        />
-      </div>
-
-      <div class="mt-4 rounded-md border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p class="font-medium text-stone-700">Labor defaults</p>
-            <p>
-              Hourly rate: {format_money(@settings.currency, @settings.labor_hourly_rate)} · Overhead: {format_percentage(
-                @settings.labor_overhead_percent
-              )}%
-            </p>
-          </div>
-          <.link
-            navigate={~p"/manage/settings/general"}
-            class="text-sm font-medium text-blue-700 hover:underline"
-          >
-            Update in settings
-          </.link>
-        </div>
-      </div>
-
       <.simple_form
         for={@form}
         id="recipe-form"
@@ -104,11 +62,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         phx-change="validate"
         phx-submit="save"
       >
-        <div class="space-y-4">
+        <div class="">
           <.input field={@form[:product_id]} type="hidden" value={@product.id} />
 
           <h3 class="text-lg font-medium">Materials</h3>
-          <p class="mb-2 text-sm text-stone-500">Add materials needed for this product</p>
+          <p class="mb-2 text-sm text-stone-500">
+            Add materials needed for this product
+          </p>
 
           <div id="recipe-materials-list">
             <div
@@ -855,9 +815,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     Map.get(materials_map, material_id)
   end
-
-  defp cost_value(%{} = rollup, key), do: Map.get(rollup, key) || D.new(0)
-  defp cost_value(_rollup, _key), do: D.new(0)
 
   defp latest_version([]), do: nil
   defp latest_version(nil), do: nil
