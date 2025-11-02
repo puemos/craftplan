@@ -100,8 +100,7 @@ defmodule Craftplan.Orders.Consumption do
         |> Ash.read!(actor: actor, authorize?: false)
         |> Ash.load!([:current_stock], actor: actor, authorize?: false)
         |> Enum.sort_by(fn l ->
-          {l.expiry_date || ~D[9999-12-31],
-           l.received_at || DateTime.from_naive!(~N[0000-01-01 00:00:00], "Etc/UTC")}
+          {l.expiry_date || ~D[9999-12-31], l.received_at || DateTime.from_naive!(~N[0000-01-01 00:00:00], "Etc/UTC")}
         end)
 
       if Enum.empty?(lots) do

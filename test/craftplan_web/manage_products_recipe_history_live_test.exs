@@ -3,7 +3,6 @@ defmodule CraftplanWeb.ManageProductsRecipeHistoryLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias Craftplan.Catalog
   alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.Product
   alias Craftplan.Inventory.Material
