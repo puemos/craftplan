@@ -8,6 +8,8 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
   alias Craftplan.Settings
   alias Decimal, as: D
 
+  require Catalog
+
   @spec calculate(BOM.t(), number | D.t(), keyword) :: %{
           material_cost: D.t(),
           labor_cost: D.t(),
@@ -18,9 +20,15 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     settings = fetch_settings(opts)
     path = MapSet.new()
 
-    do_calculate(bom, quantity, opts, settings, path)
+    do_calculate(bom, DecimalHelpers.to_decimal(quantity), opts, settings, path)
   end
 
+  @spec do_calculate(BOM.t(), D.t(), keyword(), map(), MapSet.t()) :: %{
+          material_cost: D.t(),
+          labor_cost: D.t(),
+          overhead_cost: D.t(),
+          unit_cost: D.t()
+        }
   defp do_calculate(%BOM{} = bom, quantity, opts, settings, path) do
     authorize? = Keyword.get(opts, :authorize?, true)
     actor = Keyword.get(opts, :actor)
@@ -68,6 +76,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     }
   end
 
+  @spec component_cost(BOMComponent.t(), D.t(), keyword(), map(), MapSet.t()) :: D.t()
   defp component_cost(%BOMComponent{component_type: :material} = component, quantity, _opts, _settings, _path) do
     multiplier = waste_multiplier(component)
 
@@ -113,6 +122,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     end
   end
 
+  @spec check_for_circular_dependency(any(), MapSet.t()) :: :ok | {:error, :circular_dependency}
   defp check_for_circular_dependency(product_id, path) do
     if MapSet.member?(path, product_id) do
       {:error, :circular_dependency}
@@ -131,6 +141,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     end
   end
 
+  @spec calculate_nested_cost(BOM.t(), keyword(), map(), MapSet.t()) :: D.t()
   defp calculate_nested_cost(bom, opts, settings, path) do
     nested =
       do_calculate(
@@ -151,6 +162,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     |> D.add(D.new(1))
   end
 
+  @spec labor_cost([map()], D.t(), map()) :: D.t()
   defp labor_cost(labor_steps, quantity, settings) do
     base_quantity = DecimalHelpers.to_decimal(quantity)
 
@@ -175,11 +187,13 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     end)
   end
 
+  @spec overhead_cost(D.t(), D.t(), map()) :: D.t()
   defp overhead_cost(material_cost, labor_cost, settings) do
     base = D.add(material_cost, labor_cost)
     D.mult(base, settings.labor_overhead_percent)
   end
 
+  @spec fetch_settings(keyword()) :: map()
   defp fetch_settings(opts) do
     authorize? = Keyword.get(opts, :authorize?, true)
     actor = Keyword.get(opts, :actor)
@@ -203,6 +217,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     %{labor_hourly_rate: D.new(0), labor_overhead_percent: D.new(0)}
   end
 
+  @spec maybe_track_product(MapSet.t(), any()) :: MapSet.t()
   defp maybe_track_product(path, nil), do: path
   defp maybe_track_product(path, product_id), do: MapSet.put(path, product_id)
 end

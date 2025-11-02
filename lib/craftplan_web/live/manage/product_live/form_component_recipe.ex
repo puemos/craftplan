@@ -844,16 +844,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   defp normalize_units_per_run(""), do: D.new(1)
 
   defp normalize_units_per_run(value) do
-    value
-    |> normalize_decimal()
-    |> then(fn
-      %D{} = decimal ->
-        zero = D.new(0)
-        if D.compare(decimal, zero) == :gt, do: decimal, else: D.new(1)
+    decimal = normalize_decimal(value)
 
-      _ ->
-        D.new(1)
-    end)
+    if D.compare(decimal, D.new(0)) == :gt do
+      decimal
+    else
+      D.new(1)
+    end
   end
 
   defp blank_to_nil(nil), do: nil

@@ -3,13 +3,14 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
 
   import Ash.Expr
 
-  alias Ash.Query
+  alias Craftplan.Catalog
   alias Craftplan.Catalog.BOM
   alias Craftplan.Catalog.BOMRollup
   alias Craftplan.Catalog.Services.BatchCostCalculator
   alias Decimal, as: D
 
-  require Query
+  require Ash.Query
+  require Catalog
 
   @spec refresh!(BOM.t(), keyword) :: :ok
   def refresh!(%BOM{} = bom, opts \\ []) do
@@ -80,8 +81,8 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
     id = bom.id
 
     BOMRollup
-    |> Query.new()
-    |> Query.filter(expr(bom_id == ^id))
+    |> Ash.Query.new()
+    |> Ash.Query.filter(expr(bom_id == ^id))
     |> Ash.read_one(actor: actor, authorize?: authorize?)
     |> case do
       {:ok, %BOMRollup{} = rollup} -> rollup
@@ -89,6 +90,7 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
     end
   end
 
+  @spec flatten_components(BOM.t(), D.t(), keyword()) :: %{any() => D.t()}
   defp flatten_components(%BOM{} = bom, quantity, opts) do
     authorize? = Keyword.get(opts, :authorize?, false)
     actor = Keyword.get(opts, :actor)
@@ -102,6 +104,7 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
     do_flatten(bom, quantity, MapSet.new(), opts)
   end
 
+  @spec do_flatten(BOM.t(), D.t(), MapSet.t(Catalog.product_id()), keyword()) :: %{any() => D.t()}
   defp do_flatten(%BOM{} = bom, quantity, path, opts) do
     components =
       case Map.get(bom, :components) do
@@ -124,7 +127,7 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
                 acc
               else
                 nested_bom =
-                  case Craftplan.Catalog.get_active_bom_for_product(%{product_id: product_id},
+                  case Catalog.get_active_bom_for_product(%{product_id: product_id},
                          actor: Keyword.get(opts, :actor),
                          authorize?: Keyword.get(opts, :authorize?, false)
                        ) do

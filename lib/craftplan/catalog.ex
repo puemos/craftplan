@@ -2,6 +2,8 @@ defmodule Craftplan.Catalog do
   @moduledoc false
   use Ash.Domain
 
+  @type product_id :: integer()
+
   resources do
     resource Craftplan.Catalog.Product do
       define :get_product_by_id, action: :read, get_by: [:id]

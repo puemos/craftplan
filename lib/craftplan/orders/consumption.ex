@@ -18,15 +18,20 @@ defmodule Craftplan.Orders.Consumption do
   def consume_item(order_item_id, opts \\ []) do
     actor = Keyword.get(opts, :actor)
 
-    with {:ok, item} <- fetch_item(order_item_id, actor),
-         :ok <- ensure_not_consumed(item),
-         {:ok, order} <- fetch_order(item.order_id, actor),
-         {:ok, bom} <- resolve_bom(item, actor),
-         :ok <- process_consumption(item, order, bom, actor) do
-      Orders.update_item(item, %{status: item.status, consumed_at: DateTime.utc_now()}, actor: actor)
-    else
-      {:error, :already_consumed} -> {:ok, :already_consumed}
-      {:error, reason} -> {:error, reason}
+    case fetch_item(order_item_id, actor) do
+      {:ok, item} ->
+        if item.consumed_at do
+          {:ok, :already_consumed}
+        else
+          with {:ok, order} <- fetch_order(item.order_id, actor),
+               {:ok, bom} <- resolve_bom(item, actor),
+               :ok <- process_consumption(item, order, bom, actor) do
+            Orders.update_item(item, %{status: item.status, consumed_at: DateTime.utc_now()}, actor: actor)
+          end
+        end
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -39,9 +44,6 @@ defmodule Craftplan.Orders.Consumption do
 
     {:ok, item}
   end
-
-  defp ensure_not_consumed(%{consumed_at: nil}), do: :ok
-  defp ensure_not_consumed(_item), do: {:error, :already_consumed}
 
   defp fetch_order(order_id, actor) do
     {:ok, Orders.get_order_by_id!(order_id, actor: actor)}

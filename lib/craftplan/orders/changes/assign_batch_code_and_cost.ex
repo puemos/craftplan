@@ -30,6 +30,12 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
     product = resolve_product(changeset, actor)
 
     case product do
+      nil ->
+        Changeset.add_error(changeset,
+          field: :product_id,
+          message: "product must be present to finalize batch costing"
+        )
+
       %{sku: sku} ->
         quantity =
           Changeset.get_attribute(changeset, :quantity) || get_data_field(changeset, :quantity)
@@ -63,12 +69,6 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
           Map.get(costs, :overhead_cost, D.new(0))
         )
         |> Changeset.force_change_attribute(:unit_cost, Map.get(costs, :unit_cost, D.new(0)))
-
-      _ ->
-        Changeset.add_error(changeset,
-          field: :product_id,
-          message: "product must be present to finalize batch costing"
-        )
     end
   end
 
@@ -132,8 +132,6 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
 
   defp resolve_product(changeset, actor) do
     case get_data_field(changeset, :product) do
-      %NotLoaded{} -> fetch_product(changeset, actor)
-      nil -> fetch_product(changeset, actor)
       %Product{} = product -> maybe_load_active_bom(product, actor)
       _ -> fetch_product(changeset, actor)
     end
@@ -190,9 +188,15 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
       bom
     else
       _ ->
-        case Map.get(product || %{}, :active_bom) do
-          %BOM{} = bom -> bom
-          _ -> fetch_active_bom(product, actor)
+        case product do
+          nil ->
+            fetch_active_bom(product, actor)
+
+          %Product{} ->
+            case Map.get(product, :active_bom) do
+              %BOM{} = bom -> bom
+              _ -> fetch_active_bom(product, actor)
+            end
         end
     end
   end
@@ -213,7 +217,7 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
   end
 
   defp actor_from(changeset) do
-    Map.get(changeset.context || %{}, :actor)
+    Map.get(changeset.context, :actor)
   end
 
   defp to_integer(string, default) when is_binary(string) do
