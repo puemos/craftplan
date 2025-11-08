@@ -762,6 +762,15 @@ defmodule CraftplanWeb.OverviewLive do
                 {format_amount(row.material.unit, row.current_stock || Decimal.new(0))}
               </:col>
             </.table>
+            <div class="mt-2 text-sm text-stone-700">
+              <span class="font-medium">Total required:</span>
+              <span
+                :for={{unit, total} <- @pending_consumption_totals_by_unit || []}
+                class="ml-2 inline-flex items-center rounded bg-stone-100 px-2 py-0.5"
+              >
+                {format_amount(unit, total)}
+              </span>
+            </div>
             <div class="mt-3 flex space-x-2">
               <.button variant={:primary} phx-click="confirm_consume">Consume Now</.button>
               <.button variant={:outline} phx-click="cancel_consume">Not Now</.button>
@@ -1139,9 +1148,26 @@ defmodule CraftplanWeb.OverviewLive do
                   end)
               end
 
+            totals_by_unit =
+              recap
+              |> Enum.group_by(fn r -> r.material && r.material.unit end)
+              |> Enum.reduce(%{}, fn
+                {nil, _}, acc ->
+                  acc
+
+                {unit, rows}, acc ->
+                  total =
+                    Enum.reduce(rows, Decimal.new(0), fn r, sum ->
+                      Decimal.add(sum, r.required)
+                    end)
+
+                  Map.put(acc, unit, total)
+              end)
+
             socket
             |> assign(:pending_consumption_item_id, updated_item.id)
             |> assign(:pending_consumption_recap, recap)
+            |> assign(:pending_consumption_totals_by_unit, totals_by_unit)
             |> assign(
               :completion_snapshot,
               %{
