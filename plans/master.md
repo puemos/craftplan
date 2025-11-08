@@ -1,6 +1,6 @@
 # Craftplan Product Plan -- Bakery ERP Roadmap
 
-Last updated: 2025-11-01 (refined priorities for M1→M2)
+Last updated: 2025-11-08 (moved Overview to top-level nav)
 
 ## Progress Snapshot
 
@@ -17,6 +17,7 @@ Last updated: 2025-11-01 (refined priorities for M1→M2)
 
 ## Recently Completed
 
+- Overview promoted to its own Manage nav at `/manage/overview`; Production now defaults to Schedule.
 - Planner split into Overview/Schedule tabs; schedule calendar isolates day view.
 - Over-capacity highlights in planner with metrics modal across tabs.
 - Make Sheet print view hides navigation and actions; invoice printable HTML scaffolded.
@@ -121,7 +122,9 @@ Last updated: 2025-11-01 (refined priorities for M1→M2)
 
 ### Next Actions (M1)
 
-- [ ] Documentation refresh: BOM editor (simple versioning), planner cost snapshot, pricing guidance, and labor scaling guidance.
+- [ ] Documentation refresh: BOM editor (simple versioning), planner cost snapshot, pricing guidance, labor scaling guidance, and new Manage → Overview entry point (`/manage/overview`); update screenshots/paths.
+- [ ] Navigation QA: verify Overview active state, breadcrumbs, and post-auth landing path; ensure no stale references to `/manage/production` for overview use cases.
+- [ ] Link audit: grep repo for hard-coded `"/manage/production"` that intend Overview and update; keep production tools on schedule/make_sheet/materials as-is.
 - [ ] Performance pass: profile product index + planner with large seeds and verify rollup-first loads.
 - [ ] Usability polish: add optional “Total required” footer in consumption recap (defer if timeboxed).
 - [ ] LiveView QA: cover labor step add/remove edge cases (empty names, zero units per run).
@@ -253,6 +256,7 @@ Last updated: 2025-11-01 (refined priorities for M1→M2)
 
 - Implement ForecastLive control defaults + event wiring, then land metrics band & right-rail glossary.
 - Align Inventory Overview and Purchasing LiveViews to consume the new metrics payloads for PO creation.
+- Refresh Inventory/Purchasing docs and quick actions to reference the Overview page for production commitments context.
 
 ### User Stories
 
