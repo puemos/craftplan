@@ -11,9 +11,25 @@ defmodule CraftplanWeb.ManageProductionLiveTest do
   end
 
   @tag role: :staff
+  test "shows overview breadcrumb", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/manage/overview")
+    html = render(view)
+    assert html =~ "aria-label=\"Breadcrumb\""
+    assert html =~ ">Overview<"
+  end
+
+  @tag role: :staff
   test "renders schedule tab", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/manage/production/schedule")
     assert has_element?(view, "#controls")
+  end
+
+  @tag role: :staff
+  test "shows production breadcrumb on schedule", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/manage/production/schedule")
+    html = render(view)
+    assert html =~ "aria-label=\"Breadcrumb\""
+    assert html =~ ">Production<"
   end
 
   @tag role: :staff
