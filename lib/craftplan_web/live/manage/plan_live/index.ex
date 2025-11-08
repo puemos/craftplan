@@ -905,12 +905,15 @@ defmodule CraftplanWeb.PlanLive.Index do
         current_view
       end
 
+    section =
+      if live_action in [:schedule, :make_sheet, :materials], do: :production, else: :overview
+
     socket =
       socket
       |> maybe_assign_schedule_view(live_action, schedule_view)
       |> assign(:page_title, page_title(live_action))
 
-    {:noreply, Navigation.assign(socket, :production, plan_trail(socket.assigns))}
+    {:noreply, Navigation.assign(socket, section, plan_trail(socket.assigns))}
   end
 
   @impl true
@@ -1468,7 +1471,7 @@ defmodule CraftplanWeb.PlanLive.Index do
   defp page_title(:schedule), do: "Plan: Schedule"
   defp page_title(:materials), do: "Plan: Inventory Forecast"
   defp page_title(:make_sheet), do: "Plan: Make Sheet"
-  defp page_title(_), do: "Plan: Overview"
+  defp page_title(_), do: "Overview"
 
   defp maybe_assign_schedule_view(socket, live_action, schedule_view) do
     if live_action in [:schedule, :make_sheet] do
@@ -1486,7 +1489,7 @@ defmodule CraftplanWeb.PlanLive.Index do
   defp plan_trail(%{live_action: :materials}),
     do: [Navigation.root(:production), Navigation.page(:production, :materials)]
 
-  defp plan_trail(_), do: [Navigation.root(:production)]
+  defp plan_trail(_), do: [Navigation.root(:overview)]
 
   defp progress_by_status(items, status) do
     zero = Decimal.new(0)

@@ -3,7 +3,7 @@ defmodule CraftplanWeb.AuthController do
   use AshAuthentication.Phoenix.Controller
 
   def success(conn, activity, user, _token) do
-    return_to = get_session(conn, :return_to) || ~p"/manage/production"
+    return_to = get_session(conn, :return_to) || ~p"/manage/overview"
 
     message =
       case activity do

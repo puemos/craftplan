@@ -4,8 +4,8 @@ defmodule CraftplanWeb.ManageProductionLiveTest do
   import Phoenix.LiveViewTest
 
   @tag role: :staff
-  test "renders production overview", %{conn: conn} do
-    {:ok, view, _html} = live(conn, ~p"/manage/production")
+  test "renders overview", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/manage/overview")
     assert has_element?(view, "#over-capacity-details")
     assert has_element?(view, "#material-shortages")
   end

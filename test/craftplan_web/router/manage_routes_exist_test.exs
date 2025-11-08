@@ -1,8 +1,8 @@
 defmodule CraftplanWeb.ManageRoutesExistTest do
   use CraftplanWeb.ConnCase, async: true
 
-  test "/manage/production exists and requires auth", %{conn: conn} do
-    conn = get(conn, ~p"/manage/production")
+  test "/manage/overview exists and requires auth", %{conn: conn} do
+    conn = get(conn, ~p"/manage/overview")
     assert redirected_to(conn, 302) =~ "/sign-in"
   end
 

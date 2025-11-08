@@ -504,8 +504,15 @@ defmodule CraftplanWeb.Layouts do
   defp manage_links do
     [
       %{
+        label: "Overview",
+        navigate: ~p"/manage/overview",
+        icon: :manage,
+        nav_section: :overview,
+        prefix: "/manage/overview"
+      },
+      %{
         label: "Production",
-        navigate: ~p"/manage/production",
+        navigate: ~p"/manage/production/schedule",
         icon: :production,
         nav_section: :production,
         prefix: "/manage/production"

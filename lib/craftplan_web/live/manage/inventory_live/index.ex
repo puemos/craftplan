@@ -123,7 +123,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
                     Open reorder planner
                   </.link>
                   <.link
-                    patch={~p"/manage/production"}
+                    patch={~p"/manage/overview"}
                     class="text-primary-600 inline-flex items-center gap-2 transition hover:text-primary-700 hover:underline"
                   >
                     <.icon name="hero-arrow-path" class="h-4 w-4" /> Check production commitments

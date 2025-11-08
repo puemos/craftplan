@@ -22,6 +22,7 @@ defmodule CraftplanWeb.Navigation do
           | :customers
           | :settings
           | :production
+          | :overview
 
   # Orders nav helpers
   def orders_nav_visible?(socket), do: live_action(socket) in [:index, :new]
@@ -60,8 +61,6 @@ defmodule CraftplanWeb.Navigation do
   def settings_csv_active?(socket), do: settings_active?(:csv, socket)
 
   # Production nav helpers
-  def production_overview_active?(socket), do: live_action(socket) == :index
-
   def production_weekly_active?(socket) do
     live_action(socket) in [:schedule, :make_sheet] and schedule_view(socket) == :week
   end
@@ -128,6 +127,12 @@ defmodule CraftplanWeb.Navigation do
 
   defp sections do
     %{
+      overview: %{
+        label: "Overview",
+        path: "/manage/overview",
+        pages: %{},
+        sub_links: []
+      },
       orders: %{
         label: "Orders",
         path: "/manage/orders",
@@ -266,19 +271,13 @@ defmodule CraftplanWeb.Navigation do
       },
       production: %{
         label: "Production",
-        path: "/manage/production",
+        path: "/manage/production/schedule",
         pages: %{
           schedule: %{label: "Schedule", path: "/manage/production/schedule"},
           make_sheet: %{label: "Make Sheet", path: "/manage/production/make_sheet"},
           materials: %{label: "Materials", path: "/manage/production/materials"}
         },
         sub_links: [
-          %{
-            key: :overview,
-            label: "Overview",
-            navigate: "/manage/production",
-            active?: &__MODULE__.production_overview_active?/1
-          },
           %{
             key: :weekly,
             label: "Weekly",
