@@ -2,7 +2,7 @@
 # Refactoring Ash Calculations for Performance
 
 **Last updated**: 2025-11-01
-**Status**: Not Started
+**Status**: In Progress
 
 ## 1. Objective
 
@@ -225,3 +225,8 @@ After applying the changes, the entire project test suite must be run to ensure 
 - **Command**: `mix test`
 
 A successful test run will confirm that the new calculation logic is correct and that downstream consumers of this data (e.g., UI components, other calculations) are unaffected.
+
+## 5. Progress
+
+- [ ] Phase 1: Refactor `UnitCost` calculation to use declarative loads
+- [ ] Phase 2: Refactor `MaterialCost` calculation to follow the same pattern
