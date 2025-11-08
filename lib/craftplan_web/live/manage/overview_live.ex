@@ -1,4 +1,4 @@
-defmodule CraftplanWeb.PlanLive.Index do
+defmodule CraftplanWeb.OverviewLive do
   @moduledoc false
   use CraftplanWeb, :live_view
 

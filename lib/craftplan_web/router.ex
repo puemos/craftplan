@@ -166,10 +166,10 @@ defmodule CraftplanWeb.Router do
       live "/manage/customers/:reference/edit", CustomerLive.Index, :edit
 
       # Production
-      live "/manage/overview", PlanLive.Index, :index
-      live "/manage/production/schedule", PlanLive.Index, :schedule
-      live "/manage/production/make_sheet", PlanLive.Index, :make_sheet
-      live "/manage/production/materials", PlanLive.Index, :materials
+      live "/manage/overview", OverviewLive, :index
+      live "/manage/production/schedule", OverviewLive, :schedule
+      live "/manage/production/make_sheet", OverviewLive, :make_sheet
+      live "/manage/production/materials", OverviewLive, :materials
 
       # in each liveview, add one of the following at the top of the module:
       #
