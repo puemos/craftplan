@@ -119,11 +119,12 @@ defmodule CraftplanWeb.ProductLive.Index do
         ]
       )
 
-    results = case products do
-      %Ash.Page.Keyset{results: res} -> res
-      %Ash.Page.Offset{results: res} -> res
-      other -> other
-    end
+    results =
+      case products do
+        %Ash.Page.Keyset{results: res} -> res
+        %Ash.Page.Offset{results: res} -> res
+        other -> other
+      end
 
     socket =
       socket

@@ -243,15 +243,21 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                     Minutes
+                    <span class="text-stone-700">
+                      ({Decimal.to_string(@labor_total_minutes || D.new(0))})
+                    </span>
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                     Units per run
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
-                    Cost per unit
+                    Hourly rate override
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
-                    Hourly rate override
+                    Cost per unit
+                    <span class="text-stone-700">
+                      ({format_money(@settings.currency, @labor_per_unit_cost || D.new(0))})
+                    </span>
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                     <span class="opacity-0">Actions</span>
@@ -280,12 +286,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                           type="hidden"
                           value={labor_form[:sequence].value}
                         />
-                    </div>
-                  </div>
-
-                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
-                      <div class="block py-4 pr-6 text-sm text-stone-800">
-                        {format_money(@settings.currency, Map.get(@labor_row_costs || %{}, labor_form.name, D.new(0)))}
                       </div>
                     </div>
 
@@ -338,6 +338,15 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
 
                     <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                      <div class="block py-4 pr-6 text-sm text-stone-800">
+                        {format_money(
+                          @settings.currency,
+                          Map.get(@labor_row_costs || %{}, labor_form.name, D.new(0))
+                        )}
+                      </div>
+                    </div>
+
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                       <div class="block py-4 pr-6">
                         <%= if latest_version(@boms) != @bom.version do %>
                           <span class="text-stone-400">Read-only</span>
@@ -359,17 +368,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                   </div>
                 </.inputs_for>
-
-                <div role="row" class="flex justify-end py-2">
-                  <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
-                    <span class="text-stone-500">Total minutes:</span>
-                    <span class="ml-2 font-medium">{Decimal.to_string(@labor_total_minutes || D.new(0))}</span>
-                    <span class="ml-4 text-stone-500">Labor per unit:</span>
-                    <span class="ml-2 font-medium">{Decimal.to_string(@labor_per_unit_minutes || D.new(0))} min</span>
-                    <span class="ml-4 text-stone-500">Total labor cost per unit:</span>
-                    <span class="ml-2 font-medium">{format_money(@settings.currency, @labor_per_unit_cost || D.new(0))}</span>
-                  </div>
-                </div>
 
                 <div role="row" class="py-4">
                   <button
