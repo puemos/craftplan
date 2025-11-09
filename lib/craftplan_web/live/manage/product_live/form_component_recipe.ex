@@ -232,11 +232,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             <div id="recipe-labor-list">
               <div
                 id="labor"
-                class="mt-2 grid w-full grid-cols-6 gap-x-4 text-sm leading-6 text-stone-700"
+                class="mt-2 text-sm leading-6 text-stone-700"
               >
                 <div
                   role="row"
-                  class="col-span-6 grid grid-cols-6 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                  class="grid grid-cols-6 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
                 >
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0">
                     Step
@@ -360,7 +360,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   </div>
                 </.inputs_for>
 
-                <div role="row" class="col-span-6 flex justify-end py-2">
+                <div role="row" class="flex justify-end py-2">
                   <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
                     <span class="text-stone-500">Total minutes:</span>
                     <span class="ml-2 font-medium">{Decimal.to_string(@labor_total_minutes || D.new(0))}</span>
@@ -371,7 +371,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   </div>
                 </div>
 
-                <div role="row" class="col-span-6 py-4">
+                <div role="row" class="py-4">
                   <button
                     type="button"
                     phx-click="add_labor_step"
