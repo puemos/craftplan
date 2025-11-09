@@ -141,6 +141,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                             type="number"
                             min="0"
                             step="0.01"
+                            phx-debounce="10"
                             inline_label={get_material_unit(@materials_map, components_form)}
                             disabled={latest_version(@boms) != @bom.version}
                           />
@@ -298,6 +299,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                             type="number"
                             min="0"
                             step="1"
+                            phx-debounce="10"
                             inline_label="min"
                             disabled={latest_version(@boms) != @bom.version}
                           />
@@ -314,6 +316,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                             type="number"
                             min="1"
                             step="0.01"
+                            phx-debounce="10"
                             placeholder="Default 1"
                             disabled={latest_version(@boms) != @bom.version}
                           />
@@ -330,6 +333,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                             type="number"
                             min="0"
                             step="0.01"
+                            phx-debounce="10"
                             placeholder="Uses default when blank"
                             disabled={latest_version(@boms) != @bom.version}
                           />
@@ -755,13 +759,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     materials_total =
       Enum.reduce(comps, D.new(0), fn comp_form, acc ->
         material_id =
-          comp_form.params[:material_id] ||
+          form_param(comp_form, :material_id) ||
             (comp_form.data &&
                (comp_form.data.material_id ||
                   (comp_form.data.material && comp_form.data.material.id)))
 
         material = Map.get(socket.assigns.materials_map, material_id)
-        qty = comp_form.params[:quantity] || (comp_form.data && comp_form.data.quantity) || 0
+        qty = form_param(comp_form, :quantity) || (comp_form.data && comp_form.data.quantity) || 0
         price = (material && (material.price || D.new(0))) || D.new(0)
         D.add(acc, D.mult(price, normalize_decimal(qty)))
       end)
@@ -772,15 +776,21 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       Enum.reduce(steps, {D.new(0), D.new(0), D.new(0), %{}}, fn step_form, {tm, pum, puc, costs} ->
         minutes =
           normalize_decimal(
-            step_form.params[:duration_minutes] ||
+            form_param(step_form, :duration_minutes) ||
               (step_form.data && step_form.data.duration_minutes) || 0
           )
 
         upr =
-          normalize_units_per_run(step_form.params[:units_per_run] || (step_form.data && step_form.data.units_per_run))
+          normalize_units_per_run(
+            form_param(step_form, :units_per_run) ||
+              (step_form.data && step_form.data.units_per_run)
+          )
 
         rate_override =
-          normalize_optional_decimal(step_form.params[:rate_override] || (step_form.data && step_form.data.rate_override))
+          normalize_optional_decimal(
+            form_param(step_form, :rate_override) ||
+              (step_form.data && step_form.data.rate_override)
+          )
 
         rate = rate_override || actor_settings.labor_hourly_rate || D.new(0)
         per_unit_min_step = D.div(minutes, upr)
@@ -924,7 +934,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       (form.source.forms[:components] || [])
       |> Enum.map(fn recipe_mat_form ->
         if material_component?(recipe_mat_form) do
-          recipe_mat_form.params[:material_id] ||
+          form_param(recipe_mat_form, :material_id) ||
             (recipe_mat_form.data && recipe_mat_form.data.material_id)
         end
       end)
@@ -959,7 +969,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   defp material_component?(component_form) do
     type =
-      component_form.params[:component_type] ||
+      form_param(component_form, :component_type) ||
         (component_form.data && component_form.data.component_type) ||
         :material
 
@@ -979,6 +989,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               (components_form.data.material && components_form.data.material.id)))
 
     Map.get(materials_map, material_id)
+  end
+
+  defp form_param(form, key) do
+    params = Map.get(form, :params) || %{}
+    Map.get(params, key) || Map.get(params, to_string(key))
   end
 
   defp latest_version([]), do: nil
