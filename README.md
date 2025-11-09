@@ -4,12 +4,16 @@
 
 Craftplan is an open-source ERP system designed specifically for small-scale artisanal manufacturers and craft businesses. It brings all essential business tools into one platform, helping you get off the ground quickly while minimizing costs—no need to pay for multiple separate platforms. From raw materials to finished products, Craftplan provides everything you need to manage your entire production process and make data-driven decisions as you grow.
 
+After signing in you now land on **Manage → Overview** (`/manage/overview`), which combines the Overview, Schedule, Make Sheet, and Materials tabs into one LiveView-driven planner. It also shows completion snapshots with batch codes and BOM cost rollups as soon as you mark production done.
+
+![Manage overview with schedule, make sheet, and completion snapshot](screenshots/plan.png)
+
 ## User Guides
 
 For detailed instructions on using Craftplan, check out our user guides:
 
-- [Overview](guides/OVERVIEW.md) - Introduction to Craftplan
-- [Catalog Management](guides/CATALOG.md) - Managing products and pricing
+- [Overview](guides/OVERVIEW.md) - Manage → Overview tabs, cost snapshots, and consumption recaps
+- [Catalog Management](guides/CATALOG.md) - BOM editor, simple versioning, labor scaling, pricing guidance
 - [Inventory Control](guides/INVENTORY.md) - Tracking raw materials and stock
 - [Order Management](guides/ORDERS.md) - Processing customer orders
 - [Customer Management](guides/CUSTOMERS.md) - Managing your customer database
@@ -26,6 +30,7 @@ For detailed instructions on using Craftplan, check out our user guides:
 - [x] Nutritional facts (auto-calculated from BOM components)
 - [x] Recipe/Bill of Materials management
   - Simple versioning UX: edit only the latest version; older versions are read‑only with a “Go to latest” banner and a history modal (View / Make Active).
+- [x] Pricing helper card with markup-based retail & wholesale suggestions sourced from settings
 - [ ] Variant management
 - [x] Default currency setting and money formatting
 
@@ -73,8 +78,9 @@ For detailed instructions on using Craftplan, check out our user guides:
 
 ### 🗓️ Production Planning
 
-- [x] Weekly production planner (by product/day)
-- [x] Materials consumption on completion (optional)
+- [x] Manage → Overview landing page (`/manage/overview`) with Overview/Schedule/Make Sheet/Materials tabs
+- [x] Weekly production planner (by product/day) with print-ready make sheets
+- [x] Materials consumption on completion backed by BOM rollups plus completion snapshots (batch code, material/labor/overhead/unit cost)
 - [ ] Quality control tracking
 - [ ] Notifications
 

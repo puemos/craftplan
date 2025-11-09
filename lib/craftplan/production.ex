@@ -30,7 +30,7 @@ defmodule Craftplan.Production do
         product: [
           :name,
           :max_daily_quantity,
-          active_bom: [components: [material: [:current_stock, :unit, :sku, :name]]]
+          active_bom: [:rollup]
         ]
       ]
     ]
@@ -175,24 +175,24 @@ defmodule Craftplan.Production do
   @doc """
   Build usage details for a material on a date (groups by product) using Ash reads.
   """
-  def material_usage_details(time_zone, date, material) do
+  def material_usage_details(time_zone, date, material, actor \\ nil) do
     {start_dt, end_dt} =
       {DateTime.new!(date, ~T[00:00:00], time_zone), DateTime.new!(date, ~T[23:59:59], time_zone)}
 
     orders =
       Orders.list_orders!(
         %{delivery_date_start: start_dt, delivery_date_end: end_dt},
+        actor: actor,
         load: [
           :reference,
-          :items,
           items: [
             :quantity,
-            product: [:name, active_bom: [components: [material: [:id, :unit]]]]
+            product: [:name, active_bom: [:rollup]]
           ]
         ]
       )
 
-    InventoryForecasting.get_material_usage_details(material, orders)
+    InventoryForecasting.get_material_usage_details(material, orders, actor)
   end
 
   # helpers

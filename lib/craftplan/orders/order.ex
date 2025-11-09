@@ -158,7 +158,17 @@ defmodule Craftplan.Orders.Order do
 
       prepare build(
                 sort: [delivery_date: :asc],
-                load: [items: [product: [active_bom: [components: [material: :current_stock]]]]],
+                load: [
+                  :reference,
+                  :status,
+                  items: [
+                    :quantity,
+                    product: [
+                      :name,
+                      active_bom: [:rollup]
+                    ]
+                  ]
+                ],
                 filter:
                   expr(
                     fragment("DATE(?)", delivery_date) >= ^arg(:start_date) and

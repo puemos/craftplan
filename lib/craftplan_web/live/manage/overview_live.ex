@@ -1406,8 +1406,6 @@ defmodule CraftplanWeb.OverviewLive do
   end
 
   defp get_material_usage_details(socket, material, date) do
-    material_id = material.id
-
     start_datetime = DateTime.new!(date, ~T[00:00:00], socket.assigns.time_zone)
     end_datetime = DateTime.new!(date, ~T[23:59:59], socket.assigns.time_zone)
 
@@ -1420,41 +1418,21 @@ defmodule CraftplanWeb.OverviewLive do
         actor: socket.assigns.current_user,
         load: [
           :reference,
-          :items,
           items: [
             :quantity,
             product: [
               :name,
-              active_bom: [components: [material: [:id, :unit]]]
+              active_bom: [:rollup]
             ]
           ]
         ]
       )
 
-    order_items_using_material =
-      for order <- orders,
-          item <- order.items,
-          item.product.active_bom != nil,
-          component <- item.product.active_bom.components,
-          component.material.id == material_id do
-        material_quantity = Decimal.mult(component.quantity, item.quantity)
-
-        %{
-          order: %{reference: order.reference},
-          product: item.product,
-          quantity: material_quantity
-        }
-      end
-
-    order_items_using_material
-    |> Enum.group_by(& &1.product)
-    |> Enum.map(fn {product, items} ->
-      total_quantity =
-        Enum.reduce(items, Decimal.new(0), &Decimal.add(&1.quantity, &2))
-
-      {product, %{total_quantity: total_quantity, order_items: items}}
-    end)
-    |> Enum.sort_by(fn {product, _} -> product.name end)
+    InventoryForecasting.get_material_usage_details(
+      material,
+      orders,
+      socket.assigns.current_user
+    )
   end
 
   defp page_title(:schedule), do: "Plan: Schedule"

@@ -561,12 +561,17 @@ defmodule CraftplanWeb.InventoryLive.Index do
           :reference,
           items: [
             :quantity,
-            product: [:name, active_bom: [components: [material: :id]]]
+            product: [:name, active_bom: [:rollup]]
           ]
         ]
       )
 
-    details = InventoryForecasting.get_material_usage_details(material, orders)
+    details =
+      InventoryForecasting.get_material_usage_details(
+        material,
+        orders,
+        socket.assigns.current_user
+      )
 
     {:noreply,
      socket

@@ -5,12 +5,14 @@ defmodule Craftplan.InventoryForecasting do
 
   alias Ash.NotLoaded
   alias Craftplan.Inventory.ForecastRow
+  alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.PurchaseOrderItem
   alias Craftplan.Orders
   alias Craftplan.Settings
   alias Decimal, as: D
 
   require Ash.Query
+  import Ash.Expr
 
   @doc """
   Prepares materials requirements for a given date range.
@@ -69,20 +71,29 @@ defmodule Craftplan.InventoryForecasting do
           quantity = item.quantity || D.new(0)
 
           item
-          |> components_for_item(actor)
-          |> Enum.filter(&(&1.component_type == :material))
-          |> Enum.map(fn component ->
-            {day, component.material, D.mult(component.quantity, quantity)}
+          |> per_unit_requirements(actor)
+          |> Enum.map(fn {material_id, per_unit} ->
+            {day, material_id, D.mult(per_unit, quantity)}
           end)
         end)
       end)
 
+    material_lookup =
+      materials_by_day
+      |> Enum.map(fn {_, material_id, _} -> material_id end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> load_materials(actor)
+
     materials_by_day
+    |> Enum.reject(fn {_, material_id, _} -> is_nil(material_id) end)
     |> Enum.group_by(
-      fn {_, material, _} -> material end,
-      fn {day, _, quantity} -> {day, quantity} end
+      fn {_, material_id, _} -> material_id end,
+      fn {day, _material_id, quantity} -> {day, quantity} end
     )
-    |> Enum.map(fn {material, day_quantities} ->
+    |> Enum.map(fn {material_id, day_quantities} ->
+      material = Map.fetch!(material_lookup, material_id)
+
       quantities_by_day =
         Enum.map(days_range, fn day ->
           day_quantity =
@@ -110,40 +121,30 @@ defmodule Craftplan.InventoryForecasting do
   @doc """
   Gets material usage details for a specific material on a specific date
   """
-  def get_material_usage_details(material, orders) do
-    order_items_using_material =
-      for order <- orders,
-          item <- order.items,
-          {_component, material_quantity} <- material_usages_for_item(item, material) do
-        %{
-          order: %{reference: order.reference},
-          product: item.product,
-          quantity: material_quantity
-        }
-      end
+  def get_material_usage_details(material, orders, actor \\ nil) do
+    orders
+    |> Enum.flat_map(fn order ->
+      Enum.flat_map(order.items, fn item ->
+        quantity = item.quantity || D.new(0)
 
-    order_items_using_material
+        item
+        |> per_unit_requirements(actor)
+        |> Enum.filter(fn {material_id, _} -> material_id == material.id end)
+        |> Enum.map(fn {_material_id, per_unit} ->
+          %{
+            order: %{reference: order.reference},
+            product: item.product,
+            quantity: D.mult(per_unit, quantity)
+          }
+        end)
+      end)
+    end)
     |> Enum.group_by(& &1.product)
     |> Enum.map(fn {product, items} ->
-      total_quantity = Enum.reduce(items, D.new(0), &D.add(&2, &1.quantity))
+      total_quantity = Enum.reduce(items, D.new(0), fn item, acc -> D.add(acc, item.quantity) end)
       {product, %{total_quantity: total_quantity, order_items: items}}
     end)
     |> Enum.sort_by(fn {product, _} -> product.name end)
-  end
-
-  defp material_usages_for_item(item, material) do
-    quantity = item.quantity || D.new(0)
-
-    case active_bom_components(item) do
-      {:ok, components} ->
-        components
-        |> Enum.filter(&(&1.component_type == :material))
-        |> Enum.filter(&(Map.get(&1.material, :id) == material.id))
-        |> Enum.map(fn c -> {c, D.mult(c.quantity, quantity)} end)
-
-      _ ->
-        []
-    end
   end
 
   @doc """
@@ -160,6 +161,34 @@ defmodule Craftplan.InventoryForecasting do
       _ -> {D.new(0), D.new(0)}
     end
   end
+
+  defp per_unit_requirements(item, actor) do
+    case rollup_components_map(item) do
+      {:ok, map} ->
+        Enum.map(map, fn {material_id, quantity_str} ->
+          {material_id, D.new(quantity_str)}
+        end)
+
+      :error ->
+        item
+        |> components_for_item(actor)
+        |> Enum.filter(&(&1.component_type == :material))
+        |> Enum.map(fn component ->
+          material_id = component.material && component.material.id
+          {material_id, component.quantity}
+        end)
+        |> Enum.reject(fn {material_id, _} -> is_nil(material_id) end)
+    end
+  end
+
+  defp rollup_components_map(%{product: %{active_bom: %{rollup: %{} = rollup}}}) do
+    case Map.get(rollup, :components_map) do
+      %{} = map when map_size(map) > 0 -> {:ok, map}
+      _ -> :error
+    end
+  end
+
+  defp rollup_components_map(_), do: :error
 
   @doc """
   Builds rich forecast rows ready for owner metrics consumption.
@@ -285,8 +314,6 @@ defmodule Craftplan.InventoryForecasting do
     end
   end
 
-  defp active_bom_components(item, actor \\ nil)
-
   defp active_bom_components(%{product: %{active_bom: %{} = bom}}, actor) do
     case Map.get(bom, :components) do
       components when is_list(components) ->
@@ -337,6 +364,16 @@ defmodule Craftplan.InventoryForecasting do
   defp ensure_components_loaded(%{components: components}, _actor) when is_list(components), do: components
 
   defp ensure_components_loaded(_bom, _actor), do: []
+
+  defp load_materials([], _actor), do: %{}
+
+  defp load_materials(ids, actor) do
+    Material
+    |> Ash.Query.filter(expr(id in ^ids))
+    |> Ash.Query.load([:name, :unit, :current_stock])
+    |> Ash.read!(actor: actor)
+    |> Map.new(&{&1.id, &1})
+  end
 
   defp find_day_index(quantities, date) do
     case Enum.find_index(quantities, fn {_, d} -> Date.compare(d, date) == :eq end) do
