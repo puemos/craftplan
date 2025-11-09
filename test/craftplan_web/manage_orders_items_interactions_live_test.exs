@@ -64,33 +64,34 @@ defmodule CraftplanWeb.ManageOrdersItemsInteractionsLiveTest do
   end
 
   @tag role: :staff
-  test "items: mark done shows consume modal and confirm", %{conn: conn} do
+  test "items: add to batch shows allocation chip", %{conn: conn} do
     mat = create_material!()
     prod = create_product_with_recipe!(mat)
     order = create_order_with_item!(prod)
+
+    # Create an open batch for the product
+    {:ok, batch} =
+      Craftplan.Orders.ProductionBatch
+      |> Ash.Changeset.for_create(:open, %{product_id: prod.id, planned_qty: Decimal.new("0")})
+      |> Ash.create(actor: Craftplan.DataCase.staff_actor())
 
     {:ok, view, _} = live(conn, ~p"/manage/orders/#{order.reference}/items")
 
     # Grab the item id from DB
     item = hd(order.items)
 
-    # Change status to done
+    # Open the Add to Batch modal
     view
-    |> element("form[phx-change=update_item_status]")
-    |> render_change(%{"item_id" => item.id, "status" => "done"})
-
-    # Assert modal appears and confirm consumption
-    assert has_element?(view, "#consume-confirm-modal")
-
-    view
-    |> element("#consume-confirm-modal button[phx-click=confirm_consume]")
+    |> element("button[phx-click=open_add_to_batch][phx-value-item_id=\"#{item.id}\"]")
     |> render_click()
 
-    assert render(view) =~ "Materials consumed"
+    # Submit allocation to the batch
+    view
+    |> form("#add-to-batch-form", %{batch_id: batch.id, planned_qty: "1"})
+    |> render_submit()
 
-    # After completion, batch code and unit cost should be displayed in items table
-    html = render(view)
-    assert html =~ "Batch"
-    assert html =~ "Unit Cost"
+    # Verify allocations chip updated
+    assert render(view) =~ "Allocations"
+    assert render(view) =~ "Planned: 1"
   end
 end

@@ -380,6 +380,18 @@ defmodule CraftplanWeb.OverviewLive do
                           text="Over cap"
                         />
                       </div>
+                      <div class="mb-2 flex items-center justify-end gap-2">
+                        <.button
+                          size={:sm}
+                          variant={:outline}
+                          phx-click="create_batch"
+                          phx-value-date={Date.to_iso8601(day)}
+                          phx-value-product_id={product.id}
+                          phx-stop
+                        >
+                          Create Batch
+                        </.button>
+                      </div>
                       <div class="flex items-center justify-between text-sm text-stone-600">
                         <span class="flex items-center">
                           <svg
@@ -1355,6 +1367,59 @@ defmodule CraftplanWeb.OverviewLive do
 
   defp total_quantity(items) do
     Enum.reduce(items, Decimal.new(0), fn item, acc -> Decimal.add(acc, item.quantity) end)
+  end
+
+  @impl true
+  def handle_event("create_batch", %{"date" => date_iso, "product_id" => product_id}, socket) do
+    actor = socket.assigns.current_user
+    {:ok, day} = Date.from_iso8601(date_iso)
+    product = find_product(socket, product_id)
+
+    items_for_product = get_product_items_for_day(day, product, socket.assigns.production_items)
+
+    # Load aggregates to compute remaining quantities per item
+    items_with_remaining =
+      Enum.map(items_for_product, fn item ->
+        full =
+          Craftplan.Orders.get_order_item_by_id!(item.id,
+            load: [:quantity, :planned_qty_sum],
+            actor: actor
+          )
+
+        planned = full.planned_qty_sum || Decimal.new(0)
+        remaining = Decimal.sub(full.quantity, planned)
+        %{id: full.id, remaining: remaining}
+      end)
+      |> Enum.filter(fn %{remaining: r} -> Decimal.compare(r, Decimal.new(0)) == :gt end)
+
+    if Enum.empty?(items_with_remaining) do
+      {:noreply, put_flash(socket, :info, "Nothing remaining to allocate for this product/day")}
+    else
+      planned_qty = Enum.reduce(items_with_remaining, Decimal.new(0), fn %{remaining: r}, acc -> Decimal.add(acc, r) end)
+
+      changeset =
+        Craftplan.Orders.ProductionBatch
+        |> Ash.Changeset.for_create(:open_with_allocations, %{
+          product_id: product.id,
+          planned_qty: planned_qty
+        })
+        |> Ash.Changeset.set_argument(:allocations,
+          Enum.map(items_with_remaining, fn %{id: id, remaining: r} ->
+            %{order_item_id: id, planned_qty: r}
+          end)
+        )
+
+      case Ash.create(changeset, actor: actor) do
+        {:ok, batch} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, "Batch #{batch.batch_code} created")
+           |> push_navigate(to: ~p"/manage/production/batches/#{batch.batch_code}")}
+
+        {:error, error} ->
+          {:noreply, put_flash(socket, :error, "Failed to create batch: #{inspect(error)}")}
+      end
+    end
   end
 
   defp make_sheet_rows(production_items, day) do

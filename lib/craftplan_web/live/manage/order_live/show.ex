@@ -19,6 +19,8 @@ defmodule CraftplanWeb.OrderLive.Show do
       :status,
       :consumed_at,
       :batch_code,
+      :planned_qty_sum,
+      :completed_qty_sum,
       :material_cost,
       :labor_cost,
       :overhead_cost,
@@ -125,32 +127,39 @@ defmodule CraftplanWeb.OrderLive.Show do
             {format_money(@settings.currency, item.cost)}
           </:col>
           <:col :let={item} label="Status">
-            <form phx-change="update_item_status">
-              <input type="hidden" name="item_id" value={item.id} />
-              <.input
-                name="status"
-                type="badge-select"
-                value={item.status}
-                options={[
-                  {"To Do", "todo"},
-                  {"In Progress", "in_progress"},
-                  {"Completed", "done"}
-                ]}
-                badge_colors={[
-                  {:todo, "#{order_item_status_bg(:todo)} #{order_item_status_color(:todo)}"},
-                  {:in_progress,
-                   "#{order_item_status_bg(:in_progress)} #{order_item_status_color(:in_progress)}"},
-                  {:done, "#{order_item_status_bg(:done)} #{order_item_status_color(:done)}"}
-                ]}
-              />
-            </form>
-            <span
-              :if={item.status == :done && not is_nil(item.consumed_at)}
-              class="ml-2 text-xs text-stone-500"
-            >
-              Consumed
-            </span>
+            <% planned = item.planned_qty_sum || Decimal.new(0) %>
+            <% completed = item.completed_qty_sum || Decimal.new(0) %>
+            <% status =
+              cond do
+                Decimal.compare(completed, item.quantity) != :lt -> :done
+                Decimal.compare(completed, Decimal.new(0)) == :gt -> :in_progress
+                true -> :todo
+              end %>
+            <.badge
+              text={status}
+              colors={[
+                {:todo, "#{order_item_status_bg(:todo)} #{order_item_status_color(:todo)}"},
+                {:in_progress,
+                 "#{order_item_status_bg(:in_progress)} #{order_item_status_color(:in_progress)}"},
+                {:done, "#{order_item_status_bg(:done)} #{order_item_status_color(:done)}"}
+              ]}
+            />
           </:col>
+          <:col :let={item} label="Allocations">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="inline-flex items-center rounded bg-stone-100 px-2 py-0.5">
+                Planned: {item.planned_qty_sum || Decimal.new(0)}
+              </span>
+              <span class="inline-flex items-center rounded bg-stone-100 px-2 py-0.5">
+                Completed: {item.completed_qty_sum || Decimal.new(0)}
+              </span>
+            </div>
+          </:col>
+          <:action :let={item}>
+            <.button size={:sm} variant={:outline} phx-click="open_add_to_batch" phx-value-item_id={item.id}>
+              Add to Batch…
+            </.button>
+          </:action>
           <:col :let={item} label="Batch">
             <%= if item.batch_code do %>
               <.link
@@ -213,6 +222,41 @@ defmodule CraftplanWeb.OrderLive.Show do
         patch={~p"/manage/orders/#{@order.reference}"}
       />
     </.modal>
+
+    <.modal
+      :if={@add_to_batch_item}
+      id="add-to-batch-modal"
+      show
+      title="Add Item to Batch"
+      on_cancel={JS.push("cancel_add_to_batch")}
+    >
+      <.form id="add-to-batch-form" for={%{}} phx-submit="save_add_to_batch">
+        <div class="space-y-3">
+          <div class="text-sm text-stone-700">
+            Product: <span class="font-medium">{@add_to_batch_item.product.name}</span>
+          </div>
+          <.input
+            type="select"
+            name="batch_id"
+            label="Open Batch"
+            options={for b <- @open_batches, do: {b.batch_code, b.id}}
+            value={@selected_batch_id}
+          />
+          <.input
+            type="number"
+            name="planned_qty"
+            label="Planned Quantity"
+            min="0"
+            step="any"
+            value={@default_planned_qty}
+          />
+          <div class="flex items-center justify-end gap-2">
+            <.button type="button" variant={:outline} phx-click="cancel_add_to_batch">Cancel</.button>
+            <.button type="submit" variant={:primary}>Add</.button>
+          </div>
+        </div>
+      </.form>
+    </.modal>
     """
   end
 
@@ -228,6 +272,10 @@ defmodule CraftplanWeb.OrderLive.Show do
      assign(socket,
        products: products,
        customers: customers,
+       add_to_batch_item: nil,
+       open_batches: [],
+       default_planned_qty: Decimal.new(0),
+       selected_batch_id: nil,
        pending_consumption_item_id: nil,
        pending_consumption_recap: []
      )}
@@ -266,127 +314,92 @@ defmodule CraftplanWeb.OrderLive.Show do
   end
 
   @impl true
-  def handle_event("update_item_status", %{"item_id" => id, "status" => status}, socket) do
-    order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
-
-    case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
-      {:ok, updated_item} ->
-        order =
-          Orders.get_order_by_id!(order_item.order_id,
-            load: @default_order_load,
-            actor: socket.assigns[:current_user]
-          )
-
-        socket =
-          socket
-          |> assign(:order, order)
-          |> put_flash(:info, "Item status updated")
-
-        socket =
-          if String.to_atom(status) == :done do
-            item =
-              Orders.get_order_item_by_id!(updated_item.id,
-                load: [
-                  :quantity,
-                  product: [
-                    active_bom: [:rollup, components: [material: [:name, :unit, :current_stock]]]
-                  ]
-                ],
-                actor: socket.assigns[:current_user]
-              )
-
-            recap =
-              case item.product.active_bom do
-                %{rollup: %{components_map: components_map}} when map_size(components_map) > 0 ->
-                  ids = Map.keys(components_map)
-
-                  materials =
-                    Craftplan.Inventory.Material
-                    |> Ash.Query.new()
-                    |> Ash.Query.filter(expr(id in ^ids))
-                    |> Ash.read!(actor: socket.assigns[:current_user], authorize?: false)
-                    |> Ash.load!([:current_stock],
-                      actor: socket.assigns[:current_user],
-                      authorize?: false
-                    )
-
-                  materials_by_id = Map.new(materials, &{&1.id, &1})
-
-                  Enum.map(ids, fn id ->
-                    per_unit = Decimal.new(Map.get(components_map, id))
-                    required = Decimal.mult(per_unit, item.quantity)
-                    material = Map.get(materials_by_id, id)
-
-                    %{
-                      material: material,
-                      required: required,
-                      current_stock: material && material.current_stock
-                    }
-                  end)
-
-                _ ->
-                  if item.product.active_bom && item.product.active_bom.components != nil do
-                    item.product.active_bom.components
-                    |> Enum.map(fn c ->
-                      if c.component_type == :material do
-                        %{
-                          material: c.material,
-                          required: Decimal.mult(c.quantity, item.quantity),
-                          current_stock: c.material.current_stock
-                        }
-                      end
-                    end)
-                    |> Enum.reject(&is_nil/1)
-                  else
-                    []
-                  end
-              end
-
-            socket
-            |> assign(:pending_consumption_item_id, updated_item.id)
-            |> assign(:pending_consumption_recap, recap)
-          else
-            socket
-          end
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
-  end
+  def handle_event("update_item_status", _params, socket), do: {:noreply, socket}
 
   @impl true
-  def handle_event("confirm_consume", _params, socket) do
-    if socket.assigns.pending_consumption_item_id do
-      _ =
-        Craftplan.Orders.Consumption.consume_item(socket.assigns.pending_consumption_item_id,
-          actor: socket.assigns.current_user
-        )
-
-      order =
-        Orders.get_order_by_id!(socket.assigns.order.id,
-          load: @default_order_load,
-          actor: socket.assigns[:current_user]
-        )
-
-      {:noreply,
-       socket
-       |> assign(:order, order)
-       |> assign(:pending_consumption_item_id, nil)
-       |> assign(:pending_consumption_recap, [])
-       |> put_flash(:info, "Materials consumed")}
-    else
-      {:noreply, socket}
-    end
-  end
+  def handle_event("confirm_consume", _params, socket), do: {:noreply, socket}
 
   @impl true
-  def handle_event("cancel_consume", _params, socket) do
+  def handle_event("cancel_consume", _params, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_event("open_add_to_batch", %{"item_id" => item_id}, socket) do
+    actor = socket.assigns.current_user
+    item = Orders.get_order_item_by_id!(item_id, actor: actor, load: [:quantity, :planned_qty_sum, product: [:name, :sku]])
+
+    open_batches =
+      Craftplan.Orders.ProductionBatch
+      |> Ash.Query.new()
+      |> Ash.Query.filter(expr(product_id == ^item.product_id and status == :open))
+      |> Ash.Query.sort(inserted_at: :desc)
+      |> Ash.read!(actor: actor)
+
+    remaining = Decimal.sub(item.quantity, item.planned_qty_sum || Decimal.new(0))
+
+    selected = (open_batches |> List.first() |> case do nil -> nil; b -> b.id end)
+
     {:noreply,
      socket
-     |> assign(:pending_consumption_item_id, nil)
-     |> assign(:pending_consumption_recap, [])}
+     |> assign(:add_to_batch_item, item)
+     |> assign(:open_batches, open_batches)
+     |> assign(:default_planned_qty, remaining)
+     |> assign(:selected_batch_id, selected)}
+  end
+
+  @impl true
+  def handle_event("save_add_to_batch", %{"batch_id" => batch_id, "planned_qty" => planned_qty}, socket) do
+    actor = socket.assigns.current_user
+    item = socket.assigns.add_to_batch_item
+    qty = Decimal.new(planned_qty)
+
+    existing =
+      Craftplan.Orders.OrderItemBatchAllocation
+      |> Ash.Query.new()
+      |> Ash.Query.filter(expr(order_item_id == ^item.id and production_batch_id == ^batch_id))
+      |> Ash.read_one(actor: actor)
+
+    case existing do
+      {:ok, %{} = alloc} ->
+        _ = Ash.update!(alloc, %{planned_qty: Decimal.add(alloc.planned_qty || Decimal.new(0), qty)}, action: :update, actor: actor)
+        :ok
+      _ ->
+        _ =
+          Craftplan.Orders.OrderItemBatchAllocation
+          |> Ash.Changeset.for_create(:create, %{
+            order_item_id: item.id,
+            production_batch_id: batch_id,
+            planned_qty: qty,
+            completed_qty: Decimal.new(0)
+          })
+          |> Ash.create!(actor: actor)
+        :ok
+    end
+
+    order =
+      Orders.get_order_by_id!(socket.assigns.order.id,
+        load: @default_order_load,
+        actor: actor
+      )
+
+    {:noreply,
+     socket
+     |> assign(:order, order)
+     |> assign(:add_to_batch_item, nil)
+     |> assign(:open_batches, [])
+     |> assign(:selected_batch_id, nil)
+     |> put_flash(:info, "Allocation added")}
+  rescue
+    e ->
+      {:noreply, put_flash(socket, :error, "Failed to add allocation: #{Exception.message(e)}")}
+  end
+
+  @impl true
+  def handle_event("cancel_add_to_batch", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:add_to_batch_item, nil)
+     |> assign(:open_batches, [])
+     |> assign(:selected_batch_id, nil)}
   end
 
   @impl true
