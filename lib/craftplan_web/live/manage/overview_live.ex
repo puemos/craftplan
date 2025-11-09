@@ -1525,22 +1525,12 @@ defmodule CraftplanWeb.OverviewLive do
         end)
       end)
 
-    tz = socket.assigns.time_zone
-    start_dt = days_range |> List.first() |> DateTime.new!(~T[00:00:00], tz)
-    end_dt = days_range |> List.last() |> DateTime.new!(~T[23:59:59], tz)
-
-    orders =
-      Orders.list_orders!(
-        %{delivery_date_start: start_dt, delivery_date_end: end_dt},
-        actor: socket.assigns.current_user
-      )
-
-    orders_by_day = Enum.group_by(orders, fn o -> DateTime.to_date(o.delivery_date) end)
+    orders_by_day_counts = Map.get(socket.assigns, :orders_by_day_counts, %{})
     cap = socket.assigns.settings.daily_capacity || 0
 
     over_order_capacity_days =
       if cap > 0 do
-        Enum.count(days_range, fn day -> length(Map.get(orders_by_day, day, [])) > cap end)
+        Enum.count(days_range, fn day -> Map.get(orders_by_day_counts, day, 0) > cap end)
       else
         0
       end
@@ -1571,7 +1561,8 @@ defmodule CraftplanWeb.OverviewLive do
       end)
 
     today = Date.utc_today()
-    orders_today = length(Map.get(orders_by_day, today, []))
+    orders_by_day_counts = Map.get(socket.assigns, :orders_by_day_counts, %{})
+    orders_today = Map.get(orders_by_day_counts, today, 0)
 
     outstanding_today =
       production_items
@@ -1612,27 +1603,13 @@ defmodule CraftplanWeb.OverviewLive do
         end)
       end)
 
-    tz = assigns.time_zone
     cap = assigns.settings.daily_capacity || 0
+    orders_by_day_counts = Map.get(socket.assigns, :orders_by_day_counts, %{})
 
     over_order_capacity_rows =
       if cap > 0 do
-        start_dt = assigns.days_range |> List.first() |> DateTime.new!(~T[00:00:00], tz)
-        end_dt = assigns.days_range |> List.last() |> DateTime.new!(~T[23:59:59], tz)
-
-        orders =
-          Orders.list_orders!(
-            %{
-              delivery_date_start: start_dt,
-              delivery_date_end: end_dt
-            },
-            actor: socket.assigns.current_user
-          )
-
-        orders_by_day = Enum.group_by(orders, fn o -> DateTime.to_date(o.delivery_date) end)
-
         Enum.flat_map(assigns.days_range, fn day ->
-          cnt = length(Map.get(orders_by_day, day, []))
+          cnt = Map.get(orders_by_day_counts, day, 0)
           if cnt > cap, do: [%{day: day, count: cnt, cap: cap}], else: []
         end)
       else
@@ -1665,19 +1642,9 @@ defmodule CraftplanWeb.OverviewLive do
       end)
       |> Enum.sort_by(fn r -> {r.day, r.material.name} end)
 
-    today = Date.utc_today()
-    start_dt = DateTime.new!(today, ~T[00:00:00], tz)
-    end_dt = DateTime.new!(today, ~T[23:59:59], tz)
+    orders_today_rows = Map.get(socket.assigns, :orders_today_rows, [])
 
-    orders_today_rows =
-      %{delivery_date_start: start_dt, delivery_date_end: end_dt}
-      |> Orders.list_orders!(
-        load: [:total_cost, :reference, customer: [:full_name]],
-        actor: socket.assigns.current_user
-      )
-      |> Enum.map(fn o ->
-        %{reference: o.reference, customer: o.customer.full_name, total: o.total_cost}
-      end)
+    today = Date.utc_today()
 
     outstanding_today_rows =
       assigns.production_items
@@ -1714,6 +1681,14 @@ defmodule CraftplanWeb.OverviewLive do
     production_items = load_production_items(socket, days_range)
     materials_requirements = prepare_materials_requirements(socket, days_range)
 
+    # Precompute orders by day (counts) and today's orders rows once per range
+    {orders_by_day_counts, orders_today_rows} = fetch_orders_data(socket, days_range)
+
+    socket =
+      socket
+      |> assign(:orders_by_day_counts, orders_by_day_counts)
+      |> assign(:orders_today_rows, orders_today_rows)
+
     week_metrics =
       compute_week_metrics(socket, days_range, production_items, materials_requirements)
 
@@ -1739,6 +1714,39 @@ defmodule CraftplanWeb.OverviewLive do
     |> assign(:week_metrics, week_metrics)
     |> assign(:overview_tables, overview_tables)
     |> assign(:is_today, is_today)
+  end
+
+  defp fetch_orders_data(socket, days_range) do
+    tz = socket.assigns.time_zone
+    start_dt = days_range |> List.first() |> DateTime.new!(~T[00:00:00], tz)
+    end_dt = days_range |> List.last() |> DateTime.new!(~T[23:59:59], tz)
+
+    orders =
+      Orders.list_orders!(
+        %{delivery_date_start: start_dt, delivery_date_end: end_dt},
+        actor: socket.assigns.current_user
+      )
+
+    orders_by_day_counts =
+      orders
+      |> Enum.group_by(fn o -> DateTime.to_date(o.delivery_date) end)
+      |> Map.new(fn {day, os} -> {day, length(os)} end)
+
+    today = Date.utc_today()
+    today_start = DateTime.new!(today, ~T[00:00:00], tz)
+    today_end = DateTime.new!(today, ~T[23:59:59], tz)
+
+    orders_today_rows =
+      %{delivery_date_start: today_start, delivery_date_end: today_end}
+      |> Orders.list_orders!(
+        load: [:total_cost, :reference, customer: [:full_name]],
+        actor: socket.assigns.current_user
+      )
+      |> Enum.map(fn o ->
+        %{reference: o.reference, customer: o.customer.full_name, total: o.total_cost}
+      end)
+
+    {orders_by_day_counts, orders_today_rows}
   end
 
   defp get_kanban_columns_for_day(day, production_items) do
