@@ -86,6 +86,14 @@ defmodule Craftplan.Orders.ProductionBatch do
 
       filter expr(batch_code == ^arg(:batch_code))
     end
+
+    read :plan do
+      prepare build(
+                load: [:product],
+                filter: expr(status in [:open, :in_progress, :completed]),
+                sort: [inserted_at: :desc]
+              )
+    end
   end
 
   policies do

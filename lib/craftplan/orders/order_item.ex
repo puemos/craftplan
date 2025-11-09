@@ -13,6 +13,14 @@ defmodule Craftplan.Orders.OrderItem do
     repo Craftplan.Repo
   end
 
+  @plan_load [
+    :quantity,
+    :planned_qty_sum,
+    :completed_qty_sum,
+    product: [:name, :sku],
+    order: [:reference, :delivery_date, customer: [:full_name]]
+  ]
+
   actions do
     defaults [:read, :destroy]
 
@@ -71,6 +79,16 @@ defmodule Craftplan.Orders.OrderItem do
 
       # optionally exclude items from a given order (useful during updates)
       filter expr(is_nil(^arg(:exclude_order_id)) or order_id != ^arg(:exclude_order_id))
+    end
+
+    read :plan_pending do
+      get? false
+      argument :to, :utc_datetime do
+        allow_nil? false
+      end
+
+      prepare build(load: @plan_load)
+      filter expr(order.delivery_date <= ^arg(:to))
     end
   end
 

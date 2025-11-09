@@ -8,6 +8,7 @@ defmodule CraftplanWeb.OrderLive.Show do
   alias Craftplan.Catalog.Product.Photo
   alias Craftplan.CRM
   alias Craftplan.Orders
+  alias Craftplan.Orders.OrderItemBatchAllocation
   alias CraftplanWeb.Navigation
 
   require Ash.Query
@@ -156,7 +157,12 @@ defmodule CraftplanWeb.OrderLive.Show do
             </div>
           </:col>
           <:action :let={item}>
-            <.button size={:sm} variant={:outline} phx-click="open_add_to_batch" phx-value-item_id={item.id}>
+            <.button
+              size={:sm}
+              variant={:outline}
+              phx-click="open_add_to_batch"
+              phx-value-item_id={item.id}
+            >
               Add to Batch…
             </.button>
           </:action>
@@ -325,7 +331,12 @@ defmodule CraftplanWeb.OrderLive.Show do
   @impl true
   def handle_event("open_add_to_batch", %{"item_id" => item_id}, socket) do
     actor = socket.assigns.current_user
-    item = Orders.get_order_item_by_id!(item_id, actor: actor, load: [:quantity, :planned_qty_sum, product: [:name, :sku]])
+
+    item =
+      Orders.get_order_item_by_id!(item_id,
+        actor: actor,
+        load: [:quantity, :planned_qty_sum, product: [:name, :sku]]
+      )
 
     open_batches =
       Craftplan.Orders.ProductionBatch
@@ -336,7 +347,13 @@ defmodule CraftplanWeb.OrderLive.Show do
 
     remaining = Decimal.sub(item.quantity, item.planned_qty_sum || Decimal.new(0))
 
-    selected = (open_batches |> List.first() |> case do nil -> nil; b -> b.id end)
+    selected =
+      open_batches
+      |> List.first()
+      |> case do
+        nil -> nil
+        b -> b.id
+      end
 
     {:noreply,
      socket
@@ -353,18 +370,26 @@ defmodule CraftplanWeb.OrderLive.Show do
     qty = Decimal.new(planned_qty)
 
     existing =
-      Craftplan.Orders.OrderItemBatchAllocation
+      OrderItemBatchAllocation
       |> Ash.Query.new()
       |> Ash.Query.filter(expr(order_item_id == ^item.id and production_batch_id == ^batch_id))
       |> Ash.read_one(actor: actor)
 
     case existing do
       {:ok, %{} = alloc} ->
-        _ = Ash.update!(alloc, %{planned_qty: Decimal.add(alloc.planned_qty || Decimal.new(0), qty)}, action: :update, actor: actor)
+        _ =
+          Ash.update!(
+            alloc,
+            %{planned_qty: Decimal.add(alloc.planned_qty || Decimal.new(0), qty)},
+            action: :update,
+            actor: actor
+          )
+
         :ok
+
       _ ->
         _ =
-          Craftplan.Orders.OrderItemBatchAllocation
+          OrderItemBatchAllocation
           |> Ash.Changeset.for_create(:create, %{
             order_item_id: item.id,
             production_batch_id: batch_id,
@@ -372,6 +397,7 @@ defmodule CraftplanWeb.OrderLive.Show do
             completed_qty: Decimal.new(0)
           })
           |> Ash.create!(actor: actor)
+
         :ok
     end
 

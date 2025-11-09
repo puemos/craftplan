@@ -1379,9 +1379,10 @@ defmodule CraftplanWeb.OverviewLive do
 
     # Load aggregates to compute remaining quantities per item
     items_with_remaining =
-      Enum.map(items_for_product, fn item ->
+      items_for_product
+      |> Enum.map(fn item ->
         full =
-          Craftplan.Orders.get_order_item_by_id!(item.id,
+          Orders.get_order_item_by_id!(item.id,
             load: [:quantity, :planned_qty_sum],
             actor: actor
           )
@@ -1395,19 +1396,24 @@ defmodule CraftplanWeb.OverviewLive do
     if Enum.empty?(items_with_remaining) do
       {:noreply, put_flash(socket, :info, "Nothing remaining to allocate for this product/day")}
     else
-      planned_qty = Enum.reduce(items_with_remaining, Decimal.new(0), fn %{remaining: r}, acc -> Decimal.add(acc, r) end)
+      planned_qty =
+        Enum.reduce(items_with_remaining, Decimal.new(0), fn %{remaining: r}, acc ->
+          Decimal.add(acc, r)
+        end)
 
       changeset =
         Craftplan.Orders.ProductionBatch
-        |> Ash.Changeset.for_create(:open_with_allocations, %{
-          product_id: product.id,
-          planned_qty: planned_qty
-        })
-        |> Ash.Changeset.set_argument(:allocations,
+        |> Ash.Changeset.new()
+        |> Ash.Changeset.set_argument(
+          :allocations,
           Enum.map(items_with_remaining, fn %{id: id, remaining: r} ->
             %{order_item_id: id, planned_qty: r}
           end)
         )
+        |> Ash.Changeset.for_create(:open_with_allocations, %{
+          product_id: product.id,
+          planned_qty: planned_qty
+        })
 
       case Ash.create(changeset, actor: actor) do
         {:ok, batch} ->
