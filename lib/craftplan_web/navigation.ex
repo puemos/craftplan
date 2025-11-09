@@ -9,6 +9,8 @@ defmodule CraftplanWeb.Navigation do
   use CraftplanWeb, :html
 
   alias CraftplanWeb.HtmlHelpers
+  alias CraftplanWeb.ProductionBatchLive.Index, as: ProductionBatchIndex
+  alias CraftplanWeb.ProductionBatchLive.Show, as: ProductionBatchShow
   alias CraftplanWeb.PurchasingLive.Index
   alias CraftplanWeb.PurchasingLive.Show
   alias CraftplanWeb.PurchasingLive.Suppliers
@@ -69,6 +71,10 @@ defmodule CraftplanWeb.Navigation do
     live_action(socket) in [:schedule, :make_sheet] and schedule_view(socket) == :day
   end
 
+  def production_batches_active?(socket) do
+    socket.view in [ProductionBatchIndex, ProductionBatchShow]
+  end
+
   defp live_action(socket), do: Map.get(socket.assigns, :live_action)
   defp schedule_view(socket), do: Map.get(socket.assigns, :schedule_view, :day)
 
@@ -95,6 +101,10 @@ defmodule CraftplanWeb.Navigation do
 
   def crumb_material_stock(material) do
     %{label: "Stock", path: ~p"/manage/inventory/#{material.sku}/stock"}
+  end
+
+  def crumb_production_batch(%{batch_code: batch_code}) do
+    %{label: batch_code, path: ~p"/manage/production/batches/#{batch_code}"}
   end
 
   def crumb_purchase_order(%{reference: reference}) do
@@ -275,7 +285,9 @@ defmodule CraftplanWeb.Navigation do
         pages: %{
           schedule: %{label: "Schedule", path: "/manage/production/schedule"},
           make_sheet: %{label: "Make Sheet", path: "/manage/production/make_sheet"},
-          materials: %{label: "Materials", path: "/manage/production/materials"}
+          materials: %{label: "Materials", path: "/manage/production/materials"},
+          batches: %{label: "Batches", path: "/manage/production/batches"},
+          batch: &__MODULE__.crumb_production_batch/1
         },
         sub_links: [
           %{
@@ -289,6 +301,12 @@ defmodule CraftplanWeb.Navigation do
             label: "Daily",
             navigate: "/manage/production/schedule?view=day",
             active?: &__MODULE__.production_daily_active?/1
+          },
+          %{
+            key: :batches,
+            label: "Batches",
+            navigate: "/manage/production/batches",
+            active?: &__MODULE__.production_batches_active?/1
           }
         ]
       }

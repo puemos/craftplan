@@ -55,4 +55,10 @@ defmodule CraftplanWeb.ManageProductionLiveTest do
     {:ok, view, _html} = live(conn, ~p"/manage/production/materials")
     assert has_element?(view, "[role=tablist]")
   end
+
+  @tag role: :staff
+  test "renders batches index", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/manage/production/batches")
+    assert has_element?(view, "#batches-table")
+  end
 end

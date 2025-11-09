@@ -6,6 +6,8 @@ defmodule Craftplan.Orders.ProductionBatch do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
+  import Ash.Expr
+
   postgres do
     table "orders_production_batches"
     repo Craftplan.Repo
@@ -21,6 +23,12 @@ defmodule Craftplan.Orders.ProductionBatch do
       :destroy,
       create: [:batch_code, :produced_at, :product_id, :bom_id]
     ]
+
+    read :by_code do
+      argument :batch_code, :string, allow_nil?: false
+      get? true
+      filter expr(batch_code == ^arg(:batch_code))
+    end
   end
 
   policies do

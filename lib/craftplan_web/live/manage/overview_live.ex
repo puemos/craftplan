@@ -745,7 +745,18 @@ defmodule CraftplanWeb.OverviewLive do
             <div class="grid grid-cols-5 gap-4 text-sm">
               <div>
                 <div class="text-stone-500">Batch</div>
-                <div class="font-medium">{@completion_snapshot.batch_code || "-"}</div>
+                <div class="font-medium">
+                  <%= if code = @completion_snapshot.batch_code do %>
+                    <.link
+                      navigate={~p"/manage/production/batches/#{code}"}
+                      class="text-blue-700 hover:underline"
+                    >
+                      {code}
+                    </.link>
+                  <% else %>
+                    -
+                  <% end %>
+                </div>
               </div>
               <div>
                 <div class="text-stone-500">Material</div>

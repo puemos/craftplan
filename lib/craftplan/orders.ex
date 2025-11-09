@@ -19,6 +19,7 @@ defmodule Craftplan.Orders do
 
     resource Craftplan.Orders.ProductionBatch do
       define :get_production_batch_by_id, action: :read, get_by: [:id]
+      define :get_production_batch_by_code, action: :by_code
       define :list_production_batches, action: :read
     end
 

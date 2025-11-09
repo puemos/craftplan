@@ -3,6 +3,8 @@ defmodule Craftplan.InventoryForecasting do
   Module for inventory forecasting operations
   """
 
+  import Ash.Expr
+
   alias Ash.NotLoaded
   alias Craftplan.Inventory.ForecastRow
   alias Craftplan.Inventory.Material
@@ -12,7 +14,6 @@ defmodule Craftplan.InventoryForecasting do
   alias Decimal, as: D
 
   require Ash.Query
-  import Ash.Expr
 
   @doc """
   Prepares materials requirements for a given date range.

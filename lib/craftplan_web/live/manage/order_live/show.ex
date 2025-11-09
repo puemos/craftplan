@@ -152,7 +152,16 @@ defmodule CraftplanWeb.OrderLive.Show do
             </span>
           </:col>
           <:col :let={item} label="Batch">
-            <span class="text-xs text-stone-600">{item.batch_code || "-"}</span>
+            <%= if item.batch_code do %>
+              <.link
+                navigate={~p"/manage/production/batches/#{item.batch_code}"}
+                class="text-xs text-blue-700 hover:underline"
+              >
+                {item.batch_code}
+              </.link>
+            <% else %>
+              <span class="text-xs text-stone-600">-</span>
+            <% end %>
           </:col>
           <:col :let={item} label="Unit Cost">
             {format_money(@settings.currency, item.unit_cost || Decimal.new(0))}

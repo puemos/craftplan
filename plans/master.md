@@ -221,7 +221,7 @@ Last updated: 2025-11-09 (Overview nav + planner polish)
 
 - [x] Migrations for Lot, ProductionBatch, and join records; indexes on lot_code, batch_code, FKs. (see `priv/repo/migrations/20251101201014_lots_and_batches.exs`)
 - [x] Seeds include example lots and batch flows. (see `priv/repo/seeds.exs` lot seeding helpers)
-- [ ] Batch detail view linking orders, materials, and printable compliance sheet.
+- [x] Batch detail view linking orders, materials, and printable compliance sheet (see `CraftplanWeb.ProductionBatchLive.Show` and new `/manage/production/batches/:batch_code` route).
 - [ ] Warnings in planner when scheduled production will use expiring lots.
 
 ### Acceptance Criteria

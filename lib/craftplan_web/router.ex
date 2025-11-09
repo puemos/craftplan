@@ -170,6 +170,8 @@ defmodule CraftplanWeb.Router do
       live "/manage/production/schedule", OverviewLive, :schedule
       live "/manage/production/make_sheet", OverviewLive, :make_sheet
       live "/manage/production/materials", OverviewLive, :materials
+      live "/manage/production/batches", ProductionBatchLive.Index, :index
+      live "/manage/production/batches/:batch_code", ProductionBatchLive.Show, :show
 
       # in each liveview, add one of the following at the top of the module:
       #
