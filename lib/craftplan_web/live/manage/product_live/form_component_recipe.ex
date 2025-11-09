@@ -9,7 +9,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   @impl true
   def render(assigns) do
-    assigns = assign_new(assigns, :show_modal, fn -> false end)
+    assigns =
+      assigns
+      |> assign_new(:show_modal, fn -> false end)
+      |> assign_new(:section, fn -> :both end)
 
     ~H"""
     <div>
@@ -65,12 +68,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         <div class="">
           <.input field={@form[:product_id]} type="hidden" value={@product.id} />
 
-          <h3 class="text-lg font-medium">Materials</h3>
-          <p class="mb-2 text-sm text-stone-500">
+          <h3 :if={@section in [:materials, :both]} class="text-lg font-medium">Materials</h3>
+          <p :if={@section in [:materials, :both]} class="mb-2 text-sm text-stone-500">
             Add materials needed for this product
           </p>
 
-          <div id="recipe-materials-list">
+          <div :if={@section in [:materials, :both]} id="recipe-materials-list">
             <div
               id="recipe"
               class="mt-2 grid w-full grid-cols-5 gap-x-4 text-sm leading-6 text-stone-700"
@@ -209,7 +212,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
 
-          <div class="mt-8">
+          <div :if={@section in [:labor, :both]} class="mt-8">
             <h3 class="text-lg font-medium">Labor steps</h3>
             <p class="mb-2 text-sm text-stone-500">
               Track each step that consumes paid time. Override the hourly rate per step to fine-tune costs.
@@ -381,7 +384,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
 
-          <.input
+          <.input :if={@section in [:materials, :both]}
             class="field-sizing-content mt-6"
             field={@form[:notes]}
             type="textarea"

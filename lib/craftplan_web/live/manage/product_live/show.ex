@@ -111,6 +111,22 @@ defmodule CraftplanWeb.ProductLive.Show do
           materials={@materials_available}
           selected_version={@selected_bom_version}
           patch={~p"/manage/products/#{@product.sku}/recipe"}
+          section={:materials}
+          on_cancel={hide_modal("product-material-modal")}
+        />
+      </.tabs_content>
+
+      <.tabs_content :if={@live_action == :labor}>
+        <.live_component
+          module={CraftplanWeb.ProductLive.FormComponentRecipe}
+          id="labor-form"
+          product={@product}
+          current_user={@current_user}
+          settings={@settings}
+          materials={@materials_available}
+          selected_version={@selected_bom_version}
+          patch={~p"/manage/products/#{@product.sku}/labor"}
+          section={:labor}
           on_cancel={hide_modal("product-material-modal")}
         />
       </.tabs_content>
@@ -208,9 +224,14 @@ defmodule CraftplanWeb.ProductLive.Show do
         active: live_action in [:details, :show]
       },
       %{
-        label: "Recipe",
+        label: "Materials",
         navigate: ~p"/manage/products/#{product.sku}/recipe",
         active: live_action == :recipe
+      },
+      %{
+        label: "Labor",
+        navigate: ~p"/manage/products/#{product.sku}/labor",
+        active: live_action == :labor
       },
       %{
         label: "Nutrition",
@@ -316,7 +337,8 @@ defmodule CraftplanWeb.ProductLive.Show do
   defp page_title(:show), do: "Product"
   defp page_title(:nutrition), do: "Product Nutritional Information"
   defp page_title(:edit), do: "Modify Product"
-  defp page_title(:recipe), do: "Product Recipe"
+  defp page_title(:recipe), do: "Product Materials"
+  defp page_title(:labor), do: "Product Labor"
   defp page_title(:details), do: "Product"
   defp page_title(_), do: "Product"
 
@@ -334,7 +356,13 @@ defmodule CraftplanWeb.ProductLive.Show do
       :recipe ->
         base ++
           [
-            %{label: "Recipe", path: ~p"/manage/products/#{product.sku}/recipe", current?: true}
+            %{label: "Materials", path: ~p"/manage/products/#{product.sku}/recipe", current?: true}
+          ]
+
+      :labor ->
+        base ++
+          [
+            %{label: "Labor", path: ~p"/manage/products/#{product.sku}/labor", current?: true}
           ]
 
       :nutrition ->

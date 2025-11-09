@@ -90,7 +90,7 @@ defmodule CraftplanWeb.ManageProductsRecipeSimpleLiveTest do
       })
       |> Ash.create!(actor: staff())
 
-    {:ok, view, _html} = live(conn, ~p"/manage/products/#{p.sku}/recipe")
+    {:ok, view, _html} = live(conn, ~p"/manage/products/#{p.sku}/labor")
 
     assert render(view) =~ "Labor steps"
 
