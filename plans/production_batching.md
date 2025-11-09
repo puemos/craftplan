@@ -18,6 +18,23 @@ Move Craftplan to true batch‑centric production so operators can plan, consume
 - [ ] Aggregates on `OrderItem`: `planned_qty_sum`, `completed_qty_sum`
 - [ ] Tests: allocation math, status derivation, cost rounding
 
+### M1.5 — Resource Actions & Validations (Ash-first)
+
+- [x] `ProductionBatch` actions:
+  - [x] `create :open` → freeze BOM snapshot, generate `batch_code`, set status `:open`
+  - [x] `create :open_with_allocations` → manage `allocations` in one call (uses `manage_relationship`)
+  - [x] `update :start` → status `:in_progress`, set `started_at`
+  - [x] `update :consume` → accepts `lot_plan` and delegates to service/flow; change surfaces errors
+  - [x] `update :complete` → accepts `produced_qty`, etc.; change sets fields and surfaces errors via after_action
+- [x] `ProductionBatch` read actions:
+  - [x] `read :recent` (paged, newest first, minimal loads)
+  - [x] `read :detail` (loads product, bom snapshot, allocations→order items, lots)
+- [x] `OrderItemBatchAllocation` validations:
+  - [x] Product match with batch product
+  - [x] Non‑negative quantities; `completed_qty <= planned_qty`
+  - [x] Guard rails for over‑allocation (sum vs remaining); validation prevents planned total > item.quantity
+- [ ] Deprecate per‑item `Orders.Consumption`; add `OrderItem.action :quick_complete` that runs an auto‑batch path (follow‑up)
+
 ### M2 — UI Wiring (Planner, Orders, Batches)
 
 - [ ] Planner (Schedule): “Create Batch” from product/day; suggest pending items; list open/in‑progress/completed batches
@@ -32,7 +49,7 @@ Move Craftplan to true batch‑centric production so operators can plan, consume
 - [ ] Printable batch sheet updates (signature, inputs/outputs summary)
 - [ ] Lot→batch→orders and order→batch→lots reports (CSV/print)
 
-### M4 — Kanban Planning (Optional)
+### M4 — Kanban Planning
 
 - [ ] Kanban view: Unallocated → Open → In Progress → Completed, by product
 - [ ] Drag‑to‑allocate items to batches; drag batch across columns to trigger actions
@@ -59,4 +76,3 @@ Move Craftplan to true batch‑centric production so operators can plan, consume
 - BOM version drift: freeze a snapshot at batch `:open`; warn if items came from a different version
 - Over/under production: support leftover finished goods or unfulfilled allocations; warn visibly
 - Performance: rely on persisted `components_map` for material needs; use Ash aggregates to keep reads O(1)
-

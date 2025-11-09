@@ -8,6 +8,8 @@ defmodule Craftplan.Orders.ProductionBatch do
 
   import Ash.Expr
 
+  alias Craftplan.Orders.Changes.BatchOpenInit
+
   postgres do
     table "orders_production_batches"
     repo Craftplan.Repo
@@ -18,38 +20,70 @@ defmodule Craftplan.Orders.ProductionBatch do
   end
 
   actions do
-    defaults [
-      :read,
-      :destroy,
-      create: [
-        :batch_code,
-        :product_id,
-        :bom_id,
-        :planned_qty,
-        :produced_qty,
-        :scrap_qty,
-        :status,
-        :notes,
-        :bom_version,
-        :components_map,
-        :started_at,
-        :completed_at
-      ],
-      update: [
-        :planned_qty,
-        :produced_qty,
-        :scrap_qty,
-        :status,
-        :notes,
-        :components_map,
-        :started_at,
-        :completed_at
-      ]
-    ]
+    defaults [:read, :destroy]
+
+    create :open do
+      accept [:product_id, :planned_qty, :notes]
+      change {BatchOpenInit, []}
+    end
+
+    create :open_with_allocations do
+      accept [:product_id, :planned_qty, :notes]
+      argument :allocations, {:array, :map}, allow_nil?: true
+      change {BatchOpenInit, []}
+      change manage_relationship(:allocations, type: :direct_control)
+    end
+
+    update :start do
+      accept []
+      change set_attribute(:status, :in_progress)
+      change set_attribute(:started_at, &DateTime.utc_now/0)
+    end
+
+    update :consume do
+      argument :lot_plan, :map, allow_nil?: false
+      require_atomic? false
+      change {Craftplan.Orders.Changes.BatchConsume, []}
+    end
+
+    update :complete do
+      argument :produced_qty, :decimal, allow_nil?: false
+      argument :duration_minutes, :decimal, allow_nil?: true
+      argument :completed_map, :map, allow_nil?: true
+      require_atomic? false
+      change {Craftplan.Orders.Changes.BatchComplete, []}
+    end
 
     read :by_code do
       argument :batch_code, :string, allow_nil?: false
       get? true
+      filter expr(batch_code == ^arg(:batch_code))
+    end
+
+    read :recent do
+      prepare build(sort: [inserted_at: :desc])
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
+    read :detail do
+      argument :batch_code, :string, allow_nil?: false
+      get? true
+
+      prepare build(
+                load: [
+                  :product,
+                  :bom,
+                  allocations: [order_item: [:order, :product]],
+                  batch_lots: [lot: [material: [:name, :unit], supplier: [:name]]]
+                ]
+              )
+
       filter expr(batch_code == ^arg(:batch_code))
     end
   end
@@ -134,5 +168,6 @@ defmodule Craftplan.Orders.ProductionBatch do
     has_many :order_items, Craftplan.Orders.OrderItem
 
     has_many :allocations, Craftplan.Orders.OrderItemBatchAllocation
+    has_many :batch_lots, Craftplan.Orders.ProductionBatchLot
   end
 end

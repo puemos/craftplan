@@ -26,7 +26,16 @@ defmodule Craftplan.Orders.OrderItem do
     update :update do
       primary? true
       require_atomic? false
-      accept [:quantity, :status, :consumed_at]
+
+      accept [
+        :quantity,
+        :status,
+        :consumed_at,
+        :material_cost,
+        :labor_cost,
+        :overhead_cost,
+        :unit_cost
+      ]
 
       change {AssignBatchCodeAndCost, []}
     end

@@ -21,7 +21,18 @@ defmodule Craftplan.Orders.OrderItemBatchAllocation do
   end
 
   actions do
-    defaults [:read, :create, :update, :destroy]
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+      accept [:production_batch_id, :order_item_id, :planned_qty, :completed_qty]
+    end
+
+    update :update do
+      primary? true
+      accept [:planned_qty, :completed_qty]
+      require_atomic? false
+    end
   end
 
   policies do
@@ -32,6 +43,17 @@ defmodule Craftplan.Orders.OrderItemBatchAllocation do
     policy action_type([:create, :update, :destroy]) do
       authorize_if expr(^actor(:role) in [:staff, :admin])
     end
+  end
+
+  validations do
+    validate {Craftplan.Orders.Validations.AllocationProductMatch, []}
+    # Ensure completed never exceeds planned
+    validate compare(:completed_qty, less_than_or_equal_to: :planned_qty) do
+      message "completed quantity must be less than or equal to planned quantity"
+    end
+
+    # Guard rail: total planned across all allocations for an item cannot exceed item quantity
+    validate {Craftplan.Orders.Validations.AllocationWithinItemQuantity, []}
   end
 
   attributes do

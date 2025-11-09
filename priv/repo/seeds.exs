@@ -79,6 +79,8 @@ if Mix.env() == :dev do
   # ------------------------------------------------------------------------------
   # 2. Clear existing data (cleanup for repeated seeds in dev)
   # ------------------------------------------------------------------------------
+  Repo.delete_all(Orders.ProductionBatchLot)
+  Repo.delete_all(Orders.OrderItemBatchAllocation)
   Repo.delete_all(Orders.OrderItemLot)
   Repo.delete_all(Orders.OrderItem)
   Repo.delete_all(Orders.Order)
@@ -636,6 +638,71 @@ if Mix.env() == :dev do
         }
       )
   }
+
+  # -- 3.13 Seed demo orders for Bread (today) and create an open batch with allocations
+  bread_order1 =
+    Ash.Seed.seed!(Orders.Order, %{
+      customer_id: customers.john.id,
+      delivery_date: DateTime.utc_now(),
+      status: :confirmed,
+      payment_status: :pending
+    })
+
+  bread_item1 =
+    Ash.Seed.seed!(Orders.OrderItem, %{
+      order_id: bread_order1.id,
+      product_id: products.bread.id,
+      quantity: Decimal.new("10"),
+      unit_price: products.bread.price,
+      status: :todo
+    })
+
+  bread_order2 =
+    Ash.Seed.seed!(Orders.Order, %{
+      customer_id: customers.jane.id,
+      delivery_date: DateTime.utc_now(),
+      status: :confirmed,
+      payment_status: :pending
+    })
+
+  bread_item2 =
+    Ash.Seed.seed!(Orders.OrderItem, %{
+      order_id: bread_order2.id,
+      product_id: products.bread.id,
+      quantity: Decimal.new("5"),
+      unit_price: products.bread.price,
+      status: :todo
+    })
+
+  demo_batch_code =
+    "B-" <> Calendar.strftime(Date.utc_today(), "%Y%m%d") <> "-" <> products.bread.sku <> "-DEV"
+
+  bread_batch =
+    Ash.Seed.seed!(Orders.ProductionBatch, %{
+      batch_code: demo_batch_code,
+      product_id: products.bread.id,
+      planned_qty: Decimal.new("15"),
+      produced_qty: Decimal.new("0"),
+      scrap_qty: Decimal.new("0"),
+      status: :open,
+      components_map: %{}
+    })
+
+  _ =
+    Ash.Seed.seed!(Orders.OrderItemBatchAllocation, %{
+      production_batch_id: bread_batch.id,
+      order_item_id: bread_item1.id,
+      planned_qty: Decimal.new("10"),
+      completed_qty: Decimal.new("0")
+    })
+
+  _ =
+    Ash.Seed.seed!(Orders.OrderItemBatchAllocation, %{
+      production_batch_id: bread_batch.id,
+      order_item_id: bread_item2.id,
+      planned_qty: Decimal.new("5"),
+      completed_qty: Decimal.new("0")
+    })
 
   # ------------------------------------------------------------------------------
   # ✨ Add-on: richer scenarios and edge cases
