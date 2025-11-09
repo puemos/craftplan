@@ -182,24 +182,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </.inputs_for>
 
-              <% # Materials totals %>
-              <% comps = @form.source.forms[:components] || [] %>
-              <% mat_total = Enum.reduce(comps, D.new(0), fn comp_form, acc ->
-                   material_id =
-                     comp_form.params[:material_id] ||
-                       (comp_form.data &&
-                          (comp_form.data.material_id ||
-                             (comp_form.data.material && comp_form.data.material.id)))
-
-                   material = Map.get(@materials_map, material_id)
-                   qty = comp_form.params[:quantity] || (comp_form.data && comp_form.data.quantity) || 0
-                   price = (material && (material.price || D.new(0))) || D.new(0)
-                   D.add(acc, D.mult(price, normalize_decimal(qty)))
-                 end) %>
               <div role="row" class="col-span-5 flex justify-end py-2">
                 <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
                   <span class="text-stone-500">Total materials cost:</span>
-                  <span class="ml-2 font-medium">{format_money(@settings.currency, mat_total)}</span>
+                  <span class="ml-2 font-medium">{format_money(@settings.currency, @materials_total || D.new(0))}</span>
                 </div>
               </div>
 
@@ -366,26 +352,14 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </.inputs_for>
 
-              <% # Labor totals %>
-              <% steps = @form.source.forms[:labor_steps] || [] %>
-              <% {total_min, per_unit_min, per_unit_cost} =
-                   Enum.reduce(steps, {D.new(0), D.new(0), D.new(0)}, fn step_form, {tm, pum, puc} ->
-                     minutes = normalize_decimal(step_form.params[:duration_minutes] || (step_form.data && step_form.data.duration_minutes) || 0)
-                     upr = normalize_units_per_run(step_form.params[:units_per_run] || (step_form.data && step_form.data.units_per_run))
-                     rate_override = normalize_optional_decimal(step_form.params[:rate_override] || (step_form.data && step_form.data.rate_override))
-                     rate = rate_override || @settings.labor_hourly_rate || D.new(0)
-                     per_unit_min_step = D.div(minutes, upr)
-                     per_unit_cost_step = per_unit_min_step |> D.div(D.new(60)) |> D.mult(rate)
-                     {D.add(tm, minutes), D.add(pum, per_unit_min_step), D.add(puc, per_unit_cost_step)}
-                   end) %>
               <div role="row" class="col-span-5 flex justify-end py-2">
                 <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
                   <span class="text-stone-500">Total minutes:</span>
-                  <span class="ml-2 font-medium">{Decimal.to_string(total_min)}</span>
+                  <span class="ml-2 font-medium">{Decimal.to_string(@labor_total_minutes || D.new(0))}</span>
                   <span class="ml-4 text-stone-500">Labor per unit:</span>
-                  <span class="ml-2 font-medium">{Decimal.to_string(per_unit_min)} min</span>
+                  <span class="ml-2 font-medium">{Decimal.to_string(@labor_per_unit_minutes || D.new(0))} min</span>
                   <span class="ml-4 text-stone-500">Est. labor cost/unit:</span>
-                  <span class="ml-2 font-medium">{format_money(@settings.currency, per_unit_cost)}</span>
+                  <span class="ml-2 font-medium">{format_money(@settings.currency, @labor_per_unit_cost || D.new(0))}</span>
                 </div>
               </div>
 
@@ -523,13 +497,14 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      |> assign(:materials_map, materials_map)
      |> assign(:available_materials, available_materials)
      |> assign(:show_modal, false)
+     |> compute_recipe_totals()
      |> assign_new(:show_history, fn -> false end)}
   end
 
   @impl true
   def handle_event("validate", %{"recipe" => recipe_params}, socket) do
     form = Form.validate(socket.assigns.form, recipe_params)
-    {:noreply, assign(socket, form: form, changed: true)}
+    {:noreply, socket |> assign(form: form, changed: true) |> compute_recipe_totals()}
   end
 
   @impl true
@@ -622,7 +597,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      socket
      |> assign(:form, form)
      |> assign(:available_materials, available_materials)
-     |> assign(:show_modal, false)}
+     |> assign(:show_modal, false)
+     |> compute_recipe_totals()}
   end
 
   @impl true
@@ -633,7 +609,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           params: %{name: "", duration_minutes: 0, units_per_run: 1, rate_override: nil}
         )
 
-      {:noreply, assign(socket, :form, form)}
+      {:noreply, socket |> assign(:form, form) |> compute_recipe_totals()}
     else
       {:noreply, socket}
     end
@@ -666,7 +642,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     {:noreply,
      socket
      |> assign(:form, form)
-     |> assign(:available_materials, available_materials)}
+     |> assign(:available_materials, available_materials)
+     |> compute_recipe_totals()}
   end
 
   defp assign_form(socket) do
@@ -688,6 +665,43 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     socket
     |> assign(:bom, bom)
     |> assign(:form, form)
+  end
+
+  defp compute_recipe_totals(socket) do
+    actor_settings = socket.assigns.settings
+
+    comps = socket.assigns.form.source.forms[:components] || []
+    materials_total =
+      Enum.reduce(comps, D.new(0), fn comp_form, acc ->
+        material_id =
+          comp_form.params[:material_id] ||
+            (comp_form.data &&
+               (comp_form.data.material_id ||
+                  (comp_form.data.material && comp_form.data.material.id)))
+
+        material = Map.get(socket.assigns.materials_map, material_id)
+        qty = comp_form.params[:quantity] || (comp_form.data && comp_form.data.quantity) || 0
+        price = (material && (material.price || D.new(0))) || D.new(0)
+        D.add(acc, D.mult(price, normalize_decimal(qty)))
+      end)
+
+    steps = socket.assigns.form.source.forms[:labor_steps] || []
+    {total_min, per_unit_min, per_unit_cost} =
+      Enum.reduce(steps, {D.new(0), D.new(0), D.new(0)}, fn step_form, {tm, pum, puc} ->
+        minutes = normalize_decimal(step_form.params[:duration_minutes] || (step_form.data && step_form.data.duration_minutes) || 0)
+        upr = normalize_units_per_run(step_form.params[:units_per_run] || (step_form.data && step_form.data.units_per_run))
+        rate_override = normalize_optional_decimal(step_form.params[:rate_override] || (step_form.data && step_form.data.rate_override))
+        rate = rate_override || actor_settings.labor_hourly_rate || D.new(0)
+        per_unit_min_step = D.div(minutes, upr)
+        per_unit_cost_step = per_unit_min_step |> D.div(D.new(60)) |> D.mult(rate)
+        {D.add(tm, minutes), D.add(pum, per_unit_min_step), D.add(puc, per_unit_cost_step)}
+      end)
+
+    socket
+    |> assign(:materials_total, materials_total)
+    |> assign(:labor_total_minutes, total_min)
+    |> assign(:labor_per_unit_minutes, per_unit_min)
+    |> assign(:labor_per_unit_cost, per_unit_cost)
   end
 
   defp assign_lists(socket) do
