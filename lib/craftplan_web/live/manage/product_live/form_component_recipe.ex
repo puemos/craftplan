@@ -182,6 +182,27 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </.inputs_for>
 
+              <% # Materials totals %>
+              <% comps = @form.source.forms[:components] || [] %>
+              <% mat_total = Enum.reduce(comps, D.new(0), fn comp_form, acc ->
+                   material_id =
+                     comp_form.params[:material_id] ||
+                       (comp_form.data &&
+                          (comp_form.data.material_id ||
+                             (comp_form.data.material && comp_form.data.material.id)))
+
+                   material = Map.get(@materials_map, material_id)
+                   qty = comp_form.params[:quantity] || (comp_form.data && comp_form.data.quantity) || 0
+                   price = (material && (material.price || D.new(0))) || D.new(0)
+                   D.add(acc, D.mult(price, normalize_decimal(qty)))
+                 end) %>
+              <div role="row" class="col-span-5 flex justify-end py-2">
+                <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
+                  <span class="text-stone-500">Total materials cost:</span>
+                  <span class="ml-2 font-medium">{format_money(@settings.currency, mat_total)}</span>
+                </div>
+              </div>
+
               <div role="row" class="col-span-5 py-4">
                 <button
                   type="button"
@@ -342,13 +363,36 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         <% end %>
                       </div>
                     </div>
-                  </div>
-                </.inputs_for>
+                </div>
+              </.inputs_for>
 
-                <div role="row" class="col-span-5 py-4">
-                  <button
-                    type="button"
-                    phx-click="add_labor_step"
+              <% # Labor totals %>
+              <% steps = @form.source.forms[:labor_steps] || [] %>
+              <% {total_min, per_unit_min, per_unit_cost} =
+                   Enum.reduce(steps, {D.new(0), D.new(0), D.new(0)}, fn step_form, {tm, pum, puc} ->
+                     minutes = normalize_decimal(step_form.params[:duration_minutes] || (step_form.data && step_form.data.duration_minutes) || 0)
+                     upr = normalize_units_per_run(step_form.params[:units_per_run] || (step_form.data && step_form.data.units_per_run))
+                     rate_override = normalize_optional_decimal(step_form.params[:rate_override] || (step_form.data && step_form.data.rate_override))
+                     rate = rate_override || @settings.labor_hourly_rate || D.new(0)
+                     per_unit_min_step = D.div(minutes, upr)
+                     per_unit_cost_step = per_unit_min_step |> D.div(D.new(60)) |> D.mult(rate)
+                     {D.add(tm, minutes), D.add(pum, per_unit_min_step), D.add(puc, per_unit_cost_step)}
+                   end) %>
+              <div role="row" class="col-span-5 flex justify-end py-2">
+                <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
+                  <span class="text-stone-500">Total minutes:</span>
+                  <span class="ml-2 font-medium">{Decimal.to_string(total_min)}</span>
+                  <span class="ml-4 text-stone-500">Labor per unit:</span>
+                  <span class="ml-2 font-medium">{Decimal.to_string(per_unit_min)} min</span>
+                  <span class="ml-4 text-stone-500">Est. labor cost/unit:</span>
+                  <span class="ml-2 font-medium">{format_money(@settings.currency, per_unit_cost)}</span>
+                </div>
+              </div>
+
+              <div role="row" class="col-span-5 py-4">
+                <button
+                  type="button"
+                  phx-click="add_labor_step"
                     phx-target={@myself}
                     class={[
                       "inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50",
