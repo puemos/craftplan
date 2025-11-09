@@ -65,12 +65,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         <div class="">
           <.input field={@form[:product_id]} type="hidden" value={@product.id} />
 
-          <h3 class="text-lg font-medium">Materials</h3>
-          <p class="mb-2 text-sm text-stone-500">
-            Add materials needed for this product
-          </p>
-
           <div id="recipe-materials-list">
+            <h3 class="text-lg font-medium">Materials</h3>
+            <p class="mb-2 text-sm text-stone-500">
+              Add materials needed for this product
+            </p>
             <div
               id="recipe"
               class="mt-2 grid w-full grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
@@ -205,7 +204,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
 
-          <div class="mt-8">
+          <hr class="my-10 text-stone-300" />
+
+          <div class="">
             <h3 class="text-lg font-medium">Labor steps</h3>
             <p class="mb-2 text-sm text-stone-500">
               Track each step that consumes paid time. Override the hourly rate per step to fine-tune costs.
@@ -231,11 +232,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             <div id="recipe-labor-list">
               <div
                 id="labor"
-                class="mt-2 grid w-full grid-cols-5 gap-x-4 text-sm leading-6 text-stone-700"
+                class="mt-2 grid w-full grid-cols-6 gap-x-4 text-sm leading-6 text-stone-700"
               >
                 <div
                   role="row"
-                  class="col-span-5 grid grid-cols-5 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                  class="col-span-6 grid grid-cols-6 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
                 >
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0">
                     Step
@@ -245,6 +246,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                     Units per run
+                  </div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                    Cost per unit
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                     Hourly rate override
@@ -259,7 +263,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
 
                 <.inputs_for :let={labor_form} field={@form[:labor_steps]}>
-                  <div role="row" class="col-span-5 grid grid-cols-5">
+                  <div role="row" class="col-span-6 grid grid-cols-6">
                     <div class="relative border-r border-b border-stone-200 p-0 pr-6 last:border-r-0">
                       <div class="block py-4">
                         <div class="border-b border-dashed border-stone-300">
@@ -276,6 +280,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                           type="hidden"
                           value={labor_form[:sequence].value}
                         />
+                    </div>
+                  </div>
+
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                      <div class="block py-4 pr-6 text-sm text-stone-800">
+                        {format_money(@settings.currency, Map.get(@labor_row_costs || %{}, labor_form.name, D.new(0)))}
                       </div>
                     </div>
 
@@ -350,7 +360,18 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   </div>
                 </.inputs_for>
 
-                <div role="row" class="col-span-5 py-4">
+                <div role="row" class="col-span-6 flex justify-end py-2">
+                  <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
+                    <span class="text-stone-500">Total minutes:</span>
+                    <span class="ml-2 font-medium">{Decimal.to_string(@labor_total_minutes || D.new(0))}</span>
+                    <span class="ml-4 text-stone-500">Labor per unit:</span>
+                    <span class="ml-2 font-medium">{Decimal.to_string(@labor_per_unit_minutes || D.new(0))} min</span>
+                    <span class="ml-4 text-stone-500">Total labor cost per unit:</span>
+                    <span class="ml-2 font-medium">{format_money(@settings.currency, @labor_per_unit_cost || D.new(0))}</span>
+                  </div>
+                </div>
+
+                <div role="row" class="col-span-6 py-4">
                   <button
                     type="button"
                     phx-click="add_labor_step"
@@ -368,14 +389,19 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
 
+          <hr class="my-10 text-stone-300" />
+
+          <h3 class="text-lg font-medium">General notes</h3>
+
           <.input
             class="field-sizing-content mt-6"
             field={@form[:notes]}
             type="textarea"
-            label="Notes"
             disabled={latest_version(@boms) != @bom.version}
           />
         </div>
+
+        <hr class="my-10 text-stone-300" />
 
         <:actions>
           <.button
@@ -414,23 +440,25 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 value={@material_query}
                 placeholder="Search by name or SKU..."
                 phx-debounce="300"
-                class="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 transition focus:border-primary-400 focus:outline-none focus:ring focus:ring-primary-200/60"
+                class="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 transition focus:border-primary-400 focus:ring-primary-200/60 focus:outline-none focus:ring"
               />
             </form>
 
             <div class="h-[28rem] overflow-y-auto">
-              <div id="material-picker" class="grid w-full grid-cols-12 gap-x-4 text-sm leading-6 text-stone-700">
+              <div
+                id="material-picker"
+                class="grid w-full grid-cols-3 gap-x-4 text-sm leading-6 text-stone-700"
+              >
                 <div
                   role="row"
-                  class="col-span-12 grid grid-cols-12 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                  class="col-span-3 grid grid-cols-3 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
                 >
-                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal">Name</div>
-                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal">Unit</div>
-                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal">SKU</div>
-                  <div class="p-0 pr-6 pb-4 pl-4 font-normal text-right">Price</div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-1 font-normal">Name</div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-1 pl-4 font-normal">SKU</div>
+                  <div class="p-0 pr-6 pb-1 pl-4 font-normal">Price</div>
                 </div>
 
-                <div role="row" class="col-span-12 hidden py-4 text-stone-400 last:block">
+                <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
                   <div>No materials match your search.</div>
                 </div>
 
@@ -440,20 +468,18 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     phx-click="add_material"
                     phx-value-material-id={material.id}
                     phx-target={@myself}
-                    class="col-span-12 grid grid-cols-12 hover:bg-stone-200/40"
+                    class="col-span-3 grid grid-cols-3 text-left hover:bg-stone-200/40"
                   >
                     <div class="relative border-r border-b border-stone-200 p-0 pr-6">
                       <div class="block py-3 font-medium text-stone-900">{material.name}</div>
                     </div>
+
                     <div class="relative border-r border-b border-stone-200 p-0 pl-4">
-                      <div class="block py-3 text-xs text-stone-700">{material.unit}</div>
-                    </div>
-                    <div class="relative border-r border-b border-stone-200 p-0 pl-4">
-                      <div class="block py-3 font-mono text-xs text-stone-600">{material.sku}</div>
+                      <div class="font-mono block py-3 text-xs text-stone-600">{material.sku}</div>
                     </div>
                     <div class="relative border-b border-stone-200 p-0 pl-4">
-                      <div class="block py-3 text-right text-sm text-stone-800">
-                        {format_money(@settings.currency, material.price || D.new(0))}
+                      <div class="block py-3 text-sm text-stone-800">
+                        {format_money(@settings.currency, material.price || D.new(0))} per {material.unit}
                       </div>
                     </div>
                   </button>
@@ -527,7 +553,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      |> assign(:materials_map, materials_map)
      |> assign(:available_materials, available_materials)
      |> assign_new(:material_query, fn -> "" end)
-     |> assign(:visible_materials, filter_available_materials(available_materials, socket.assigns[:material_query] || ""))
+     |> assign(
+       :visible_materials,
+       filter_available_materials(available_materials, socket.assigns[:material_query] || "")
+     )
      |> assign(:show_modal, false)
      |> compute_recipe_totals()
      |> assign_new(:show_history, fn -> false end)}
@@ -629,7 +658,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      socket
      |> assign(:form, form)
      |> assign(:available_materials, available_materials)
-     |> assign(:visible_materials, filter_available_materials(available_materials, socket.assigns[:material_query] || ""))
+     |> assign(
+       :visible_materials,
+       filter_available_materials(available_materials, socket.assigns[:material_query] || "")
+     )
      |> assign(:show_modal, false)
      |> compute_recipe_totals()}
   end
@@ -676,7 +708,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      socket
      |> assign(:form, form)
      |> assign(:available_materials, available_materials)
-     |> assign(:visible_materials, filter_available_materials(available_materials, socket.assigns[:material_query] || ""))
+     |> assign(
+       :visible_materials,
+       filter_available_materials(available_materials, socket.assigns[:material_query] || "")
+     )
      |> compute_recipe_totals()}
   end
 
@@ -687,7 +722,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     {:noreply,
      socket
      |> assign(:material_query, q)
-     |> assign(:visible_materials, filter_available_materials(socket.assigns.available_materials, q))}
+     |> assign(
+       :visible_materials,
+       filter_available_materials(socket.assigns.available_materials, q)
+     )}
   end
 
   defp assign_form(socket) do
@@ -732,8 +770,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     steps = socket.assigns.form.source.forms[:labor_steps] || []
 
-    {total_min, per_unit_min, per_unit_cost} =
-      Enum.reduce(steps, {D.new(0), D.new(0), D.new(0)}, fn step_form, {tm, pum, puc} ->
+    {total_min, per_unit_min, per_unit_cost, row_costs} =
+      Enum.reduce(steps, {D.new(0), D.new(0), D.new(0), %{}}, fn step_form, {tm, pum, puc, costs} ->
         minutes =
           normalize_decimal(
             step_form.params[:duration_minutes] ||
@@ -749,7 +787,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         rate = rate_override || actor_settings.labor_hourly_rate || D.new(0)
         per_unit_min_step = D.div(minutes, upr)
         per_unit_cost_step = per_unit_min_step |> D.div(D.new(60)) |> D.mult(rate)
-        {D.add(tm, minutes), D.add(pum, per_unit_min_step), D.add(puc, per_unit_cost_step)}
+        costs = Map.put(costs, step_form.name, per_unit_cost_step)
+        {D.add(tm, minutes), D.add(pum, per_unit_min_step), D.add(puc, per_unit_cost_step), costs}
       end)
 
     socket
@@ -757,6 +796,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     |> assign(:labor_total_minutes, total_min)
     |> assign(:labor_per_unit_minutes, per_unit_min)
     |> assign(:labor_per_unit_cost, per_unit_cost)
+    |> assign(:labor_row_costs, row_costs)
   end
 
   defp assign_lists(socket) do
