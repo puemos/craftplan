@@ -110,21 +110,27 @@ defmodule CraftplanWeb.ProductLive.Index do
     products =
       Catalog.list_products!(
         actor: socket.assigns[:current_user],
+        page: [limit: 100],
         load: [
           :materials_cost,
           :bom_unit_cost,
           :markup_percentage,
-          :gross_profit,
-          active_bom: [:rollup]
+          :gross_profit
         ]
       )
+
+    results = case products do
+      %Ash.Page.Keyset{results: res} -> res
+      %Ash.Page.Offset{results: res} -> res
+      other -> other
+    end
 
     socket =
       socket
       |> assign(:breadcrumbs, [
         %{label: "Products", path: ~p"/manage/products", current?: true}
       ])
-      |> stream(:products, products)
+      |> stream(:products, results)
 
     {:ok, socket}
   end
