@@ -200,11 +200,11 @@ Last updated: 2025-11-09 (Overview nav + planner polish)
 
 **Domain**
 
-- [ ] Add `Inventory.Lot` (lot_code, supplier_id, expiry_date, received_at, material_id, quantity_on_hand).
-- [ ] Extend `Inventory.Movement` to reference `lot_id` when applicable; default FIFO on consumption.
-- [ ] Add `ProductionBatch` (batch_code, product_id, bom_id, produced_at) to group order-item completions.
-- [ ] Track `OrderItemLot` allocation (order_item_id, lot_id, quantity_used) during consumption.
-- [ ] Ensure components_map guides lot allocations for nested sub-assemblies (aggregate per material).
+- [x] Add `Inventory.Lot` (lot_code, supplier_id, expiry_date, received_at, material_id, quantity_on_hand). (see `lib/craftplan/inventory/lot.ex` + `priv/repo/migrations/20251101201014_lots_and_batches.exs`)
+- [x] Extend `Inventory.Movement` to reference `lot_id` when applicable; default FIFO on consumption. (see `lib/craftplan/inventory/movement.ex` create `:adjust_stock` and `Orders.Consumption.allocate_material/5`)
+- [x] Add `ProductionBatch` (batch_code, product_id, bom_id, produced_at) to group order-item completions. (see `lib/craftplan/orders/production_batch.ex`)
+- [x] Track `OrderItemLot` allocation (order_item_id, lot_id, quantity_used) during consumption. (see `lib/craftplan/orders/order_item_lot.ex` + `Orders.Consumption.apply_lot_consumption/5`)
+- [x] Ensure components_map guides lot allocations for nested sub-assemblies (aggregate per material). (see `lib/craftplan/orders/consumption.ex` leveraging `catalog_bom_rollups.components_map`)
 
 **UI**
 
@@ -219,8 +219,8 @@ Last updated: 2025-11-09 (Overview nav + planner polish)
 
 **Data & Migrations**
 
-- [ ] Migrations for Lot, ProductionBatch, and join records; indexes on lot_code, batch_code, FKs.
-- [ ] Seeds include example lots and batch flows.
+- [x] Migrations for Lot, ProductionBatch, and join records; indexes on lot_code, batch_code, FKs. (see `priv/repo/migrations/20251101201014_lots_and_batches.exs`)
+- [x] Seeds include example lots and batch flows. (see `priv/repo/seeds.exs` lot seeding helpers)
 - [ ] Batch detail view linking orders, materials, and printable compliance sheet.
 - [ ] Warnings in planner when scheduled production will use expiring lots.
 
