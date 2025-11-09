@@ -418,33 +418,33 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               />
             </form>
 
-            <div class="h-[28rem] overflow-y-auto">
-              <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div class="rounded-md border border-stone-200">
+              <div class="grid grid-cols-12 gap-2 border-b bg-stone-50 px-3 py-2 text-xs font-medium text-stone-600">
+                <div class="col-span-6">Name</div>
+                <div class="col-span-2">Unit</div>
+                <div class="col-span-2">SKU</div>
+                <div class="col-span-2 text-right">Price</div>
+              </div>
+              <div class="h-[28rem] divide-y divide-stone-200 overflow-y-auto">
                 <%= for material <- @visible_materials do %>
                   <button
                     type="button"
                     phx-click="add_material"
                     phx-value-material-id={material.id}
                     phx-target={@myself}
-                    class="group w-full rounded-md border border-stone-200 bg-white p-3 text-left shadow-sm transition hover:border-stone-300 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    class="grid w-full grid-cols-12 items-center gap-2 px-3 py-2 text-left transition hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
-                    <div class="flex items-start justify-between">
-                      <span class="line-clamp-2 font-medium text-stone-900">{material.name}</span>
-                      <span class="ml-2 inline-flex items-center rounded bg-stone-100 px-1.5 py-0.5 text-xs text-stone-600">
-                        {material.unit}
-                      </span>
-                    </div>
-                    <div class="mt-1 text-xs text-stone-500">
-                      <span class="font-mono">{material.sku}</span>
-                    </div>
-                    <div class="mt-2 text-sm text-stone-700">
-                      Price: {format_money(@settings.currency, material.price || D.new(0))}
+                    <div class="col-span-6 truncate font-medium text-stone-900">{material.name}</div>
+                    <div class="col-span-2 text-xs text-stone-700">{material.unit}</div>
+                    <div class="col-span-2 font-mono text-xs text-stone-600">{material.sku}</div>
+                    <div class="col-span-2 text-right text-sm text-stone-800">
+                      {format_money(@settings.currency, material.price || D.new(0))}
                     </div>
                   </button>
                 <% end %>
-              </div>
-              <div :if={Enum.empty?(@visible_materials)} class="py-8 text-center text-sm text-stone-500">
-                No materials match your search.
+                <div :if={Enum.empty?(@visible_materials)} class="flex h-full items-center justify-center py-8 text-sm text-stone-500">
+                  No materials match your search.
+                </div>
               </div>
             </div>
 
