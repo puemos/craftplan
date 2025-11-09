@@ -26,5 +26,12 @@ defmodule Craftplan.Orders do
     resource Craftplan.Orders.OrderItemLot do
       define :list_order_item_lots, action: :read
     end
+
+    resource Craftplan.Orders.OrderItemBatchAllocation do
+      define :list_order_item_batch_allocations, action: :read
+      define :create_order_item_batch_allocation, action: :create
+      define :update_order_item_batch_allocation, action: :update
+      define :destroy_order_item_batch_allocation, action: :destroy
+    end
   end
 end

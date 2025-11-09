@@ -152,9 +152,16 @@ defmodule Craftplan.Orders.OrderItem do
     end
 
     has_many :order_item_lots, Craftplan.Orders.OrderItemLot
+
+    has_many :allocations, Craftplan.Orders.OrderItemBatchAllocation
   end
 
   calculations do
     calculate :cost, :decimal, expr(quantity * unit_price)
+  end
+
+  aggregates do
+    sum :planned_qty_sum, :allocations, :planned_qty
+    sum :completed_qty_sum, :allocations, :completed_qty
   end
 end

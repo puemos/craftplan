@@ -21,7 +21,30 @@ defmodule Craftplan.Orders.ProductionBatch do
     defaults [
       :read,
       :destroy,
-      create: [:batch_code, :produced_at, :product_id, :bom_id]
+      create: [
+        :batch_code,
+        :product_id,
+        :bom_id,
+        :planned_qty,
+        :produced_qty,
+        :scrap_qty,
+        :status,
+        :notes,
+        :bom_version,
+        :components_map,
+        :started_at,
+        :completed_at
+      ],
+      update: [
+        :planned_qty,
+        :produced_qty,
+        :scrap_qty,
+        :status,
+        :notes,
+        :components_map,
+        :started_at,
+        :completed_at
+      ]
     ]
 
     read :by_code do
@@ -48,7 +71,51 @@ defmodule Craftplan.Orders.ProductionBatch do
       allow_nil? false
     end
 
-    attribute :produced_at, :utc_datetime do
+    # Planning and execution
+    attribute :planned_qty, :decimal do
+      allow_nil? false
+      default 0
+      constraints min: 0
+    end
+
+    attribute :produced_qty, :decimal do
+      allow_nil? false
+      default 0
+      constraints min: 0
+    end
+
+    attribute :scrap_qty, :decimal do
+      allow_nil? false
+      default 0
+      constraints min: 0
+    end
+
+    attribute :status, :atom do
+      allow_nil? false
+      default :open
+      constraints one_of: [:open, :in_progress, :completed, :canceled]
+    end
+
+    attribute :notes, :string do
+      allow_nil? true
+    end
+
+    # Snapshot at batch creation
+    attribute :bom_version, :integer do
+      allow_nil? true
+    end
+
+    attribute :components_map, :map do
+      allow_nil? false
+      default %{}
+    end
+
+    # Timestamps
+    attribute :started_at, :utc_datetime do
+      allow_nil? true
+    end
+
+    attribute :completed_at, :utc_datetime do
       allow_nil? true
     end
 
@@ -65,5 +132,7 @@ defmodule Craftplan.Orders.ProductionBatch do
     end
 
     has_many :order_items, Craftplan.Orders.OrderItem
+
+    has_many :allocations, Craftplan.Orders.OrderItemBatchAllocation
   end
 end
