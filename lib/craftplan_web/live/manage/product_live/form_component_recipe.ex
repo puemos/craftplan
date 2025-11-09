@@ -418,7 +418,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               />
             </form>
 
-            <div class="max-h-[28rem] overflow-y-auto">
+            <div class="h-[28rem] overflow-y-auto">
               <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 <%= for material <- @visible_materials do %>
                   <button
