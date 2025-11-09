@@ -73,11 +73,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           <div id="recipe-materials-list">
             <div
               id="recipe"
-              class="mt-2 grid w-full grid-cols-5 gap-x-4 text-sm leading-6 text-stone-700"
+              class="mt-2 grid w-full grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
             >
               <div
                 role="row"
-                class="col-span-5 grid grid-cols-5 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                class="col-span-4 grid grid-cols-4 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
               >
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 ">
                   Material
@@ -86,14 +86,17 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   Quantity
                 </div>
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
-                  Total Cost
+                  <span>Total Cost</span>
+                  <span class="text-stone-700">
+                    ({format_money(@settings.currency, @materials_total || D.new(0))})
+                  </span>
                 </div>
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                   <span class="opacity-0">Actions</span>
                 </div>
               </div>
 
-              <div role="row" class="col-span-5 hidden py-4 text-stone-400 last:block">
+              <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
                 <div>
                   No materials in recipe
                 </div>
@@ -182,16 +185,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </.inputs_for>
 
-              <div role="row" class="col-span-5 flex justify-end py-2">
-                <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
-                  <span class="text-stone-500">Total materials cost:</span>
-                  <span class="ml-2 font-medium">
-                    {format_money(@settings.currency, @materials_total || D.new(0))}
-                  </span>
-                </div>
-              </div>
-
-              <div role="row" class="">
+              <div role="row" class="mt-3">
                 <button
                   type="button"
                   phx-click="show_add_modal"
@@ -211,7 +205,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
 
-          <div>
+          <div class="mt-8">
             <h3 class="text-lg font-medium">Labor steps</h3>
             <p class="mb-2 text-sm text-stone-500">
               Track each step that consumes paid time. Override the hourly rate per step to fine-tune costs.
@@ -319,15 +313,17 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
                     <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                       <div class="block py-4 pr-6">
-                        <.input
-                          flat={true}
-                          field={labor_form[:rate_override]}
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="Uses default when blank"
-                          disabled={latest_version(@boms) != @bom.version}
-                        />
+                        <div class="border-b border-dashed border-stone-300">
+                          <.input
+                            flat={true}
+                            field={labor_form[:rate_override]}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Uses default when blank"
+                            disabled={latest_version(@boms) != @bom.version}
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -353,23 +349,6 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                   </div>
                 </.inputs_for>
-
-                <div role="row" class="col-span-5 flex justify-end py-2">
-                  <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
-                    <span class="text-stone-500">Total minutes:</span>
-                    <span class="ml-2 font-medium">
-                      {Decimal.to_string(@labor_total_minutes || D.new(0))}
-                    </span>
-                    <span class="ml-4 text-stone-500">Labor per unit:</span>
-                    <span class="ml-2 font-medium">
-                      {Decimal.to_string(@labor_per_unit_minutes || D.new(0))} min
-                    </span>
-                    <span class="ml-4 text-stone-500">Est. labor cost/unit:</span>
-                    <span class="ml-2 font-medium">
-                      {format_money(@settings.currency, @labor_per_unit_cost || D.new(0))}
-                    </span>
-                  </div>
-                </div>
 
                 <div role="row" class="col-span-5 py-4">
                   <button
@@ -422,23 +401,32 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           show
           on_cancel={JS.push("hide_modal", target: @myself)}
         >
-          <div class="mt-4 space-y-6">
-            <div class="max-h-64 overflow-y-auto">
-              <ul class="divide-y divide-stone-200">
+          <div class="mt-4">
+            <div class="max-h-80 overflow-y-auto">
+              <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 <%= for material <- @available_materials do %>
-                  <li>
-                    <button
-                      type="button"
-                      phx-click="add_material"
-                      phx-value-material-id={material.id}
-                      phx-target={@myself}
-                      class="w-full rounded-md px-3 py-2 text-left transition duration-150 ease-in-out hover:bg-stone-100"
-                    >
-                      {material.name}
-                    </button>
-                  </li>
+                  <button
+                    type="button"
+                    phx-click="add_material"
+                    phx-value-material-id={material.id}
+                    phx-target={@myself}
+                    class="group w-full rounded-md border border-stone-200 bg-white p-3 text-left shadow-sm transition hover:border-stone-300 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    <div class="flex items-start justify-between">
+                      <span class="line-clamp-2 font-medium text-stone-900">{material.name}</span>
+                      <span class="ml-2 inline-flex items-center rounded bg-stone-100 px-1.5 py-0.5 text-xs text-stone-600">
+                        {material.unit}
+                      </span>
+                    </div>
+                    <div class="mt-1 text-xs text-stone-500">
+                      <span class="font-mono">{material.sku}</span>
+                    </div>
+                    <div class="mt-2 text-sm text-stone-700">
+                      Price: {format_money(@settings.currency, material.price || D.new(0))}
+                    </div>
+                  </button>
                 <% end %>
-              </ul>
+              </div>
             </div>
           </div>
 
