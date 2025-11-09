@@ -162,7 +162,7 @@ defmodule CraftplanWeb.OverviewLive do
               <Page.surface class="mt-4 lg:col-span-2 xl:col-span-3">
                 <:header>
                   <div>
-                    <h3 class="text-sm font-semibold text-stone-900">Material shortages</h3>
+                    <h3 class="text-sm font-semibold text-stone-900">Upcoming material shortages</h3>
                     <p class="text-xs text-stone-500">
                       Where inventory falls short once production is applied.
                     </p>
@@ -197,43 +197,6 @@ defmodule CraftplanWeb.OverviewLive do
             </Page.form_grid>
           </Page.section>
         </:left>
-        <:right>
-          <Page.surface padding="p-5">
-            <:header>
-              <div>
-                <h3 class="text-sm font-semibold text-stone-900">Quick actions</h3>
-                <p class="text-xs text-stone-500">
-                  Stay aligned as production plans shift.
-                </p>
-              </div>
-            </:header>
-            <div class="space-y-3 text-sm text-stone-600">
-              <p>
-                Jump to the tools your team relies on most when orders change.
-              </p>
-              <div class="space-y-2">
-                <.link
-                  patch={~p"/manage/production/schedule?view=week"}
-                  class="text-primary-600 inline-flex items-center gap-2 transition hover:text-primary-700 hover:underline"
-                >
-                  <.icon name="hero-calendar-days" class="h-4 w-4" /> Review weekly schedule
-                </.link>
-                <.link
-                  patch={~p"/manage/production/make_sheet"}
-                  class="text-primary-600 inline-flex items-center gap-2 transition hover:text-primary-700 hover:underline"
-                >
-                  <.icon name="hero-document-text" class="h-4 w-4" /> Print make sheet
-                </.link>
-                <.link
-                  patch={~p"/manage/inventory/forecast"}
-                  class="text-primary-600 inline-flex items-center gap-2 transition hover:text-primary-700 hover:underline"
-                >
-                  <.icon name="hero-beaker" class="h-4 w-4" /> Check material forecast
-                </.link>
-              </div>
-            </div>
-          </Page.surface>
-        </:right>
       </Page.two_column>
 
       <div :if={@live_action == :schedule} class="mt-4">
