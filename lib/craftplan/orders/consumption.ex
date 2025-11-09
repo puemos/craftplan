@@ -18,20 +18,16 @@ defmodule Craftplan.Orders.Consumption do
   def consume_item(order_item_id, opts \\ []) do
     actor = Keyword.get(opts, :actor)
 
-    case fetch_item(order_item_id, actor) do
-      {:ok, item} ->
-        if item.consumed_at do
-          {:ok, :already_consumed}
-        else
-          with {:ok, order} <- fetch_order(item.order_id, actor),
-               {:ok, bom} <- resolve_bom(item, actor),
-               :ok <- process_consumption(item, order, bom, actor) do
-            Orders.update_item(item, %{status: item.status, consumed_at: DateTime.utc_now()}, actor: actor)
-          end
-        end
+    {:ok, item} = fetch_item(order_item_id, actor)
 
-      {:error, reason} ->
-        {:error, reason}
+    if item.consumed_at do
+      {:ok, :already_consumed}
+    else
+      with {:ok, order} <- fetch_order(item.order_id, actor),
+           {:ok, bom} <- resolve_bom(item, actor),
+           :ok <- process_consumption(item, order, bom, actor) do
+        Orders.update_item(item, %{status: item.status, consumed_at: DateTime.utc_now()}, actor: actor)
+      end
     end
   end
 
