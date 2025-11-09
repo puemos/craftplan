@@ -418,33 +418,46 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               />
             </form>
 
-            <div class="rounded-md border border-stone-200">
-              <div class="grid grid-cols-12 gap-2 border-b bg-stone-50 px-3 py-2 text-xs font-medium text-stone-600">
-                <div class="col-span-6">Name</div>
-                <div class="col-span-2">Unit</div>
-                <div class="col-span-2">SKU</div>
-                <div class="col-span-2 text-right">Price</div>
-              </div>
-              <div class="h-[28rem] divide-y divide-stone-200 overflow-y-auto">
+            <div class="h-[28rem] overflow-y-auto">
+              <div id="material-picker" class="grid w-full grid-cols-12 gap-x-4 text-sm leading-6 text-stone-700">
+                <div
+                  role="row"
+                  class="col-span-12 grid grid-cols-12 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                >
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal">Name</div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal">Unit</div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal">SKU</div>
+                  <div class="p-0 pr-6 pb-4 pl-4 font-normal text-right">Price</div>
+                </div>
+
+                <div role="row" class="col-span-12 hidden py-4 text-stone-400 last:block">
+                  <div>No materials match your search.</div>
+                </div>
+
                 <%= for material <- @visible_materials do %>
                   <button
                     type="button"
                     phx-click="add_material"
                     phx-value-material-id={material.id}
                     phx-target={@myself}
-                    class="grid w-full grid-cols-12 items-center gap-2 px-3 py-2 text-left transition hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    class="col-span-12 grid grid-cols-12 hover:bg-stone-200/40"
                   >
-                    <div class="col-span-6 truncate font-medium text-stone-900">{material.name}</div>
-                    <div class="col-span-2 text-xs text-stone-700">{material.unit}</div>
-                    <div class="col-span-2 font-mono text-xs text-stone-600">{material.sku}</div>
-                    <div class="col-span-2 text-right text-sm text-stone-800">
-                      {format_money(@settings.currency, material.price || D.new(0))}
+                    <div class="relative border-r border-b border-stone-200 p-0 pr-6">
+                      <div class="block py-3 font-medium text-stone-900">{material.name}</div>
+                    </div>
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4">
+                      <div class="block py-3 text-xs text-stone-700">{material.unit}</div>
+                    </div>
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4">
+                      <div class="block py-3 font-mono text-xs text-stone-600">{material.sku}</div>
+                    </div>
+                    <div class="relative border-b border-stone-200 p-0 pl-4">
+                      <div class="block py-3 text-right text-sm text-stone-800">
+                        {format_money(@settings.currency, material.price || D.new(0))}
+                      </div>
                     </div>
                   </button>
                 <% end %>
-                <div :if={Enum.empty?(@visible_materials)} class="flex h-full items-center justify-center py-8 text-sm text-stone-500">
-                  No materials match your search.
-                </div>
               </div>
             </div>
 
