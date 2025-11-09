@@ -401,10 +401,26 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           show
           on_cancel={JS.push("hide_modal", target: @myself)}
         >
-          <div class="mt-4">
-            <div class="max-h-80 overflow-y-auto">
+          <div class="space-y-4 p-4 sm:p-6">
+            <form
+              id="material-filter"
+              phx-change="filter_materials"
+              phx-target={@myself}
+              class="flex items-center gap-2"
+            >
+              <input
+                type="search"
+                name="query"
+                value={@material_query}
+                placeholder="Search by name or SKU..."
+                phx-debounce="300"
+                class="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 transition focus:border-primary-400 focus:outline-none focus:ring focus:ring-primary-200/60"
+              />
+            </form>
+
+            <div class="max-h-[28rem] overflow-y-auto">
               <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                <%= for material <- @available_materials do %>
+                <%= for material <- @visible_materials do %>
                   <button
                     type="button"
                     phx-click="add_material"
@@ -427,10 +443,15 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   </button>
                 <% end %>
               </div>
+              <div :if={Enum.empty?(@visible_materials)} class="py-8 text-center text-sm text-stone-500">
+                No materials match your search.
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <.button phx-click="hide_modal" phx-target={@myself} variant={:outline}>Close</.button>
             </div>
           </div>
-
-          <.button phx-click="hide_modal" phx-target={@myself} class="mt-5">Cancel</.button>
         </.modal>
       <% end %>
 
@@ -492,6 +513,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      |> assign(:changed, false)
      |> assign(:materials_map, materials_map)
      |> assign(:available_materials, available_materials)
+     |> assign_new(:material_query, fn -> "" end)
+     |> assign(:visible_materials, filter_available_materials(available_materials, socket.assigns[:material_query] || ""))
      |> assign(:show_modal, false)
      |> compute_recipe_totals()
      |> assign_new(:show_history, fn -> false end)}
@@ -593,6 +616,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      socket
      |> assign(:form, form)
      |> assign(:available_materials, available_materials)
+     |> assign(:visible_materials, filter_available_materials(available_materials, socket.assigns[:material_query] || ""))
      |> assign(:show_modal, false)
      |> compute_recipe_totals()}
   end
@@ -639,7 +663,18 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      socket
      |> assign(:form, form)
      |> assign(:available_materials, available_materials)
+     |> assign(:visible_materials, filter_available_materials(available_materials, socket.assigns[:material_query] || ""))
      |> compute_recipe_totals()}
+  end
+
+  @impl true
+  def handle_event("filter_materials", %{"query" => query}, socket) do
+    q = to_string(query || "")
+
+    {:noreply,
+     socket
+     |> assign(:material_query, q)
+     |> assign(:visible_materials, filter_available_materials(socket.assigns.available_materials, q))}
   end
 
   defp assign_form(socket) do
@@ -855,6 +890,20 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       end
 
     {available_materials, selected_material}
+  end
+
+  defp filter_available_materials(materials, query) when is_binary(query) do
+    q = String.trim(String.downcase(query))
+
+    if q == "" do
+      materials
+    else
+      Enum.filter(materials, fn m ->
+        name = String.downcase(m.name || "")
+        sku = String.downcase(m.sku || "")
+        String.contains?(name, q) or String.contains?(sku, q)
+      end)
+    end
   end
 
   defp material_component?(component_form) do
