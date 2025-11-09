@@ -56,6 +56,7 @@ defmodule Craftplan.Catalog.LaborStep do
 
     attribute :name, :string do
       allow_nil? false
+      constraints min_length: 1, allow_empty?: false
     end
 
     attribute :sequence, :integer do
@@ -77,7 +78,7 @@ defmodule Craftplan.Catalog.LaborStep do
     attribute :units_per_run, :decimal do
       allow_nil? false
       default 1
-      constraints min: 0
+      constraints min: 1
     end
 
     attribute :notes, :string do

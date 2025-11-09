@@ -1,6 +1,6 @@
 # Craftplan Product Plan -- Bakery ERP Roadmap
 
-Last updated: 2025-11-08 (moved Overview to top-level nav)
+Last updated: 2025-11-09 (Overview nav + planner polish)
 
 ## Progress Snapshot
 
@@ -122,12 +122,12 @@ Last updated: 2025-11-08 (moved Overview to top-level nav)
 
 ### Next Actions (M1)
 
-- [ ] Documentation refresh: BOM editor (simple versioning), planner cost snapshot, pricing guidance, labor scaling guidance, and new Manage → Overview entry point (`/manage/overview`); update screenshots/paths.
-- [ ] Navigation QA: verify Overview active state, breadcrumbs, and post-auth landing path; ensure no stale references to `/manage/production` for overview use cases.
-- [ ] Link audit: grep repo for hard-coded `"/manage/production"` that intend Overview and update; keep production tools on schedule/make_sheet/materials as-is.
+- [ ] Documentation refresh (deferred): BOM editor (simple versioning), planner cost snapshot, pricing guidance, labor scaling guidance, and new Manage → Overview entry point (`/manage/overview`); update screenshots/paths.
+- [x] Navigation QA: verify Overview active state, breadcrumbs, and post-auth landing path; ensure no stale references to `/manage/production` for overview use cases.
+- [x] Link audit: grep repo for hard-coded `"/manage/production"` that intend Overview and update; keep production tools on schedule/make_sheet/materials as-is.
 - [ ] Performance pass: profile product index + planner with large seeds and verify rollup-first loads.
-- [ ] Usability polish: add optional “Total required” footer in consumption recap (defer if timeboxed).
-- [ ] LiveView QA: cover labor step add/remove edge cases (empty names, zero units per run).
+- [x] Usability polish: add optional “Total required” footer in consumption recap.
+- [x] Enforce labor step input: prevent empty names and disallow `units_per_run = 0` in `Catalog.LaborStep`.
 
 ### Recipe → BOM Migration Plan (UI Parity)
 
