@@ -117,7 +117,6 @@ defmodule CraftplanWeb.Router do
       live "/manage/products/:sku", ProductLive.Show, :show
       live "/manage/products/:sku/details", ProductLive.Show, :details
       live "/manage/products/:sku/recipe", ProductLive.Show, :recipe
-      live "/manage/products/:sku/labor", ProductLive.Show, :labor
       live "/manage/products/:sku/nutrition", ProductLive.Show, :nutrition
       live "/manage/products/:sku/photos", ProductLive.Show, :photos
       live "/manage/products/:sku/edit", ProductLive.Show, :edit

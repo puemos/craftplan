@@ -9,10 +9,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   @impl true
   def render(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:show_modal, fn -> false end)
-      |> assign_new(:section, fn -> :both end)
+    assigns = assign_new(assigns, :show_modal, fn -> false end)
 
     ~H"""
     <div>
@@ -68,12 +65,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         <div class="">
           <.input field={@form[:product_id]} type="hidden" value={@product.id} />
 
-          <h3 :if={@section in [:materials, :both]} class="text-lg font-medium">Materials</h3>
-          <p :if={@section in [:materials, :both]} class="mb-2 text-sm text-stone-500">
+          <h3 class="text-lg font-medium">Materials</h3>
+          <p class="mb-2 text-sm text-stone-500">
             Add materials needed for this product
           </p>
 
-          <div :if={@section in [:materials, :both]} id="recipe-materials-list">
+          <div id="recipe-materials-list">
             <div
               id="recipe"
               class="mt-2 grid w-full grid-cols-5 gap-x-4 text-sm leading-6 text-stone-700"
@@ -188,11 +185,13 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               <div role="row" class="col-span-5 flex justify-end py-2">
                 <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
                   <span class="text-stone-500">Total materials cost:</span>
-                  <span class="ml-2 font-medium">{format_money(@settings.currency, @materials_total || D.new(0))}</span>
+                  <span class="ml-2 font-medium">
+                    {format_money(@settings.currency, @materials_total || D.new(0))}
+                  </span>
                 </div>
               </div>
 
-              <div role="row" class="col-span-5 py-4">
+              <div role="row" class="">
                 <button
                   type="button"
                   phx-click="show_add_modal"
@@ -212,7 +211,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
 
-          <div :if={@section in [:labor, :both]} class="mt-8">
+          <div>
             <h3 class="text-lg font-medium">Labor steps</h3>
             <p class="mb-2 text-sm text-stone-500">
               Track each step that consumes paid time. Override the hourly rate per step to fine-tune costs.
@@ -352,24 +351,30 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         <% end %>
                       </div>
                     </div>
-                </div>
-              </.inputs_for>
+                  </div>
+                </.inputs_for>
 
-              <div role="row" class="col-span-5 flex justify-end py-2">
-                <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
-                  <span class="text-stone-500">Total minutes:</span>
-                  <span class="ml-2 font-medium">{Decimal.to_string(@labor_total_minutes || D.new(0))}</span>
-                  <span class="ml-4 text-stone-500">Labor per unit:</span>
-                  <span class="ml-2 font-medium">{Decimal.to_string(@labor_per_unit_minutes || D.new(0))} min</span>
-                  <span class="ml-4 text-stone-500">Est. labor cost/unit:</span>
-                  <span class="ml-2 font-medium">{format_money(@settings.currency, @labor_per_unit_cost || D.new(0))}</span>
+                <div role="row" class="col-span-5 flex justify-end py-2">
+                  <div class="rounded border border-stone-200 bg-white px-3 py-1.5 text-sm">
+                    <span class="text-stone-500">Total minutes:</span>
+                    <span class="ml-2 font-medium">
+                      {Decimal.to_string(@labor_total_minutes || D.new(0))}
+                    </span>
+                    <span class="ml-4 text-stone-500">Labor per unit:</span>
+                    <span class="ml-2 font-medium">
+                      {Decimal.to_string(@labor_per_unit_minutes || D.new(0))} min
+                    </span>
+                    <span class="ml-4 text-stone-500">Est. labor cost/unit:</span>
+                    <span class="ml-2 font-medium">
+                      {format_money(@settings.currency, @labor_per_unit_cost || D.new(0))}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div role="row" class="col-span-5 py-4">
-                <button
-                  type="button"
-                  phx-click="add_labor_step"
+                <div role="row" class="col-span-5 py-4">
+                  <button
+                    type="button"
+                    phx-click="add_labor_step"
                     phx-target={@myself}
                     class={[
                       "inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50",
@@ -384,7 +389,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </div>
           </div>
 
-          <.input :if={@section in [:materials, :both]}
+          <.input
             class="field-sizing-content mt-6"
             field={@form[:notes]}
             type="textarea"
@@ -457,7 +462,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           </:col>
           <:col :let={b} label="Unit Cost">
             {case b.rollup do
-              %{} = r -> r.unit_cost
+              %{} = r -> format_money(@settings.currency, r.unit_cost || Decimal.new(0))
               _ -> "-"
             end}
           </:col>
@@ -674,6 +679,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     actor_settings = socket.assigns.settings
 
     comps = socket.assigns.form.source.forms[:components] || []
+
     materials_total =
       Enum.reduce(comps, D.new(0), fn comp_form, acc ->
         material_id =
@@ -689,11 +695,21 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       end)
 
     steps = socket.assigns.form.source.forms[:labor_steps] || []
+
     {total_min, per_unit_min, per_unit_cost} =
       Enum.reduce(steps, {D.new(0), D.new(0), D.new(0)}, fn step_form, {tm, pum, puc} ->
-        minutes = normalize_decimal(step_form.params[:duration_minutes] || (step_form.data && step_form.data.duration_minutes) || 0)
-        upr = normalize_units_per_run(step_form.params[:units_per_run] || (step_form.data && step_form.data.units_per_run))
-        rate_override = normalize_optional_decimal(step_form.params[:rate_override] || (step_form.data && step_form.data.rate_override))
+        minutes =
+          normalize_decimal(
+            step_form.params[:duration_minutes] ||
+              (step_form.data && step_form.data.duration_minutes) || 0
+          )
+
+        upr =
+          normalize_units_per_run(step_form.params[:units_per_run] || (step_form.data && step_form.data.units_per_run))
+
+        rate_override =
+          normalize_optional_decimal(step_form.params[:rate_override] || (step_form.data && step_form.data.rate_override))
+
         rate = rate_override || actor_settings.labor_hourly_rate || D.new(0)
         per_unit_min_step = D.div(minutes, upr)
         per_unit_cost_step = per_unit_min_step |> D.div(D.new(60)) |> D.mult(rate)
