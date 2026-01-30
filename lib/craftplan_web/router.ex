@@ -46,6 +46,7 @@ defmodule CraftplanWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
     plug :load_from_bearer
+    plug CraftplanWeb.Plugs.ApiKeyAuth
   end
 
   #
@@ -102,6 +103,7 @@ defmodule CraftplanWeb.Router do
       live "/manage/settings/allergens", SettingsLive.Index, :allergens
       live "/manage/settings/nutritional_facts", SettingsLive.Index, :nutritional_facts
       live "/manage/settings/csv", SettingsLive.Index, :csv
+      live "/manage/settings/api_keys", SettingsLive.Index, :api_keys
     end
 
     # CSV Export (regular controller, not LiveView)
@@ -195,10 +197,15 @@ defmodule CraftplanWeb.Router do
   # API Routes
   #
 
-  # Other scopes may use custom stacks.
-  # scope "/api", CraftplanWeb do
-  #   pipe_through :api
-  # end
+  scope "/api/json" do
+    pipe_through :api
+    forward "/", CraftplanWeb.JsonApiRouter
+  end
+
+  scope "/api/graphql" do
+    pipe_through :api
+    forward "/", Absinthe.Plug, schema: CraftplanWeb.Schema
+  end
 
   #
   # Development Routes
@@ -218,6 +225,10 @@ defmodule CraftplanWeb.Router do
 
       live_dashboard "/dashboard", metrics: CraftplanWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+
+      forward "/graphiql", Absinthe.Plug.GraphiQL,
+        schema: CraftplanWeb.Schema,
+        interface: :playground
     end
   end
 

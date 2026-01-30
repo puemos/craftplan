@@ -4,11 +4,40 @@ defmodule Craftplan.CRM.Customer do
     otp_app: :craftplan,
     domain: Craftplan.CRM,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   alias Craftplan.CRM.Address
 
   require Ash.Resource.Preparation.Builtins
+
+  json_api do
+    type "customer"
+
+    routes do
+      base("/customers")
+      get(:read)
+      index :list
+      post(:create)
+      patch(:update)
+      delete(:destroy)
+    end
+  end
+
+  graphql do
+    type :customer
+
+    queries do
+      get(:get_customer, :read)
+      list(:list_customers, :list)
+    end
+
+    mutations do
+      create :create_customer, :create
+      update :update_customer, :update
+      destroy :destroy_customer, :destroy
+    end
+  end
 
   postgres do
     table "crm_customers"
@@ -44,6 +73,11 @@ defmodule Craftplan.CRM.Customer do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     # Admin can do anything
     bypass expr(^actor(:role) == :admin) do
       authorize_if always()

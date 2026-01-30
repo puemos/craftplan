@@ -49,6 +49,7 @@ defmodule CraftplanWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug CORSPlug
   # Enable Ecto SQL Sandbox for LiveView tests to share the DB connection
   # SQL Sandbox plug not needed with LiveViewTest server: false
   plug CraftplanWeb.Router

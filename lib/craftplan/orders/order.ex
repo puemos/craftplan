@@ -4,12 +4,39 @@ defmodule Craftplan.Orders.Order do
     otp_app: :craftplan,
     domain: Craftplan.Orders,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   alias Craftplan.Orders.Changes.CalculateTotals
   alias Craftplan.Orders.Changes.ValidateConstraints
   alias Craftplan.Orders.Order.Types.PaymentStatus
   alias Craftplan.Orders.Order.Types.Status
+
+  json_api do
+    type "order"
+
+    routes do
+      base("/orders")
+      get(:read)
+      index :list
+      post(:create)
+      patch(:update)
+    end
+  end
+
+  graphql do
+    type :order
+
+    queries do
+      get(:get_order, :read)
+      list(:list_orders, :list)
+    end
+
+    mutations do
+      create :create_order, :create
+      update :update_order, :update
+    end
+  end
 
   postgres do
     table "orders_orders"
@@ -179,6 +206,11 @@ defmodule Craftplan.Orders.Order do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     # Public read for day-range listing/count (capacity checks)
     bypass action(:for_day) do
       authorize_if always()

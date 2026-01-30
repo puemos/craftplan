@@ -4,7 +4,34 @@ defmodule Craftplan.Inventory.Supplier do
     otp_app: :craftplan,
     domain: Craftplan.Inventory,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
+
+  json_api do
+    type "supplier"
+
+    routes do
+      base("/suppliers")
+      get(:read)
+      index :list
+      post(:create)
+      patch(:update)
+    end
+  end
+
+  graphql do
+    type :supplier
+
+    queries do
+      get(:get_supplier, :read)
+      list(:list_suppliers, :list)
+    end
+
+    mutations do
+      create :create_supplier, :create
+      update :update_supplier, :update
+    end
+  end
 
   postgres do
     table "inventory_suppliers"
@@ -29,6 +56,11 @@ defmodule Craftplan.Inventory.Supplier do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     policy action_type(:read) do
       authorize_if expr(^actor(:role) in [:staff, :admin])
     end

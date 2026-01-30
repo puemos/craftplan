@@ -1,8 +1,16 @@
 defmodule Craftplan.Orders do
   @moduledoc false
-  use Ash.Domain
+  use Ash.Domain,
+    extensions: [AshJsonApi.Domain, AshGraphql.Domain]
 
   alias Craftplan.Orders.Order
+
+  json_api do
+    prefix "/api/json"
+  end
+
+  graphql do
+  end
 
   resources do
     resource Order do

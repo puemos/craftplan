@@ -1,6 +1,14 @@
 defmodule Craftplan.Catalog do
   @moduledoc false
-  use Ash.Domain
+  use Ash.Domain,
+    extensions: [AshJsonApi.Domain, AshGraphql.Domain]
+
+  json_api do
+    prefix "/api/json"
+  end
+
+  graphql do
+  end
 
   @type product_id :: integer()
 

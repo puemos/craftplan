@@ -3,10 +3,30 @@ defmodule Craftplan.Catalog.BOM do
   use Ash.Resource,
     otp_app: :craftplan,
     domain: Craftplan.Catalog,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   alias Craftplan.Catalog.Changes.AssignBOMVersion
   alias Craftplan.Catalog.Services.BOMRollup
+
+  json_api do
+    type "bom"
+
+    routes do
+      base("/boms")
+      get(:read)
+      index :list_for_product
+    end
+  end
+
+  graphql do
+    type :bom
+
+    queries do
+      get(:get_bom, :read)
+      list(:list_boms, :list_for_product)
+    end
+  end
 
   postgres do
     table "catalog_boms"

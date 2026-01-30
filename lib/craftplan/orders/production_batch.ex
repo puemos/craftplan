@@ -4,11 +4,31 @@ defmodule Craftplan.Orders.ProductionBatch do
     otp_app: :craftplan,
     domain: Craftplan.Orders,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   import Ash.Expr
 
   alias Craftplan.Orders.Changes.BatchOpenInit
+
+  json_api do
+    type "production-batch"
+
+    routes do
+      base("/production-batches")
+      get(:read)
+      index :read
+    end
+  end
+
+  graphql do
+    type :production_batch
+
+    queries do
+      get(:get_production_batch, :read)
+      list(:list_production_batches, :read)
+    end
+  end
 
   postgres do
     table "orders_production_batches"
@@ -97,6 +117,11 @@ defmodule Craftplan.Orders.ProductionBatch do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     policy action_type(:read) do
       authorize_if always()
     end

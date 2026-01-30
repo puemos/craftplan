@@ -4,10 +4,37 @@ defmodule Craftplan.Inventory.Material do
     otp_app: :craftplan,
     domain: Craftplan.Inventory,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   alias Craftplan.Inventory.MaterialAllergen
   alias Craftplan.Inventory.MaterialNutritionalFact
+
+  json_api do
+    type "material"
+
+    routes do
+      base("/materials")
+      get(:read)
+      index :list
+      post(:create)
+      patch(:update)
+    end
+  end
+
+  graphql do
+    type :material
+
+    queries do
+      get(:get_material, :read)
+      list(:list_materials, :list)
+    end
+
+    mutations do
+      create :create_material, :create
+      update :update_material, :update
+    end
+  end
 
   postgres do
     table "inventory_materials"
@@ -71,6 +98,11 @@ defmodule Craftplan.Inventory.Material do
 
   policies do
     # Public reads (used for planner math, printouts, and exports); restrict writes
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     policy action_type(:read) do
       authorize_if always()
     end

@@ -4,9 +4,20 @@ defmodule Craftplan.Settings.Settings do
     otp_app: :craftplan,
     domain: Craftplan.Settings,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource]
 
   alias Craftplan.Types.EncryptedBinary
+
+  json_api do
+    type "settings"
+
+    routes do
+      base("/settings")
+      get(:get)
+      patch(:update)
+    end
+  end
 
   postgres do
     table "settings"
@@ -28,6 +39,11 @@ defmodule Craftplan.Settings.Settings do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     # Allow read of settings for everyone (used across site)
     policy action_type(:read) do
       authorize_if always()

@@ -4,7 +4,27 @@ defmodule Craftplan.Inventory.Lot do
     otp_app: :craftplan,
     domain: Craftplan.Inventory,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
+
+  json_api do
+    type "lot"
+
+    routes do
+      base("/lots")
+      get(:read)
+      index :read
+    end
+  end
+
+  graphql do
+    type :lot
+
+    queries do
+      get(:get_lot, :read)
+      list(:list_lots, :read)
+    end
+  end
 
   postgres do
     table "inventory_lots"
@@ -27,6 +47,11 @@ defmodule Craftplan.Inventory.Lot do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     policy action_type(:read) do
       authorize_if always()
     end

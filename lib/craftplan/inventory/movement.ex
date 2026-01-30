@@ -4,7 +4,27 @@ defmodule Craftplan.Inventory.Movement do
     otp_app: :craftplan,
     domain: Craftplan.Inventory,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
+
+  json_api do
+    type "movement"
+
+    routes do
+      base("/movements")
+      get(:read)
+      index :read
+    end
+  end
+
+  graphql do
+    type :movement
+
+    queries do
+      get(:get_movement, :read)
+      list(:list_movements, :read)
+    end
+  end
 
   postgres do
     table "inventory_movements"
@@ -22,6 +42,11 @@ defmodule Craftplan.Inventory.Movement do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     policy action_type(:read) do
       authorize_if expr(^actor(:role) in [:staff, :admin])
     end

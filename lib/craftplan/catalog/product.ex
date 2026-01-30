@@ -4,9 +4,38 @@ defmodule Craftplan.Catalog.Product do
     otp_app: :craftplan,
     domain: Craftplan.Catalog,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   alias Craftplan.Catalog.BOM
+
+  json_api do
+    type "product"
+
+    routes do
+      base("/products")
+      get(:read)
+      index :list
+      post(:create)
+      patch(:update)
+      delete(:destroy)
+    end
+  end
+
+  graphql do
+    type :product
+
+    queries do
+      get(:get_product, :read)
+      list(:list_products, :list)
+    end
+
+    mutations do
+      create :create_product, :create
+      update :update_product, :update
+      destroy :destroy_product, :destroy
+    end
+  end
 
   postgres do
     table "catalog_products"
@@ -64,6 +93,11 @@ defmodule Craftplan.Catalog.Product do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     # Admin can do anything
     bypass expr(^actor(:role) == :admin) do
       authorize_if always()

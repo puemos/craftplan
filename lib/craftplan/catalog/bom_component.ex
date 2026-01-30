@@ -3,10 +3,30 @@ defmodule Craftplan.Catalog.BOMComponent do
   use Ash.Resource,
     otp_app: :craftplan,
     domain: Craftplan.Catalog,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   alias Craftplan.Catalog.Changes.ValidateComponentTarget
   alias Craftplan.Catalog.Services.BOMRollup
+
+  json_api do
+    type "bom-component"
+
+    routes do
+      base("/bom-components")
+      get(:read)
+      index :read
+    end
+  end
+
+  graphql do
+    type :bom_component
+
+    queries do
+      get(:get_bom_component, :read)
+      list(:list_bom_components, :read)
+    end
+  end
 
   postgres do
     table "catalog_bom_components"

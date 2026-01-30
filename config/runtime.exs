@@ -67,6 +67,10 @@ if config_env() == :prod do
 
   config :craftplan, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
+  if cors_origins = System.get_env("CORS_ORIGINS") do
+    config :cors_plug, origin: String.split(cors_origins, ",", trim: true), methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+  end
+
   config :craftplan,
     token_signing_secret:
       System.get_env("TOKEN_SIGNING_SECRET") ||

@@ -4,9 +4,36 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     otp_app: :craftplan,
     domain: Craftplan.Inventory,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
   alias Craftplan.Inventory.PurchaseOrder.Types.Status
+
+  json_api do
+    type "purchase-order"
+
+    routes do
+      base("/purchase-orders")
+      get(:read)
+      index :list
+      post(:create)
+      patch(:update)
+    end
+  end
+
+  graphql do
+    type :purchase_order
+
+    queries do
+      get(:get_purchase_order, :read)
+      list(:list_purchase_orders, :list)
+    end
+
+    mutations do
+      create :create_purchase_order, :create
+      update :update_purchase_order, :update
+    end
+  end
 
   postgres do
     table "inventory_purchase_orders"
@@ -80,6 +107,11 @@ defmodule Craftplan.Inventory.PurchaseOrder do
   end
 
   policies do
+    # API key scope check
+    policy always() do
+      authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
+    end
+
     policy action_type(:read) do
       authorize_if expr(^actor(:role) in [:staff, :admin])
     end
