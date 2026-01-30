@@ -108,5 +108,18 @@ defmodule Craftplan.Test.Factory do
     Ash.reload!(order, load: [items: [product: [:name, :sku]]], actor: actor)
   end
 
+  # API Keys
+  def create_api_key!(scopes \\ %{}, actor \\ admin_actor()) do
+    {:ok, api_key} =
+      Craftplan.Accounts.create_api_key(
+        %{name: "test-key-#{System.unique_integer([:positive])}", scopes: scopes},
+        actor: actor
+      )
+
+    {Map.get(api_key, :__raw_key__), api_key}
+  end
+
+  defp admin_actor, do: Craftplan.DataCase.admin_actor()
+
   defp unique_code(prefix), do: String.downcase(prefix) <> "-" <> Ecto.UUID.generate()
 end
