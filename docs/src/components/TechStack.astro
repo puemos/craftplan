@@ -1,0 +1,24 @@
+---
+const techs = [
+  "Elixir",
+  "Ash Framework",
+  "Phoenix LiveView",
+  "PostgreSQL",
+  "Tailwind CSS",
+];
+---
+
+<section class="px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-3xl text-center">
+    <h2 class="text-xl font-semibold text-stone-900">Built with</h2>
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
+      {
+        techs.map((tech) => (
+          <span class="rounded-md border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-700">
+            {tech}
+          </span>
+        ))
+      }
+    </div>
+  </div>
+</section>

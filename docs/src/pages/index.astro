@@ -1,0 +1,96 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import FeatureGrid from "../components/FeatureGrid.astro";
+import TechStack from "../components/TechStack.astro";
+
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout title="Home">
+  <Hero />
+
+  <!-- Screenshot -->
+  <section class="px-4 pb-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+      <div class="overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg">
+        <img
+          src={`${base}screenshots/plan.webp`}
+          alt="Craftplan production planner showing schedule, make sheet, and completion snapshot"
+          class="w-full"
+          loading="lazy"
+        />
+      </div>
+      <p class="mt-3 text-center text-sm text-stone-500">
+        Production planner with schedule, make sheet, and cost snapshots
+      </p>
+    </div>
+  </section>
+
+  <FeatureGrid />
+
+  <TechStack />
+
+  <!-- Getting started -->
+  <section class="px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-3xl">
+      <h2 class="text-center text-xl font-semibold text-stone-900">
+        Get up and running
+      </h2>
+      <div class="mt-8 rounded-md border border-gray-200 bg-white p-6">
+        <ol class="flex flex-col gap-4 text-sm text-stone-700">
+          <li class="flex gap-3">
+            <span
+              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-xs font-medium text-white"
+              >1</span
+            >
+            <div>
+              <p class="font-medium text-stone-900">Start dependencies</p>
+              <code class="text-xs text-stone-500"
+                >docker-compose up -d</code
+              >
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span
+              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-xs font-medium text-white"
+              >2</span
+            >
+            <div>
+              <p class="font-medium text-stone-900">Install and set up</p>
+              <code class="text-xs text-stone-500">mix setup</code>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span
+              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-xs font-medium text-white"
+              >3</span
+            >
+            <div>
+              <p class="font-medium text-stone-900">Start the server</p>
+              <code class="text-xs text-stone-500">mix phx.server</code>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span
+              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-xs font-medium text-white"
+              >4</span
+            >
+            <div>
+              <p class="font-medium text-stone-900">Open the app</p>
+              <code class="text-xs text-stone-500"
+                >Visit localhost:4000</code
+              >
+            </div>
+          </li>
+        </ol>
+      </div>
+      <p class="mt-4 text-center text-sm text-stone-500">
+        See the <a
+          href={`${base}docs/getting-started/`}
+          class="text-indigo-600 transition hover:text-indigo-500">full setup guide</a
+        > for prerequisites and detailed instructions.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

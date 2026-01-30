@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-brand: #fd4f00;
+  --color-brand-light: #ff7a3d;
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+@utility shadow-xs {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Sharp Table Styles matching App */
+.prose table {
+  @apply min-w-full table-fixed border-collapse border border-stone-200;
+}
+
+.prose thead {
+  @apply border-b border-stone-300 bg-stone-50/50 text-left text-sm leading-6 text-stone-500;
+}
+
+.prose th {
+  @apply border-r border-stone-200 p-2 font-normal last:border-r-0;
+}
+
+.prose tbody {
+  @apply divide-y divide-stone-200 text-stone-700 text-sm leading-6;
+}
+
+.prose tr {
+  @apply transition hover:bg-stone-50;
+}
+
+.prose td {
+  @apply border-r border-stone-200 p-2 align-top last:border-r-0;
+}

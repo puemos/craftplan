@@ -1,0 +1,70 @@
+---
+const base = import.meta.env.BASE_URL;
+const currentPath = Astro.url.pathname;
+
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+const sections: { heading?: string; items: NavItem[] }[] = [
+  {
+    heading: "Getting Started",
+    items: [
+      { label: "Introduction", href: `${base}docs/` },
+      { label: "Installation", href: `${base}docs/getting-started/` },
+    ],
+  },
+  {
+    heading: "Features",
+    items: [
+      { label: "Overview & Planner", href: `${base}docs/overview/` },
+      { label: "Catalog & BOMs", href: `${base}docs/catalog/` },
+      { label: "Inventory", href: `${base}docs/inventory/` },
+      { label: "Orders", href: `${base}docs/orders/` },
+      { label: "Purchasing", href: `${base}docs/purchasing/` },
+      {
+        label: "Production Batching",
+        href: `${base}docs/production-batching/`,
+      },
+      { label: "Customers", href: `${base}docs/customers/` },
+      { label: "Settings", href: `${base}docs/settings/` },
+    ],
+  },
+];
+
+function isActive(href: string): boolean {
+  return currentPath === href || currentPath === href.replace(/\/$/, "");
+}
+---
+
+<nav class="flex flex-col gap-6">
+  {
+    sections.map((section) => (
+      <div>
+        {section.heading && (
+          <p class="mb-3 px-3 text-xs font-semibold tracking-wide text-stone-400 uppercase">
+            {section.heading}
+          </p>
+        )}
+        <ul class="space-y-1">
+          {section.items.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class:list={[
+                  "flex items-center gap-3 rounded-md border border-transparent px-3 py-2 text-sm font-medium transition",
+                  isActive(item.href)
+                    ? "bg-stone-200/70 text-stone-900"
+                    : "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900",
+                ]}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>

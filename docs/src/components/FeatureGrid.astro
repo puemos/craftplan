@@ -1,0 +1,64 @@
+---
+interface Feature {
+  title: string;
+  description: string;
+}
+
+const features: Feature[] = [
+  {
+    title: "Catalog & BOMs",
+    description:
+      "Manage products with versioned Bills of Materials, labor steps, cost rollups, and pricing guidance.",
+  },
+  {
+    title: "Inventory Control",
+    description:
+      "Track raw materials, lots, stock movements, allergens, nutritional facts, and forecasted demand.",
+  },
+  {
+    title: "Order Management",
+    description:
+      "Process customer orders with status tracking, calendar view, delivery scheduling, and invoicing.",
+  },
+  {
+    title: "Production Planning",
+    description:
+      "Weekly planner with schedule, make sheet, and materials tabs. Print-ready production runs.",
+  },
+  {
+    title: "Production Batching",
+    description:
+      "Batch workflow from allocation through consumption to completion with cost snapshots.",
+  },
+  {
+    title: "Purchasing",
+    description:
+      "Manage suppliers and purchase orders. Receive POs directly into inventory stock.",
+  },
+  {
+    title: "CRM",
+    description:
+      "Customer database with addresses, order history, and per-customer statistics.",
+  },
+];
+---
+
+<section class="px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="text-center text-xl font-semibold text-stone-900">
+      Everything you need to run your workshop
+    </h2>
+    <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((feature) => (
+          <div class="flex flex-col gap-2 rounded-md border border-gray-200 bg-white p-6">
+            <h3 class="text-sm font-semibold text-stone-900">
+              {feature.title}
+            </h3>
+            <p class="text-sm text-stone-600">{feature.description}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
