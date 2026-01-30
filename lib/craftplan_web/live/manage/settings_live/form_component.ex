@@ -142,6 +142,115 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
               />
             </div>
           </section>
+
+          <section
+            id="email-delivery-settings"
+            aria-labelledby="email-delivery-settings-title"
+            class="rounded-lg border border-stone-200 bg-stone-50"
+          >
+            <div class="border-b border-stone-200 px-4 py-3">
+              <h3 id="email-delivery-settings-title" class="text-base font-semibold text-stone-800">
+                Email Delivery
+              </h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Choose an email provider and configure its credentials.
+              </p>
+            </div>
+            <div class="space-y-4 p-4">
+              <.input
+                field={@form[:email_provider]}
+                type="select"
+                options={provider_options()}
+                label="Provider"
+              />
+
+              <%= case selected_provider(@form) do %>
+                <% :smtp -> %>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <.input
+                      field={@form[:smtp_host]}
+                      type="text"
+                      label="SMTP host"
+                      placeholder="smtp.example.com"
+                    />
+                    <.input
+                      field={@form[:smtp_port]}
+                      type="number"
+                      label="SMTP port"
+                      placeholder="587"
+                    />
+                  </div>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <.input
+                      field={@form[:smtp_username]}
+                      type="text"
+                      label="Username"
+                      placeholder="user@example.com"
+                    />
+                    <.input
+                      field={@form[:smtp_password]}
+                      type="password"
+                      label="Password"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <.input
+                    field={@form[:smtp_tls]}
+                    type="select"
+                    options={[
+                      {"If available", :if_available},
+                      {"Always", :always},
+                      {"Never", :never}
+                    ]}
+                    label="TLS mode"
+                  />
+                <% provider when provider in [:sendgrid, :postmark, :brevo] -> %>
+                  <.input
+                    field={@form[:email_api_key]}
+                    type="password"
+                    label="API key"
+                    placeholder="••••••••"
+                  />
+                <% :mailgun -> %>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <.input
+                      field={@form[:email_api_key]}
+                      type="password"
+                      label="API key"
+                      placeholder="••••••••"
+                    />
+                    <.input
+                      field={@form[:email_api_domain]}
+                      type="text"
+                      label="Domain"
+                      placeholder="mg.example.com"
+                    />
+                  </div>
+                <% :amazon_ses -> %>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <.input
+                      field={@form[:email_api_key]}
+                      type="password"
+                      label="Access key"
+                      placeholder="AKIA..."
+                    />
+                    <.input
+                      field={@form[:email_api_secret]}
+                      type="password"
+                      label="Secret key"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <.input
+                    field={@form[:email_api_region]}
+                    type="select"
+                    options={ses_region_options()}
+                    label="Region"
+                  />
+                <% _ -> %>
+              <% end %>
+            </div>
+          </section>
         </div>
 
         <:actions>
@@ -165,6 +274,7 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
   def handle_event("save", %{"settings" => setting_params}, socket) do
     case AshPhoenix.Form.submit(socket.assigns.form, params: setting_params) do
       {:ok, settings} ->
+        Craftplan.Mailer.apply_settings(settings)
         notify_parent({:saved, settings})
 
         {:noreply,
@@ -187,6 +297,38 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
       )
 
     assign(socket, form: to_form(form))
+  end
+
+  defp selected_provider(form) do
+    value = Phoenix.HTML.Form.input_value(form, :email_provider)
+
+    case value do
+      v when is_atom(v) and not is_nil(v) -> v
+      v when is_binary(v) and v != "" -> String.to_existing_atom(v)
+      _ -> :smtp
+    end
+  end
+
+  defp provider_options do
+    [
+      {"SMTP", :smtp},
+      {"SendGrid", :sendgrid},
+      {"Mailgun", :mailgun},
+      {"Postmark", :postmark},
+      {"Brevo (Sendinblue)", :brevo},
+      {"Amazon SES", :amazon_ses}
+    ]
+  end
+
+  defp ses_region_options do
+    [
+      {"US East (N. Virginia)", "us-east-1"},
+      {"US West (Oregon)", "us-west-2"},
+      {"EU (Ireland)", "eu-west-1"},
+      {"EU (Frankfurt)", "eu-central-1"},
+      {"Asia Pacific (Mumbai)", "ap-south-1"},
+      {"Asia Pacific (Sydney)", "ap-southeast-2"}
+    ]
   end
 
   defp currency_options do
