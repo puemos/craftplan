@@ -18,6 +18,7 @@ defmodule Craftplan.Inventory do
 
     resource Craftplan.Inventory.Movement do
       define :adjust_stock, action: :adjust_stock
+      define :list_movements, action: :read
     end
 
     resource Craftplan.Inventory.Supplier do

@@ -103,6 +103,9 @@ defmodule CraftplanWeb.Router do
       live "/manage/settings/csv", SettingsLive.Index, :csv
     end
 
+    # CSV Export (regular controller, not LiveView)
+    get "/manage/settings/csv/export/:entity", CSVExportController, :export
+
     # Staff Routes
     ash_authentication_live_session :manage_routes,
       on_mount: [

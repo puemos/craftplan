@@ -194,8 +194,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
      |> assign(:show_mapping_modal, true)}
   end
 
-  def handle_event("csv_export", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Export started (not yet implemented)")}
+  def handle_event("csv_export", %{"entity" => entity}, socket) do
+    {:noreply, redirect(socket, to: ~p"/manage/settings/csv/export/#{entity}")}
   end
 
   defp apply_action(socket, :index, _params) do
