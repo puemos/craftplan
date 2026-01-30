@@ -9,6 +9,7 @@ defmodule Craftplan.Application do
   def start(_type, _args) do
     children = [
       CraftplanWeb.Telemetry,
+      Craftplan.Vault,
       Craftplan.Repo,
       {DNSCluster, query: Application.get_env(:craftplan, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Craftplan.PubSub},
@@ -24,7 +25,18 @@ defmodule Craftplan.Application do
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Craftplan.Supervisor]
-    Supervisor.start_link(children, opts)
+    result = Supervisor.start_link(children, opts)
+
+    apply_smtp_from_settings()
+
+    result
+  end
+
+  defp apply_smtp_from_settings do
+    case Craftplan.Settings.get_settings() do
+      {:ok, settings} -> Craftplan.Mailer.apply_settings(settings)
+      _ -> :ok
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration

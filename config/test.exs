@@ -22,6 +22,13 @@ config :craftplan, Craftplan.Repo,
 
   pool_size: System.schedulers_online() * 2
 
+# Disable swoosh api client as it is only required for production adapters
+config :craftplan, Craftplan.Vault,
+  ciphers: [
+    default:
+      {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: Base.decode64!("dVBPc3k5cExja3A2aGR6bmFiY2RlZjAxMjM0NTY3ODk=")}
+  ]
+
 config :craftplan, CraftplanWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "IPun5u1kwt9+i88jrjN5mJzlM1E6BJE68ZGIG0169TQxjb6GAKdivKt5SWLHYP26",
@@ -38,5 +45,4 @@ config :phoenix, :plug_init_mode, :runtime
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
-# Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

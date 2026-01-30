@@ -18,6 +18,12 @@ config :craftplan, Craftplan.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+config :craftplan, Craftplan.Vault,
+  ciphers: [
+    default:
+      {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: Base.decode64!("dVBPc3k5cExja3A2aGR6bmFiY2RlZjAxMjM0NTY3ODk=")}
+  ]
+
 config :craftplan, CraftplanWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
