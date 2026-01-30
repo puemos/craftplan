@@ -128,7 +128,7 @@ defmodule CraftplanWeb.OrderLive.Show do
             {format_money(@settings.currency, item.cost)}
           </:col>
           <:col :let={item} label="Status">
-            <% planned = item.planned_qty_sum || Decimal.new(0) %>
+            <% _planned = item.planned_qty_sum || Decimal.new(0) %>
             <% completed = item.completed_qty_sum || Decimal.new(0) %>
             <% status =
               cond do

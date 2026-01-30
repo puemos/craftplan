@@ -33,7 +33,7 @@ defmodule Craftplan.Production.Batching do
         actor: actor
       )
 
-    {bom, bom_version, components_map} =
+    {_bom, _bom_version, _components_map} =
       case product.active_bom do
         nil ->
           {nil, nil, %{}}
@@ -44,7 +44,7 @@ defmodule Craftplan.Production.Batching do
           {bom, version, cmap}
       end
 
-    code = generate_batch_code(product.sku, actor)
+    _code = generate_batch_code(product.sku, actor)
 
     params = %{
       product_id: product.id,

@@ -2,6 +2,8 @@ defmodule CraftplanWeb.ProductionPlanLive do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  import Ash.Expr
+
   alias Craftplan.Orders
   alias Craftplan.Orders.OrderItemBatchAllocation
   alias Craftplan.Orders.ProductionBatch
@@ -9,7 +11,6 @@ defmodule CraftplanWeb.ProductionPlanLive do
   alias CraftplanWeb.Navigation
   alias Decimal, as: D
 
-  import Ash.Expr
   require Ash.Query
 
   @impl true
@@ -162,7 +163,9 @@ defmodule CraftplanWeb.ProductionPlanLive do
                 value="new"
                 options={[
                   {"Create new batch", "new"}
-                  | Enum.map(group.open_batches, fn batch -> {"Add to #{batch.batch_code} (#{batch.status})", "existing:" <> batch.id} end)
+                  | Enum.map(group.open_batches, fn batch ->
+                      {"Add to #{batch.batch_code} (#{batch.status})", "existing:" <> batch.id}
+                    end)
                 ]}
               />
             </div>
@@ -231,9 +234,7 @@ defmodule CraftplanWeb.ProductionPlanLive do
 
       batch_groups =
         Enum.map(groups, fn {product_id, grouped_items} ->
-          open =
-            socket.assigns.batches_by_status.open
-            |> Enum.filter(&(&1.product_id == product_id))
+          open = Enum.filter(socket.assigns.batches_by_status.open, &(&1.product_id == product_id))
 
           %{
             product_id: product_id,

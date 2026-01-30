@@ -1322,53 +1322,6 @@ defmodule CraftplanWeb.OverviewLive do
      |> assign(:pending_consumption_recap, [])}
   end
 
-  defp beginning_of_week(date) do
-    Date.add(date, -(Date.day_of_week(date) - 1))
-  end
-
-  defp load_production_items(socket, days_range) do
-    orders =
-      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
-
-    Production.build_production_items(orders)
-  end
-
-  defp prepare_materials_requirements(socket, days_range) do
-    InventoryForecasting.prepare_materials_requirements(days_range, socket.assigns.current_user)
-  end
-
-  defp get_items_for_day(day, production_items) do
-    day_items =
-      Enum.filter(production_items, fn {item_day, _, _} ->
-        Date.compare(item_day, day) == :eq
-      end)
-
-    day_items
-    |> Enum.group_by(
-      fn {_, product, _} -> product end,
-      fn {_, _, items} -> items end
-    )
-    |> Enum.map(fn {product, grouped_items} ->
-      {product, List.flatten(grouped_items)}
-    end)
-  end
-
-  defp get_product_items_for_day(day, product, production_items) do
-    production_items
-    |> Enum.filter(fn {item_day, item_product, _} ->
-      Date.compare(item_day, day) == :eq && item_product.id == product.id
-    end)
-    |> Enum.flat_map(fn {_, _, items} -> items end)
-  end
-
-  defp find_product(socket, product_id) do
-    Catalog.get_product_by_id!(product_id, actor: socket.assigns.current_user)
-  end
-
-  defp total_quantity(items) do
-    Enum.reduce(items, Decimal.new(0), fn item, acc -> Decimal.add(acc, item.quantity) end)
-  end
-
   @impl true
   def handle_event("create_batch", %{"date" => date_iso, "product_id" => product_id}, socket) do
     actor = socket.assigns.current_user
@@ -1426,6 +1379,53 @@ defmodule CraftplanWeb.OverviewLive do
           {:noreply, put_flash(socket, :error, "Failed to create batch: #{inspect(error)}")}
       end
     end
+  end
+
+  defp beginning_of_week(date) do
+    Date.add(date, -(Date.day_of_week(date) - 1))
+  end
+
+  defp load_production_items(socket, days_range) do
+    orders =
+      Production.fetch_orders_in_range(socket.assigns.time_zone, days_range, actor: socket.assigns.current_user)
+
+    Production.build_production_items(orders)
+  end
+
+  defp prepare_materials_requirements(socket, days_range) do
+    InventoryForecasting.prepare_materials_requirements(days_range, socket.assigns.current_user)
+  end
+
+  defp get_items_for_day(day, production_items) do
+    day_items =
+      Enum.filter(production_items, fn {item_day, _, _} ->
+        Date.compare(item_day, day) == :eq
+      end)
+
+    day_items
+    |> Enum.group_by(
+      fn {_, product, _} -> product end,
+      fn {_, _, items} -> items end
+    )
+    |> Enum.map(fn {product, grouped_items} ->
+      {product, List.flatten(grouped_items)}
+    end)
+  end
+
+  defp get_product_items_for_day(day, product, production_items) do
+    production_items
+    |> Enum.filter(fn {item_day, item_product, _} ->
+      Date.compare(item_day, day) == :eq && item_product.id == product.id
+    end)
+    |> Enum.flat_map(fn {_, _, items} -> items end)
+  end
+
+  defp find_product(socket, product_id) do
+    Catalog.get_product_by_id!(product_id, actor: socket.assigns.current_user)
+  end
+
+  defp total_quantity(items) do
+    Enum.reduce(items, Decimal.new(0), fn item, acc -> Decimal.add(acc, item.quantity) end)
   end
 
   defp make_sheet_rows(production_items, day) do

@@ -9,7 +9,7 @@ defmodule Craftplan.Orders.Changes.BatchOpenInit do
 
   @impl true
   def change(changeset, _opts, _ctx) do
-    actor = Map.get(changeset.context, :actor)
+    actor = changeset.context[:private][:actor]
 
     product_id = Changeset.get_attribute(changeset, :product_id)
     planned_qty = Changeset.get_attribute(changeset, :planned_qty) || D.new(0)

@@ -83,6 +83,7 @@ defmodule Craftplan.Orders.OrderItem do
 
     read :plan_pending do
       get? false
+
       argument :to, :utc_datetime do
         allow_nil? false
       end
