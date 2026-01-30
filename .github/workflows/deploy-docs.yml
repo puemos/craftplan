@@ -23,7 +23,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Copy screenshots into docs
-        run: cp -r screenshots/* docs/public/screenshots/
+        run: |
+          mkdir -p docs/public/screenshots
+          cp -r screenshots/. docs/public/screenshots/
 
       - uses: actions/setup-node@v4
         with:
