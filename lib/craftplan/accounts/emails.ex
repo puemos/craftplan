@@ -52,13 +52,24 @@ defmodule Craftplan.Accounts.Emails do
   #   * Bamboo - https://hexdocs.pm/bamboo
   #
   defp deliver(to, subject, body) do
+    {sender_name, sender_address} = email_sender()
+
     new()
-    # TODO: Replace with your email
-    |> from({"Craftplan", "noreply@craftplan.app"})
+    |> from({sender_name, sender_address})
     |> to(to_string(to))
     |> subject(subject)
     |> put_provider_option(:track_links, "None")
     |> html_body(body)
     |> Craftplan.Mailer.deliver!()
+  end
+
+  defp email_sender do
+    case Craftplan.Settings.get_settings() do
+      {:ok, settings} ->
+        {settings.email_from_name || "Craftplan", settings.email_from_address || "noreply@craftplan.app"}
+
+      _ ->
+        {"Craftplan", "noreply@craftplan.app"}
+    end
   end
 end

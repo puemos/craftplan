@@ -114,6 +114,34 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
               </div>
             </div>
           </section>
+          <section
+            id="email-sender-settings"
+            aria-labelledby="email-sender-settings-title"
+            class="rounded-lg border border-stone-200 bg-stone-50"
+          >
+            <div class="border-b border-stone-200 px-4 py-3">
+              <h3 id="email-sender-settings-title" class="text-base font-semibold text-stone-800">
+                Email Sender
+              </h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Configure the sender name and address used for outgoing emails.
+              </p>
+            </div>
+            <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
+              <.input
+                field={@form[:email_from_name]}
+                type="text"
+                label="Sender name"
+                placeholder="Craftplan"
+              />
+              <.input
+                field={@form[:email_from_address]}
+                type="email"
+                label="Sender email"
+                placeholder="noreply@craftplan.app"
+              />
+            </div>
+          </section>
         </div>
 
         <:actions>

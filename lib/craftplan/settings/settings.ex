@@ -143,6 +143,17 @@ defmodule Craftplan.Settings.Settings do
       constraints min: 0
     end
 
-    # advanced_recipe_versioning removed; simple mode is the only mode
+    # Email sender
+    attribute :email_from_name, :string do
+      public? true
+      allow_nil? false
+      default "Craftplan"
+    end
+
+    attribute :email_from_address, :string do
+      public? true
+      allow_nil? false
+      default "noreply@craftplan.app"
+    end
   end
 end
