@@ -1,0 +1,1539 @@
+schema {
+  mutation: RootMutationType
+  query: RootQueryType
+}
+
+enum BomComponentSortField {
+  ID
+}
+
+"A keyset page of :bom_component"
+type KeysetPageOfBomComponent {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [BomComponent!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input BomComponentFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input BomComponentFilterInput {
+  and: [BomComponentFilterInput!]
+  or: [BomComponentFilterInput!]
+  not: [BomComponentFilterInput!]
+  id: BomComponentFilterId
+}
+
+input BomComponentSortInput {
+  order: SortOrder
+  field: BomComponentSortField!
+}
+
+type BomComponent {
+  id: ID!
+}
+
+enum BomSortField {
+  ID
+  NAME
+  NOTES
+  STATUS
+}
+
+input BomFilterStatus {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input BomFilterNotes {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input BomFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input BomFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input BomFilterInput {
+  and: [BomFilterInput!]
+  or: [BomFilterInput!]
+  not: [BomFilterInput!]
+  id: BomFilterId
+  name: BomFilterName
+  notes: BomFilterNotes
+  status: BomFilterStatus
+}
+
+input BomSortInput {
+  order: SortOrder
+  field: BomSortField!
+}
+
+type Bom {
+  id: ID!
+  name: String
+  notes: String
+  status: String!
+}
+
+"The result of the :destroy_product mutation"
+type DestroyProductResult {
+  "The record that was successfully deleted"
+  result: Product
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_product mutation"
+type UpdateProductResult {
+  "The successful result of the mutation"
+  result: Product
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateProductInput {
+  name: String
+
+  status: String
+
+  price: Decimal
+
+  sku: String
+
+  "Array of photo URLs for the product"
+  photos: [String!]
+
+  "ID or reference to the featured photo from the photos array"
+  featuredPhoto: String
+
+  "Customer-facing availability: available, preorder, or off"
+  sellingAvailability: String
+
+  "Optional per-product capacity per day (0 = unlimited)"
+  maxDailyQuantity: Int
+}
+
+"The result of the :create_product mutation"
+type CreateProductResult {
+  "The successful result of the mutation"
+  result: Product
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateProductInput {
+  name: String!
+
+  status: String
+
+  price: Decimal!
+
+  sku: String!
+
+  "Array of photo URLs for the product"
+  photos: [String!]
+
+  "ID or reference to the featured photo from the photos array"
+  featuredPhoto: String
+
+  "Customer-facing availability: available, preorder, or off"
+  sellingAvailability: String
+
+  "Optional per-product capacity per day (0 = unlimited)"
+  maxDailyQuantity: Int
+}
+
+enum ProductSortField {
+  ID
+  NAME
+  STATUS
+  PRICE
+  FEATURED_PHOTO
+  SELLING_AVAILABILITY
+  MAX_DAILY_QUANTITY
+}
+
+"A keyset page of :product"
+type KeysetPageOfProduct {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Product!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input ProductFilterMaxDailyQuantity {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int!]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input ProductFilterSellingAvailability {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input ProductFilterFeaturedPhoto {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ProductFilterPrice {
+  isNil: Boolean
+  eq: Decimal
+  notEq: Decimal
+  in: [Decimal!]
+  lessThan: Decimal
+  greaterThan: Decimal
+  lessThanOrEqual: Decimal
+  greaterThanOrEqual: Decimal
+}
+
+input ProductFilterStatus {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input ProductFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ProductFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ProductFilterInput {
+  and: [ProductFilterInput!]
+
+  or: [ProductFilterInput!]
+
+  not: [ProductFilterInput!]
+
+  id: ProductFilterId
+
+  name: ProductFilterName
+
+  status: ProductFilterStatus
+
+  price: ProductFilterPrice
+
+  "ID or reference to the featured photo from the photos array"
+  featuredPhoto: ProductFilterFeaturedPhoto
+
+  "Customer-facing availability: available, preorder, or off"
+  sellingAvailability: ProductFilterSellingAvailability
+
+  "Optional per-product capacity per day (0 = unlimited)"
+  maxDailyQuantity: ProductFilterMaxDailyQuantity
+}
+
+input ProductSortInput {
+  order: SortOrder
+  field: ProductSortField!
+}
+
+type Product {
+  id: ID!
+
+  name: String!
+
+  status: String!
+
+  price: Decimal!
+
+  "Array of photo URLs for the product"
+  photos: [String!]
+
+  "ID or reference to the featured photo from the photos array"
+  featuredPhoto: String
+
+  "Customer-facing availability: available, preorder, or off"
+  sellingAvailability: String!
+
+  "Optional per-product capacity per day (0 = unlimited)"
+  maxDailyQuantity: Int!
+}
+
+enum SortOrder {
+  DESC
+  DESC_NULLS_FIRST
+  DESC_NULLS_LAST
+  ASC
+  ASC_NULLS_FIRST
+  ASC_NULLS_LAST
+}
+
+"An error generated by a failed mutation"
+type MutationError {
+  "The human readable error message"
+  message: String
+
+  "A shorter error message, with vars not replaced"
+  shortMessage: String
+
+  "Replacements for the short message"
+  vars: Json
+
+  "An error code for the given error"
+  code: String
+
+  "The field or fields that produced the error"
+  fields: [String!]
+}
+
+input OrderCreateItemsInput {
+  id: ID
+
+  status: String
+
+  quantity: Decimal
+
+  productId: ID
+
+  "Labor cost allocated to this order item during batch completion"
+  laborCost: Decimal
+
+  "Material cost allocated to this order item during batch completion"
+  materialCost: Decimal
+
+  "Overhead cost allocated to this order item during batch completion"
+  overheadCost: Decimal
+
+  "Per-unit production cost captured at batch completion"
+  unitCost: Decimal
+
+  unitPrice: Decimal
+
+  "Timestamp indicating materials were consumed for this item"
+  consumedAt: DateTime
+}
+
+input OrderUpdateItemsInput {
+  id: ID
+
+  status: String
+
+  quantity: Decimal
+
+  productId: ID
+
+  "Labor cost allocated to this order item during batch completion"
+  laborCost: Decimal
+
+  "Material cost allocated to this order item during batch completion"
+  materialCost: Decimal
+
+  "Overhead cost allocated to this order item during batch completion"
+  overheadCost: Decimal
+
+  "Per-unit production cost captured at batch completion"
+  unitCost: Decimal
+
+  unitPrice: Decimal
+
+  "Timestamp indicating materials were consumed for this item"
+  consumedAt: DateTime
+}
+
+enum ProductionBatchSortField {
+  ID
+}
+
+"A keyset page of :production_batch"
+type KeysetPageOfProductionBatch {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [ProductionBatch!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input ProductionBatchFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ProductionBatchFilterInput {
+  and: [ProductionBatchFilterInput!]
+  or: [ProductionBatchFilterInput!]
+  not: [ProductionBatchFilterInput!]
+  id: ProductionBatchFilterId
+}
+
+input ProductionBatchSortInput {
+  order: SortOrder
+  field: ProductionBatchSortField!
+}
+
+type ProductionBatch {
+  id: ID!
+}
+
+"The result of the :update_order_item mutation"
+type UpdateOrderItemResult {
+  "The successful result of the mutation"
+  result: OrderItem
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateOrderItemInput {
+  quantity: Decimal
+
+  status: String
+
+  "Timestamp indicating materials were consumed for this item"
+  consumedAt: DateTime
+
+  "Material cost allocated to this order item during batch completion"
+  materialCost: Decimal
+
+  "Labor cost allocated to this order item during batch completion"
+  laborCost: Decimal
+
+  "Overhead cost allocated to this order item during batch completion"
+  overheadCost: Decimal
+
+  "Per-unit production cost captured at batch completion"
+  unitCost: Decimal
+}
+
+"The result of the :create_order_item mutation"
+type CreateOrderItemResult {
+  "The successful result of the mutation"
+  result: OrderItem
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateOrderItemInput {
+  unitPrice: Decimal!
+  quantity: Decimal!
+  status: String
+  productId: ID!
+}
+
+enum OrderItemSortField {
+  ID
+}
+
+"A keyset page of :order_item"
+type KeysetPageOfOrderItem {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [OrderItem!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input OrderItemFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input OrderItemFilterInput {
+  and: [OrderItemFilterInput!]
+  or: [OrderItemFilterInput!]
+  not: [OrderItemFilterInput!]
+  id: OrderItemFilterId
+}
+
+input OrderItemSortInput {
+  order: SortOrder
+  field: OrderItemSortField!
+}
+
+type OrderItem {
+  id: ID!
+}
+
+"The result of the :update_order mutation"
+type UpdateOrderResult {
+  "The successful result of the mutation"
+  result: Order
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateOrderInput {
+  deliveryDate: DateTime
+  invoiceNumber: String
+  invoiceStatus: String
+  invoicedAt: DateTime
+  paymentMethod: String
+  discountType: String
+  discountValue: Decimal
+  deliveryMethod: String
+  status: String
+  taxTotal: Decimal
+  shippingTotal: Decimal
+  discountTotal: Decimal
+  customerId: ID
+  items: [OrderUpdateItemsInput!]
+}
+
+"The result of the :create_order mutation"
+type CreateOrderResult {
+  "The successful result of the mutation"
+  result: Order
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateOrderInput {
+  deliveryDate: DateTime!
+  invoiceNumber: String
+  invoiceStatus: String
+  invoicedAt: DateTime
+  paymentMethod: String
+  discountType: String
+  discountValue: Decimal
+  deliveryMethod: String
+  status: String
+  customerId: ID!
+  items: [OrderCreateItemsInput!]
+}
+
+enum OrderSortField {
+  ID
+}
+
+"A keyset page of :order"
+type KeysetPageOfOrder {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Order!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input OrderFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input OrderFilterInput {
+  and: [OrderFilterInput!]
+  or: [OrderFilterInput!]
+  not: [OrderFilterInput!]
+  id: OrderFilterId
+}
+
+input OrderSortInput {
+  order: SortOrder
+  field: OrderSortField!
+}
+
+type Order {
+  id: ID!
+}
+
+"The result of the :update_purchase_order mutation"
+type UpdatePurchaseOrderResult {
+  "The successful result of the mutation"
+  result: PurchaseOrder
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdatePurchaseOrderInput {
+  status: String
+  orderedAt: DateTime
+  receivedAt: DateTime
+  supplierId: ID
+}
+
+"The result of the :create_purchase_order mutation"
+type CreatePurchaseOrderResult {
+  "The successful result of the mutation"
+  result: PurchaseOrder
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePurchaseOrderInput {
+  status: String
+  orderedAt: DateTime
+  supplierId: ID!
+}
+
+enum PurchaseOrderSortField {
+  ID
+}
+
+input PurchaseOrderFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input PurchaseOrderFilterInput {
+  and: [PurchaseOrderFilterInput!]
+  or: [PurchaseOrderFilterInput!]
+  not: [PurchaseOrderFilterInput!]
+  id: PurchaseOrderFilterId
+}
+
+input PurchaseOrderSortInput {
+  order: SortOrder
+  field: PurchaseOrderSortField!
+}
+
+type PurchaseOrder {
+  id: ID!
+}
+
+"The result of the :update_supplier mutation"
+type UpdateSupplierResult {
+  "The successful result of the mutation"
+  result: Supplier
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateSupplierInput {
+  name: String
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  notes: String
+}
+
+"The result of the :create_supplier mutation"
+type CreateSupplierResult {
+  "The successful result of the mutation"
+  result: Supplier
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateSupplierInput {
+  name: String!
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  notes: String
+}
+
+enum SupplierSortField {
+  ID
+}
+
+input SupplierFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SupplierFilterInput {
+  and: [SupplierFilterInput!]
+  or: [SupplierFilterInput!]
+  not: [SupplierFilterInput!]
+  id: SupplierFilterId
+}
+
+input SupplierSortInput {
+  order: SortOrder
+  field: SupplierSortField!
+}
+
+type Supplier {
+  id: ID!
+}
+
+enum MovementSortField {
+  ID
+}
+
+"A keyset page of :movement"
+type KeysetPageOfMovement {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Movement!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input MovementFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input MovementFilterInput {
+  and: [MovementFilterInput!]
+  or: [MovementFilterInput!]
+  not: [MovementFilterInput!]
+  id: MovementFilterId
+}
+
+input MovementSortInput {
+  order: SortOrder
+  field: MovementSortField!
+}
+
+type Movement {
+  id: ID!
+}
+
+"The result of the :update_material mutation"
+type UpdateMaterialResult {
+  "The successful result of the mutation"
+  result: Material
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateMaterialInput {
+  name: String
+  sku: String
+  unit: String
+  price: Decimal
+  minimumStock: Decimal
+  maximumStock: Decimal
+}
+
+"The result of the :create_material mutation"
+type CreateMaterialResult {
+  "The successful result of the mutation"
+  result: Material
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateMaterialInput {
+  name: String!
+  sku: String!
+  unit: String!
+  price: Decimal!
+  minimumStock: Decimal
+  maximumStock: Decimal
+}
+
+enum MaterialSortField {
+  ID
+  NAME
+  SKU
+  UNIT
+  PRICE
+  MINIMUM_STOCK
+  MAXIMUM_STOCK
+}
+
+"A keyset page of :material"
+type KeysetPageOfMaterial {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Material!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input MaterialFilterMaximumStock {
+  isNil: Boolean
+  eq: Decimal
+  notEq: Decimal
+  in: [Decimal]
+  lessThan: Decimal
+  greaterThan: Decimal
+  lessThanOrEqual: Decimal
+  greaterThanOrEqual: Decimal
+}
+
+input MaterialFilterMinimumStock {
+  isNil: Boolean
+  eq: Decimal
+  notEq: Decimal
+  in: [Decimal]
+  lessThan: Decimal
+  greaterThan: Decimal
+  lessThanOrEqual: Decimal
+  greaterThanOrEqual: Decimal
+}
+
+input MaterialFilterPrice {
+  isNil: Boolean
+  eq: Decimal
+  notEq: Decimal
+  in: [Decimal!]
+  lessThan: Decimal
+  greaterThan: Decimal
+  lessThanOrEqual: Decimal
+  greaterThanOrEqual: Decimal
+}
+
+input MaterialFilterUnit {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input MaterialFilterSku {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input MaterialFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input MaterialFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input MaterialFilterInput {
+  and: [MaterialFilterInput!]
+  or: [MaterialFilterInput!]
+  not: [MaterialFilterInput!]
+  id: MaterialFilterId
+  name: MaterialFilterName
+  sku: MaterialFilterSku
+  unit: MaterialFilterUnit
+  price: MaterialFilterPrice
+  minimumStock: MaterialFilterMinimumStock
+  maximumStock: MaterialFilterMaximumStock
+}
+
+input MaterialSortInput {
+  order: SortOrder
+  field: MaterialSortField!
+}
+
+type Material {
+  id: ID!
+  name: String!
+  sku: String!
+  unit: String!
+  price: Decimal!
+  minimumStock: Decimal
+  maximumStock: Decimal
+}
+
+enum LotSortField {
+  ID
+}
+
+"A keyset page of :lot"
+type KeysetPageOfLot {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Lot!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input LotFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input LotFilterInput {
+  and: [LotFilterInput!]
+  or: [LotFilterInput!]
+  not: [LotFilterInput!]
+  id: LotFilterId
+}
+
+input LotSortInput {
+  order: SortOrder
+  field: LotSortField!
+}
+
+type Lot {
+  id: ID!
+}
+
+"The result of the :destroy_customer mutation"
+type DestroyCustomerResult {
+  "The record that was successfully deleted"
+  result: Customer
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_customer mutation"
+type UpdateCustomerResult {
+  "The successful result of the mutation"
+  result: Customer
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateCustomerInput {
+  type: String
+  firstName: String
+  lastName: String
+  email: String
+  phone: String
+  billingAddress: JsonString
+  shippingAddress: JsonString
+}
+
+"The result of the :create_customer mutation"
+type CreateCustomerResult {
+  "The successful result of the mutation"
+  result: Customer
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateCustomerInput {
+  type: String!
+  firstName: String!
+  lastName: String!
+  email: String
+  phone: String
+  billingAddress: JsonString
+  shippingAddress: JsonString
+}
+
+enum CustomerSortField {
+  ID
+  TYPE
+  FIRST_NAME
+  LAST_NAME
+  EMAIL
+  PHONE
+}
+
+"A keyset page of :customer"
+type KeysetPageOfCustomer {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Customer!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input CustomerFilterPhone {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CustomerFilterEmail {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CustomerFilterLastName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CustomerFilterFirstName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CustomerFilterType {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input CustomerFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input CustomerFilterInput {
+  and: [CustomerFilterInput!]
+  or: [CustomerFilterInput!]
+  not: [CustomerFilterInput!]
+  id: CustomerFilterId
+  type: CustomerFilterType
+  firstName: CustomerFilterFirstName
+  lastName: CustomerFilterLastName
+  email: CustomerFilterEmail
+  phone: CustomerFilterPhone
+}
+
+input CustomerSortInput {
+  order: SortOrder
+  field: CustomerSortField!
+}
+
+type Customer {
+  id: ID!
+  type: String!
+  firstName: String!
+  lastName: String!
+  email: String
+  phone: String
+  billingAddress: JsonString
+  shippingAddress: JsonString
+}
+
+type RootQueryType {
+  getCustomer(
+    "The id of the record"
+    id: ID!
+  ): Customer
+  listCustomers(
+    "How to sort the records in the response"
+    sort: [CustomerSortInput]
+
+    "A filter to limit the results"
+    filter: CustomerFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfCustomer
+  getLot(
+    "The id of the record"
+    id: ID!
+  ): Lot
+  listLots(
+    "How to sort the records in the response"
+    sort: [LotSortInput]
+
+    "A filter to limit the results"
+    filter: LotFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfLot
+  getMaterial(
+    "The id of the record"
+    id: ID!
+  ): Material
+  listMaterials(
+    "How to sort the records in the response"
+    sort: [MaterialSortInput]
+
+    "A filter to limit the results"
+    filter: MaterialFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfMaterial
+  getMovement(
+    "The id of the record"
+    id: ID!
+  ): Movement
+  listMovements(
+    "How to sort the records in the response"
+    sort: [MovementSortInput]
+
+    "A filter to limit the results"
+    filter: MovementFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfMovement
+  getSupplier(
+    "The id of the record"
+    id: ID!
+  ): Supplier
+  listSuppliers(
+    "How to sort the records in the response"
+    sort: [SupplierSortInput]
+
+    "A filter to limit the results"
+    filter: SupplierFilterInput
+  ): [Supplier!]!
+  getPurchaseOrder(
+    "The id of the record"
+    id: ID!
+  ): PurchaseOrder
+  listPurchaseOrders(
+    "How to sort the records in the response"
+    sort: [PurchaseOrderSortInput]
+
+    "A filter to limit the results"
+    filter: PurchaseOrderFilterInput
+  ): [PurchaseOrder!]!
+  getOrder(
+    "The id of the record"
+    id: ID!
+  ): Order
+  listOrders(
+    "How to sort the records in the response"
+    sort: [OrderSortInput]
+
+    "A filter to limit the results"
+    filter: OrderFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+
+    status: [String!]
+
+    paymentStatus: [String!]
+
+    deliveryDateStart: DateTime
+
+    deliveryDateEnd: DateTime
+
+    customerName: String
+
+    productId: ID
+  ): KeysetPageOfOrder
+  getOrderItem(
+    "The id of the record"
+    id: ID!
+  ): OrderItem
+  listOrderItems(
+    "How to sort the records in the response"
+    sort: [OrderItemSortInput]
+
+    "A filter to limit the results"
+    filter: OrderItemFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfOrderItem
+  getProductionBatch(
+    "The id of the record"
+    id: ID!
+  ): ProductionBatch
+  listProductionBatches(
+    "How to sort the records in the response"
+    sort: [ProductionBatchSortInput]
+
+    "A filter to limit the results"
+    filter: ProductionBatchFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfProductionBatch
+  getProduct(
+    "The id of the record"
+    id: ID!
+  ): Product
+  listProducts(
+    "How to sort the records in the response"
+    sort: [ProductSortInput]
+
+    "A filter to limit the results"
+    filter: ProductFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+
+    status: [String!]
+  ): KeysetPageOfProduct
+  getBom(
+    "The id of the record"
+    id: ID!
+  ): Bom
+  listBoms(
+    "How to sort the records in the response"
+    sort: [BomSortInput]
+
+    "A filter to limit the results"
+    filter: BomFilterInput
+
+    productId: ID!
+  ): [Bom!]!
+  getBomComponent(
+    "The id of the record"
+    id: ID!
+  ): BomComponent
+  listBomComponents(
+    "How to sort the records in the response"
+    sort: [BomComponentSortInput]
+
+    "A filter to limit the results"
+    filter: BomComponentFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfBomComponent
+}
+
+type RootMutationType {
+  createCustomer(input: CreateCustomerInput!): CreateCustomerResult!
+  updateCustomer(id: ID!, input: UpdateCustomerInput): UpdateCustomerResult!
+  destroyCustomer(id: ID!): DestroyCustomerResult!
+  createMaterial(input: CreateMaterialInput!): CreateMaterialResult!
+  updateMaterial(id: ID!, input: UpdateMaterialInput): UpdateMaterialResult!
+  createSupplier(input: CreateSupplierInput!): CreateSupplierResult!
+  updateSupplier(id: ID!, input: UpdateSupplierInput): UpdateSupplierResult!
+  createPurchaseOrder(input: CreatePurchaseOrderInput!): CreatePurchaseOrderResult!
+  updatePurchaseOrder(id: ID!, input: UpdatePurchaseOrderInput): UpdatePurchaseOrderResult!
+  createOrder(input: CreateOrderInput!): CreateOrderResult!
+  updateOrder(id: ID!, input: UpdateOrderInput): UpdateOrderResult!
+  createOrderItem(input: CreateOrderItemInput!): CreateOrderItemResult!
+  updateOrderItem(id: ID!, input: UpdateOrderItemInput): UpdateOrderItemResult!
+  createProduct(input: CreateProductInput!): CreateProductResult!
+  updateProduct(id: ID!, input: UpdateProductInput): UpdateProductResult!
+  destroyProduct(id: ID!): DestroyProductResult!
+}
+
+"""
+The `Json` scalar type represents arbitrary json string data, represented as UTF-8
+character sequences. The Json type is most often used to represent a free-form
+human-readable json string.
+"""
+scalar JsonString
+
+"""
+The `Json` scalar type represents arbitrary json string data, represented as UTF-8
+character sequences. The Json type is most often used to represent a free-form
+human-readable json string.
+"""
+scalar Json
+
+"""
+The `DateTime` scalar type represents a date and time in the UTC
+timezone. The DateTime appears in a JSON response as an ISO8601 formatted
+string, including UTC timezone ("Z"). The parsed date and time string will
+be converted to UTC if there is an offset.
+"""
+scalar DateTime
+
+"""
+The `Decimal` scalar type represents signed double-precision fractional
+values parsed by the `Decimal` library. The Decimal appears in a JSON
+response as a string to preserve precision.
+"""
+scalar Decimal

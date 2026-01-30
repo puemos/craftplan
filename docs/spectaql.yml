@@ -1,0 +1,20 @@
+spectaql:
+  embeddable: true
+  targetDir: src/generated/graphql
+  oneFile: true
+
+introspection:
+  schemaFile: public/schema.graphql
+
+info:
+  title: Craftplan GraphQL API
+  description: >
+    GraphQL API for Craftplan ERP. All requests require a Bearer token —
+    generate one in Settings → API Keys (tokens use the `cpk_` prefix).
+  contact:
+    name: Craftplan
+
+servers:
+  - url: http://localhost:4000/api/graphql
+    description: Local development
+    production: false
