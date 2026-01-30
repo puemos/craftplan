@@ -56,6 +56,7 @@ defmodule CraftplanWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/setup", SetupLive, :index
 
     # Authentication Routes
     auth_routes AuthController, Craftplan.Accounts.User, path: "/auth"
