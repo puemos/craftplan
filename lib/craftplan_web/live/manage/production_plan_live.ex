@@ -234,7 +234,8 @@ defmodule CraftplanWeb.ProductionPlanLive do
 
       batch_groups =
         Enum.map(groups, fn {product_id, grouped_items} ->
-          open = Enum.filter(socket.assigns.batches_by_status.open, &(&1.product_id == product_id))
+          open =
+            Enum.filter(socket.assigns.batches_by_status.open, &(&1.product_id == product_id))
 
           %{
             product_id: product_id,
