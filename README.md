@@ -8,7 +8,7 @@ Craftplan is an open-source ERP system designed for small-scale artisanal manufa
 
 ## Features
 
-Craftplan covers the full production lifecycle: manage products with versioned Bills of Materials and cost rollups, track raw materials with lot traceability and demand forecasting, process customer orders with calendar-based scheduling, plan and batch production runs with automatic material consumption and cost snapshots, handle purchasing from suppliers with receiving into stock, and maintain a customer database with order history and statistics.
+Craftplan covers the full production lifecycle: manage products with versioned Bills of Materials and cost rollups, track raw materials with lot traceability and demand forecasting, process customer orders with calendar-based scheduling, plan and batch production runs with automatic material consumption and cost snapshots, handle purchasing from suppliers with receiving into stock, and maintain a customer database with order history and statistics. Transactional email delivery supports SMTP, SendGrid, Mailgun, Postmark, Brevo, and Amazon SES — configurable from the UI with API keys encrypted at rest.
 
 **[Read the full documentation →](https://puemos.github.io/craftplan/docs/)**
 
