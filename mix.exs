@@ -44,6 +44,7 @@ defmodule Craftplan.MixProject do
       {:ash_postgres, "~> 2.0"},
       {:bandit, "~> 1.5"},
       {:bcrypt_elixir, "~> 3.0"},
+      {:cloak_ecto, "~> 1.3"},
       {:dns_cluster, "~> 0.2"},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ecto_sql, "~> 3.13"},
@@ -79,7 +80,9 @@ defmodule Craftplan.MixProject do
       {:hackney, "~> 1.9"},
       {:sweet_xml, "~> 0.6"},
       {:tz, "~> 0.28"},
-      {:nimble_csv, "~> 1.2"}
+      {:nimble_csv, "~> 1.2"},
+      {:gen_smtp, "~> 1.0"},
+      {:req, "~> 0.5", only: [:dev, :test]}
     ]
   end
 
