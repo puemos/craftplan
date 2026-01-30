@@ -68,7 +68,7 @@ defmodule Craftplan.MixProject do
       {:spark, "~> 2.2"},
       {:styler, "~> 1.2", only: [:dev, :test], runtime: false},
       {:swoosh, "~> 1.5"},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.4", runtime: Mix.env() == :dev},
       {:tailwind_formatter, "~> 0.4.2", only: [:dev, :test], runtime: false},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
