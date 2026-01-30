@@ -79,6 +79,8 @@ config :spark,
       section_order: [
         :authentication,
         :tokens,
+        :json_api,
+        :graphql,
         :postgres,
         :resource,
         :code_interface,
@@ -96,7 +98,17 @@ config :spark,
         :identities
       ]
     ],
-    "Ash.Domain": [section_order: [:resources, :policies, :authorization, :domain, :execution]]
+    "Ash.Domain": [
+      section_order: [
+        :json_api,
+        :graphql,
+        :resources,
+        :policies,
+        :authorization,
+        :domain,
+        :execution
+      ]
+    ]
   ]
 
 config :tailwind,

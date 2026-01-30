@@ -39,11 +39,15 @@ defmodule Craftplan.MixProject do
       {:ash_admin, "~> 0.12"},
       {:ash_authentication, "~> 4.1"},
       {:ash_authentication_phoenix, "~> 2.0"},
+      {:ash_graphql, "~> 1.0"},
+      {:ash_json_api, "~> 1.0"},
       {:ash_money, "~> 0.1"},
       {:ash_phoenix, "~> 2.0"},
       {:ash_postgres, "~> 2.0"},
+      {:absinthe_plug, "~> 1.5"},
       {:bandit, "~> 1.5"},
       {:bcrypt_elixir, "~> 3.0"},
+      {:cors_plug, "~> 3.0"},
       {:cloak_ecto, "~> 1.3"},
       {:dns_cluster, "~> 0.2"},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -82,6 +86,7 @@ defmodule Craftplan.MixProject do
       {:tz, "~> 0.28"},
       {:nimble_csv, "~> 1.2"},
       {:gen_smtp, "~> 1.0"},
+      {:open_api_spex, "~> 3.16"},
       {:req, "~> 0.5", only: [:dev, :test]}
     ]
   end
