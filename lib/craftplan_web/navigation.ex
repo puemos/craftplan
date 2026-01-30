@@ -61,6 +61,7 @@ defmodule CraftplanWeb.Navigation do
   def settings_allergens_active?(socket), do: settings_active?(:allergens, socket)
   def settings_nutrition_active?(socket), do: settings_active?(:nutritional_facts, socket)
   def settings_csv_active?(socket), do: settings_active?(:csv, socket)
+  def settings_api_keys_active?(socket), do: settings_active?(:api_keys, socket)
 
   # Production nav helpers
   def production_weekly_active?(socket) do
@@ -254,7 +255,8 @@ defmodule CraftplanWeb.Navigation do
             label: "Nutritional Facts",
             path: "/manage/settings/nutritional_facts"
           },
-          csv: %{label: "Import & Export", path: "/manage/settings/csv"}
+          csv: %{label: "Import & Export", path: "/manage/settings/csv"},
+          api_keys: %{label: "API Keys", path: "/manage/settings/api_keys"}
         },
         sub_links: [
           %{
@@ -280,6 +282,12 @@ defmodule CraftplanWeb.Navigation do
             label: "Import & Export",
             navigate: "/manage/settings/csv",
             active?: &__MODULE__.settings_csv_active?/1
+          },
+          %{
+            key: :api_keys,
+            label: "API Keys",
+            navigate: "/manage/settings/api_keys",
+            active?: &__MODULE__.settings_api_keys_active?/1
           }
         ]
       },

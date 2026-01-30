@@ -57,6 +57,16 @@ defmodule CraftplanWeb.SettingsLive.Index do
         </div>
       </div>
 
+      <div :if={@live_action == :api_keys}>
+        <div>
+          <.live_component
+            module={CraftplanWeb.SettingsLive.ApiKeysComponent}
+            id="api-keys-component"
+            current_user={@current_user}
+          />
+        </div>
+      </div>
+
       <div :if={@live_action == :csv} class="space-y-6">
         <.header>
           Import data into Craftplan
@@ -218,6 +228,10 @@ defmodule CraftplanWeb.SettingsLive.Index do
     assign(socket, :page_title, "Import & Export")
   end
 
+  defp apply_action(socket, :api_keys, _params) do
+    assign(socket, :page_title, "API Keys")
+  end
+
   def csv_import_entities do
     [
       %{
@@ -252,6 +266,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
     do: [Navigation.root(:settings), Navigation.page(:settings, :nutritional_facts)]
 
   defp settings_trail(:csv), do: [Navigation.root(:settings), Navigation.page(:settings, :csv)]
+
+  defp settings_trail(:api_keys), do: [Navigation.root(:settings), Navigation.page(:settings, :api_keys)]
 
   defp settings_trail(_), do: [Navigation.root(:settings)]
 
