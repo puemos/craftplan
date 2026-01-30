@@ -131,15 +131,17 @@ defmodule CraftplanWeb.CustomerLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Material |> Ash.get!(id) |> Ash.destroy(actor: socket.assigns.current_user) do
+    case id
+         |> Craftplan.CRM.get_customer_by_id!(actor: socket.assigns.current_user)
+         |> Ash.destroy(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket
          |> put_flash(:info, "Customer deleted successfully")
-         |> stream_delete(:customers, id)}
+         |> stream_delete(:customers, %{id: id})}
 
       {:error, _error} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete material.")}
+        {:noreply, put_flash(socket, :error, "Failed to delete customer.")}
     end
   end
 end
