@@ -123,7 +123,7 @@ defmodule CraftplanWeb.HtmlHelpersTest do
     end
 
     test "supports datetimes with timezone" do
-      datetime = DateTime.add(DateTime.utc_now(), 3600, :second)
+      {:ok, datetime} = DateTime.new(Date.utc_today(), ~T[12:00:00], "Etc/UTC")
       assert HtmlHelpers.is_today?(datetime, "Etc/UTC")
     end
 

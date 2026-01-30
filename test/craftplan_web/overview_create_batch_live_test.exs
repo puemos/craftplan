@@ -76,7 +76,7 @@ defmodule CraftplanWeb.OverviewCreateBatchLiveTest do
   test "daily planner: create batch creates allocations and redirects", %{conn: conn} do
     mat = create_material!()
     prod = create_product_with_bom!(mat)
-    order = create_order_with_items_for_today!(prod, [1, 2])
+    _order = create_order_with_items_for_today!(prod, [1, 2])
 
     {:ok, view, _} = live(conn, ~p"/manage/production/schedule?view=day")
 
