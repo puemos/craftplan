@@ -53,6 +53,11 @@ Craftplan brings all essential business tools into one platform — catalog mana
 - SMTP, SendGrid, Mailgun, Postmark, Brevo, and Amazon SES
 - API keys encrypted at rest
 
+**Calendar Feed**
+- iCal (.ics) subscription URL for Google Calendar, Apple Calendar, or any iCal-compatible app
+- Includes order deliveries and production batch schedules
+- Generate and revoke feeds from Settings
+
 **API**
 - JSON:API and GraphQL endpoints for programmatic access
 - API key authentication with encrypted storage

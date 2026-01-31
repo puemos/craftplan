@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: Settings
-description: General configuration, markup, allergens, nutritional facts, CSV import/export, and email
+description: General configuration, markup, allergens, nutritional facts, calendar feed, CSV import/export, and email
 ---
 
 The Settings area at **Manage → Settings** controls global configuration for your Craftplan instance.
@@ -31,6 +31,29 @@ Manage the list of allergens available for tagging materials. These propagate th
 ## Nutritional Facts
 
 Configure which nutritional fact fields are tracked (calories, protein, fat, carbohydrates, etc.). Values defined on materials are auto-calculated for products based on BOM component quantities.
+
+## Calendar Feed
+
+Subscribe to your Craftplan schedule in Google Calendar, Apple Calendar, or any app that supports iCal feeds. Navigate to **Settings → Calendar Feed** to manage subscriptions.
+
+- **Generate Calendar Feed** — Creates a new API key with read-only access to orders, customers, and production batches, and displays a subscription URL. Copy the URL immediately — the full key is only shown once.
+- **Feed list** — All active calendar feeds are listed with their name, masked URL, creation date, and last-used timestamp.
+- **Revoke** — Disable a feed at any time. Any calendar app using that URL will stop receiving updates.
+
+### How to subscribe
+
+**Google Calendar:** Open Settings → Other calendars → **+** → **From URL**, paste the feed URL.
+
+**Apple Calendar:** Go to **File → New Calendar Subscription**, paste the URL.
+
+### What's included
+
+The feed covers a rolling window: 30 days in the past through 90 days in the future. Events include:
+
+- **Order deliveries** — Summary shows the order reference and customer name
+- **Production batches** — Summary shows the batch code and product name
+
+The feed endpoint is at `/api/calendar/feed.ics?key=<your-key>`. Calendar apps refresh automatically on their own schedule.
 
 ## CSV Import & Export
 
