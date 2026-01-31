@@ -23,7 +23,7 @@ defmodule CraftplanWeb.SettingsLive.ApiKeysComponent do
         API Keys
         <:actions>
           <.button type="button" variant={:primary} phx-click="show_create_modal" phx-target={@myself}>
-            <.icon name="hero-plus" class="-ml-1 mr-2 h-4 w-4" /> Create API Key
+            <.icon name="hero-plus" class="mr-2 -ml-1 h-4 w-4" /> Create API Key
           </.button>
         </:actions>
       </.header>
