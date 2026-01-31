@@ -49,6 +49,11 @@ defmodule CraftplanWeb.Router do
     plug CraftplanWeb.Plugs.ApiKeyAuth
   end
 
+  pipeline :calendar_api do
+    plug :fetch_query_params
+    plug CraftplanWeb.Plugs.CalendarApiKeyAuth
+  end
+
   #
   # Public Routes
   #
@@ -104,6 +109,7 @@ defmodule CraftplanWeb.Router do
       live "/manage/settings/nutritional_facts", SettingsLive.Index, :nutritional_facts
       live "/manage/settings/csv", SettingsLive.Index, :csv
       live "/manage/settings/api_keys", SettingsLive.Index, :api_keys
+      live "/manage/settings/calendar", SettingsLive.Index, :calendar_feed
     end
 
     # CSV Export (regular controller, not LiveView)
@@ -205,6 +211,11 @@ defmodule CraftplanWeb.Router do
   scope "/api/graphql" do
     pipe_through :api
     forward "/", Absinthe.Plug, schema: CraftplanWeb.Schema
+  end
+
+  scope "/api/calendar" do
+    pipe_through :calendar_api
+    get "/feed.ics", CraftplanWeb.CalendarController, :feed
   end
 
   #
