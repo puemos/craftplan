@@ -2,14 +2,19 @@
 ARG ELIXIR_VERSION=1.18.3
 ARG OTP_VERSION=27.2.4
 ARG DEBIAN_VERSION=bookworm-20260112-slim
+ARG NODE_VERSION=20
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
+ARG NODE_VERSION
+
 RUN apt-get update -y && \
     apt-get install -y build-essential git curl && \
+    curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get install -y nodejs && \
     apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 WORKDIR /app
@@ -29,8 +34,11 @@ COPY priv priv
 COPY lib lib
 COPY assets assets
 
+RUN npm install --prefix assets
 RUN mix assets.setup
 RUN mix assets.deploy
+
+RUN mix compile
 
 # Copy runtime config last so earlier layers are cached
 COPY config/runtime.exs config/
