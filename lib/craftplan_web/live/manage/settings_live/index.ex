@@ -67,6 +67,16 @@ defmodule CraftplanWeb.SettingsLive.Index do
         </div>
       </div>
 
+      <div :if={@live_action == :calendar_feed}>
+        <div>
+          <.live_component
+            module={CraftplanWeb.SettingsLive.CalendarFeedComponent}
+            id="calendar-feed-component"
+            current_user={@current_user}
+          />
+        </div>
+      </div>
+
       <div :if={@live_action == :csv} class="space-y-6">
         <.header>
           Import data into Craftplan
@@ -232,6 +242,10 @@ defmodule CraftplanWeb.SettingsLive.Index do
     assign(socket, :page_title, "API Keys")
   end
 
+  defp apply_action(socket, :calendar_feed, _params) do
+    assign(socket, :page_title, "Calendar Feed")
+  end
+
   def csv_import_entities do
     [
       %{
@@ -268,6 +282,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
   defp settings_trail(:csv), do: [Navigation.root(:settings), Navigation.page(:settings, :csv)]
 
   defp settings_trail(:api_keys), do: [Navigation.root(:settings), Navigation.page(:settings, :api_keys)]
+
+  defp settings_trail(:calendar_feed), do: [Navigation.root(:settings), Navigation.page(:settings, :calendar_feed)]
 
   defp settings_trail(_), do: [Navigation.root(:settings)]
 
