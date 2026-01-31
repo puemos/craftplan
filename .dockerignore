@@ -1,0 +1,35 @@
+# Build artifacts
+_build/
+deps/
+
+# Node
+node_modules/
+docs/node_modules/
+
+# Git
+.git
+.gitignore
+
+# Docker
+.dockerignore
+Dockerfile
+
+# Dev/test
+.env*
+!.env.example
+.postgres/
+.minio/
+
+# IDE
+.elixir_ls/
+.vscode/
+.idea/
+
+# Docs source (not needed in image)
+docs/
+
+# Misc
+*.md
+!CLAUDE.md
+screenshots/
+tmp/

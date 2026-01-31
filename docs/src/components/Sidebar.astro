@@ -38,6 +38,12 @@ const sections: { heading?: string; items: NavItem[] }[] = [
       { label: "GraphQL Reference", href: `${base}docs/graphql/` },
     ],
   },
+  {
+    heading: "Deployment",
+    items: [
+      { label: "Self-Hosting", href: `${base}docs/self-hosting/` },
+    ],
+  },
 ];
 
 function isActive(href: string): boolean {

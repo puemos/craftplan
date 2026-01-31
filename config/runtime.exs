@@ -44,7 +44,7 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = System.get_env("HOST") || System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
   config :craftplan, Craftplan.Repo,
@@ -86,7 +86,7 @@ if config_env() == :prod do
       secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
       region: System.get_env("AWS_REGION") || "us-east-1",
       s3: [
-        scheme: "https://",
+        scheme: System.get_env("AWS_S3_SCHEME") || "https://",
         host: System.get_env("AWS_S3_HOST") || "s3.amazonaws.com",
         region: System.get_env("AWS_REGION") || "us-east-1"
       ]
