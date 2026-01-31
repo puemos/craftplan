@@ -63,12 +63,14 @@ defmodule CraftplanWeb.Components.DataVis do
 
   attr :zebra, :boolean, default: false, doc: "alternating row background stripes"
   attr :sticky_header, :boolean, default: false, doc: "sticky header at top of scroll container"
+  attr :layout, :atom, default: :auto, values: [:auto, :fixed], doc: "table layout algorithm"
   attr :wrapper_class, :string, default: nil, doc: "extra classes for the outer wrapper"
   attr :table_class, :string, default: nil, doc: "extra classes for the table element"
 
   slot :col, required: true do
     attr :label, :string
     attr :align, :atom
+    attr :class, :string
   end
 
   slot :empty
@@ -82,9 +84,10 @@ defmodule CraftplanWeb.Components.DataVis do
       end
 
     ~H"""
-    <div class={["table-fixed overflow-y-auto px-4 sm:overflow-visible sm:px-0", @wrapper_class]}>
+    <div class={["w-full overflow-y-auto px-4 sm:overflow-visible sm:px-0", @wrapper_class]}>
       <table class={[
-        "table-fixed border-collapse sm:w-full",
+        (if @layout == :fixed, do: "table-fixed", else: "table-auto"),
+        "border-collapse sm:w-full",
         if(not @no_margin, do: "mt-11"),
         @table_class
       ]}>
@@ -96,8 +99,9 @@ defmodule CraftplanWeb.Components.DataVis do
             <th
               :for={{col, i} <- Enum.with_index(@col)}
               class={[
-                "border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0",
-                i > 0 && "pl-4"
+                "border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 align-top",
+                i > 0 && "pl-4",
+                col[:class]
               ]}
             >
               {col[:label]}
@@ -129,11 +133,12 @@ defmodule CraftplanWeb.Components.DataVis do
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
               class={[
-                "relative border-r border-b border-stone-200 p-0 last:border-r-0",
+                "relative border-r border-b border-stone-200 p-0 last:border-r-0 align-top",
                 i > 0 && "pl-4",
                 @row_click && "hover:cursor-pointer",
                 (Map.get(col, :align, :left) == :right && "text-right") ||
-                  (Map.get(col, :align, :left) == :center && "text-center") || "text-left"
+                  (Map.get(col, :align, :left) == :center && "text-center") || "text-left",
+                col[:class]
               ]}
             >
               <div class={["block pr-6", (@variant == :compact && "py-2") || "py-4"]}>
@@ -144,7 +149,7 @@ defmodule CraftplanWeb.Components.DataVis do
             </td>
             <td
               :if={@action != []}
-              class="relative w-14 border-r border-b border-stone-200 p-0 pr-4 last:border-r-0"
+              class="relative w-14 border-r border-b border-stone-200 p-0 pr-4 last:border-r-0 align-top"
             >
               <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
                 <span
