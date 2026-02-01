@@ -9,7 +9,7 @@ jobs:
   reset:
     runs-on: ubuntu-latest
     steps:
-      - uses: superfly/flyctl-setup-action@master
+      - uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Reset demo database
         run: |
