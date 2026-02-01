@@ -2,13 +2,11 @@ defmodule CraftplanWeb.OverviewLive do
   @moduledoc false
   use CraftplanWeb, :live_view
 
-  import Ash.Expr
-
   alias Craftplan.Catalog
   alias Craftplan.Inventory
   alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
-  alias Craftplan.Orders.Consumption
+  alias Craftplan.Orders.ProductionBatch
   alias Craftplan.Production
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
@@ -335,230 +333,235 @@ defmodule CraftplanWeb.OverviewLive do
           </div>
 
           <%= if @schedule_view == :day do %>
-            <%!-- Kanban View for Daily Schedule --%>
-            <div class="mt-4" phx-hook="KanbanDragDrop" id="kanban-board">
-              <% kanban = get_kanban_columns_for_day(day, @production_items) %>
-              <div class="grid grid-cols-3 gap-4">
-                <%!-- To Do Column --%>
-                <div class="flex flex-col">
-                  <div class="rounded-t-lg border border-slate-300 bg-slate-50 px-4 py-3">
-                    <div class="flex items-center justify-between">
-                      <h3 class="font-semibold text-slate-700">To Do</h3>
-                      <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
-                        {length(kanban.todo)}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    class="kanban-column min-h-[60vh] bg-slate-50/50 space-y-3 rounded-b-lg border border-t-0 border-slate-300 p-3"
-                    data-status="todo"
-                    phx-hook="KanbanColumn"
-                    id="kanban-column-todo"
-                  >
-                    <div
-                      :for={{product, items} <- kanban.todo}
-                      phx-click="view_details"
-                      phx-value-date={Date.to_iso8601(day)}
-                      phx-value-product={product.id}
-                      class="kanban-card group cursor-move rounded-lg border border-slate-300 bg-white p-3 transition-all hover:shadow-md"
-                      draggable="true"
-                      data-product-id={product.id}
-                      data-date={Date.to_iso8601(day)}
-                      data-status="todo"
-                    >
-                      <div class="mb-2 flex items-start justify-between gap-2">
-                        <span class="font-medium text-stone-800" title={product.name}>
-                          {product.name}
-                        </span>
-                        <.badge
-                          :if={
-                            capacity_status(
-                              product,
-                              get_product_items_for_day(day, product, @production_items)
-                            ) == :over
-                          }
-                          text="Over cap"
-                        />
-                      </div>
-                      <div class="mb-2 flex items-center justify-end gap-2">
-                        <.button
-                          size={:sm}
-                          variant={:outline}
-                          phx-click="create_batch"
-                          phx-value-date={Date.to_iso8601(day)}
-                          phx-value-product_id={product.id}
-                          phx-stop
-                        >
-                          Create Batch
-                        </.button>
-                      </div>
-                      <div class="flex items-center justify-between text-sm text-stone-600">
-                        <span class="flex items-center">
-                          <svg
-                            class="mr-1 h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                            />
-                          </svg>
-                          {format_amount(:piece, total_quantity(items))}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      :if={Enum.empty?(kanban.todo)}
-                      class="flex items-center justify-center py-8 text-sm text-stone-400"
-                    >
-                      No items
-                    </div>
-                  </div>
+            <% {unbatched, batched} = split_day_items(day, @production_items, @allocation_map) %>
+            <div :if={Enum.empty?(unbatched) && Enum.empty?(batched)} class="mt-4 rounded-md border border-dashed border-stone-200 bg-stone-50 py-6 text-center text-sm text-stone-500">
+              No production scheduled for this day.
+            </div>
+            <div
+              :if={!Enum.empty?(unbatched) || !Enum.empty?(batched)}
+              id="kanban-batches"
+              phx-hook="KanbanDragDrop"
+              class="mt-4 grid grid-cols-4 gap-3"
+            >
+              <%!-- Unbatched column --%>
+              <div class="kanban-column rounded-lg bg-stone-50 p-3" data-status="unbatched">
+                <h4 class="mb-2 text-xs font-semibold uppercase text-stone-400">Unbatched</h4>
+                <div class="space-y-2">
+                  <.unbatched_kanban_card
+                    :for={{product, items} <- unbatched}
+                    product={product}
+                    items={items}
+                    day={day}
+                  />
                 </div>
-
-                <%!-- In Progress Column --%>
-                <div class="flex flex-col">
-                  <div class="rounded-t-lg border border-blue-300 bg-blue-50 px-4 py-3">
-                    <div class="flex items-center justify-between">
-                      <h3 class="font-semibold text-blue-700">In Progress</h3>
-                      <span class="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
-                        {length(kanban.in_progress)}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    class="kanban-column min-h-[60vh] bg-blue-50/50 space-y-3 rounded-b-lg border border-t-0 border-blue-300 p-3"
-                    data-status="in_progress"
-                    phx-hook="KanbanColumn"
-                    id="kanban-column-in-progress"
-                  >
-                    <div
-                      :for={{product, items} <- kanban.in_progress}
-                      phx-click="view_details"
-                      phx-value-date={Date.to_iso8601(day)}
-                      phx-value-product={product.id}
-                      class="kanban-card group cursor-move rounded-lg border border-blue-300 bg-white p-3 transition-all hover:shadow-md"
-                      draggable="true"
-                      data-product-id={product.id}
-                      data-date={Date.to_iso8601(day)}
-                      data-status="in_progress"
-                    >
-                      <div class="mb-2 flex items-start justify-between gap-2">
-                        <span class="font-medium text-stone-800" title={product.name}>
-                          {product.name}
-                        </span>
-                        <.badge
-                          :if={
-                            capacity_status(
-                              product,
-                              get_product_items_for_day(day, product, @production_items)
-                            ) == :over
-                          }
-                          text="Over cap"
-                        />
-                      </div>
-                      <div class="flex items-center justify-between text-sm text-stone-600">
-                        <span class="flex items-center">
-                          <svg
-                            class="mr-1 h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          {format_amount(:piece, total_quantity(items))}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      :if={Enum.empty?(kanban.in_progress)}
-                      class="flex items-center justify-center py-8 text-sm text-stone-400"
-                    >
-                      No items
-                    </div>
-                  </div>
+              </div>
+              <%!-- Open column --%>
+              <div class="kanban-column rounded-lg bg-blue-50/50 p-3" data-status="open">
+                <h4 class="mb-2 text-xs font-semibold uppercase text-blue-600">Open</h4>
+                <div class="space-y-2">
+                  <.batch_kanban_card
+                    :for={bg <- Enum.filter(batched, &(&1.status == :open))}
+                    batch_group={bg}
+                  />
                 </div>
-
-                <%!-- Done Column --%>
-                <div class="flex flex-col">
-                  <div class="rounded-t-lg border border-green-300 bg-green-50 px-4 py-3">
-                    <div class="flex items-center justify-between">
-                      <h3 class="font-semibold text-green-700">Done</h3>
-                      <span class="rounded-full bg-green-200 px-2 py-0.5 text-xs font-medium text-green-700">
-                        {length(kanban.done)}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    class="kanban-column min-h-[60vh] bg-green-50/50 space-y-3 rounded-b-lg border border-t-0 border-green-300 p-3"
-                    data-status="done"
-                    phx-hook="KanbanColumn"
-                    id="kanban-column-done"
-                  >
-                    <div
-                      :for={{product, items} <- kanban.done}
-                      phx-click="view_details"
-                      phx-value-date={Date.to_iso8601(day)}
-                      phx-value-product={product.id}
-                      class="kanban-card group cursor-move rounded-lg border border-green-300 bg-white p-3 transition-all hover:shadow-md"
-                      draggable="true"
-                      data-product-id={product.id}
-                      data-date={Date.to_iso8601(day)}
-                      data-status="done"
-                    >
-                      <div class="mb-2 flex items-start justify-between gap-2">
-                        <span class="font-medium text-stone-800" title={product.name}>
-                          {product.name}
-                        </span>
-                        <.badge
-                          :if={
-                            capacity_status(
-                              product,
-                              get_product_items_for_day(day, product, @production_items)
-                            ) == :over
-                          }
-                          text="Over cap"
-                        />
-                      </div>
-                      <div class="flex items-center justify-between text-sm text-stone-600">
-                        <span class="flex items-center">
-                          <svg
-                            class="mr-1 h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          {format_amount(:piece, total_quantity(items))}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      :if={Enum.empty?(kanban.done)}
-                      class="flex items-center justify-center py-8 text-sm text-stone-400"
-                    >
-                      No items
-                    </div>
-                  </div>
+              </div>
+              <%!-- In Progress column --%>
+              <div class="kanban-column rounded-lg bg-amber-50/50 p-3" data-status="in_progress">
+                <h4 class="mb-2 text-xs font-semibold uppercase text-amber-600">In Progress</h4>
+                <div class="space-y-2">
+                  <.batch_kanban_card
+                    :for={bg <- Enum.filter(batched, &(&1.status == :in_progress))}
+                    batch_group={bg}
+                  />
+                </div>
+              </div>
+              <%!-- Completed column --%>
+              <div class="kanban-column rounded-lg bg-green-50/50 p-3" data-status="completed">
+                <h4 class="mb-2 text-xs font-semibold uppercase text-green-600">Done</h4>
+                <div class="space-y-2">
+                  <.batch_kanban_card
+                    :for={bg <- Enum.filter(batched, &(&1.status == :completed))}
+                    batch_group={bg}
+                  />
                 </div>
               </div>
             </div>
+
+            <%!-- Batch detail modal --%>
+            <.modal
+              :if={@selected_batch}
+              id="batch-detail-modal"
+              show
+              title={@selected_batch.batch_code}
+              on_cancel={JS.push("close_batch_modal")}
+            >
+              <div class="space-y-4 px-4 py-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-lg font-medium text-stone-900">{@selected_batch.product.name}</span>
+                    <span class={[
+                      "ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      batch_status_class(@selected_batch.status)
+                    ]}>
+                      {batch_status_label(@selected_batch.status)}
+                    </span>
+                  </div>
+                  <span class="text-sm text-stone-500">
+                    {format_amount(:piece, total_quantity(@selected_batch.items))} &middot; {length(Enum.uniq_by(@selected_batch.items, & &1.order.id))} orders
+                  </span>
+                </div>
+
+                <%!-- Order details --%>
+                <div class="space-y-2">
+                  <h4 class="text-xs font-semibold uppercase text-stone-400">Orders</h4>
+                  <div
+                    :for={item <- @selected_batch.items}
+                    class="flex items-center justify-between rounded border border-stone-100 bg-stone-50 px-3 py-2 text-sm"
+                  >
+                    <div class="flex items-center gap-2">
+                      <.link navigate={~p"/manage/orders/#{item.order.reference}/items"} class="font-medium text-blue-700 hover:underline">
+                        <.kbd>{format_reference(item.order.reference)}</.kbd>
+                      </.link>
+                      <span class="text-stone-500">{item.order.customer.full_name}</span>
+                    </div>
+                    <span class="text-stone-700">{item.quantity} pcs</span>
+                  </div>
+                </div>
+
+                <%!-- Action buttons --%>
+                <div class="flex items-center justify-between border-t border-stone-200 pt-3">
+                  <.link
+                    navigate={~p"/manage/production/batches/#{@selected_batch.batch_code}"}
+                    class="text-sm font-medium text-blue-700 hover:underline"
+                  >
+                    View full batch &rarr;
+                  </.link>
+                  <div class="flex items-center gap-2">
+                    <%= case @selected_batch.status do %>
+                      <% :open -> %>
+                        <.button
+                          size={:sm}
+                          variant={:outline}
+                          phx-click={JS.push("start_batch", value: %{"batch-code" => @selected_batch.batch_code})}
+                        >
+                          Start
+                        </.button>
+                      <% :in_progress -> %>
+                        <.button
+                          :if={!@completing_batch_code}
+                          size={:sm}
+                          variant={:outline}
+                          phx-click={JS.push("toggle_complete_form", value: %{"batch-code" => @selected_batch.batch_code})}
+                        >
+                          Mark Done
+                        </.button>
+                      <% _ -> %>
+                    <% end %>
+                  </div>
+                </div>
+
+                <%!-- Inline completion form --%>
+                <div :if={@completing_batch_code == @selected_batch.batch_code} class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+                  <.form
+                    id={"complete-form-#{@selected_batch.batch_code}"}
+                    for={%{}}
+                    phx-submit="complete_batch"
+                  >
+                    <input type="hidden" name="batch-code" value={@selected_batch.batch_code} />
+                    <div class="flex items-end gap-4">
+                      <div class="flex-1">
+                        <.input
+                          type="number"
+                          name="produced_qty"
+                          label="Produced qty"
+                          value={total_quantity(@selected_batch.items) |> Decimal.to_string()}
+                          min="0"
+                          step="any"
+                          required
+                        />
+                      </div>
+                      <div class="flex-1">
+                        <.input
+                          type="number"
+                          name="duration_minutes"
+                          label="Duration (min)"
+                          value=""
+                          placeholder="optional"
+                          min="0"
+                          step="any"
+                        />
+                      </div>
+                      <div class="flex items-center gap-2 pb-1">
+                        <.button
+                          size={:sm}
+                          variant={:outline}
+                          type="button"
+                          phx-click={JS.push("toggle_complete_form", value: %{"batch-code" => @selected_batch.batch_code})}
+                        >
+                          Cancel
+                        </.button>
+                        <.button size={:sm} variant={:primary} type="submit">
+                          Complete
+                        </.button>
+                      </div>
+                    </div>
+                  </.form>
+                </div>
+              </div>
+            </.modal>
+
+            <%!-- Unbatched detail modal --%>
+            <.modal
+              :if={@selected_unbatched}
+              id="unbatched-detail-modal"
+              show
+              title={@selected_unbatched.product.name}
+              on_cancel={JS.push("close_batch_modal")}
+            >
+              <div class="space-y-4 px-4 py-3">
+                <div class="flex items-center justify-between">
+                  <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
+                    Not Batched
+                  </span>
+                  <span class="text-sm text-stone-500">
+                    {format_amount(:piece, total_quantity(@selected_unbatched.items))} &middot; {length(Enum.uniq_by(@selected_unbatched.items, & &1.order.id))} orders
+                  </span>
+                </div>
+
+                <div class="space-y-2">
+                  <h4 class="text-xs font-semibold uppercase text-stone-400">Orders</h4>
+                  <div
+                    :for={item <- @selected_unbatched.items}
+                    class="flex items-center justify-between rounded border border-stone-100 bg-stone-50 px-3 py-2 text-sm"
+                  >
+                    <div class="flex items-center gap-2">
+                      <.link navigate={~p"/manage/orders/#{item.order.reference}/items"} class="font-medium text-blue-700 hover:underline">
+                        <.kbd>{format_reference(item.order.reference)}</.kbd>
+                      </.link>
+                      <span class="text-stone-500">{item.order.customer.full_name}</span>
+                    </div>
+                    <span class="text-stone-700">{item.quantity} pcs</span>
+                  </div>
+                </div>
+
+                <div class="border-t border-stone-200 pt-3">
+                  <.button
+                    size={:sm}
+                    variant={:outline}
+                    phx-click={
+                      JS.push("create_batch",
+                        value: %{
+                          date: Date.to_iso8601(@selected_unbatched.day),
+                          product_id: @selected_unbatched.product.id
+                        }
+                      )
+                    }
+                  >
+                    Batch All
+                  </.button>
+                </div>
+              </div>
+            </.modal>
           <% else %>
             <%!-- Week View --%>
             <div class="min-w-[1000px]">
@@ -622,11 +625,11 @@ defmodule CraftplanWeb.OverviewLive do
                       }
                     >
                       <div class="h-full overflow-y-auto">
+                        <% {wk_unbatched, wk_batched} = split_day_items(day, @production_items, @allocation_map) %>
+                        <%!-- Unbatched items in week view --%>
                         <div
-                          :for={{product, items} <- get_items_for_day(day, @production_items)}
-                          phx-click="view_details"
-                          phx-value-date={Date.to_iso8601(day)}
-                          phx-value-product={product.id}
+                          :for={{product, items} <- wk_unbatched}
+                          phx-click={JS.patch(~p"/manage/production/schedule?view=day&date=#{Date.to_iso8601(day)}")}
                           class={[
                             "group mb-2 cursor-pointer border p-2",
                             capacity_cell_class(product, items),
@@ -646,24 +649,39 @@ defmodule CraftplanWeb.OverviewLive do
                             <span>
                               {format_amount(:piece, total_quantity(items))}
                             </span>
+                            <span class="text-[10px] inline-flex items-center rounded-full px-1.5 py-0.5 font-medium bg-stone-100 text-stone-600">
+                              Unbatched
+                            </span>
                           </div>
-                          <div class="mt-1.5 h-1.5 w-full rounded-full bg-stone-200 group-hover:bg-stone-200">
-                            <div class="relative h-1.5 w-full">
-                              <div
-                                class="absolute h-1.5 bg-green-500"
-                                style={"width: calc(#{progress_by_status(items, :done)}%)"}
-                              >
-                              </div>
-                            </div>
+                        </div>
+                        <%!-- Batched items in week view --%>
+                        <div
+                          :for={batch_group <- wk_batched}
+                          phx-click={JS.patch(~p"/manage/production/schedule?view=day&date=#{Date.to_iso8601(day)}")}
+                          class={[
+                            "group mb-2 cursor-pointer border p-2",
+                            capacity_cell_class(batch_group.product, batch_group.items),
+                            "hover:bg-stone-100"
+                          ]}
+                        >
+                          <div class="mb-1.5 flex items-center justify-between gap-2">
+                            <span class="truncate text-sm font-medium" title={batch_group.product.name}>
+                              {batch_group.product.name}
+                            </span>
+                            <.badge
+                              :if={capacity_status(batch_group.product, batch_group.items) == :over}
+                              text="Over capacity"
+                            />
                           </div>
                           <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
                             <span>
-                              {format_percentage(
-                                Decimal.div(
-                                  Decimal.new(progress_by_status(items, :done)),
-                                  Decimal.new(100)
-                                )
-                              )}% complete
+                              {format_amount(:piece, total_quantity(batch_group.items))}
+                            </span>
+                            <span class={[
+                              "text-[10px] inline-flex items-center rounded-full px-1.5 py-0.5 font-medium",
+                              batch_status_class(batch_group.status)
+                            ]}>
+                              {batch_status_label(batch_group.status)}
                             </span>
                           </div>
                         </div>
@@ -694,9 +712,6 @@ defmodule CraftplanWeb.OverviewLive do
           <div class="mb-3 flex items-center justify-between print:mb-2">
             <div class="text-lg font-medium print:text-base">Today's Production</div>
             <div class="space-x-2 print:hidden">
-              <.button variant={:primary} phx-click="consume_all_today">
-                Consume All Completed
-              </.button>
               <.button variant={:outline} onclick="window.print()">Print</.button>
             </div>
           </div>
@@ -710,150 +725,6 @@ defmodule CraftplanWeb.OverviewLive do
         </div>
       </.modal>
 
-      <.modal
-        :if={@selected_date && @selected_product}
-        id="product-details-modal"
-        show
-        title={"#{@selected_product.name} for #{format_day_name(@selected_date)} #{format_short_date(@selected_date, @time_zone)}"}
-        on_cancel={JS.push("close_modal")}
-      >
-        <div class="py-4">
-          <div
-            :if={@pending_consumption_item_id}
-            class="mb-4 rounded border border-stone-200 bg-amber-50 p-4"
-          >
-            <div class="mb-2 text-base font-medium text-stone-900">
-              Would you like to update materials stock?
-            </div>
-            <p class="mb-3 text-sm text-stone-700">
-              Completing this item will consume materials according to the product BOM. Review the quantities below and confirm.
-            </p>
-            <.table id="consumption-recap" rows={@pending_consumption_recap}>
-              <:col :let={row} label="Material">{row.material.name}</:col>
-              <:col :let={row} label="Required">
-                {format_amount(row.material.unit, row.required)}
-              </:col>
-              <:col :let={row} label="Current Stock">
-                {format_amount(row.material.unit, row.current_stock || Decimal.new(0))}
-              </:col>
-            </.table>
-            <div class="mt-2 text-sm text-stone-700">
-              <span class="font-medium">Total required:</span>
-              <span
-                :for={{unit, total} <- @pending_consumption_totals_by_unit || []}
-                class="ml-2 inline-flex items-center rounded bg-stone-100 px-2 py-0.5"
-              >
-                {format_amount(unit, total)}
-              </span>
-            </div>
-            <div class="mt-3 flex space-x-2">
-              <.button variant={:primary} phx-click="confirm_consume">Consume Now</.button>
-              <.button variant={:outline} phx-click="cancel_consume">Not Now</.button>
-            </div>
-          </div>
-
-          <div :if={@completion_snapshot} class="mb-4 rounded border border-stone-200 bg-stone-50 p-4">
-            <div class="mb-2 text-base font-medium text-stone-900">Completion Snapshot</div>
-            <div class="grid grid-cols-5 gap-4 text-sm">
-              <div>
-                <div class="text-stone-500">Batch</div>
-                <div class="font-medium">
-                  <%= if code = @completion_snapshot.batch_code do %>
-                    <.link
-                      navigate={~p"/manage/production/batches/#{code}"}
-                      class="text-blue-700 hover:underline"
-                    >
-                      {code}
-                    </.link>
-                  <% else %>
-                    -
-                  <% end %>
-                </div>
-              </div>
-              <div>
-                <div class="text-stone-500">Material</div>
-                <div class="font-medium">
-                  {format_money(
-                    @settings.currency,
-                    @completion_snapshot.material_cost || Decimal.new(0)
-                  )}
-                </div>
-              </div>
-              <div>
-                <div class="text-stone-500">Labor</div>
-                <div class="font-medium">
-                  {format_money(@settings.currency, @completion_snapshot.labor_cost || Decimal.new(0))}
-                </div>
-              </div>
-              <div>
-                <div class="text-stone-500">Overhead</div>
-                <div class="font-medium">
-                  {format_money(
-                    @settings.currency,
-                    @completion_snapshot.overhead_cost || Decimal.new(0)
-                  )}
-                </div>
-              </div>
-              <div>
-                <div class="text-stone-500">Unit Cost</div>
-                <div class="font-medium">
-                  {format_money(@settings.currency, @completion_snapshot.unit_cost || Decimal.new(0))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div :if={@selected_details} class="space-y-4">
-            <.table id="product-orders" rows={@selected_details}>
-              <:col :let={item} label="Reference">
-                <.link navigate={~p"/manage/orders/#{item.order.reference}/items"}>
-                  <.kbd>{format_reference(item.order.reference)}</.kbd>
-                </.link>
-              </:col>
-              <:col :let={item} label="Quantity">
-                <span class="text-sm">{item.quantity}x</span>
-              </:col>
-              <:col :let={item} label="Customer">
-                <span class="text-sm">{item.order.customer.full_name}</span>
-              </:col>
-              <:col :let={item} label="Status">
-                <form phx-change="update_item_status">
-                  <input type="hidden" name="item_id" value={item.id} />
-
-                  <.input
-                    name="status"
-                    type="badge-select"
-                    value={item.status}
-                    options={[
-                      {"To Do", "todo"},
-                      {"In Progress", "in_progress"},
-                      {"Completed", "done"}
-                    ]}
-                    badge_colors={[
-                      {:todo, "#{order_item_status_bg(:todo)} #{order_item_status_color(:todo)}"},
-                      {:in_progress,
-                       "#{order_item_status_bg(:in_progress)} #{order_item_status_color(:in_progress)}"},
-                      {:done, "#{order_item_status_bg(:done)} #{order_item_status_color(:done)}"}
-                    ]}
-                  />
-                </form>
-              </:col>
-
-              <:empty>
-                <div class="py-4 text-center text-stone-500">No order items found</div>
-              </:empty>
-            </.table>
-          </div>
-
-          <div :if={!@selected_details} class="py-8 text-center text-stone-500">
-            No items found
-          </div>
-        </div>
-
-        <footer>
-          <.button variant={:outline} phx-click="close_modal">Close</.button>
-        </footer>
-      </.modal>
     </Page.page>
     """
   end
@@ -861,7 +732,7 @@ defmodule CraftplanWeb.OverviewLive do
   @impl true
   def mount(_params, _session, socket) do
     today = Date.utc_today()
-    days_range = date_range(today)
+    days_range = date_range(today, days: 1)
 
     socket =
       socket
@@ -869,17 +740,15 @@ defmodule CraftplanWeb.OverviewLive do
       # set before computing is_today
       |> assign(:schedule_view, :day)
       |> update_for_range(days_range)
-      |> assign(:selected_date, nil)
-      |> assign(:selected_product, nil)
-      |> assign(:selected_details, nil)
       |> assign(:selected_material_date, nil)
       |> assign(:selected_material, nil)
       |> assign(:material_details, nil)
       |> assign(:material_day_quantity, nil)
       |> assign(:material_day_balance, nil)
-      |> assign(:pending_consumption_item_id, nil)
-      |> assign(:pending_consumption_recap, [])
-      |> assign(:completion_snapshot, nil)
+      |> assign(:expanded_card, nil)
+      |> assign(:completing_batch_code, nil)
+      |> assign(:selected_batch, nil)
+      |> assign(:selected_unbatched, nil)
 
     {:ok, socket}
   end
@@ -903,10 +772,49 @@ defmodule CraftplanWeb.OverviewLive do
     section =
       if live_action in [:schedule, :make_sheet, :materials], do: :production, else: :overview
 
+    # Determine anchor date from URL param or current range
+    url_date =
+      case Map.get(params, "date") do
+        nil -> nil
+        date_str -> Date.from_iso8601!(date_str)
+      end
+
+    # Re-compute days_range when view or date changes via URL param
     socket =
-      socket
-      |> maybe_assign_schedule_view(live_action, schedule_view)
-      |> assign(:page_title, page_title(live_action))
+      cond do
+        live_action in [:schedule, :make_sheet] and not is_nil(url_date) ->
+          days_range =
+            case schedule_view do
+              :day -> date_range(url_date, days: 1)
+              :week -> url_date |> beginning_of_week() |> date_range()
+            end
+
+          socket
+          |> assign(:schedule_view, schedule_view)
+          |> assign(:expanded_card, nil)
+          |> assign(:completing_batch_code, nil)
+          |> update_for_range(days_range)
+
+        live_action in [:schedule, :make_sheet] and schedule_view != current_view ->
+          anchor = List.first(socket.assigns.days_range)
+
+          days_range =
+            case schedule_view do
+              :day -> date_range(anchor, days: 1)
+              :week -> anchor |> beginning_of_week() |> date_range()
+            end
+
+          socket
+          |> assign(:schedule_view, schedule_view)
+          |> assign(:expanded_card, nil)
+          |> assign(:completing_batch_code, nil)
+          |> update_for_range(days_range)
+
+        true ->
+          maybe_assign_schedule_view(socket, live_action, schedule_view)
+      end
+
+    socket = assign(socket, :page_title, page_title(live_action))
 
     {:noreply, Navigation.assign(socket, section, plan_trail(socket.assigns))}
   end
@@ -998,328 +906,54 @@ defmodule CraftplanWeb.OverviewLive do
   end
 
   @impl true
-  def handle_event("view_details", %{"date" => date_str, "product" => product_id}, socket) do
-    date = Date.from_iso8601!(date_str)
-    product = find_product(socket, product_id)
-    details = get_product_items_for_day(date, product, socket.assigns.production_items)
-
-    {:noreply,
-     socket
-     |> assign(:selected_date, date)
-     |> assign(:selected_product, product)
-     |> assign(:selected_details, details)}
-  end
-
-  @impl true
-  def handle_event("close_modal", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:selected_date, nil)
-     |> assign(:selected_product, nil)
-     |> assign(:selected_details, nil)}
-  end
-
-  @impl true
-  def handle_event(
-        "update_kanban_status",
-        %{"product_id" => product_id, "date" => date_str, "status" => new_status},
-        socket
-      ) do
-    case Date.from_iso8601(date_str) do
-      {:ok, date} ->
-        new_status_atom = String.to_atom(new_status)
-
-        items =
-          get_product_items_for_day(date, %{id: product_id}, socket.assigns.production_items)
-
-        Enum.each(items, fn item ->
-          Orders.update_item(item, %{status: new_status_atom}, actor: socket.assigns.current_user)
-        end)
-
-        days_range = socket.assigns.days_range
-        socket = update_for_range(socket, days_range)
-
-        {:noreply, socket}
-
-      _ ->
-        {:noreply, put_flash(socket, :error, "Failed to update status")}
-    end
-  end
-
-  def handle_event("update_item_status", %{"item_id" => id, "status" => status}, socket) do
-    order_item = Orders.get_order_item_by_id!(id, actor: socket.assigns.current_user)
-
-    case Orders.update_item(order_item, %{status: String.to_atom(status)}, actor: socket.assigns.current_user) do
-      {:ok, updated_item} ->
-        days_range = socket.assigns.days_range
-        production_items = load_production_items(socket, days_range)
-        materials_requirements = prepare_materials_requirements(socket, days_range)
-
-        week_metrics =
-          compute_week_metrics(socket, days_range, production_items, materials_requirements)
-
-        selected_details =
-          if socket.assigns.selected_product do
-            get_product_items_for_day(
-              socket.assigns.selected_date,
-              socket.assigns.selected_product,
-              production_items
-            )
-          end
-
-        socket =
-          socket
-          |> assign(:production_items, production_items)
-          |> assign(:materials_requirements, materials_requirements)
-          |> assign(:week_metrics, week_metrics)
-          |> assign(:selected_details, selected_details)
-          |> put_flash(:info, "Item status updated")
-
-        socket =
-          if String.to_atom(status) == :done do
-            item =
-              Orders.get_order_item_by_id!(updated_item.id,
-                load: [
-                  :quantity,
-                  :batch_code,
-                  :material_cost,
-                  :labor_cost,
-                  :overhead_cost,
-                  :unit_cost,
-                  product: [
-                    active_bom: [:rollup, components: [material: [:name, :unit, :current_stock]]]
-                  ]
-                ],
-                actor: socket.assigns.current_user
-              )
-
-            recap =
-              case item.product.active_bom do
-                %{rollup: %{components_map: components_map}} when map_size(components_map) > 0 ->
-                  ids = Map.keys(components_map)
-
-                  materials =
-                    Craftplan.Inventory.Material
-                    |> Ash.Query.new()
-                    |> Ash.Query.filter(expr(id in ^ids))
-                    |> Ash.read!(actor: socket.assigns.current_user, authorize?: false)
-                    |> Ash.load!([:current_stock],
-                      actor: socket.assigns.current_user,
-                      authorize?: false
-                    )
-
-                  materials_by_id = Map.new(materials, &{&1.id, &1})
-
-                  Enum.map(ids, fn id ->
-                    per_unit = Decimal.new(Map.get(components_map, id))
-                    required = Decimal.mult(per_unit, item.quantity)
-                    material = Map.get(materials_by_id, id)
-
-                    %{
-                      material: material,
-                      required: required,
-                      current_stock: material && material.current_stock
-                    }
-                  end)
-
-                _ ->
-                  (item.product.active_bom.components || [])
-                  |> Enum.filter(&(&1.component_type == :material))
-                  |> Enum.map(fn c ->
-                    %{
-                      material: c.material,
-                      required: Decimal.mult(c.quantity, item.quantity),
-                      current_stock: c.material.current_stock
-                    }
-                  end)
-              end
-
-            totals_by_unit =
-              recap
-              |> Enum.group_by(fn r -> r.material && r.material.unit end)
-              |> Enum.reduce(%{}, fn
-                {nil, _}, acc ->
-                  acc
-
-                {unit, rows}, acc ->
-                  total =
-                    Enum.reduce(rows, Decimal.new(0), fn r, sum ->
-                      Decimal.add(sum, r.required)
-                    end)
-
-                  Map.put(acc, unit, total)
-              end)
-
-            socket
-            |> assign(:pending_consumption_item_id, updated_item.id)
-            |> assign(:pending_consumption_recap, recap)
-            |> assign(:pending_consumption_totals_by_unit, totals_by_unit)
-            |> assign(
-              :completion_snapshot,
-              %{
-                batch_code: item.batch_code,
-                material_cost: item.material_cost,
-                labor_cost: item.labor_cost,
-                overhead_cost: item.overhead_cost,
-                unit_cost: item.unit_cost
-              }
-            )
-          else
-            socket
-          end
-
-        overview_tables =
-          compute_overview_tables_from(
-            socket,
-            build_overview_assigns(
-              socket,
-              days_range,
-              production_items,
-              materials_requirements
-            )
-          )
-
-        {:noreply, assign(socket, :overview_tables, overview_tables)}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
-  end
-
-  @impl true
-  def handle_event("consume_item", %{"item_id" => id}, socket) do
-    _ = Consumption.consume_item(id, actor: socket.assigns.current_user)
-
-    days_range = socket.assigns.days_range
-    production_items = load_production_items(socket, days_range)
-    materials_requirements = prepare_materials_requirements(socket, days_range)
-
-    week_metrics =
-      compute_week_metrics(socket, days_range, production_items, materials_requirements)
-
-    selected_details =
-      if socket.assigns.selected_product do
-        get_product_items_for_day(
-          socket.assigns.selected_date,
-          socket.assigns.selected_product,
-          production_items
-        )
+  def handle_event("toggle_card", %{"type" => type, "id" => id}, socket) do
+    card_key =
+      case type do
+        "unbatched" -> {:unbatched, id}
+        "batch" -> {:batch, id}
       end
 
-    overview_tables =
-      compute_overview_tables_from(
-        socket,
-        build_overview_assigns(
-          socket,
-          days_range,
-          production_items,
-          materials_requirements
-        )
-      )
+    expanded =
+      if socket.assigns.expanded_card == card_key, do: nil, else: card_key
 
     {:noreply,
      socket
-     |> assign(:production_items, production_items)
-     |> assign(:materials_requirements, materials_requirements)
-     |> assign(:week_metrics, week_metrics)
-     |> assign(:overview_tables, overview_tables)
-     |> assign(:selected_details, selected_details)
-     |> assign(:pending_consumption_item_id, nil)
-     |> assign(:pending_consumption_recap, [])
-     |> put_flash(:info, "Materials consumed")}
+     |> assign(:expanded_card, expanded)
+     |> assign(:completing_batch_code, nil)}
   end
 
   @impl true
-  def handle_event("confirm_consume", _params, socket) do
-    if socket.assigns.pending_consumption_item_id do
-      _ =
-        Consumption.consume_item(socket.assigns.pending_consumption_item_id,
-          actor: socket.assigns.current_user
-        )
+  def handle_event("open_batch_modal", %{"batch-code" => batch_code}, socket) do
+    day = List.first(socket.assigns.days_range)
+    {_unbatched, batched} = split_day_items(day, socket.assigns.production_items, socket.assigns.allocation_map)
 
-      days_range = socket.assigns.days_range
-      production_items = load_production_items(socket, days_range)
-      materials_requirements = prepare_materials_requirements(socket, days_range)
-
-      week_metrics =
-        compute_week_metrics(socket, days_range, production_items, materials_requirements)
-
-      selected_details =
-        if socket.assigns.selected_product do
-          get_product_items_for_day(
-            socket.assigns.selected_date,
-            socket.assigns.selected_product,
-            production_items
-          )
-        end
-
-      overview_tables =
-        compute_overview_tables_from(
-          socket,
-          build_overview_assigns(
-            socket,
-            days_range,
-            production_items,
-            materials_requirements
-          )
-        )
-
-      {:noreply,
-       socket
-       |> assign(:production_items, production_items)
-       |> assign(:materials_requirements, materials_requirements)
-       |> assign(:week_metrics, week_metrics)
-       |> assign(:overview_tables, overview_tables)
-       |> assign(:selected_details, selected_details)
-       |> assign(:pending_consumption_item_id, nil)
-       |> assign(:pending_consumption_recap, [])
-       |> put_flash(:info, "Materials consumed")}
-    else
-      {:noreply, socket}
+    case Enum.find(batched, &(&1.batch_code == batch_code)) do
+      nil -> {:noreply, socket}
+      batch_group -> {:noreply, assign(socket, selected_batch: batch_group, selected_unbatched: nil)}
     end
   end
 
   @impl true
-  def handle_event("consume_all_today", _params, socket) do
-    today = socket.assigns.today
-    items_by_product = get_items_for_day(today, socket.assigns.production_items)
+  def handle_event("open_unbatched_modal", %{"product-id" => product_id}, socket) do
+    day = List.first(socket.assigns.days_range)
+    {unbatched, _batched} = split_day_items(day, socket.assigns.production_items, socket.assigns.allocation_map)
 
-    items_by_product
-    |> Enum.flat_map(fn {_product, items} -> items end)
-    |> Enum.filter(fn item -> item.status == :done and is_nil(item.consumed_at) end)
-    |> Enum.each(fn item ->
-      _ = Consumption.consume_item(item.id, actor: socket.assigns.current_user)
-    end)
+    case Enum.find(unbatched, fn {product, _items} -> product.id == product_id end) do
+      nil ->
+        {:noreply, socket}
 
-    days_range = socket.assigns.days_range
-    production_items = load_production_items(socket, days_range)
-    materials_requirements = prepare_materials_requirements(socket, days_range)
-
-    overview_tables =
-      compute_overview_tables_from(
-        socket,
-        build_overview_assigns(
-          socket,
-          days_range,
-          production_items,
-          materials_requirements
-        )
-      )
-
-    {:noreply,
-     socket
-     |> assign(:production_items, production_items)
-     |> assign(:materials_requirements, materials_requirements)
-     |> assign(:overview_tables, overview_tables)
-     |> put_flash(:info, "Consumed all completed items for today")}
+      {product, items} ->
+        {:noreply, assign(socket, selected_unbatched: %{product: product, items: items, day: day}, selected_batch: nil)}
+    end
   end
 
   @impl true
-  def handle_event("cancel_consume", _params, socket) do
+  def handle_event("close_batch_modal", _params, socket) do
     {:noreply,
      socket
-     |> assign(:pending_consumption_item_id, nil)
-     |> assign(:pending_consumption_recap, [])}
+     |> assign(:selected_batch, nil)
+     |> assign(:selected_unbatched, nil)
+     |> assign(:completing_batch_code, nil)}
   end
 
   @impl true
@@ -1330,7 +964,6 @@ defmodule CraftplanWeb.OverviewLive do
 
     items_for_product = get_product_items_for_day(day, product, socket.assigns.production_items)
 
-    # Load aggregates to compute remaining quantities per item
     items_with_remaining =
       items_for_product
       |> Enum.map(fn item ->
@@ -1355,7 +988,7 @@ defmodule CraftplanWeb.OverviewLive do
         end)
 
       changeset =
-        Craftplan.Orders.ProductionBatch
+        ProductionBatch
         |> Ash.Changeset.new()
         |> Ash.Changeset.set_argument(
           :allocations,
@@ -1373,12 +1006,180 @@ defmodule CraftplanWeb.OverviewLive do
           {:noreply,
            socket
            |> put_flash(:info, "Batch #{batch.batch_code} created")
-           |> push_navigate(to: ~p"/manage/production/batches/#{batch.batch_code}")}
+           |> assign(:selected_unbatched, nil)
+           |> update_for_range(socket.assigns.days_range)}
 
         {:error, error} ->
           {:noreply, put_flash(socket, :error, "Failed to create batch: #{inspect(error)}")}
       end
     end
+  end
+
+  @impl true
+  def handle_event("start_batch", %{"batch-code" => batch_code}, socket) do
+    actor = socket.assigns.current_user
+
+    case Orders.get_production_batch_by_code(%{batch_code: batch_code}, actor: actor) do
+      {:ok, batch} ->
+        case Ash.update(batch, %{}, action: :start, actor: actor) do
+          {:ok, _} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "Batch #{batch_code} started")
+             |> assign(:selected_batch, nil)
+             |> update_for_range(socket.assigns.days_range)}
+
+          {:error, error} ->
+            {:noreply, put_flash(socket, :error, "Failed to start batch: #{inspect(error)}")}
+        end
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Batch not found")}
+    end
+  end
+
+  @impl true
+  def handle_event("drop_batch", %{"batch_code" => code, "from" => from, "to" => to}, socket) do
+    cond do
+      from == to ->
+        {:noreply, socket}
+
+      # Backward drags
+      to == "open" && from in ["in_progress", "completed"] ->
+        {:noreply, put_flash(socket, :error, "Cannot move a batch backward")}
+
+      from == "completed" ->
+        {:noreply, put_flash(socket, :error, "Cannot move a completed batch")}
+
+      # Skip open → completed
+      from == "open" && to == "completed" ->
+        {:noreply, put_flash(socket, :error, "Batch must be started before completing")}
+
+      # Open → In Progress
+      from == "open" && to == "in_progress" ->
+        handle_event("start_batch", %{"batch-code" => code}, socket)
+
+      # In Progress → Completed (open modal with completion form)
+      from == "in_progress" && to == "completed" ->
+        day = List.first(socket.assigns.days_range)
+        {_unbatched, batched} = split_day_items(day, socket.assigns.production_items, socket.assigns.allocation_map)
+
+        case Enum.find(batched, &(&1.batch_code == code)) do
+          nil ->
+            {:noreply, put_flash(socket, :error, "Batch not found")}
+
+          batch_group ->
+            {:noreply,
+             socket
+             |> assign(:completing_batch_code, code)
+             |> assign(:selected_batch, batch_group)}
+        end
+
+      true ->
+        {:noreply, put_flash(socket, :error, "Invalid transition")}
+    end
+  end
+
+  @impl true
+  def handle_event("drop_unbatched", %{"product_id" => product_id, "to" => to}, socket) do
+    case to do
+      "open" ->
+        day = List.first(socket.assigns.days_range)
+        handle_event("create_batch", %{"date" => Date.to_iso8601(day), "product_id" => product_id}, socket)
+
+      "unbatched" ->
+        {:noreply, socket}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Unbatched items can only be moved to Open")}
+    end
+  end
+
+  @impl true
+  def handle_event("toggle_complete_form", %{"batch-code" => batch_code}, socket) do
+    completing =
+      if socket.assigns.completing_batch_code == batch_code, do: nil, else: batch_code
+
+    {:noreply, assign(socket, :completing_batch_code, completing)}
+  end
+
+  @impl true
+  def handle_event("complete_batch", params, socket) do
+    batch_code = params["batch-code"] || params["batch_code"]
+    produced_qty = params["produced_qty"]
+    duration_minutes = params["duration_minutes"]
+    actor = socket.assigns.current_user
+
+    case Orders.get_production_batch_by_code(%{batch_code: batch_code}, actor: actor) do
+      {:ok, batch} ->
+        update_params =
+          %{produced_qty: produced_qty}
+          |> then(fn p ->
+            if duration_minutes && duration_minutes != "",
+              do: Map.put(p, :duration_minutes, duration_minutes),
+              else: p
+          end)
+
+        changeset =
+          batch
+          |> Ash.Changeset.for_update(:complete, update_params)
+
+        case Ash.update(changeset, actor: actor) do
+          {:ok, _} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "Batch #{batch_code} completed — #{produced_qty} pcs produced")
+             |> assign(:completing_batch_code, nil)
+             |> assign(:selected_batch, nil)
+             |> update_for_range(socket.assigns.days_range)}
+
+          {:error, error} ->
+            {:noreply, put_flash(socket, :error, "Failed to complete batch: #{inspect(error)}")}
+        end
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Batch not found")}
+    end
+  end
+
+  defp unbatched_kanban_card(assigns) do
+    ~H"""
+    <div
+      class="kanban-card rounded-lg border border-stone-200 bg-white p-3 cursor-pointer"
+      phx-click="open_unbatched_modal"
+      phx-value-product-id={@product.id}
+      data-product-id={@product.id}
+    >
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium text-stone-900">{@product.name}</span>
+        <.badge :if={capacity_status(@product, @items) == :over} text="Over cap" />
+      </div>
+      <div class="mt-1.5 text-xs text-stone-500">
+        {format_amount(:piece, total_quantity(@items))} &middot; {length(Enum.uniq_by(@items, & &1.order.id))} orders
+      </div>
+    </div>
+    """
+  end
+
+  defp batch_kanban_card(assigns) do
+    ~H"""
+    <div
+      class="kanban-card rounded-lg border border-stone-200 bg-white p-3 cursor-pointer"
+      draggable="true"
+      data-batch-code={@batch_group.batch_code}
+      data-status={@batch_group.status}
+      phx-click="open_batch_modal"
+      phx-value-batch-code={@batch_group.batch_code}
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium text-stone-900">{@batch_group.product.name}</span>
+        <span class="text-xs font-mono text-stone-400">{@batch_group.batch_code}</span>
+      </div>
+      <div class="mt-1.5 text-xs text-stone-500">
+        {format_amount(:piece, total_quantity(@batch_group.items))} &middot; {length(Enum.uniq_by(@batch_group.items, & &1.order.id))} orders
+      </div>
+    </div>
+    """
   end
 
   defp beginning_of_week(date) do
@@ -1540,31 +1341,53 @@ defmodule CraftplanWeb.OverviewLive do
 
   defp plan_trail(_), do: [Navigation.root(:overview)]
 
-  defp progress_by_status(items, status) do
-    zero = Decimal.new(0)
-    hundred = Decimal.new(100)
+  defp batch_status_label(:not_batched), do: "Not Batched"
+  defp batch_status_label(:open), do: "Open"
+  defp batch_status_label(:in_progress), do: "In Progress"
+  defp batch_status_label(:completed), do: "Completed"
 
-    {status_quantity, total_quantity} =
-      Enum.reduce(items, {zero, zero}, fn item, {status_acc, total_acc} ->
-        total = Decimal.add(total_acc, item.quantity)
+  defp batch_status_class(:not_batched), do: "bg-stone-100 text-stone-600"
+  defp batch_status_class(:open), do: "bg-blue-100 text-blue-700"
+  defp batch_status_class(:in_progress), do: "bg-amber-100 text-amber-700"
+  defp batch_status_class(:completed), do: "bg-green-100 text-green-700"
 
-        status_qty =
-          if item.status == status, do: Decimal.add(status_acc, item.quantity), else: status_acc
+  defp split_day_items(day, production_items, allocation_map) do
+    all = get_items_for_day(day, production_items)
 
-        {status_qty, total}
+    unbatched =
+      all
+      |> Enum.map(fn {product, items} ->
+        unb = Enum.filter(items, fn item -> not Map.has_key?(allocation_map, item.id) end)
+        {product, unb}
+      end)
+      |> Enum.reject(fn {_, items} -> Enum.empty?(items) end)
+
+    batched =
+      all
+      |> Enum.flat_map(fn {_product, items} -> items end)
+      |> Enum.filter(fn item -> Map.has_key?(allocation_map, item.id) end)
+      |> Enum.group_by(fn item -> allocation_map[item.id].batch_code end)
+      |> Enum.map(fn {code, items} ->
+        product = hd(items).product
+        alloc_info = allocation_map[hd(items).id]
+
+        %{
+          batch_code: code,
+          product: product,
+          items: items,
+          production_batch_id: alloc_info.batch_id,
+          status: alloc_info.batch_status
+        }
+      end)
+      |> Enum.sort_by(fn b ->
+        case b.status do
+          :completed -> 2
+          :in_progress -> 0
+          _ -> 1
+        end
       end)
 
-    case Decimal.compare(total_quantity, zero) do
-      :gt ->
-        status_quantity
-        |> Decimal.div(total_quantity)
-        |> Decimal.mult(hundred)
-        |> Decimal.to_float()
-        |> trunc()
-
-      _ ->
-        0
-    end
+    {unbatched, batched}
   end
 
   defp compute_week_metrics(socket, days_range, production_items, materials_requirements) do
@@ -1749,6 +1572,14 @@ defmodule CraftplanWeb.OverviewLive do
       |> assign(:orders_by_day_counts, orders_by_day_counts)
       |> assign(:orders_today_rows, orders_today_rows)
 
+    # Load allocation map: order_item_id -> {batch_code, batch_id, batch_status}
+    item_ids =
+      production_items
+      |> Enum.flat_map(fn {_, _, items} -> items end)
+      |> Enum.map(& &1.id)
+
+    allocation_map = Production.allocation_map_for_items(item_ids, socket.assigns.current_user)
+
     week_metrics =
       compute_week_metrics(socket, days_range, production_items, materials_requirements)
 
@@ -1771,6 +1602,7 @@ defmodule CraftplanWeb.OverviewLive do
     |> assign(:days_range, days_range)
     |> assign(:production_items, production_items)
     |> assign(:materials_requirements, materials_requirements)
+    |> assign(:allocation_map, allocation_map)
     |> assign(:week_metrics, week_metrics)
     |> assign(:overview_tables, overview_tables)
     |> assign(:is_today, is_today)
@@ -1807,24 +1639,5 @@ defmodule CraftplanWeb.OverviewLive do
       end)
 
     {orders_by_day_counts, orders_today_rows}
-  end
-
-  defp get_kanban_columns_for_day(day, production_items) do
-    all_items = get_items_for_day(day, production_items)
-
-    %{
-      todo: group_items_by_status(all_items, :todo),
-      in_progress: group_items_by_status(all_items, :in_progress),
-      done: group_items_by_status(all_items, :done)
-    }
-  end
-
-  defp group_items_by_status(product_items, status) do
-    product_items
-    |> Enum.map(fn {product, items} ->
-      filtered_items = Enum.filter(items, fn item -> item.status == status end)
-      if Enum.empty?(filtered_items), do: nil, else: {product, filtered_items}
-    end)
-    |> Enum.reject(&is_nil/1)
   end
 end

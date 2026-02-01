@@ -86,7 +86,7 @@ defmodule CraftplanWeb.Components.DataVis do
     ~H"""
     <div class={["w-full overflow-y-auto px-4 sm:overflow-visible sm:px-0", @wrapper_class]}>
       <table class={[
-        (if @layout == :fixed, do: "table-fixed", else: "table-auto"),
+        if(@layout == :fixed, do: "table-fixed", else: "table-auto"),
         "border-collapse sm:w-full",
         if(not @no_margin, do: "mt-11"),
         @table_class
@@ -99,7 +99,7 @@ defmodule CraftplanWeb.Components.DataVis do
             <th
               :for={{col, i} <- Enum.with_index(@col)}
               class={[
-                "border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 align-top",
+                "border-r border-stone-200 p-0 pr-6 pb-4 align-top font-normal last:border-r-0",
                 i > 0 && "pl-4",
                 col[:class]
               ]}
@@ -133,7 +133,7 @@ defmodule CraftplanWeb.Components.DataVis do
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
               class={[
-                "relative border-r border-b border-stone-200 p-0 last:border-r-0 align-top",
+                "relative border-r border-b border-stone-200 p-0 align-top last:border-r-0",
                 i > 0 && "pl-4",
                 @row_click && "hover:cursor-pointer",
                 (Map.get(col, :align, :left) == :right && "text-right") ||
@@ -149,7 +149,7 @@ defmodule CraftplanWeb.Components.DataVis do
             </td>
             <td
               :if={@action != []}
-              class="relative w-14 border-r border-b border-stone-200 p-0 pr-4 last:border-r-0 align-top"
+              class="relative w-14 border-r border-b border-stone-200 p-0 pr-4 align-top last:border-r-0"
             >
               <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
                 <span

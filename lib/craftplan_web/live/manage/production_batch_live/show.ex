@@ -3,6 +3,7 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
   use CraftplanWeb, :live_view
 
   alias Ash.Changeset
+  alias Ash.Error.Invalid
   alias Craftplan.Production
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
@@ -22,8 +23,7 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
      |> assign(:totals, nil)
      |> assign(:product, nil)
      |> assign(:produced_at, nil)
-     |> assign(:show_consume_modal, false)
-     |> assign(:show_complete_modal, false)
+     |> assign(:show_advanced_lots, false)
      |> assign(:consume_materials, [])
      |> assign(:allocations_for_complete, [])
      |> assign(:complete_payload, %{
@@ -84,10 +84,7 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
           {@product && @product.name}
         </:subtitle>
         <:actions>
-          <.link navigate={~p"/manage/overview"}>
-            <.button variant={:outline}>Back to planner</.button>
-          </.link>
-          <.button variant={:primary} phx-click={JS.exec("window.print()")} class="print:hidden">
+          <.button variant={:primary} onclick="window.print()" class="print:hidden">
             Print Batch Sheet
           </.button>
         </:actions>
@@ -147,21 +144,125 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
               >
                 Start Batch
               </.button>
-              <.button
-                :if={@production_batch && @production_batch.status == :in_progress}
-                variant={:outline}
-                phx-click="show_consume_modal"
-              >
-                Record Consumption
-              </.button>
-              <.button
-                :if={@production_batch && @production_batch.status == :in_progress}
-                variant={:primary}
-                phx-click="show_complete_modal"
-              >
-                Complete Batch
-              </.button>
             </div>
+          </Page.surface>
+        </Page.section>
+      </section>
+
+      <section
+        :if={@production_batch && @production_batch.status == :in_progress}
+        id="complete-batch-section"
+        class="mt-6"
+      >
+        <Page.section>
+          <Page.surface>
+            <h3 class="mb-4 text-base font-semibold text-stone-900">Complete Batch</h3>
+            <p class="mb-4 text-sm text-stone-500">
+              Enter produced quantity and optionally adjust lot allocations. Materials will be automatically consumed using FIFO (earliest expiry first) unless you override with manual lot selection.
+            </p>
+            <.form for={%{}} id="complete-batch-form" phx-submit="complete_batch">
+              <div class="grid gap-4 md:grid-cols-2">
+                <.input
+                  type="number"
+                  name="produced_qty"
+                  label="Produced Quantity"
+                  min="0"
+                  step="any"
+                  required
+                  value={@complete_payload["produced_qty"]}
+                />
+                <.input
+                  type="number"
+                  name="duration_minutes"
+                  label="Duration (minutes)"
+                  min="0"
+                  step="any"
+                  value={@complete_payload["duration_minutes"]}
+                />
+              </div>
+
+              <div :if={@allocations_for_complete != []} class="mt-4">
+                <h4 class="mb-2 text-sm font-semibold text-stone-800">
+                  Completed quantities per order item
+                </h4>
+                <div
+                  :for={alloc <- @allocations_for_complete}
+                  class="mb-2 flex items-center gap-3 rounded border border-stone-200 bg-stone-50 px-3 py-2"
+                >
+                  <div class="flex-1 text-sm">
+                    <span class="font-mono text-xs">{alloc.order_reference}</span>
+                    <span class="ml-2 text-stone-600">{alloc.product_name}</span>
+                    <span class="ml-2 text-xs text-stone-400">
+                      planned: {D.to_string(alloc.planned_qty)}
+                    </span>
+                  </div>
+                  <.input
+                    type="number"
+                    name={"completed_map[#{alloc.order_item_id}]"}
+                    value={D.to_string(alloc.planned_qty)}
+                    min="0"
+                    step="any"
+                    class="w-24"
+                  />
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <label class="flex cursor-pointer items-center gap-2 text-sm text-stone-700">
+                  <input
+                    type="checkbox"
+                    phx-click="toggle_advanced_lots"
+                    checked={@show_advanced_lots}
+                    class="rounded border-stone-300 text-stone-600 focus:ring-stone-500"
+                  />
+                  <span>Advanced: Manual Lot Selection</span>
+                </label>
+              </div>
+
+              <div :if={@show_advanced_lots} class="mt-4">
+                <div
+                  :if={@consume_materials == []}
+                  class="py-4 text-sm text-stone-500"
+                >
+                  No materials with available lots found for this batch.
+                </div>
+                <div :for={mat <- @consume_materials} class="mb-6">
+                  <div class="mb-2 flex items-baseline justify-between">
+                    <h4 class="text-sm font-semibold text-stone-800">{mat.name}</h4>
+                    <span class="text-xs text-stone-500">
+                      Required: {D.to_string(mat.required_qty)} per unit
+                    </span>
+                  </div>
+                  <div
+                    :for={lot <- mat.lots}
+                    class="mb-2 flex items-center gap-3 rounded border border-stone-200 bg-stone-50 px-3 py-2"
+                  >
+                    <div class="flex-1 text-sm">
+                      <span class="font-mono text-xs">{lot.lot_code}</span>
+                      <span class="ml-2 text-stone-500">
+                        stock: {D.to_string(lot.current_stock)}
+                      </span>
+                      <span :if={lot.expiry_date} class="ml-2 text-xs text-stone-400">
+                        exp: {format_short_date(lot.expiry_date, format: "%b %d, %Y", missing: "—")}
+                      </span>
+                    </div>
+                    <.input
+                      type="number"
+                      name={"lot_plan[#{mat.material_id}][#{lot.lot_id}]"}
+                      value=""
+                      min="0"
+                      step="any"
+                      placeholder="0"
+                      class="w-24"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 flex justify-end">
+                <.button variant={:primary} type="submit">Complete Batch</.button>
+              </div>
+            </.form>
           </Page.surface>
         </Page.section>
       </section>
@@ -270,112 +371,6 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
         </Page.section>
       </section>
 
-      <.modal
-        :if={@show_consume_modal}
-        id="consume-batch-modal"
-        title="Record Consumption"
-        show
-        on_cancel={JS.push("cancel_consume_modal")}
-      >
-        <.form for={%{}} id="consume-batch-form" phx-submit="consume_batch">
-          <div :if={@consume_materials == []} class="py-4 text-sm text-stone-500">
-            No materials with available lots found for this batch.
-          </div>
-          <div :for={mat <- @consume_materials} class="mb-6">
-            <div class="mb-2 flex items-baseline justify-between">
-              <h4 class="text-sm font-semibold text-stone-800">{mat.name}</h4>
-              <span class="text-xs text-stone-500">
-                Required: {D.to_string(mat.required_qty)} per unit
-              </span>
-            </div>
-            <div
-              :for={lot <- mat.lots}
-              class="mb-2 flex items-center gap-3 rounded border border-stone-200 bg-stone-50 px-3 py-2"
-            >
-              <div class="flex-1 text-sm">
-                <span class="font-mono text-xs">{lot.lot_code}</span>
-                <span class="ml-2 text-stone-500">
-                  stock: {D.to_string(lot.current_stock)}
-                </span>
-                <span :if={lot.expiry_date} class="ml-2 text-xs text-stone-400">
-                  exp: {format_short_date(lot.expiry_date, format: "%b %d, %Y", missing: "—")}
-                </span>
-              </div>
-              <.input
-                type="number"
-                name={"lot_plan[#{mat.material_id}][#{lot.lot_id}]"}
-                value=""
-                min="0"
-                step="any"
-                placeholder="0"
-                class="w-24"
-              />
-            </div>
-          </div>
-          <div class="flex justify-end gap-2">
-            <.button variant={:outline} phx-click="cancel_consume_modal">Cancel</.button>
-            <.button variant={:primary} type="submit">Save</.button>
-          </div>
-        </.form>
-      </.modal>
-
-      <.modal
-        :if={@show_complete_modal}
-        id="complete-batch-modal"
-        title="Complete Batch"
-        show
-        on_cancel={JS.push("cancel_complete_modal")}
-      >
-        <.form for={%{}} id="complete-batch-form" phx-submit="complete_batch">
-          <.input
-            type="number"
-            name="produced_qty"
-            label="Produced Quantity"
-            min="0"
-            step="any"
-            required
-            value={@complete_payload["produced_qty"]}
-          />
-          <.input
-            type="number"
-            name="duration_minutes"
-            label="Duration (minutes)"
-            min="0"
-            step="any"
-            value={@complete_payload["duration_minutes"]}
-          />
-          <div :if={@allocations_for_complete != []} class="mt-4">
-            <h4 class="mb-2 text-sm font-semibold text-stone-800">
-              Completed quantities per order item
-            </h4>
-            <div
-              :for={alloc <- @allocations_for_complete}
-              class="mb-2 flex items-center gap-3 rounded border border-stone-200 bg-stone-50 px-3 py-2"
-            >
-              <div class="flex-1 text-sm">
-                <span class="font-mono text-xs">{alloc.order_reference}</span>
-                <span class="ml-2 text-stone-600">{alloc.product_name}</span>
-                <span class="ml-2 text-xs text-stone-400">
-                  planned: {D.to_string(alloc.planned_qty)}
-                </span>
-              </div>
-              <.input
-                type="number"
-                name={"completed_map[#{alloc.order_item_id}]"}
-                value={D.to_string(alloc.planned_qty)}
-                min="0"
-                step="any"
-                class="w-24"
-              />
-            </div>
-          </div>
-          <div class="mt-4 flex justify-end gap-2">
-            <.button variant={:outline} phx-click="cancel_complete_modal">Cancel</.button>
-            <.button variant={:primary} type="submit">Complete</.button>
-          </div>
-        </.form>
-      </.modal>
-
       <Page.section class="mt-6">
         <div id="batch-compliance">
           <Page.surface padding="p-6">
@@ -420,41 +415,8 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
   end
 
   @impl true
-  def handle_event("show_consume_modal", _params, socket) do
-    {:noreply, assign(socket, show_consume_modal: true)}
-  end
-
-  @impl true
-  def handle_event("consume_batch", params, socket) do
-    actor = socket.assigns[:current_user]
-    batch = socket.assigns.production_batch
-
-    plan = parse_lot_plan(params)
-
-    changeset =
-      batch
-      |> Changeset.new()
-      |> Changeset.set_argument(:lot_plan, plan)
-      |> Changeset.for_update(:consume, %{}, actor: actor)
-
-    case Ash.update(changeset, actor: actor) do
-      {:ok, _} ->
-        socket
-        |> assign(show_consume_modal: false)
-        |> refresh_and_flash("Consumption recorded")
-
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Consume failed: #{inspect(err)}")}
-    end
-  end
-
-  def handle_event("cancel_consume_modal", _params, socket) do
-    {:noreply, assign(socket, show_consume_modal: false)}
-  end
-
-  @impl true
-  def handle_event("show_complete_modal", _params, socket) do
-    {:noreply, assign(socket, show_complete_modal: true)}
+  def handle_event("toggle_advanced_lots", _params, socket) do
+    {:noreply, assign(socket, show_advanced_lots: !socket.assigns.show_advanced_lots)}
   end
 
   @impl true
@@ -463,6 +425,7 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
     batch = socket.assigns.production_batch
     duration = Map.get(params, "duration_minutes", "")
     completed_map = parse_completed_map(params)
+    lot_plan = if socket.assigns.show_advanced_lots, do: parse_lot_plan(params)
 
     case parse_decimal(produced_qty) do
       {:ok, qty} ->
@@ -470,14 +433,23 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
           batch
           |> Changeset.new()
           |> Changeset.set_argument(:completed_map, completed_map)
+          |> Changeset.set_argument(:lot_plan, lot_plan)
           |> maybe_set_duration(duration)
           |> Changeset.for_update(:complete, %{produced_qty: qty}, actor: actor)
 
         case Ash.update(changeset, actor: actor) do
           {:ok, _} ->
-            socket
-            |> assign(show_complete_modal: false)
-            |> refresh_and_flash("Batch completed")
+            refresh_and_flash(socket, "Batch completed")
+
+          {:error, %Invalid{} = err} ->
+            if insufficient_stock_error?(err) do
+              {:noreply,
+               socket
+               |> assign(show_advanced_lots: true)
+               |> put_flash(:error, format_stock_error(err))}
+            else
+              {:noreply, put_flash(socket, :error, "Complete failed: #{inspect(err)}")}
+            end
 
           {:error, err} ->
             {:noreply, put_flash(socket, :error, "Complete failed: #{inspect(err)}")}
@@ -488,8 +460,27 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
     end
   end
 
-  def handle_event("cancel_complete_modal", _params, socket) do
-    {:noreply, assign(socket, show_complete_modal: false)}
+  defp insufficient_stock_error?(%Invalid{errors: errors}) do
+    Enum.any?(errors, fn
+      %{field: :lot_plan} -> true
+      %{message: msg} when is_binary(msg) -> String.contains?(msg, "Insufficient stock")
+      _ -> false
+    end)
+  end
+
+  defp insufficient_stock_error?(_), do: false
+
+  defp format_stock_error(%Invalid{errors: errors}) do
+    case Enum.find(errors, &match?(%{field: :lot_plan}, &1)) do
+      %{message: msg, vars: vars} when is_map(vars) ->
+        msg
+        |> String.replace("%{material_id}", Map.get(vars, :material_id, "unknown"))
+        |> String.replace("%{required}", Map.get(vars, :required, "?"))
+        |> String.replace("%{short}", Map.get(vars, :short, "?"))
+
+      _ ->
+        "Insufficient stock. Use manual lot selection."
+    end
   end
 
   defp parse_decimal(value) when is_binary(value) and value != "" do
@@ -594,8 +585,6 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
   end
 
   defp parse_lot_plan(%{"lot_plan" => lot_plan_params}) when is_map(lot_plan_params) do
-    # Convert %{"material_id" => %{"lot_id" => "qty"}} into
-    # %{"material_id" => [%{"lot_id" => "uuid", "quantity" => qty}]}
     lot_plan_params
     |> Map.new(fn {material_id, lots_map} ->
       entries =

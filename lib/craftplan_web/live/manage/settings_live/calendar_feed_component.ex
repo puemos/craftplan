@@ -82,7 +82,12 @@ defmodule CraftplanWeb.SettingsLive.CalendarFeedComponent do
             </div>
 
             <div :if={@suitable_keys != []} class="mt-4">
-              <.table id="calendar-feeds" rows={@suitable_keys} wrapper_class="mt-0" variant={:compact}>
+              <.table
+                id="calendar-feeds"
+                rows={@suitable_keys}
+                wrapper_class="mt-0"
+                variant={:compact}
+              >
                 <:col :let={key} label="Name">{key.name}</:col>
                 <:col :let={key} label="Feed URL">
                   <code class="text-xs text-stone-600">…/feed.ics?key={key.prefix}••••••</code>

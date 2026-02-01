@@ -324,6 +324,9 @@ defmodule CraftplanWeb.Components.Core do
 
   defp button_variant_classes(:secondary), do: button_variant_classes(:default)
 
+  defp button_variant_classes(:ghost),
+    do: "bg-transparent text-stone-600 hover:bg-stone-100 hover:text-stone-900 border-none shadow-none"
+
   defp button_size_classes(:xs), do: "h-5 px-2 py-0 text-xs"
   defp button_size_classes(:sm), do: "h-7 px-3 py-1 text-xs"
   defp button_size_classes(:base), do: "h-9 px-4 py-2"

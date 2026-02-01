@@ -2,7 +2,6 @@ const KanbanDragDrop = {
   mounted() {
     this.setupDragAndDrop();
   },
-
   updated() {
     this.setupDragAndDrop();
   },
@@ -11,74 +10,62 @@ const KanbanDragDrop = {
     const cards = this.el.querySelectorAll(".kanban-card");
     const columns = this.el.querySelectorAll(".kanban-column");
 
-    // Setup drag events for cards
     cards.forEach((card) => {
+      card.setAttribute("draggable", "true");
       card.addEventListener("dragstart", (e) => {
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/html", card.innerHTML);
 
-        // Store the card data
-        const productId = card.dataset.productId;
-        const date = card.dataset.date;
-        const currentStatus = card.dataset.status;
+        const payload = card.dataset.batchCode
+          ? {
+              type: "batch",
+              batchCode: card.dataset.batchCode,
+              currentStatus: card.dataset.status,
+            }
+          : {
+              type: "unbatched",
+              productId: card.dataset.productId,
+              currentStatus: "unbatched",
+            };
 
-        e.dataTransfer.setData(
-          "application/json",
-          JSON.stringify({
-            productId,
-            date,
-            currentStatus,
-          }),
-        );
-
+        e.dataTransfer.setData("application/json", JSON.stringify(payload));
         card.classList.add("dragging");
       });
-
-      card.addEventListener("dragend", (e) => {
-        card.classList.remove("dragging");
-      });
-
-      // Prevent click when dragging
-      card.addEventListener("click", (e) => {
-        if (card.classList.contains("dragging")) {
-          e.stopPropagation();
-          e.preventDefault();
-        }
-      });
+      card.addEventListener("dragend", () => card.classList.remove("dragging"));
     });
 
-    // Setup drop zones for columns
     columns.forEach((column) => {
       column.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
         column.classList.add("drag-over");
       });
-
       column.addEventListener("dragleave", (e) => {
-        if (e.target === column) {
-          column.classList.remove("drag-over");
-        }
+        if (e.target === column) column.classList.remove("drag-over");
       });
-
       column.addEventListener("drop", (e) => {
         e.preventDefault();
         column.classList.remove("drag-over");
-
         try {
-          const data = JSON.parse(e.dataTransfer.getData("application/json"));
+          const data = JSON.parse(
+            e.dataTransfer.getData("application/json"),
+          );
           const newStatus = column.dataset.status;
-
-          // Only update if status changed
           if (data.currentStatus !== newStatus) {
-            this.pushEvent("update_kanban_status", {
-              product_id: data.productId,
-              date: data.date,
-              status: newStatus,
-            });
+            if (data.type === "unbatched") {
+              this.pushEvent("drop_unbatched", {
+                product_id: data.productId,
+                to: newStatus,
+              });
+            } else {
+              this.pushEvent("drop_batch", {
+                batch_code: data.batchCode,
+                from: data.currentStatus,
+                to: newStatus,
+              });
+            }
           }
         } catch (err) {
-          console.error("Error processing drop:", err);
+          console.error("Drop error:", err);
         }
       });
     });

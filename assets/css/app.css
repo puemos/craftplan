@@ -20,9 +20,14 @@ button {
 
 /* Kanban Drag and Drop Styles */
 .kanban-card {
+    cursor: grab;
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
+}
+
+.kanban-card:active {
+    cursor: grabbing;
 }
 
 .kanban-card:hover {
