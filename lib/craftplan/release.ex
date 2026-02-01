@@ -17,6 +17,33 @@ defmodule Craftplan.Release do
     end
   end
 
+  def reset do
+    load_app()
+
+    for repo <- repos() do
+      {:ok, _, _} =
+        Ecto.Migrator.with_repo(repo, fn repo ->
+          repo.query!("DROP SCHEMA public CASCADE")
+          repo.query!("CREATE SCHEMA public")
+        end)
+    end
+
+    migrate()
+    seed()
+  end
+
+  def seed do
+    load_app()
+
+    for repo <- repos() do
+      {:ok, _, _} =
+        Ecto.Migrator.with_repo(repo, fn _repo ->
+          seeds_file = Application.app_dir(@app, "priv/repo/seeds.exs")
+          Code.eval_file(seeds_file)
+        end)
+    end
+  end
+
   def rollback(repo, version) do
     load_app()
     {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, to: version))

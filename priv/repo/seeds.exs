@@ -75,7 +75,7 @@ seed_nutritional_facts = fn ->
   }
 end
 
-if Mix.env() == :dev do
+if Mix.env() == :dev or System.get_env("SEED_DATA") == "true" do
   # ------------------------------------------------------------------------------
   # 2. Clear existing data (cleanup for repeated seeds in dev)
   # ------------------------------------------------------------------------------

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+cd -P -- "$(dirname -- "$0")/.."
+SEED_DATA=true exec ./bin/craftplan eval Craftplan.Release.reset

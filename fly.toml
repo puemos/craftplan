@@ -1,0 +1,21 @@
+app = "craftday"
+primary_region = "fra"
+
+[build]
+  image = "ghcr.io/puemos/craftplan:latest"
+
+[deploy]
+  release_command = "bin/migrate"
+  strategy = "rolling"
+
+[env]
+  PHX_SERVER = "true"
+  ECTO_IPV6 = "true"
+  ERL_AFLAGS = "-proto_dist inet6_tcp"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
