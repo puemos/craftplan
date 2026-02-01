@@ -41,7 +41,7 @@ if config_env() == :prod do
     System.get_env("SECRET_KEY_BASE") ||
       raise """
       environment variable SECRET_KEY_BASE is missing.
-      You can generate one by calling: mix phx.gen.secret
+      You can generate one by running: openssl rand -base64 48
       """
 
   host = System.get_env("HOST") || System.get_env("PHX_HOST") || "example.com"
@@ -159,7 +159,10 @@ if config_env() == :prod do
       config :swoosh, :finch_name, Craftplan.Finch
 
     true ->
-      :ok
+      # No email provider configured — use Logger adapter so emails are
+      # logged instead of crashing (Local adapter's memory store is
+      # disabled in prod).
+      config :craftplan, Craftplan.Mailer, adapter: Swoosh.Adapters.Logger
   end
 
   # ## SSL Support
