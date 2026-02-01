@@ -6,7 +6,6 @@ defmodule CraftplanWeb.OverviewLive do
   alias Craftplan.Inventory
   alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
-  alias Craftplan.Orders.ProductionBatch
   alias Craftplan.Production
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
@@ -1039,21 +1038,17 @@ defmodule CraftplanWeb.OverviewLive do
           Decimal.add(acc, r)
         end)
 
-      changeset =
-        ProductionBatch
-        |> Ash.Changeset.new()
-        |> Ash.Changeset.set_argument(
-          :allocations,
-          Enum.map(items_with_remaining, fn %{id: id, remaining: r} ->
-            %{order_item_id: id, planned_qty: r}
-          end)
-        )
-        |> Ash.Changeset.for_create(:open_with_allocations, %{
-          product_id: product.id,
-          planned_qty: planned_qty
-        })
-
-      case Ash.create(changeset, actor: actor) do
+      case Orders.open_batch_with_allocations(
+             %{
+               product_id: product.id,
+               planned_qty: planned_qty,
+               allocations:
+                 Enum.map(items_with_remaining, fn %{id: id, remaining: r} ->
+                   %{order_item_id: id, planned_qty: r}
+                 end)
+             },
+             actor: actor
+           ) do
         {:ok, batch} ->
           {:noreply,
            socket
@@ -1073,7 +1068,7 @@ defmodule CraftplanWeb.OverviewLive do
 
     case Orders.get_production_batch_by_code(%{batch_code: batch_code}, actor: actor) do
       {:ok, batch} ->
-        case Ash.update(batch, %{}, action: :start, actor: actor) do
+        case Orders.start_batch(batch, %{}, actor: actor) do
           {:ok, _} ->
             {:noreply,
              socket
@@ -1178,9 +1173,7 @@ defmodule CraftplanWeb.OverviewLive do
               else: p
           end)
 
-        changeset = Ash.Changeset.for_update(batch, :complete, update_params)
-
-        case Ash.update(changeset, actor: actor) do
+        case Orders.complete_batch(batch, update_params, actor: actor) do
           {:ok, _} ->
             {:noreply,
              socket

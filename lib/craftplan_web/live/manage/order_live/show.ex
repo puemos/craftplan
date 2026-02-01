@@ -339,11 +339,7 @@ defmodule CraftplanWeb.OrderLive.Show do
       )
 
     open_batches =
-      Craftplan.Orders.ProductionBatch
-      |> Ash.Query.new()
-      |> Ash.Query.filter(expr(product_id == ^item.product_id and status == :open))
-      |> Ash.Query.sort(inserted_at: :desc)
-      |> Ash.read!(actor: actor)
+      Orders.list_open_batches_for_product!(%{product_id: item.product_id}, actor: actor)
 
     remaining = Decimal.sub(item.quantity, item.planned_qty_sum || Decimal.new(0))
 
@@ -378,10 +374,9 @@ defmodule CraftplanWeb.OrderLive.Show do
     case existing do
       {:ok, %{} = alloc} ->
         _ =
-          Ash.update!(
+          Orders.update_order_item_batch_allocation!(
             alloc,
             %{planned_qty: Decimal.add(alloc.planned_qty || Decimal.new(0), qty)},
-            action: :update,
             actor: actor
           )
 
@@ -389,14 +384,15 @@ defmodule CraftplanWeb.OrderLive.Show do
 
       _ ->
         _ =
-          OrderItemBatchAllocation
-          |> Ash.Changeset.for_create(:create, %{
-            order_item_id: item.id,
-            production_batch_id: batch_id,
-            planned_qty: qty,
-            completed_qty: Decimal.new(0)
-          })
-          |> Ash.create!(actor: actor)
+          Orders.create_order_item_batch_allocation!(
+            %{
+              order_item_id: item.id,
+              production_batch_id: batch_id,
+              planned_qty: qty,
+              completed_qty: Decimal.new(0)
+            },
+            actor: actor
+          )
 
         :ok
     end

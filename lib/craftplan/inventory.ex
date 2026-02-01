@@ -14,6 +14,7 @@ defmodule Craftplan.Inventory do
     resource Craftplan.Inventory.Lot do
       define :get_lot_by_id, action: :read, get_by: [:id]
       define :list_lots, action: :read
+      define :list_available_lots_for_material, action: :available_for_material
     end
 
     resource Craftplan.Inventory.Material do
@@ -22,6 +23,7 @@ defmodule Craftplan.Inventory do
       define :list_materials, action: :list
       define :list_materials_with_keyset, action: :keyset
       define :update_nutritional_facts, action: :update_nutritional_facts
+      define :destroy_material, action: :destroy
     end
 
     resource Craftplan.Inventory.Movement do
@@ -56,6 +58,7 @@ defmodule Craftplan.Inventory do
       define :get_allergen_by_id, action: :read, get_by: [:id]
       define :list_allergens, action: :list
       define :list_allergens_with_keyset, action: :keyset
+      define :destroy_allergen, action: :destroy
     end
 
     resource Craftplan.Inventory.MaterialAllergen
@@ -65,6 +68,7 @@ defmodule Craftplan.Inventory do
       define :get_nutritional_fact_by_name, action: :read, get_by: [:name]
       define :list_nutritional_facts, action: :list
       define :list_nutritional_facts_with_keyset, action: :keyset
+      define :destroy_nutritional_fact, action: :destroy
     end
 
     resource Craftplan.Inventory.MaterialNutritionalFact

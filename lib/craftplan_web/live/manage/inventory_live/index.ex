@@ -626,7 +626,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     case id
          |> Inventory.get_material_by_id!(actor: socket.assigns.current_user)
-         |> Ash.destroy(actor: socket.assigns.current_user) do
+         |> Inventory.destroy_material(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket

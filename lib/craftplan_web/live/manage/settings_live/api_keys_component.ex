@@ -231,7 +231,7 @@ defmodule CraftplanWeb.SettingsLive.ApiKeysComponent do
 
   @impl true
   def handle_event("revoke_key", %{"id" => id}, socket) do
-    api_key = Ash.get!(ApiKey, id, authorize?: false)
+    api_key = Accounts.get_api_key_by_id!(id, authorize?: false)
     Accounts.revoke_api_key(api_key, actor: socket.assigns.current_user)
 
     api_keys = load_api_keys(socket.assigns.current_user)

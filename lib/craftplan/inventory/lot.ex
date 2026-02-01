@@ -44,6 +44,12 @@ defmodule Craftplan.Inventory.Lot do
       create: [:lot_code, :expiry_date, :received_at, :material_id, :supplier_id],
       update: [:lot_code, :expiry_date, :received_at, :supplier_id]
     ]
+
+    read :available_for_material do
+      argument :material_id, :uuid, allow_nil?: false
+      filter expr(material_id == ^arg(:material_id) and current_stock > 0)
+      prepare build(load: [:current_stock], sort: [expiry_date: :asc])
+    end
   end
 
   policies do

@@ -168,7 +168,9 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     nutritional_fact = Inventory.get_nutritional_fact_by_id!(id)
-    :ok = Ash.destroy!(nutritional_fact, actor: socket.assigns.current_user)
+
+    :ok =
+      Inventory.destroy_nutritional_fact!(nutritional_fact, actor: socket.assigns.current_user)
 
     # Notify parent to reload nutritional facts
     send(self(), {:saved_nutritional_facts, nil})

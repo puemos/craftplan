@@ -157,7 +157,7 @@ defmodule CraftplanWeb.ProductLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     case id
          |> Catalog.get_product_by_id!(actor: socket.assigns.current_user)
-         |> Ash.destroy(actor: socket.assigns.current_user) do
+         |> Catalog.destroy_product(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket

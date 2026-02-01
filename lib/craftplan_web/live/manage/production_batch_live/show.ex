@@ -2,14 +2,12 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
-  alias Ash.Changeset
   alias Ash.Error.Invalid
+  alias Craftplan.Orders
   alias Craftplan.Production
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
   alias Decimal, as: D
-
-  require Ash.Query
 
   @impl true
   def mount(_params, _session, socket) do
@@ -408,7 +406,7 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
     actor = socket.assigns[:current_user]
     batch = socket.assigns.production_batch
 
-    case batch |> Changeset.for_update(:start, %{}) |> Ash.update(actor: actor) do
+    case Orders.start_batch(batch, %{}, actor: actor) do
       {:ok, _} -> refresh_and_flash(socket, "Batch started")
       {:error, err} -> {:noreply, put_flash(socket, :error, "Start failed: #{inspect(err)}")}
     end
@@ -429,15 +427,10 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
 
     case parse_decimal(produced_qty) do
       {:ok, qty} ->
-        changeset =
-          batch
-          |> Changeset.new()
-          |> Changeset.set_argument(:completed_map, completed_map)
-          |> Changeset.set_argument(:lot_plan, lot_plan)
-          |> maybe_set_duration(duration)
-          |> Changeset.for_update(:complete, %{produced_qty: qty}, actor: actor)
+        complete_params =
+          maybe_put_duration(%{produced_qty: qty, completed_map: completed_map, lot_plan: lot_plan}, duration)
 
-        case Ash.update(changeset, actor: actor) do
+        case Orders.complete_batch(batch, complete_params, actor: actor) do
           {:ok, _} ->
             refresh_and_flash(socket, "Batch completed")
 
@@ -491,12 +484,12 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
 
   defp parse_decimal(_), do: {:error, :invalid_decimal}
 
-  defp maybe_set_duration(changeset, duration) when duration in [nil, ""], do: changeset
+  defp maybe_put_duration(params, duration) when duration in [nil, ""], do: params
 
-  defp maybe_set_duration(changeset, duration) do
+  defp maybe_put_duration(params, duration) do
     case parse_decimal(duration) do
-      {:ok, d} -> Changeset.set_argument(changeset, :duration_minutes, d)
-      _ -> changeset
+      {:ok, d} -> Map.put(params, :duration_minutes, d)
+      _ -> params
     end
   end
 
@@ -537,11 +530,8 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
           Craftplan.Inventory.get_material_by_id!(material_id, actor: actor)
 
         lots =
-          Craftplan.Inventory.Lot
-          |> Ash.Query.filter(material_id == ^material_id and current_stock > 0)
-          |> Ash.Query.load([:current_stock])
-          |> Ash.Query.sort(expiry_date: :asc)
-          |> Ash.read!(actor: actor)
+          %{material_id: material_id}
+          |> Craftplan.Inventory.list_available_lots_for_material!(actor: actor)
           |> Enum.map(fn lot ->
             %{
               lot_id: lot.id,
@@ -567,10 +557,8 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
   defp build_allocations_for_complete(nil, _actor), do: []
 
   defp build_allocations_for_complete(batch, actor) do
-    Craftplan.Orders.OrderItemBatchAllocation
-    |> Ash.Query.filter(production_batch_id == ^batch.id)
-    |> Ash.Query.load(order_item: [order: [:reference], product: [:name]])
-    |> Ash.read!(actor: actor)
+    %{production_batch_id: batch.id}
+    |> Orders.list_allocations_for_batch!(actor: actor)
     |> Enum.map(fn alloc ->
       %{
         order_item_id: alloc.order_item_id,

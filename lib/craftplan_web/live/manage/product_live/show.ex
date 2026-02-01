@@ -2,6 +2,7 @@ defmodule CraftplanWeb.ProductLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  alias Craftplan.Catalog
   alias Craftplan.Inventory
 
   @impl true
@@ -175,7 +176,7 @@ defmodule CraftplanWeb.ProductLive.Show do
   @impl true
   def handle_params(%{"sku" => sku} = params, _, socket) do
     product =
-      Craftplan.Catalog.get_product_by_sku!(sku,
+      Catalog.get_product_by_sku!(sku,
         load: [
           :markup_percentage,
           :gross_profit,
@@ -239,7 +240,7 @@ defmodule CraftplanWeb.ProductLive.Show do
   @impl true
   def handle_info({CraftplanWeb.ProductLive.FormComponentPhotos, {:saved, _}}, socket) do
     product =
-      Craftplan.Catalog.get_product_by_sku!(socket.assigns.product.sku,
+      Catalog.get_product_by_sku!(socket.assigns.product.sku,
         load: [
           :markup_percentage,
           :materials_cost,
@@ -259,7 +260,7 @@ defmodule CraftplanWeb.ProductLive.Show do
   @impl true
   def handle_info({CraftplanWeb.ProductLive.FormComponentRecipe, {:saved, _}}, socket) do
     product =
-      Craftplan.Catalog.get_product_by_sku!(socket.assigns.product.sku,
+      Catalog.get_product_by_sku!(socket.assigns.product.sku,
         load: [
           :markup_percentage,
           :materials_cost,
@@ -281,7 +282,7 @@ defmodule CraftplanWeb.ProductLive.Show do
 
   def handle_info({CraftplanWeb.ProductLive.FormComponent, {:saved, _}}, socket) do
     product =
-      Craftplan.Catalog.get_product_by_sku!(socket.assigns.product.sku,
+      Catalog.get_product_by_sku!(socket.assigns.product.sku,
         load: [
           :markup_percentage,
           :materials_cost,
@@ -301,7 +302,7 @@ defmodule CraftplanWeb.ProductLive.Show do
 
   @impl true
   def handle_event("product-status-change", %{"_target" => ["status"], "status" => status}, socket) do
-    case Ash.update(socket.assigns.product, %{status: status}, actor: socket.assigns.current_user) do
+    case Catalog.update_product(socket.assigns.product, %{status: status}, actor: socket.assigns.current_user) do
       {:ok, product} ->
         {:noreply,
          socket

@@ -163,7 +163,7 @@ defmodule CraftplanWeb.SettingsLive.AllergensComponent do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     allergen = Inventory.get_allergen_by_id!(id)
-    :ok = Ash.destroy!(allergen, actor: socket.assigns.current_user)
+    :ok = Inventory.destroy_allergen!(allergen, actor: socket.assigns.current_user)
 
     # Notify parent to reload allergens
     send(self(), {:saved_allergens, nil})

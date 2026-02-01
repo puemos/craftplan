@@ -51,6 +51,10 @@ defmodule Craftplan.Accounts.User do
   actions do
     defaults [:read]
 
+    read :list_admins do
+      filter expr(role == :admin)
+    end
+
     read :get_by_subject do
       description "Get a user by the subject claim in a JWT"
       argument :subject, :string, allow_nil?: false

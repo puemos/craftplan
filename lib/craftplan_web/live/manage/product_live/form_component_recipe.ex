@@ -583,8 +583,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
          ) do
       {:ok, %Catalog.BOM{} = active} ->
         _ =
-          Ash.update(active, %{status: :archived},
-            action: :update,
+          Catalog.update_bom(active, %{status: :archived},
             actor: actor,
             authorize?: false
           )
@@ -598,16 +597,18 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     notes = blank_to_nil(recipe_params["notes"])
 
     new_bom =
-      Catalog.BOM
-      |> Ash.Changeset.for_create(:create, %{
-        product_id: product.id,
-        status: :active,
-        published_at: DateTime.utc_now(),
-        notes: notes,
-        components: components,
-        labor_steps: labor_steps
-      })
-      |> Ash.create!(actor: actor, authorize?: false)
+      Catalog.create_bom!(
+        %{
+          product_id: product.id,
+          status: :active,
+          published_at: DateTime.utc_now(),
+          notes: notes,
+          components: components,
+          labor_steps: labor_steps
+        },
+        actor: actor,
+        authorize?: false
+      )
 
     socket = assign_lists(socket)
 

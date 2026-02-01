@@ -23,6 +23,12 @@ defmodule Craftplan.Orders.OrderItemBatchAllocation do
   actions do
     defaults [:read, :destroy]
 
+    read :for_batch do
+      argument :production_batch_id, :uuid, allow_nil?: false
+      filter expr(production_batch_id == ^arg(:production_batch_id))
+      prepare build(load: [order_item: [order: [:reference], product: [:name]]])
+    end
+
     create :create do
       primary? true
       accept [:production_batch_id, :order_item_id, :planned_qty, :completed_qty]

@@ -65,7 +65,7 @@ defmodule CraftplanWeb.CustomerLive.Index do
      socket
      |> stream(
        :customers,
-       Ash.read!(Craftplan.CRM.Customer,
+       Craftplan.CRM.list_customers!(
          actor: socket.assigns[:current_user],
          load: [:billing_address, :shipping_address, :full_name]
        )
@@ -133,7 +133,7 @@ defmodule CraftplanWeb.CustomerLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     case id
          |> Craftplan.CRM.get_customer_by_id!(actor: socket.assigns.current_user)
-         |> Ash.destroy(actor: socket.assigns.current_user) do
+         |> Craftplan.CRM.destroy_customer(actor: socket.assigns.current_user) do
       :ok ->
         {:noreply,
          socket

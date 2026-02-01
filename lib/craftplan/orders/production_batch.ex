@@ -77,6 +77,12 @@ defmodule Craftplan.Orders.ProductionBatch do
       change {Craftplan.Orders.Changes.BatchComplete, []}
     end
 
+    read :open_for_product do
+      argument :product_id, :uuid, allow_nil?: false
+      filter expr(product_id == ^arg(:product_id) and status == :open)
+      prepare build(sort: [inserted_at: :desc])
+    end
+
     read :by_code do
       argument :batch_code, :string, allow_nil?: false
       get? true

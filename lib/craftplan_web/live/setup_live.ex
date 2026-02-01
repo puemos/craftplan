@@ -4,8 +4,6 @@ defmodule CraftplanWeb.SetupLive do
 
   alias Craftplan.Accounts.User
 
-  require Ash.Query
-
   @impl true
   def mount(_params, _session, socket) do
     if admin_exists?() do
@@ -95,9 +93,8 @@ defmodule CraftplanWeb.SetupLive do
   end
 
   defp admin_exists? do
-    User
-    |> Ash.Query.filter(role: :admin)
-    |> Ash.read!(authorize?: false)
+    [authorize?: false]
+    |> Craftplan.Accounts.list_admin_users!()
     |> Enum.any?()
   end
 end

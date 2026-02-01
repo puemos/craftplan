@@ -562,7 +562,7 @@ defmodule CraftplanWeb.OrderLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     order = Orders.get_order_by_id!(id, actor: socket.assigns[:current_user])
 
-    case Ash.destroy(order, actor: socket.assigns[:current_user]) do
+    case Orders.destroy_order(order, actor: socket.assigns[:current_user]) do
       :ok ->
         {:noreply,
          socket

@@ -3,7 +3,6 @@ defmodule CraftplanWeb.SettingsLive.CalendarFeedComponent do
   use CraftplanWeb, :live_component
 
   alias Craftplan.Accounts
-  alias Craftplan.Accounts.ApiKey
 
   @calendar_scopes %{
     "orders" => ["read"],
@@ -187,7 +186,7 @@ defmodule CraftplanWeb.SettingsLive.CalendarFeedComponent do
   end
 
   def handle_event("revoke_calendar_key", %{"id" => id}, socket) do
-    api_key = Ash.get!(ApiKey, id, authorize?: false)
+    api_key = Accounts.get_api_key_by_id!(id, authorize?: false)
     Accounts.revoke_api_key(api_key, actor: socket.assigns.current_user)
 
     suitable_keys = load_suitable_keys(socket.assigns.current_user)
@@ -200,13 +199,10 @@ defmodule CraftplanWeb.SettingsLive.CalendarFeedComponent do
   end
 
   defp create_calendar_key(user) do
-    ApiKey
-    |> Ash.Changeset.for_create(
-      :create,
+    Accounts.create_api_key(
       %{name: "Calendar Feed", scopes: @calendar_scopes},
       actor: user
     )
-    |> Ash.create()
   end
 
   defp load_suitable_keys(user) do

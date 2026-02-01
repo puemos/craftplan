@@ -7,6 +7,7 @@ defmodule Craftplan.Accounts do
 
     resource Craftplan.Accounts.User do
       define :get_user_by_email, args: [:email], action: :get_by_email
+      define :list_admin_users, action: :list_admins
     end
 
     resource Craftplan.Accounts.ApiKey do
@@ -15,6 +16,7 @@ defmodule Craftplan.Accounts do
       define :revoke_api_key, action: :revoke
       define :authenticate_api_key, action: :authenticate
       define :touch_api_key_last_used, action: :touch_last_used
+      define :get_api_key_by_id, action: :read, get_by: [:id]
     end
   end
 end

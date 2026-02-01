@@ -18,6 +18,7 @@ defmodule Craftplan.Orders do
       define :get_order_by_reference, action: :read, get_by: [:reference]
       define :list_orders, action: :list
       define :list_orders_with_keyset, action: :keyset
+      define :destroy_order, action: :destroy
     end
 
     resource Craftplan.Orders.OrderItem do
@@ -32,6 +33,10 @@ defmodule Craftplan.Orders do
       define :list_production_batches, action: :read
       define :list_production_batches_filtered, action: :list
       define :list_production_batches_for_plan, action: :plan
+      define :open_batch_with_allocations, action: :open_with_allocations
+      define :start_batch, action: :start
+      define :complete_batch, action: :complete
+      define :list_open_batches_for_product, action: :open_for_product
     end
 
     resource Craftplan.Orders.OrderItemLot do
@@ -43,6 +48,7 @@ defmodule Craftplan.Orders do
       define :create_order_item_batch_allocation, action: :create
       define :update_order_item_batch_allocation, action: :update
       define :destroy_order_item_batch_allocation, action: :destroy
+      define :list_allocations_for_batch, action: :for_batch
     end
 
     resource Craftplan.Orders.ProductionBatchLot do
