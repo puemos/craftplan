@@ -20,17 +20,29 @@ defmodule Craftplan.Release do
   def reset do
     load_app()
 
-    # Use a temporary connection to drop/recreate the schema, avoiding
-    # pool connection issues from DROP SCHEMA CASCADE.
-    for repo <- repos() do
-      {:ok, _, _} =
-        Ecto.Migrator.with_repo(repo, fn repo ->
-          repo.query!("DROP SCHEMA public CASCADE")
-          repo.query!("CREATE SCHEMA public")
-          Ecto.Migrator.run(repo, :up, all: true)
-        end)
-    end
+    # Parse the DATABASE_URL and open a raw Postgrex connection to
+    # drop/recreate the schema. This avoids pool disconnection issues
+    # since DROP SCHEMA CASCADE terminates all other connections.
+    db_url = System.get_env("DATABASE_URL") || raise "DATABASE_URL not set"
+    uri = URI.parse(db_url)
+    [username, password] = String.split(uri.userinfo || "postgres:", ":")
 
+    {:ok, conn} =
+      Postgrex.start_link(
+        hostname: uri.host,
+        port: uri.port || 5432,
+        username: username,
+        password: password,
+        database: String.trim_leading(uri.path, "/"),
+        ssl: false,
+        socket_options: [:inet6]
+      )
+
+    Postgrex.query!(conn, "DROP SCHEMA public CASCADE", [])
+    Postgrex.query!(conn, "CREATE SCHEMA public", [])
+    GenServer.stop(conn)
+
+    migrate()
     seed()
   end
 
