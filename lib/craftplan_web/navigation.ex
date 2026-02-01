@@ -73,10 +73,6 @@ defmodule CraftplanWeb.Navigation do
     live_action(socket) in [:schedule, :make_sheet] and schedule_view(socket) == :day
   end
 
-  def production_plan_active?(socket) do
-    live_action(socket) == :plan
-  end
-
   def production_batches_active?(socket) do
     socket.view in [ProductionBatchIndex, ProductionBatchShow]
   end
@@ -301,9 +297,8 @@ defmodule CraftplanWeb.Navigation do
       },
       production: %{
         label: "Production",
-        path: "/manage/production/plan",
+        path: "/manage/production/schedule",
         pages: %{
-          plan: %{label: "Plan", path: "/manage/production/plan"},
           schedule: %{label: "Schedule", path: "/manage/production/schedule"},
           make_sheet: %{label: "Make Sheet", path: "/manage/production/make_sheet"},
           materials: %{label: "Materials", path: "/manage/production/materials"},
@@ -311,12 +306,6 @@ defmodule CraftplanWeb.Navigation do
           batch: &__MODULE__.crumb_production_batch/1
         },
         sub_links: [
-          %{
-            key: :plan,
-            label: "Plan",
-            navigate: "/manage/production/plan",
-            active?: &__MODULE__.production_plan_active?/1
-          },
           %{
             key: :weekly,
             label: "Weekly",

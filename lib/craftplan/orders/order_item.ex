@@ -71,8 +71,6 @@ defmodule Craftplan.Orders.OrderItem do
         :overhead_cost,
         :unit_cost
       ]
-
-      change {AssignBatchCodeAndCost, []}
     end
 
     read :in_range do

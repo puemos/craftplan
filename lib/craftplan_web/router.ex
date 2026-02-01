@@ -179,7 +179,6 @@ defmodule CraftplanWeb.Router do
 
       # Production
       live "/manage/overview", OverviewLive, :index
-      live "/manage/production/plan", ProductionPlanLive, :plan
       live "/manage/production/schedule", OverviewLive, :schedule
       live "/manage/production/make_sheet", OverviewLive, :make_sheet
       live "/manage/production/materials", OverviewLive, :materials
