@@ -14,7 +14,7 @@ let spectaqlHtml = "";
 try {
   spectaqlHtml = fs.readFileSync(generatedFile, "utf-8");
 } catch {
-  // Generated files not found — will show fallback message
+  // Generated files not found - will show fallback message
 }
 ---
 
@@ -74,7 +74,7 @@ try {
                         Craftplan exposes a <a href="https://graphql.org"
                             >GraphQL</a
                         > API at <code>/api/graphql</code>. All requests require
-                        a Bearer token &mdash; generate one in
+                        a Bearer token; generate one in
                         <a href={`${base}docs/settings/`}
                             >Settings &rarr; API Keys</a
                         >

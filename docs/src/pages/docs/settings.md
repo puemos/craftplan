@@ -36,7 +36,7 @@ Configure which nutritional fact fields are tracked (calories, protein, fat, car
 
 Subscribe to your Craftplan schedule in Google Calendar, Apple Calendar, or any app that supports iCal feeds. Navigate to **Settings → Calendar Feed** to manage subscriptions.
 
-- **Generate Calendar Feed** — Creates a new API key with read-only access to orders, customers, and production batches, and displays a subscription URL. Copy the URL immediately — the full key is only shown once.
+- **Generate Calendar Feed** — Creates a new API key with read-only access to orders, customers, and production batches, and displays a subscription URL. Copy the URL immediately; the full key is only shown once.
 - **Feed list** — All active calendar feeds are listed with their name, masked URL, creation date, and last-used timestamp.
 - **Revoke** — Disable a feed at any time. Any calendar app using that URL will stop receiving updates.
 
@@ -80,7 +80,7 @@ These settings apply to all transactional emails sent by Craftplan (order confir
 
 ### Email Provider
 
-Craftplan supports multiple email delivery providers. Select a provider from the **Provider** dropdown in Settings and fill in the required credentials. Once saved, the new provider is active immediately — no restart required.
+Craftplan supports multiple email delivery providers. Select a provider from the **Provider** dropdown in Settings and fill in the required credentials. Once saved, the new provider is active immediately, no restart required.
 
 | Provider | Required Fields |
 |----------|-----------------|

@@ -8,9 +8,9 @@
 
 ## Open-source ERP for small-scale artisanal manufacturers and craft businesses
 
-> **Live Demo:** [craftplan.fly.dev](https://craftplan.fly.dev) — log in with `test@test.com` / `Aa123123123123`
+> **Live Demo:** [craftplan.fly.dev](https://craftplan.fly.dev). Log in with `test@test.com` / `Aa123123123123`
 
-Craftplan brings all essential business tools into one platform — catalog management, inventory control, order processing, production planning, purchasing, and CRM — so you can get off the ground quickly without paying for multiple separate platforms.
+Craftplan brings all essential business tools into one platform: catalog management, inventory control, order processing, production planning, purchasing, and CRM, so you can get off the ground quickly without paying for multiple separate platforms.
 
 ![Manage overview with schedule, make sheet, and completion snapshot](screenshots/plan.webp)
 
@@ -100,7 +100,7 @@ See the [setup guide](https://puemos.github.io/craftplan/docs/getting-started/) 
 
 ## Self-Hosting with Docker
 
-Deploy Craftplan on your own server — no need to clone the repo:
+Deploy Craftplan on your own server. No need to clone the repo:
 
 ```bash
 curl -O https://raw.githubusercontent.com/puemos/craftplan/main/docker-compose.yml
@@ -140,7 +140,7 @@ Commits follow the convention: `type(scope): description` (e.g., `feat(batching)
 
 ## License
 
-This project is licensed under the AGPLv3 License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the AGPLv3 License. See the [LICENSE](LICENSE) file for details.
 
 ## Support
 

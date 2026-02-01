@@ -49,4 +49,4 @@ Craftplan uses a simple versioning model:
 ![Pricing Guidance](/craftplan/screenshots/catalog-pricing.webp)
 
 - Materials, labor, and overhead costs are persisted in `catalog_bom_rollups`. The planner, invoices, and insights features read from the rollup, so keeping BOMs current is important.
-- Batch completions copy the BOM costs onto each finished order item — these power the **Completion Snapshot** in the planner and future COGS reports.
+- Batch completions copy the BOM costs onto each finished order item. These power the **Completion Snapshot** in the planner and future COGS reports.

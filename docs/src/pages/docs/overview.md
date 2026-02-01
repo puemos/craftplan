@@ -17,7 +17,7 @@ The planner is organized into four tabs:
 - **Make Sheet** — Printable run sheet that hides navigation and injects printer-friendly borders. Print via the "Print" button or `Cmd+P` / `Ctrl+P`.
 - **Materials** — Rolls up per-material demand, current stock, and shortage warnings for the selected horizon.
 
-The entire surface is LiveView-driven — switching tabs or scrolling dates keeps state without extra navigation.
+The entire surface is LiveView-driven, so switching tabs or scrolling dates keeps state without extra navigation.
 
 ## Marking Work Done & Cost Snapshots
 
@@ -36,10 +36,10 @@ The snapshot feeds invoices and future insights features.
 
 - The **Make Sheet** dialog shows the entire day's run in a printable table. Capacity-limited products respect their `max_daily_quantity`.
 - The **Materials** tab mirrors the "Total required" footer so you can confirm stock before starting a run.
-- **Consume All Completed** on the make sheet consumes every completed item with pending stock deductions — useful at the end of the day.
+- **Consume All Completed** on the make sheet consumes every completed item with pending stock deductions, useful at the end of the day.
 
 ## Tips
 
 - The **Return to Overview** button (or the Overview nav item) always routes to `/manage/overview`. Bookmark it for one-click access.
 - Planner cards link back to the order detail via the reference badge for quick customer follow-ups.
-- To adjust BOMs after seeing the snapshot, use the product link inside the modal — it opens a new tab on Catalog → Products → Recipe.
+- To adjust BOMs after seeing the snapshot, use the product link inside the modal, which opens a new tab on Catalog → Products → Recipe.

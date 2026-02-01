@@ -6,7 +6,7 @@ description: Deploy Craftplan with Docker on your own server
 
 ## Quick Start
 
-Deploy Craftplan without cloning the repo — just download the Compose file and start:
+Deploy Craftplan without cloning the repo. Just download the Compose file and start:
 
 ```bash
 # 1. Download the Compose file and env template
@@ -106,7 +106,7 @@ docker run --rm hexpm/elixir:1.18.3-erlang-27.2.4-debian-bookworm-20250113-slim 
 
 ### POSTGRES_PASSWORD
 
-Any strong password of your choice — it's used for the bundled PostgreSQL container (not needed if you supply your own `DATABASE_URL`).
+Any strong password of your choice. It's used for the bundled PostgreSQL container (not needed if you supply your own `DATABASE_URL`).
 
 ---
 
@@ -140,11 +140,11 @@ The bundled MinIO container works out of the box. Override these to use an exter
 | `MINIO_ROOT_PASSWORD` | `minioadmin` | MinIO secret key |
 | `AWS_S3_BUCKET` | `craftplan` | S3 bucket name |
 | `AWS_S3_SCHEME` | `https://` | S3 endpoint scheme (`http://` for MinIO) |
-| `AWS_ACCESS_KEY_ID` | — | External S3 access key |
-| `AWS_SECRET_ACCESS_KEY` | — | External S3 secret key |
+| `AWS_ACCESS_KEY_ID` | - | External S3 access key |
+| `AWS_SECRET_ACCESS_KEY` | - | External S3 secret key |
 | `AWS_S3_HOST` | `s3.amazonaws.com` | S3 endpoint hostname |
 | `AWS_REGION` | `us-east-1` | S3 region |
-| `AWS_ASSET_HOST` | — | Public URL prefix for uploaded assets |
+| `AWS_ASSET_HOST` | - | Public URL prefix for uploaded assets |
 
 ### Email (Optional)
 
