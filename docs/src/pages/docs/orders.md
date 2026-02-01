@@ -22,10 +22,10 @@ Order items track individual products within an order. Each item progresses thro
 
 - **Pending** — Item created, not yet scheduled
 - **Scheduled** — Assigned to a production date
-- **Completed** — Production finished, BOM consumption triggered
+- **Completed** — Production finished via batch completion (material consumption and cost snapshot triggered)
 - **Delivered** — Item shipped to customer
 
-Status changes on the planner's schedule tab trigger downstream actions like material consumption and cost snapshots.
+Items are allocated to production batches from the planner's day-view kanban board. When a batch is completed, its allocated order items receive a cost snapshot with material, labor, and overhead costs.
 
 ## Calendar View
 
