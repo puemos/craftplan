@@ -9,9 +9,9 @@ defmodule Craftplan.Orders.ProductionBatch do
 
   import Ash.Expr
 
-  require Ash.Query
-
   alias Craftplan.Orders.Changes.BatchOpenInit
+
+  require Ash.Query
 
   json_api do
     type "production-batch"
