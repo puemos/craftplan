@@ -1,4 +1,8 @@
-<img width="1280" alt="GitHub-Banner" src="https://github.com/user-attachments/assets/3de05737-08ee-4845-a5be-a8ce146d05b1" />
+<p align="center">
+  <img width="80" alt="GitHub-Banner" src="https://github.com/user-attachments/assets/7277558e-dd2a-4f4a-8853-e3a7caa816e7" />
+  <h3 align="center">Craftplan</h3>  
+  <p align="center">Open-source ERP for small-scale artisanal manufacturers and craft businesses</p>
+</p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-blue.svg" alt="License: AGPLv3"></a>
@@ -6,9 +10,20 @@
   <img src="https://img.shields.io/badge/phoenix-%7E%3E%201.8-orange.svg" alt="Phoenix ~> 1.8">
 </p>
 
-## Open-source ERP for small-scale artisanal manufacturers and craft businesses
 
-> **Live Demo:** [craftplan.fly.dev](https://craftplan.fly.dev). Log in with `test@test.com` / `Aa123123123123`
+<div align="center">
+
+[![Live Demo](https://img.shields.io/badge/Live_Demo-craftplan.fly.dev-blue)](https://craftplan.fly.dev)
+
+<details>
+<summary>🔑 Demo Credentials</summary>
+<br>
+
+**Email**: `test@test.com`
+**Password**: `Aa123123123123` 
+
+</details>
+</div>
 
 Craftplan brings all essential business tools into one platform: catalog management, inventory control, order processing, production planning, purchasing, and CRM, so you can get off the ground quickly without paying for multiple separate platforms.
 
@@ -98,8 +113,6 @@ docker compose up -d
 ```
 
 This starts Craftplan, PostgreSQL, and MinIO with migrations running automatically.
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/craftplan)
 
 See the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hosting/) for single-container mode, Railway deployment, reverse proxy setup, and more.
 
