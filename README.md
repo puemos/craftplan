@@ -88,18 +88,6 @@ Elixir · [Ash Framework](https://ash-hq.org/) · Phoenix LiveView · PostgreSQL
 
 ## Getting Started
 
-> **Prerequisites:** Docker, Elixir ~> 1.15, Erlang/OTP 27
-
-```bash
-docker compose -f docker-compose.dev.yml up -d   # Start PostgreSQL + MinIO + Mailpit
-mix setup               # Install deps, migrate, build assets, seed
-mix phx.server          # Start at localhost:4000
-```
-
-See the [setup guide](https://puemos.github.io/craftplan/docs/getting-started/) for detailed instructions.
-
-## Self-Hosting with Docker
-
 Deploy Craftplan on your own server. No need to clone the repo:
 
 ```bash
@@ -114,6 +102,18 @@ This starts Craftplan, PostgreSQL, and MinIO with migrations running automatical
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/craftplan)
 
 See the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hosting/) for single-container mode, Railway deployment, reverse proxy setup, and more.
+
+## Development Setup
+
+> For contributors who want to work on the codebase. **Prerequisites:** Docker, Elixir ~> 1.15, Erlang/OTP 27
+
+```bash
+docker compose -f docker-compose.dev.yml up -d   # Start PostgreSQL + MinIO + Mailpit
+mix setup               # Install deps, migrate, build assets, seed
+mix phx.server          # Start at localhost:4000
+```
+
+See the [development setup guide](https://puemos.github.io/craftplan/docs/getting-started/) for detailed instructions.
 
 ## Why Craftplan?
 

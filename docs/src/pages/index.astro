@@ -45,9 +45,9 @@ const base = import.meta.env.BASE_URL;
               >1</span
             >
             <div>
-              <p class="font-medium text-stone-900">Start dependencies</p>
+              <p class="font-medium text-stone-900">Clone & configure</p>
               <code class="text-xs text-stone-500"
-                >docker-compose up -d</code
+                >git clone ... && cd craftplan && cp .env.example .env</code
               >
             </div>
           </li>
@@ -57,8 +57,10 @@ const base = import.meta.env.BASE_URL;
               >2</span
             >
             <div>
-              <p class="font-medium text-stone-900">Install and set up</p>
-              <code class="text-xs text-stone-500">mix setup</code>
+              <p class="font-medium text-stone-900">Generate secrets</p>
+              <code class="text-xs text-stone-500"
+                >openssl rand -base64 48</code
+              >
             </div>
           </li>
           <li class="flex gap-3">
@@ -67,8 +69,10 @@ const base = import.meta.env.BASE_URL;
               >3</span
             >
             <div>
-              <p class="font-medium text-stone-900">Start the server</p>
-              <code class="text-xs text-stone-500">mix phx.server</code>
+              <p class="font-medium text-stone-900">Start everything</p>
+              <code class="text-xs text-stone-500"
+                >docker compose up -d</code
+              >
             </div>
           </li>
           <li class="flex gap-3">
@@ -87,9 +91,9 @@ const base = import.meta.env.BASE_URL;
       </div>
       <p class="mt-4 text-center text-sm text-stone-500">
         See the <a
-          href={`${base}docs/getting-started/`}
-          class="text-indigo-600 transition hover:text-indigo-500">full setup guide</a
-        > for prerequisites and detailed instructions.
+          href={`${base}docs/self-hosting/`}
+          class="text-indigo-600 transition hover:text-indigo-500">self-hosting guide</a
+        > for detailed instructions.
       </p>
     </div>
   </section>

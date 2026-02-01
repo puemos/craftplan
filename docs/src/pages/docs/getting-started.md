@@ -1,8 +1,10 @@
 ---
 layout: ../../layouts/DocsLayout.astro
-title: Getting Started
-description: Prerequisites, installation, and running Craftplan locally
+title: Development Setup
+description: Set up a local development environment for contributing to Craftplan
 ---
+
+> **Looking to run Craftplan?** See the [Self-Hosting guide](/craftplan/docs/self-hosting/). This page is for developers who want to contribute.
 
 ## Prerequisites
 

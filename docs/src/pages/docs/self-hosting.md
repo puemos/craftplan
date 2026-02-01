@@ -76,37 +76,33 @@ Railway provisions a PostgreSQL database automatically. After deploying:
 
 ## Generating Secrets
 
-Your `.env` file requires three secrets. You can generate them with or without a local Elixir installation.
+Your `.env` file requires several secrets. Generate them with `openssl`:
 
 ### SECRET_KEY_BASE and TOKEN_SIGNING_SECRET
 
 Both are random 64-byte strings. Generate each one separately:
 
 ```bash
-# With Elixir installed
-mix phx.gen.secret
-
-# Without Elixir (using Docker)
-docker run --rm hexpm/elixir:1.18.3-erlang-27.2.4-debian-bookworm-20250113-slim \
-  sh -c "mix local.hex --force --if-missing >/dev/null 2>&1 && mix phx.gen.secret"
+openssl rand -base64 48
 ```
+
+Run the command twice -- once for `SECRET_KEY_BASE` and once for `TOKEN_SIGNING_SECRET`.
 
 ### CLOAK_KEY
 
 A 32-byte AES key, base64-encoded:
 
 ```bash
-# With Elixir installed
-elixir -e ':crypto.strong_rand_bytes(32) |> Base.encode64() |> IO.puts()'
-
-# Without Elixir (using Docker)
-docker run --rm hexpm/elixir:1.18.3-erlang-27.2.4-debian-bookworm-20250113-slim \
-  elixir -e ':crypto.strong_rand_bytes(32) |> Base.encode64() |> IO.puts()'
+openssl rand -base64 32
 ```
 
 ### POSTGRES_PASSWORD
 
-Any strong password of your choice. It's used for the bundled PostgreSQL container (not needed if you supply your own `DATABASE_URL`).
+A password for the bundled PostgreSQL container (not needed if you supply your own `DATABASE_URL`):
+
+```bash
+openssl rand -base64 16
+```
 
 ---
 
