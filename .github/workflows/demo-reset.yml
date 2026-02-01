@@ -9,18 +9,29 @@ jobs:
   reset:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Start a machine
+      - name: Stop running machines
         run: |
-          MACHINE_ID=$(flyctl machine list -a craftday --json | jq -r '.[0].id')
-          flyctl machine start "$MACHINE_ID" -a craftday
-          sleep 15
+          for id in $(flyctl machine list -a craftday --json | jq -r '.[].id'); do
+            flyctl machine stop "$id" -a craftday || true
+          done
+          sleep 10
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Reset demo database
         run: |
+          MACHINE_ID=$(flyctl machine list -a craftday --json | jq -r '.[0].id')
+          flyctl machine start "$MACHINE_ID" -a craftday
+          sleep 15
           flyctl ssh console -a craftday -C "sh -c 'unset PHX_SERVER && SEED_DATA=true bin/craftplan eval Craftplan.Release.reset'"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Redeploy to clean restart
+        run: flyctl deploy --image ghcr.io/puemos/craftplan:latest -a craftday
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
