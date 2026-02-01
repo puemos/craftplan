@@ -60,7 +60,8 @@ defmodule CraftplanWeb.OverviewScheduleTest do
     actor = staff()
 
     items_with_remaining =
-      Enum.map(order_items, fn item ->
+      order_items
+      |> Enum.map(fn item ->
         full =
           Orders.get_order_item_by_id!(item.id,
             load: [:quantity, :planned_qty_sum],
@@ -266,7 +267,8 @@ defmodule CraftplanWeb.OverviewScheduleTest do
       # Start and complete the batch
       {:ok, started} = Ash.update(batch, %{}, action: :start, actor: staff())
 
-      Ash.Changeset.for_update(started, :complete, %{produced_qty: Decimal.new("5")})
+      started
+      |> Ash.Changeset.for_update(:complete, %{produced_qty: Decimal.new("5")})
       |> Ash.update!(actor: staff())
 
       {:ok, view, _html} = live(conn, ~p"/manage/production/schedule?view=day")
@@ -402,9 +404,8 @@ defmodule CraftplanWeb.OverviewScheduleTest do
       today = Date.utc_today()
 
       # Navigate to day view via URL patch (same as clicking a weekly card)
-      html =
-        view
-        |> render_patch(~p"/manage/production/schedule?view=day&date=#{Date.to_iso8601(today)}")
+      date = Date.to_iso8601(today)
+      html = render_patch(view, ~p"/manage/production/schedule?view=day&date=#{date}")
 
       # After patch, we should be in day view with kanban columns
       assert html =~ "Unbatched"

@@ -6,6 +6,7 @@ defmodule CraftplanWeb.ProductionBatchLiveTest do
   alias Ash.Changeset
   alias Craftplan.Inventory
   alias Craftplan.Orders.OrderItemLot
+  alias Craftplan.Orders.ProductionBatch
   alias Craftplan.Test.Factory
   alias Decimal, as: D
 
@@ -40,7 +41,7 @@ defmodule CraftplanWeb.ProductionBatchLiveTest do
 
     # Create batch via open_with_allocations (new flow — no batch_code on item)
     {:ok, batch} =
-      Craftplan.Orders.ProductionBatch
+      ProductionBatch
       |> Changeset.for_create(:open_with_allocations, %{
         product_id: product.id,
         planned_qty: D.new("8"),
@@ -84,7 +85,7 @@ defmodule CraftplanWeb.ProductionBatchLiveTest do
 
     # Create a production batch and assign the item to it
     {:ok, batch} =
-      Craftplan.Orders.ProductionBatch
+      ProductionBatch
       |> Changeset.for_create(:open, %{
         product_id: product.id,
         planned_qty: D.new("5")

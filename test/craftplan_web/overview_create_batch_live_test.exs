@@ -101,7 +101,7 @@ defmodule CraftplanWeb.OverviewCreateBatchLiveTest do
       |> Ash.Query.sort(inserted_at: :desc)
       |> Ash.read_one(actor: Craftplan.DataCase.staff_actor())
 
-    assert batch != nil
+    assert batch
 
     # Assert allocations exist for items
     allocs =
@@ -143,7 +143,10 @@ defmodule CraftplanWeb.OverviewCreateBatchLiveTest do
 
     # The item is now allocated, so it should appear in the Open column
     # There should be no unbatched card for this product since it's already allocated
-    if has_element?(view, ~s([phx-click="open_unbatched_modal"][phx-value-product-id="#{prod.id}"])) do
+    if has_element?(
+         view,
+         ~s([phx-click="open_unbatched_modal"][phx-value-product-id="#{prod.id}"])
+       ) do
       view
       |> element(~s([phx-click="open_unbatched_modal"][phx-value-product-id="#{prod.id}"]))
       |> render_click()
