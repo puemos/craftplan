@@ -11,6 +11,10 @@ interface Props {
 const { title, description = "Open-source ERP for artisanal manufacturers" } =
   Astro.props;
 const base = import.meta.env.BASE_URL;
+const siteUrl = `${import.meta.env.SITE}${base}`.replace(/\/$/, "");
+const pageTitle = `${title} · Craftplan`;
+const ogImage = `${siteUrl}/screenshots/og-image.jpg`;
+const canonicalUrl = new URL(Astro.url.pathname, import.meta.env.SITE);
 ---
 
 <!doctype html>
@@ -19,9 +23,26 @@ const base = import.meta.env.BASE_URL;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <title>{title} · Craftplan</title>
+    <meta name="theme-color" content="#1c1917" />
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="Craftplan" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
   </head>
   <body class="min-h-screen bg-stone-50 font-sans text-stone-800 antialiased">
     <Navbar />
