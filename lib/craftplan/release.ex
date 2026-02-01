@@ -19,6 +19,7 @@ defmodule Craftplan.Release do
 
   def reset do
     load_app()
+    Application.ensure_all_started(:postgrex)
 
     # Parse the DATABASE_URL and open a raw Postgrex connection to
     # drop/recreate the schema. This avoids pool disconnection issues
