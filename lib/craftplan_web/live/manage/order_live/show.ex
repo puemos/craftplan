@@ -43,7 +43,7 @@ defmodule CraftplanWeb.OrderLive.Show do
         <.link patch={~p"/manage/orders/#{@order.reference}/edit"} phx-click={JS.push_focus()}>
           <.button variant={:primary}>Edit order</.button>
         </.link>
-        <.link navigate={~p"/manage/orders/#{@order.reference}/invoice"}>
+        <.link href={~p"/manage/orders/#{@order.reference}/invoice.pdf"} target="_blank">
           <.button variant={:outline}>View Invoice</.button>
         </.link>
       </:actions>

@@ -49,7 +49,9 @@ defmodule CraftplanWeb.OrderLive.Invoice do
         <.link navigate={~p"/manage/orders/#{@order.reference}"}>
           <.button variant={:outline}>Back to Order</.button>
         </.link>
-        <.button variant={:primary} onclick="window.print()">Print / Save PDF</.button>
+        <.link href={~p"/manage/orders/#{@order.reference}/invoice.pdf"} target="_blank">
+          <.button variant={:primary}>Print / Save PDF</.button>
+        </.link>
       </div>
     </div>
     """

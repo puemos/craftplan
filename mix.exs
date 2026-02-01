@@ -87,6 +87,7 @@ defmodule Craftplan.MixProject do
       {:nimble_csv, "~> 1.2"},
       {:gen_smtp, "~> 1.0"},
       {:icalendar, "~> 1.1"},
+      {:imprintor, "~> 0.5"},
       {:open_api_spex, "~> 3.16"},
       {:req, "~> 0.5", only: [:dev, :test]}
     ]

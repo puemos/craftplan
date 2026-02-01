@@ -115,6 +115,10 @@ defmodule CraftplanWeb.Router do
     # CSV Export (regular controller, not LiveView)
     get "/manage/settings/csv/export/:entity", CSVExportController, :export
 
+    # PDF exports (regular controllers, not LiveView)
+    get "/manage/production/batches/:batch_code/sheet.pdf", BatchSheetController, :show
+    get "/manage/orders/:reference/invoice.pdf", InvoiceController, :show
+
     # Staff Routes
     ash_authentication_live_session :manage_routes,
       on_mount: [

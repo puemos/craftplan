@@ -84,9 +84,9 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
           {@product && @product.name}
         </:subtitle>
         <:actions>
-          <.button variant={:primary} onclick="window.print()" class="print:hidden">
-            Print Batch Sheet
-          </.button>
+          <.link href={~p"/manage/production/batches/#{@batch_code}/sheet.pdf"} target="_blank">
+            <.button variant={:primary}>Print Batch Sheet</.button>
+          </.link>
         </:actions>
       </.header>
 
