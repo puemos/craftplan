@@ -29,6 +29,6 @@ jobs:
           fi
 
       - name: Deploy to Fly.io
-        run: flyctl deploy --image ${{ steps.tag.outputs.image }} -a craftday
+        run: flyctl deploy --image ${{ steps.tag.outputs.image }} -a craftplan
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

@@ -1,4 +1,4 @@
-app = "craftday"
+app = "craftplan"
 primary_region = "fra"
 
 [build]

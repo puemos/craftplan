@@ -15,8 +15,8 @@ jobs:
 
       - name: Stop running machines
         run: |
-          for id in $(flyctl machine list -a craftday --json | jq -r '.[].id'); do
-            flyctl machine stop "$id" -a craftday || true
+          for id in $(flyctl machine list -a craftplan --json | jq -r '.[].id'); do
+            flyctl machine stop "$id" -a craftplan || true
           done
           sleep 10
         env:
@@ -24,14 +24,14 @@ jobs:
 
       - name: Reset demo database
         run: |
-          MACHINE_ID=$(flyctl machine list -a craftday --json | jq -r '.[0].id')
-          flyctl machine start "$MACHINE_ID" -a craftday
+          MACHINE_ID=$(flyctl machine list -a craftplan --json | jq -r '.[0].id')
+          flyctl machine start "$MACHINE_ID" -a craftplan
           sleep 15
-          flyctl ssh console -a craftday -C "sh -c 'unset PHX_SERVER && SEED_DATA=true bin/craftplan eval Craftplan.Release.reset'"
+          flyctl ssh console -a craftplan -C "sh -c 'unset PHX_SERVER && SEED_DATA=true bin/craftplan eval Craftplan.Release.reset'"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Redeploy to clean restart
-        run: flyctl deploy --image ghcr.io/puemos/craftplan:latest -a craftday
+        run: flyctl deploy --image ghcr.io/puemos/craftplan:latest -a craftplan
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
