@@ -18,14 +18,19 @@ defmodule Craftplan.Release do
   end
 
   def reset do
-    start_app_without_server()
+    load_app()
 
+    # Use a temporary connection to drop/recreate the schema, avoiding
+    # pool connection issues from DROP SCHEMA CASCADE.
     for repo <- repos() do
-      repo.query!("DROP SCHEMA public CASCADE")
-      repo.query!("CREATE SCHEMA public")
+      {:ok, _, _} =
+        Ecto.Migrator.with_repo(repo, fn repo ->
+          repo.query!("DROP SCHEMA public CASCADE")
+          repo.query!("CREATE SCHEMA public")
+          Ecto.Migrator.run(repo, :up, all: true)
+        end)
     end
 
-    Ecto.Migrator.with_repo(Craftplan.Repo, &Ecto.Migrator.run(&1, :up, all: true))
     seed()
   end
 
