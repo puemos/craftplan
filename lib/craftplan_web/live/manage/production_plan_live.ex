@@ -102,47 +102,44 @@ defmodule CraftplanWeb.ProductionPlanLive do
         </:actions>
       </.header>
 
-      <Page.two_column>
-        <:left>
-          <Page.section>
-            <Page.surface>
-              <.table id="pending-items" rows={@pending_items}>
-                <:empty>
-                  <div class="rounded border border-dashed border-stone-200 bg-stone-50 py-8 text-center text-sm text-stone-500">
-                    Nothing pending.
-                  </div>
-                </:empty>
-                <:col :let={item} label="Select" align={:center}>
-                  <input
-                    type="checkbox"
-                    value={item.id}
-                    checked={MapSet.member?(@selected_ids, item.id)}
-                    phx-click="toggle_select"
-                    phx-value-id={item.id}
-                  />
-                </:col>
-                <:col :let={item} label="Order">{format_reference(item.order.reference)}</:col>
-                <:col :let={item} label="Product">{item.product.name}</:col>
-                <:col :let={item} label="Customer">
-                  {item.order.customer && item.order.customer.full_name}
-                </:col>
-                <:col :let={item} label="Qty">{item.quantity}</:col>
-                <:col :let={item} label="Remaining">{item.remaining}</:col>
-                <:col :let={item} label="Planned">{item.planned_qty_sum || D.new(0)}</:col>
-              </.table>
-            </Page.surface>
-          </Page.section>
-        </:left>
-        <:right>
-          <Page.section>
-            <Page.surface class="space-y-6">
-              <.batch_lane title="To Do" batches={@batches_by_status.open} />
-              <.batch_lane title="In Progress" batches={@batches_by_status.in_progress} />
-              <.batch_lane title="Done" batches={@batches_by_status.done} />
-            </Page.surface>
-          </Page.section>
-        </:right>
-      </Page.two_column>
+  <Page.section>
+        <Page.surface>
+          <.table id="pending-items" rows={@pending_items}>
+            <:empty>
+              <div class="rounded border border-dashed border-stone-200 bg-stone-50 py-8 text-center text-sm text-stone-500">
+                Nothing pending.
+              </div>
+            </:empty>
+            <:col :let={item} label="Select" align={:center} class="w-[50px]">
+              <input
+                type="checkbox"
+                value={item.id}
+                checked={MapSet.member?(@selected_ids, item.id)}
+                phx-click="toggle_select"
+                phx-value-id={item.id}
+              />
+            </:col>
+            <:col :let={item} label="Order">
+              <span class="block w-[140px] truncate font-mono text-xs text-stone-600" title={item.order.reference}>
+                {item.order.reference}
+              </span>
+            </:col>
+            <:col :let={item} label="Product" class="font-medium text-stone-900">{item.product.name}</:col>
+            <:col :let={item} label="Customer" class="text-stone-600">
+              {item.order.customer && item.order.customer.full_name}
+            </:col>
+            <:col :let={item} label="Qty" align={:right} class="whitespace-nowrap tabular-nums">
+              {item.quantity}
+            </:col>
+            <:col :let={item} label="Remaining" align={:right} class="whitespace-nowrap tabular-nums">
+              {item.remaining}
+            </:col>
+            <:col :let={item} label="Planned" align={:right} class="whitespace-nowrap tabular-nums text-stone-500">
+              {item.planned_qty_sum || D.new(0)}
+            </:col>
+          </.table>
+        </Page.surface>
+      </Page.section>
 
       <.modal
         :if={@show_batch_modal}
@@ -180,33 +177,7 @@ defmodule CraftplanWeb.ProductionPlanLive do
     """
   end
 
-  defp batch_lane(assigns) do
-    assigns = assign_new(assigns, :batches, fn -> [] end)
 
-    ~H"""
-    <div class="rounded border border-stone-200 p-4">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold">{@title}</span>
-        <span class="text-xs text-stone-500">{length(@batches)} batches</span>
-      </div>
-      <div class="mt-3 space-y-3">
-        <div :if={Enum.empty?(@batches)} class="text-xs text-stone-400">No batches</div>
-        <.batch_card :for={batch <- @batches} batch={batch} />
-      </div>
-    </div>
-    """
-  end
-
-  defp batch_card(assigns) do
-    assigns = assign_new(assigns, :batch, fn -> nil end)
-
-    ~H"""
-    <div class="rounded border border-stone-200 bg-white p-3">
-      <div class="text-sm font-semibold">{@batch.batch_code}</div>
-      <div class="text-xs text-stone-500">{@batch.product && @batch.product.name}</div>
-    </div>
-    """
-  end
 
   @impl true
   def handle_event("toggle_select", %{"id" => id}, socket) do
