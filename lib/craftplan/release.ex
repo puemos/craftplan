@@ -41,7 +41,7 @@ defmodule Craftplan.Release do
   end
 
   defp start_app_without_server do
-    Application.put_env(:craftplan, CraftplanWeb.Endpoint, server: false)
+    System.delete_env("PHX_SERVER")
     {:ok, _} = Application.ensure_all_started(@app)
   end
 
