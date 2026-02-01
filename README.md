@@ -1,4 +1,4 @@
-<img width="1280" alt="GitHub-Banner" src="https://github.com/user-attachments/assets/25e649e8-64a5-4c9f-b610-0f1cadccde14" />
+<img width="1280" alt="GitHub-Banner" src="https://github.com/user-attachments/assets/3de05737-08ee-4845-a5be-a8ce146d05b1" />
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-blue.svg" alt="License: AGPLv3"></a>
