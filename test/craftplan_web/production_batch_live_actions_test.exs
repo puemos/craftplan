@@ -171,141 +171,32 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
       {:ok, view, _html} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
 
-      # Open batch: start button visible, consume/complete hidden
+      # Open batch: start button visible, inline form hidden
       assert has_element?(view, "button[phx-click=start_batch]")
-      refute has_element?(view, "button[phx-click=show_consume_modal]")
-      refute has_element?(view, "button[phx-click=show_complete_modal]")
+      refute has_element?(view, "#complete-batch-section")
 
       # Start the batch
       view |> element("button[phx-click=start_batch]") |> render_click()
 
-      # In-progress: start hidden, consume/complete visible
+      # In-progress: start hidden, inline complete form visible
       refute has_element?(view, "button[phx-click=start_batch]")
-      assert has_element?(view, "button[phx-click=show_consume_modal]")
-      assert has_element?(view, "button[phx-click=show_complete_modal]")
+      assert has_element?(view, "#complete-batch-section")
+      assert has_element?(view, "#complete-batch-form")
     end
   end
 
-  # ── Consume modal ───────────────────────────────────────────────
+  # ── Inline complete form ───────────────────────────────────────
 
-  describe "consume modal" do
+  describe "inline complete form" do
     @tag role: :staff
-    test "opens and shows the form", %{conn: conn} do
+    test "displays produced_qty and duration inputs when in_progress", %{conn: conn} do
       prod = product_with_bom!()
       {batch, _order, _item} = open_batch(prod)
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_consume_modal]") |> render_click()
 
-      assert has_element?(view, "#consume-batch-modal")
-      assert has_element?(view, "#consume-batch-form")
-    end
-
-    @tag role: :staff
-    test "shows empty message when no materials have available lots", %{conn: conn} do
-      prod = product_with_bom!()
-      {batch, _order, _item} = open_batch(prod)
-
-      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
-      view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_consume_modal]") |> render_click()
-
-      html = render(view)
-      assert html =~ "No materials with available lots found for this batch"
-    end
-
-    @tag role: :staff
-    test "shows materials and lots when batch has components_map", %{conn: conn} do
-      prod = product_with_bom!()
-      {material, lot} = create_material_with_lot!("Sugar", "500")
-
-      components_map = %{material.id => "10"}
-      {batch, _order, _item} = open_batch_with_components(prod, components_map)
-
-      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
-      view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_consume_modal]") |> render_click()
-
-      html = render(view)
-      assert html =~ "Sugar"
-      assert html =~ "Required:"
-      assert html =~ "10"
-      assert html =~ lot.lot_code
-      assert html =~ "stock:"
-    end
-
-    @tag role: :staff
-    test "can be cancelled", %{conn: conn} do
-      prod = product_with_bom!()
-      {batch, _order, _item} = open_batch(prod)
-
-      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
-      view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_consume_modal]") |> render_click()
-
-      assert has_element?(view, "#consume-batch-modal")
-
-      view
-      |> element("#consume-batch-modal button[phx-click=cancel_consume_modal]")
-      |> render_click()
-
-      refute has_element?(view, "#consume-batch-modal")
-    end
-
-    @tag role: :staff
-    test "submitting with empty lot plan records consumption", %{conn: conn} do
-      prod = product_with_bom!()
-      {batch, _order, _item} = open_batch(prod)
-
-      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
-      view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_consume_modal]") |> render_click()
-
-      view
-      |> form("#consume-batch-form", %{})
-      |> render_submit()
-
-      html = render(view)
-      assert html =~ "Consumption recorded"
-    end
-
-    @tag role: :staff
-    test "submitting with lot quantities records consumption", %{conn: conn} do
-      prod = product_with_bom!()
-      {material, lot} = create_material_with_lot!("Butter", "200")
-
-      components_map = %{material.id => "5"}
-      {batch, _order, _item} = open_batch_with_components(prod, components_map)
-
-      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
-      view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_consume_modal]") |> render_click()
-
-      view
-      |> form("#consume-batch-form", %{
-        "lot_plan" => %{material.id => %{lot.id => "50"}}
-      })
-      |> render_submit()
-
-      html = render(view)
-      assert html =~ "Consumption recorded"
-    end
-  end
-
-  # ── Complete modal ──────────────────────────────────────────────
-
-  describe "complete modal" do
-    @tag role: :staff
-    test "opens and displays produced_qty and duration inputs", %{conn: conn} do
-      prod = product_with_bom!()
-      {batch, _order, _item} = open_batch(prod)
-
-      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
-      view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
-
-      assert has_element?(view, "#complete-batch-modal")
+      assert has_element?(view, "#complete-batch-section")
       assert has_element?(view, ~s(input[name="produced_qty"]))
       assert has_element?(view, ~s(input[name="duration_minutes"]))
     end
@@ -318,7 +209,6 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
 
       html = render(view)
       assert html =~ "Completed quantities per order item"
@@ -335,45 +225,77 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
 
       html = render(view)
       refute html =~ "Completed quantities per order item"
     end
 
     @tag role: :staff
-    test "can be cancelled", %{conn: conn} do
+    test "advanced toggle shows lot selection", %{conn: conn} do
       prod = product_with_bom!()
-      {batch, _order, _item} = open_batch(prod)
+      {material, _lot} = create_material_with_lot!("Sugar", "500")
+
+      components_map = %{material.id => "10"}
+      {batch, _order, _item} = open_batch_with_components(prod, components_map)
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
 
-      assert has_element?(view, "#complete-batch-modal")
+      # Lot selection not visible by default
+      html = render(view)
+      refute html =~ "Sugar"
 
-      view
-      |> element("#complete-batch-modal button[phx-click=cancel_complete_modal]")
-      |> render_click()
+      # Toggle advanced lots
+      view |> element("input[phx-click=toggle_advanced_lots]") |> render_click()
 
-      refute has_element?(view, "#complete-batch-modal")
+      html = render(view)
+      assert html =~ "Sugar"
+      assert html =~ "Required:"
+      assert html =~ "stock:"
     end
 
     @tag role: :staff
-    test "successfully completes batch with allocation quantities", %{conn: conn} do
+    test "successfully completes batch with auto-FIFO (no advanced toggle)", %{conn: conn} do
       prod = product_with_bom!()
       {batch, _order, order_item} = open_batch(prod)
       create_allocation!(batch, order_item)
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
 
       view
       |> form("#complete-batch-form", %{
         "produced_qty" => "1",
         "duration_minutes" => "10",
         "completed_map" => %{order_item.id => "1"}
+      })
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "completed"
+    end
+
+    @tag role: :staff
+    test "successfully completes batch with manual lot selection", %{conn: conn} do
+      prod = product_with_bom!()
+      {material, lot} = create_material_with_lot!("Butter", "200")
+
+      components_map = %{material.id => "5"}
+      {batch, _order, order_item} = open_batch_with_components(prod, components_map)
+      create_allocation!(batch, order_item)
+
+      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
+      view |> element("button[phx-click=start_batch]") |> render_click()
+
+      # Enable advanced toggle
+      view |> element("input[phx-click=toggle_advanced_lots]") |> render_click()
+
+      view
+      |> form("#complete-batch-form", %{
+        "produced_qty" => "1",
+        "duration_minutes" => "10",
+        "completed_map" => %{order_item.id => "1"},
+        "lot_plan" => %{material.id => %{lot.id => "5"}}
       })
       |> render_submit()
 
@@ -389,7 +311,6 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
 
       view
       |> form("#complete-batch-form", %{
@@ -408,7 +329,6 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
 
       view
       |> form("#complete-batch-form", %{"produced_qty" => ""})
@@ -425,7 +345,6 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
       {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
       view |> element("button[phx-click=start_batch]") |> render_click()
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
 
       view
       |> form("#complete-batch-form", %{
@@ -443,7 +362,7 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
   describe "full batch workflow" do
     @tag role: :staff
-    test "open → start → consume → complete lifecycle", %{conn: conn} do
+    test "open → start → complete lifecycle (auto-FIFO)", %{conn: conn} do
       prod = product_with_bom!()
       {batch, _order, order_item} = open_batch(prod)
       create_allocation!(batch, order_item)
@@ -455,14 +374,7 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
       view |> element("button[phx-click=start_batch]") |> render_click()
       assert render(view) =~ "in_progress"
 
-      # Step 2: Consume (empty plan)
-      view |> element("button[phx-click=show_consume_modal]") |> render_click()
-      view |> form("#consume-batch-form", %{}) |> render_submit()
-      assert render(view) =~ "Consumption recorded"
-
-      # Step 3: Complete
-      view |> element("button[phx-click=show_complete_modal]") |> render_click()
-
+      # Step 2: Complete (auto-consumes via FIFO)
       view
       |> form("#complete-batch-form", %{
         "produced_qty" => "1",
@@ -474,10 +386,9 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
       html = render(view)
       assert html =~ "completed"
 
-      # After completion, no action buttons should appear
+      # After completion, no action buttons or forms should appear
       refute has_element?(view, "button[phx-click=start_batch]")
-      refute has_element?(view, "button[phx-click=show_consume_modal]")
-      refute has_element?(view, "button[phx-click=show_complete_modal]")
+      refute has_element?(view, "#complete-batch-section")
     end
   end
 end

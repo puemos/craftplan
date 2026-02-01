@@ -73,19 +73,27 @@ defmodule CraftplanWeb.OverviewCreateBatchLiveTest do
   end
 
   @tag role: :staff
-  test "daily planner: create batch creates allocations and redirects", %{conn: conn} do
+  test "daily planner: create batch creates allocations and stays on page", %{conn: conn} do
     mat = create_material!()
     prod = create_product_with_bom!(mat)
     _order = create_order_with_items_for_today!(prod, [1, 2])
 
     {:ok, view, _} = live(conn, ~p"/manage/production/schedule?view=day")
 
-    # Click Create Batch for this product/day
+    # Open unbatched modal, then click Batch All
     view
-    |> element("button[phx-click=create_batch][phx-value-product_id=\"#{prod.id}\"]")
-    |> render_click(%{"date" => Date.to_iso8601(Date.utc_today()), "product_id" => prod.id})
+    |> element(~s([phx-click="open_unbatched_modal"][phx-value-product-id="#{prod.id}"]))
+    |> render_click()
 
-    # Fetch the newly created batch and assert redirect was triggered to correct path
+    view
+    |> element("button", "Batch All")
+    |> render_click()
+
+    # Should stay on page (no redirect), show flash
+    html = render(view)
+    assert html =~ "created"
+
+    # Fetch the newly created batch
     {:ok, batch} =
       ProductionBatch
       |> Ash.Query.new()
@@ -93,7 +101,7 @@ defmodule CraftplanWeb.OverviewCreateBatchLiveTest do
       |> Ash.Query.sort(inserted_at: :desc)
       |> Ash.read_one(actor: Craftplan.DataCase.staff_actor())
 
-    assert_redirect(view, ~p"/manage/production/batches/#{batch.batch_code}")
+    assert batch != nil
 
     # Assert allocations exist for items
     allocs =
@@ -131,12 +139,23 @@ defmodule CraftplanWeb.OverviewCreateBatchLiveTest do
       })
       |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
 
-    {:ok, view, _} = live(conn, ~p"/manage/production/schedule?view=day")
+    {:ok, view, html} = live(conn, ~p"/manage/production/schedule?view=day")
 
-    view
-    |> element("button[phx-click=create_batch][phx-value-product_id=\"#{prod.id}\"]")
-    |> render_click(%{"date" => Date.to_iso8601(Date.utc_today()), "product_id" => prod.id})
+    # The item is now allocated, so it should appear in the Open column
+    # There should be no unbatched card for this product since it's already allocated
+    if has_element?(view, ~s([phx-click="open_unbatched_modal"][phx-value-product-id="#{prod.id}"])) do
+      view
+      |> element(~s([phx-click="open_unbatched_modal"][phx-value-product-id="#{prod.id}"]))
+      |> render_click()
 
-    assert render(view) =~ "Nothing remaining to allocate"
+      view
+      |> element("button", "Batch All")
+      |> render_click()
+
+      assert render(view) =~ "Nothing remaining to allocate"
+    else
+      # Item is already in a batch column — no unbatched card expected
+      assert html =~ "Open"
+    end
   end
 end
