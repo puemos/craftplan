@@ -8,6 +8,8 @@
 
 ## Open-source ERP for small-scale artisanal manufacturers and craft businesses
 
+> **Live Demo:** [craftplan.fly.dev](https://craftplan.fly.dev) — log in with `test@test.com` / `Aa123123123123`
+
 Craftplan brings all essential business tools into one platform — catalog management, inventory control, order processing, production planning, purchasing, and CRM — so you can get off the ground quickly without paying for multiple separate platforms.
 
 ![Manage overview with schedule, make sheet, and completion snapshot](screenshots/plan.webp)
