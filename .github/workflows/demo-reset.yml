@@ -11,6 +11,13 @@ jobs:
     steps:
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Start a machine
+        run: |
+          flyctl machine start -a craftday --wait-timeout 60
+          sleep 10
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
       - name: Reset demo database
         run: |
           flyctl ssh console -a craftday -C "SEED_DATA=true bin/craftplan eval Craftplan.Release.reset"
