@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: Production Batching
-description: Batch workflow from allocation through consumption to completion with cost snapshots
+description: Batch workflow from allocation through completion with auto-FIFO consumption and cost snapshots
 ---
 
 Production batching groups order items into efficient production runs with full material tracking and cost accounting.
@@ -13,8 +13,9 @@ A production batch progresses through these stages:
 1. **Open** — Batch created, ready for order items to be allocated
 2. **Allocate** — Order items assigned to the batch based on product and delivery date
 3. **Start** — Production begins, materials are reserved
-4. **Consume** — Raw materials deducted from inventory lots based on BOM quantities
-5. **Complete** — Production finished, cost snapshot captured
+4. **Complete** — Production finished, materials auto-consumed from lots via FIFO, cost snapshot captured
+
+The complete step automatically consumes raw materials using FIFO (first-expiry, first-out) lot selection and calculates costs in a single action.
 
 ## Allocating Order Items
 
@@ -28,14 +29,16 @@ The planner's schedule view makes it easy to see which items are allocated to wh
 
 ## Material Consumption
 
-When a batch moves to the consume stage:
+When a batch is completed, the system automatically handles material consumption:
 
-- The system reads the active BOM for each product in the batch
-- Required material quantities are calculated from BOM components
-- Stock is deducted from available inventory lots
-- Consumption movements are recorded in the inventory audit trail
+- The BOM snapshot frozen at batch creation determines required quantities
+- Lots are selected using FIFO ordering (earliest expiry date first)
+- Stock is deducted from selected lots via inventory movements
+- If stock is insufficient, the operator is prompted to use manual lot selection
 
-The consumption recap shows a breakdown of materials used, grouped by unit, matching the enforcement in the consumption logic.
+### Manual Lot Selection
+
+For cases where auto-FIFO is not appropriate (e.g., specific lot requirements, partial stock), operators can toggle **Advanced: Manual Lot Selection** on the completion form to explicitly choose which lots and quantities to consume.
 
 ## Cost Snapshots
 
@@ -51,7 +54,7 @@ These snapshots are persisted on the order items and power the **Completion Snap
 
 ## BOM Snapshots
 
-The batch locks in the BOM version that was active at the time of completion. This means:
+The batch locks in the BOM version that was active at the time of creation. This means:
 
 - Historical batches always reflect the costs that were current when production ran
 - Updating a BOM does not retroactively change completed batch costs
