@@ -9,6 +9,8 @@ defmodule Craftplan.Orders.ProductionBatch do
 
   import Ash.Expr
 
+  require Ash.Query
+
   alias Craftplan.Orders.Changes.BatchOpenInit
 
   json_api do
@@ -70,6 +72,7 @@ defmodule Craftplan.Orders.ProductionBatch do
       argument :produced_qty, :decimal, allow_nil?: false
       argument :duration_minutes, :decimal, allow_nil?: true
       argument :completed_map, :map, allow_nil?: true
+      argument :lot_plan, :map, allow_nil?: true
       require_atomic? false
       change {Craftplan.Orders.Changes.BatchComplete, []}
     end
@@ -78,6 +81,36 @@ defmodule Craftplan.Orders.ProductionBatch do
       argument :batch_code, :string, allow_nil?: false
       get? true
       filter expr(batch_code == ^arg(:batch_code))
+    end
+
+    read :list do
+      argument :status, {:array, :atom}, allow_nil?: true
+      argument :product_name, :string, allow_nil?: true
+
+      prepare fn query, _context ->
+        query = Ash.Query.sort(query, inserted_at: :desc)
+        query = Ash.Query.load(query, [:product])
+
+        query =
+          case Ash.Query.get_argument(query, :status) do
+            nil -> query
+            [] -> query
+            statuses -> Ash.Query.filter(query, expr(status in ^statuses))
+          end
+
+        case Ash.Query.get_argument(query, :product_name) do
+          nil -> query
+          "" -> query
+          name -> Ash.Query.filter(query, expr(product.name == ^name))
+        end
+      end
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
     end
 
     read :recent do

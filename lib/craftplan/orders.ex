@@ -30,6 +30,7 @@ defmodule Craftplan.Orders do
       define :get_production_batch_by_id, action: :read, get_by: [:id]
       define :get_production_batch_by_code, action: :by_code
       define :list_production_batches, action: :read
+      define :list_production_batches_filtered, action: :list
       define :list_production_batches_for_plan, action: :plan
     end
 

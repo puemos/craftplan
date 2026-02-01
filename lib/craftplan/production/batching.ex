@@ -9,6 +9,7 @@ defmodule Craftplan.Production.Batching do
   alias Craftplan.Catalog
   alias Craftplan.Catalog.Services.BatchCostCalculator
   alias Craftplan.Inventory
+  alias Craftplan.Inventory.Lot
   alias Craftplan.Orders
   alias Craftplan.Orders.OrderItemBatchAllocation
   alias Craftplan.Orders.OrderItemLot
@@ -87,8 +88,52 @@ defmodule Craftplan.Production.Batching do
     actor = Keyword.get(opts, :actor)
 
     batch
-    |> Changeset.for_update(:update, %{status: :in_progress, started_at: DateTime.utc_now()})
+    |> Changeset.for_update(:start, %{})
     |> Ash.update(actor: actor)
+  end
+
+  @doc """
+  Auto-selects lots using FIFO (earliest expiry first) for all materials in a batch.
+  Returns {:ok, lot_plan} or {:error, {:insufficient_stock, material_id, required, short}}.
+  """
+  def auto_select_lots(%ProductionBatch{} = batch, produced_qty) do
+    components_map = batch.components_map || %{}
+    produced_qty = normalize(produced_qty)
+
+    Enum.reduce_while(components_map, {:ok, %{}}, fn {material_id, per_unit_str}, {:ok, acc} ->
+      required = D.mult(D.new(per_unit_str), produced_qty)
+
+      lots =
+        Lot
+        |> Ash.Query.filter(material_id == ^material_id and current_stock > 0)
+        |> Ash.Query.load([:current_stock])
+        |> Ash.Query.sort(expiry_date: :asc)
+        |> Ash.read!(authorize?: false)
+
+      case allocate_from_lots(lots, required) do
+        {:ok, entries} -> {:cont, {:ok, Map.put(acc, material_id, entries)}}
+        {:error, short} -> {:halt, {:error, {:insufficient_stock, material_id, required, short}}}
+      end
+    end)
+  end
+
+  defp allocate_from_lots(lots, required) do
+    {entries, remaining} =
+      Enum.reduce_while(lots, {[], required}, fn lot, {acc, remaining} ->
+        if D.lte?(remaining, D.new(0)) do
+          {:halt, {acc, remaining}}
+        else
+          take = D.min(lot.current_stock, remaining)
+          entry = %{lot_id: lot.id, quantity: take}
+          {:cont, {[entry | acc], D.sub(remaining, take)}}
+        end
+      end)
+
+    if D.gt?(remaining, D.new(0)) do
+      {:error, remaining}
+    else
+      {:ok, Enum.reverse(entries)}
+    end
   end
 
   @doc """
@@ -126,7 +171,7 @@ defmodule Craftplan.Production.Batching do
   end
 
   defp get_lot_material_id(lot_id, actor) do
-    Craftplan.Inventory.Lot
+    Lot
     |> Ash.get!(lot_id, actor: actor, authorize?: false)
     |> Map.fetch!(:material_id)
   end

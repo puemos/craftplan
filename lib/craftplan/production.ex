@@ -12,6 +12,8 @@ defmodule Craftplan.Production do
   alias Craftplan.InventoryForecasting
   alias Craftplan.Orders
   alias Craftplan.Orders.OrderItem
+  alias Craftplan.Orders.OrderItemBatchAllocation
+  alias Craftplan.Orders.ProductionBatch
   alias Decimal, as: D
 
   require Ash.Query
@@ -63,6 +65,8 @@ defmodule Craftplan.Production do
         :quantity,
         :status,
         :consumed_at,
+        :batch_code,
+        :production_batch_id,
         product: [
           :name,
           :max_daily_quantity,
@@ -106,6 +110,8 @@ defmodule Craftplan.Production do
               quantity: item.quantity,
               status: item.status,
               consumed_at: item.consumed_at,
+              batch_code: item.batch_code,
+              production_batch_id: item.production_batch_id,
               order: order
             }
           end)
@@ -232,6 +238,30 @@ defmodule Craftplan.Production do
   end
 
   @doc """
+  Returns production batches filtered by status and product name.
+  """
+  def list_batches(filters \\ %{}, opts \\ []) do
+    args =
+      %{}
+      |> then(fn args ->
+        case Map.get(filters, :status) do
+          nil -> args
+          [] -> args
+          statuses -> Map.put(args, :status, Enum.map(statuses, &String.to_existing_atom/1))
+        end
+      end)
+      |> then(fn args ->
+        case Map.get(filters, :product_name) do
+          nil -> args
+          "" -> args
+          name -> Map.put(args, :product_name, name)
+        end
+      end)
+
+    Orders.list_production_batches_filtered!(args, opts)
+  end
+
+  @doc """
   Returns recent batches (newest first) with summary metadata for listing pages.
   """
   def list_recent_batches(limit \\ 20, opts \\ []) when limit > 0 do
@@ -292,13 +322,18 @@ defmodule Craftplan.Production do
   def batch_report!(batch_code, opts \\ []) do
     actor = Keyword.get(opts, :actor)
 
-    items = batch_order_items!(batch_code, actor)
+    production_batch = maybe_load_production_batch(batch_code, actor)
+
+    items =
+      case batch_order_items_by_code(batch_code, actor) do
+        [] -> batch_order_items_by_allocation(production_batch, actor)
+        items -> items
+      end
 
     if Enum.empty?(items) do
       raise ArgumentError, "no order items found for batch #{batch_code}"
     end
 
-    production_batch = maybe_load_production_batch(batch_code, actor)
     product = resolve_batch_product(production_batch, items)
     bom = resolve_batch_bom(production_batch, items)
     produced_at = resolve_produced_at(production_batch, items)
@@ -461,13 +496,36 @@ defmodule Craftplan.Production do
     |> Enum.sort_by(fn entry -> (entry.material && entry.material.name) || "" end)
   end
 
-  defp batch_order_items!(batch_code, actor) do
+  defp batch_order_items_by_code(batch_code, actor) do
     OrderItem
     |> Ash.Query.new()
     |> Ash.Query.filter(expr(batch_code == ^batch_code))
     |> Ash.Query.load(@batch_item_load)
     |> Ash.Query.sort(inserted_at: :asc)
     |> Ash.read!(actor: actor)
+  end
+
+  defp batch_order_items_by_allocation(nil, _actor), do: []
+
+  defp batch_order_items_by_allocation(production_batch, actor) do
+    allocation_item_ids =
+      OrderItemBatchAllocation
+      |> Ash.Query.filter(production_batch_id == ^production_batch.id)
+      |> Ash.Query.select([:order_item_id])
+      |> Ash.read!(actor: actor)
+      |> Enum.map(& &1.order_item_id)
+
+    case allocation_item_ids do
+      [] ->
+        []
+
+      ids ->
+        OrderItem
+        |> Ash.Query.filter(expr(id in ^ids))
+        |> Ash.Query.load(@batch_item_load)
+        |> Ash.Query.sort(inserted_at: :asc)
+        |> Ash.read!(actor: actor)
+    end
   end
 
   defp maybe_load_production_batch(batch_code, actor) do
@@ -506,6 +564,45 @@ defmodule Craftplan.Production do
         DateTime.before?(dt, acc) -> dt
         true -> acc
       end
+    end)
+  end
+
+  @doc """
+  Load ProductionBatch records for a list of batch codes.
+  Returns a map of `%{batch_code => %ProductionBatch{}}`.
+  """
+  def batch_statuses_for_codes([], _actor), do: %{}
+
+  def batch_statuses_for_codes(batch_codes, actor) do
+    ProductionBatch
+    |> Ash.Query.filter(batch_code in ^batch_codes)
+    |> Ash.Query.load([:product])
+    |> Ash.read!(actor: actor)
+    |> Map.new(fn b -> {b.batch_code, b} end)
+  end
+
+  @doc """
+  Build a map of `order_item_id -> %{batch_code, batch_id, batch_status}` from allocations.
+  This tells us which order items are allocated to which production batches.
+  """
+  def allocation_map_for_items([], _actor), do: %{}
+
+  def allocation_map_for_items(item_ids, actor) do
+    allocations =
+      OrderItemBatchAllocation
+      |> Ash.Query.filter(order_item_id in ^item_ids)
+      |> Ash.Query.load([:production_batch])
+      |> Ash.read!(actor: actor)
+
+    Map.new(allocations, fn a ->
+      batch = a.production_batch
+
+      {a.order_item_id,
+       %{
+         batch_code: batch.batch_code,
+         batch_id: batch.id,
+         batch_status: batch.status
+       }}
     end)
   end
 
