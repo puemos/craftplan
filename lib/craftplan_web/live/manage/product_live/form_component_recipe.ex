@@ -72,37 +72,40 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             </p>
             <div
               id="recipe"
-              class="mt-2 grid w-full grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
+              class="mt-2 grid w-full grid-cols-2 gap-x-4 text-sm leading-6 text-stone-700 md:grid-cols-4"
             >
               <div
                 role="row"
-                class="col-span-4 grid grid-cols-4 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                class="col-span-2 grid grid-cols-2 border-b border-stone-300 text-left text-sm leading-6 text-stone-500 md:col-span-4 md:grid-cols-4"
               >
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 ">
                   Material
                 </div>
-                <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0 md:border-r">
                   Quantity
                 </div>
-                <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                <div class="hidden border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0 md:block">
                   <span>Total Cost</span>
                   <span class="text-stone-700">
                     ({format_money(@settings.currency, @materials_total || D.new(0))})
                   </span>
                 </div>
-                <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                <div class="hidden border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0 md:block">
                   <span class="opacity-0">Actions</span>
                 </div>
               </div>
 
-              <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
+              <div role="row" class="col-span-2 hidden py-4 text-stone-400 last:block md:col-span-4">
                 <div>
                   No materials in recipe
                 </div>
               </div>
 
               <.inputs_for :let={components_form} field={@form[:components]}>
-                <div role="row" class="group col-span-4 grid grid-cols-4 hover:bg-stone-200/40">
+                <div
+                  role="row"
+                  class="group col-span-2 grid grid-cols-2 hover:bg-stone-200/40 md:col-span-4 md:grid-cols-4"
+                >
                   <% material = material_for_form(@materials_map, components_form) %>
                   <div class="relative border-r border-b border-stone-200 p-0 last:border-r-0 ">
                     <div class="block py-4 pr-6">
@@ -150,7 +153,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                   </div>
 
-                  <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                  <div class="relative hidden border-r border-b border-stone-200 p-0 pl-4 last:border-r-0 md:block">
                     <div class="block py-4 pr-6">
                       <span class="relative">
                         {format_material_cost(
@@ -162,7 +165,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                   </div>
 
-                  <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                  <div class="relative hidden border-r border-b border-stone-200 p-0 pl-4 last:border-r-0 md:block">
                     <div class="block py-4 pr-6">
                       <%= if latest_version(@boms) != @bom.version do %>
                         <span class="text-stone-400">Read-only</span>
@@ -926,7 +929,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   defp get_material_unit(materials_map, components_form) do
     case material_for_form(materials_map, components_form) do
       nil -> ""
-      material -> material.unit
+      material -> Craftplan.Types.Unit.abbreviation(material.unit)
     end
   end
 

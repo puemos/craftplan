@@ -153,7 +153,12 @@ defmodule CraftplanWeb.Components.Core do
 
                 <div
                   id={"#{@id}-content"}
-                  class={[@fullscreen && "h-[calc(100vh-3.5rem)] overflow-auto", "py-1"]}
+                  class={[
+                    @fullscreen && "h-[calc(100vh-3.5rem)] overflow-auto",
+                    not @fullscreen &&
+                      "max-h-[calc(100vh-10rem)] overflow-y-auto sm:max-h-none sm:overflow-visible",
+                    "py-1"
+                  ]}
                 >
                   {render_slot(@inner_block)}
                 </div>
@@ -646,6 +651,7 @@ defmodule CraftplanWeb.Components.Core do
     doc: "The value to use for color lookup, can be atom or string"
 
   attr :colors, :list, default: [], doc: "A keyword list of statuses to CSS classes"
+  attr :class, :string, default: nil, doc: "Additional CSS classes"
 
   def badge(assigns) do
     key =
@@ -671,7 +677,8 @@ defmodule CraftplanWeb.Components.Core do
     ~H"""
     <span class={[
       "inline-flex whitespace-nowrap rounded-full border px-2 text-xs font-normal capitalize leading-5",
-      @color_class
+      @color_class,
+      @class
     ]}>
       {format_label(@text)}
     </span>

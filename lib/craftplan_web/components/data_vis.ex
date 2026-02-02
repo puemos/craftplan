@@ -84,7 +84,7 @@ defmodule CraftplanWeb.Components.DataVis do
       end
 
     ~H"""
-    <div class={["w-full overflow-y-auto px-4 sm:overflow-visible sm:px-0", @wrapper_class]}>
+    <div class={["w-full overflow-x-auto px-4 sm:overflow-visible sm:px-0", @wrapper_class]}>
       <table class={[
         if(@layout == :fixed, do: "table-fixed", else: "table-auto"),
         "border-collapse sm:w-full",

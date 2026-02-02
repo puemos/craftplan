@@ -124,7 +124,7 @@ defmodule CraftplanWeb.Layouts do
           <header class="bg-stone-50/90 min-h-14 flex items-center gap-3 border-b border-stone-200 sm:px-6 lg:px-8">
             <button
               type="button"
-              class="rounded-md border border-stone-200 bg-white p-2 text-stone-600 transition hover:text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 md:hidden"
+              class="ml-1 rounded-md border border-stone-200 bg-white p-2 text-stone-600 transition hover:text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 md:hidden"
               phx-click={show_sidebar()}
               aria-label="Open navigation"
             >

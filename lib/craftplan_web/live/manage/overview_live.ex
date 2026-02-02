@@ -202,7 +202,25 @@ defmodule CraftplanWeb.OverviewLive do
             id="controls"
             class="border-gray-200/70 flex items-center justify-between border-b pb-4"
           >
-            <div></div>
+            <% day = List.first(@days_range) %>
+            <div>
+              <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
+                <span>
+                  {format_date(List.first(@days_range), format: "%B %Y")}
+                </span>
+                <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
+                  <span>
+                    //
+                  </span>
+                  <span>
+                    {format_day_name(day)}
+                  </span>
+                  <span>
+                    {format_short_date(day, @time_zone)}
+                  </span>
+                </div>
+              </span>
+            </div>
             <div class="flex items-center space-x-4">
               <!-- View toggle -->
               <div class="mr-2 hidden items-center sm:flex">
@@ -309,26 +327,6 @@ defmodule CraftplanWeb.OverviewLive do
                 </button>
               </div>
             </div>
-            <% day = List.first(@days_range) %>
-
-            <div class="absolute left-1/2 -translate-x-1/2 transform">
-              <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
-                <span>
-                  {format_date(List.first(@days_range), format: "%B %Y")}
-                </span>
-                <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
-                  <span>
-                    //
-                  </span>
-                  <span>
-                    {format_day_name(day)}
-                  </span>
-                  <span>
-                    {format_short_date(day, @time_zone)}
-                  </span>
-                </div>
-              </span>
-            </div>
           </div>
 
           <%= if @schedule_view == :day do %>
@@ -343,7 +341,7 @@ defmodule CraftplanWeb.OverviewLive do
               :if={!Enum.empty?(unbatched) || !Enum.empty?(batched)}
               id="kanban-batches"
               phx-hook="KanbanDragDrop"
-              class="mt-4 grid grid-cols-4 gap-3"
+              class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
             >
               <%!-- Unbatched column --%>
               <div class="kanban-column rounded-lg bg-stone-50 p-3" data-status="unbatched">
@@ -593,8 +591,8 @@ defmodule CraftplanWeb.OverviewLive do
             </.modal>
           <% else %>
             <%!-- Week View --%>
-            <div class="min-w-[1000px]">
-              <table class="w-full table-fixed border-collapse">
+            <div class="w-full overflow-x-auto">
+              <table class="min-w-[1000px] w-full table-fixed border-collapse">
                 <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
                   <tr>
                     <th
@@ -670,20 +668,21 @@ defmodule CraftplanWeb.OverviewLive do
                             "hover:bg-stone-100"
                           ]}
                         >
-                          <div class="mb-1.5 flex items-center justify-between gap-2">
-                            <span class="truncate text-sm font-medium" title={product.name}>
+                          <div class="mb-1.5 flex items-center justify-between gap-2 overflow-hidden">
+                            <span class="min-w-0 truncate text-sm font-medium" title={product.name}>
                               {product.name}
                             </span>
                             <.badge
                               :if={capacity_status(product, items) == :over}
                               text="Over capacity"
+                              class="flex-shrink-0"
                             />
                           </div>
                           <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
                             <span>
                               {format_amount(:piece, total_quantity(items))}
                             </span>
-                            <span class="text-[10px] inline-flex items-center rounded-full bg-stone-100 px-1.5 py-0.5 font-medium text-stone-600">
+                            <span class="text-[10px] inline-flex flex-shrink-0 items-center rounded-full bg-stone-100 px-1.5 py-0.5 font-medium text-stone-600">
                               Unbatched
                             </span>
                           </div>
@@ -702,9 +701,9 @@ defmodule CraftplanWeb.OverviewLive do
                             "hover:bg-stone-100"
                           ]}
                         >
-                          <div class="mb-1.5 flex items-center justify-between gap-2">
+                          <div class="mb-1.5 flex items-center justify-between gap-2 overflow-hidden">
                             <span
-                              class="truncate text-sm font-medium"
+                              class="min-w-0 truncate text-sm font-medium"
                               title={batch_group.product.name}
                             >
                               {batch_group.product.name}
@@ -712,6 +711,7 @@ defmodule CraftplanWeb.OverviewLive do
                             <.badge
                               :if={capacity_status(batch_group.product, batch_group.items) == :over}
                               text="Over capacity"
+                              class="flex-shrink-0"
                             />
                           </div>
                           <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
@@ -719,7 +719,7 @@ defmodule CraftplanWeb.OverviewLive do
                               {format_amount(:piece, total_quantity(batch_group.items))}
                             </span>
                             <span class={[
-                              "text-[10px] inline-flex items-center rounded-full px-1.5 py-0.5 font-medium",
+                              "text-[10px] inline-flex flex-shrink-0 items-center rounded-full px-1.5 py-0.5 font-medium",
                               batch_status_class(batch_group.status)
                             ]}>
                               {batch_status_label(batch_group.status)}
