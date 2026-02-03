@@ -50,8 +50,11 @@ if config_env() == :prod do
   config :craftplan, Craftplan.Repo,
     # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "50"),
+    socket_options: maybe_ipv6,
+    # Handle traffic bursts - allow queries to queue longer before failing
+    queue_target: 500,
+    queue_interval: 1000
 
   config :craftplan, CraftplanWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

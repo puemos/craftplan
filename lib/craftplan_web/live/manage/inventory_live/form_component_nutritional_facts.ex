@@ -92,8 +92,11 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
                           field={fact_form[:unit]}
                           type="select"
                           options={[
-                            {"Gram", :gram},
-                            {"Milliliter", :milliliter},
+                            {"Kilocalories (kcal)", :kcal},
+                            {"Gram (g)", :gram},
+                            {"Milligram (mg)", :milligram},
+                            {"Milliliter (ml)", :milliliter},
+                            {"Percent (%)", :percent},
                             {"Piece", :piece}
                           ]}
                           flat={true}

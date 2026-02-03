@@ -378,13 +378,13 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
 
   # -- 3.7 Link materials to nutritional facts
   # Flour
-  link_material_nutritional_fact.(materials.flour, nutritional_facts.calories, "350", :gram)
+  link_material_nutritional_fact.(materials.flour, nutritional_facts.calories, "350", :kcal)
   link_material_nutritional_fact.(materials.flour, nutritional_facts.carbohydrates, "73", :gram)
   link_material_nutritional_fact.(materials.flour, nutritional_facts.protein, "10", :gram)
   link_material_nutritional_fact.(materials.flour, nutritional_facts.fat, "1", :gram)
 
   # Whole Wheat Flour
-  link_material_nutritional_fact.(materials.whole_wheat, nutritional_facts.calories, "340", :gram)
+  link_material_nutritional_fact.(materials.whole_wheat, nutritional_facts.calories, "340", :kcal)
 
   link_material_nutritional_fact.(
     materials.whole_wheat,
@@ -397,27 +397,27 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
   link_material_nutritional_fact.(materials.whole_wheat, nutritional_facts.fiber, "11", :gram)
 
   # Almonds
-  link_material_nutritional_fact.(materials.almonds, nutritional_facts.calories, "580", :gram)
+  link_material_nutritional_fact.(materials.almonds, nutritional_facts.calories, "580", :kcal)
   link_material_nutritional_fact.(materials.almonds, nutritional_facts.fat, "50", :gram)
   link_material_nutritional_fact.(materials.almonds, nutritional_facts.protein, "21", :gram)
 
   # Eggs
-  link_material_nutritional_fact.(materials.eggs, nutritional_facts.calories, "155", :piece)
+  link_material_nutritional_fact.(materials.eggs, nutritional_facts.calories, "155", :kcal)
   link_material_nutritional_fact.(materials.eggs, nutritional_facts.protein, "13", :gram)
   link_material_nutritional_fact.(materials.eggs, nutritional_facts.fat, "11", :gram)
 
   # Milk
-  link_material_nutritional_fact.(materials.milk, nutritional_facts.calories, "42", :milliliter)
+  link_material_nutritional_fact.(materials.milk, nutritional_facts.calories, "42", :kcal)
   link_material_nutritional_fact.(materials.milk, nutritional_facts.protein, "3.4", :gram)
-  link_material_nutritional_fact.(materials.milk, nutritional_facts.calcium, "125", :milliliter)
+  link_material_nutritional_fact.(materials.milk, nutritional_facts.calcium, "125", :milligram)
 
   # Butter
-  link_material_nutritional_fact.(materials.butter, nutritional_facts.calories, "717", :gram)
+  link_material_nutritional_fact.(materials.butter, nutritional_facts.calories, "717", :kcal)
   link_material_nutritional_fact.(materials.butter, nutritional_facts.fat, "81", :gram)
   link_material_nutritional_fact.(materials.butter, nutritional_facts.saturated_fat, "51", :gram)
 
   # Chocolate
-  link_material_nutritional_fact.(materials.chocolate, nutritional_facts.calories, "546", :gram)
+  link_material_nutritional_fact.(materials.chocolate, nutritional_facts.calories, "546", :kcal)
   link_material_nutritional_fact.(materials.chocolate, nutritional_facts.fat, "31", :gram)
 
   link_material_nutritional_fact.(
@@ -427,7 +427,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
     :gram
   )
 
-  link_material_nutritional_fact.(materials.chocolate, nutritional_facts.iron, "8", :gram)
+  link_material_nutritional_fact.(materials.chocolate, nutritional_facts.iron, "8", :milligram)
 
   # -- 3.8 Add some initial stock
   Enum.each(materials, fn {_key, material} ->
@@ -732,14 +732,14 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
   link_material_allergen.(materials.peanut_butter, allergens.peanuts)
 
   # Nutritional facts for the new materials
-  link_material_nutritional_fact.(materials.blueberries, nutritional_facts.calories, "57", :gram)
+  link_material_nutritional_fact.(materials.blueberries, nutritional_facts.calories, "57", :kcal)
   link_material_nutritional_fact.(materials.blueberries, nutritional_facts.fiber, "2.4", :gram)
 
   link_material_nutritional_fact.(
     materials.sesame_seeds,
     nutritional_facts.calories,
     "573",
-    :gram
+    :kcal
   )
 
   link_material_nutritional_fact.(materials.sesame_seeds, nutritional_facts.fat, "50", :gram)
@@ -748,7 +748,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
     materials.peanut_butter,
     nutritional_facts.calories,
     "588",
-    :gram
+    :kcal
   )
 
   link_material_nutritional_fact.(materials.peanut_butter, nutritional_facts.fat, "50", :gram)

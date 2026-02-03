@@ -152,7 +152,8 @@ defmodule CraftplanWeb.Layouts do
                     aria-haspopup="menu"
                     aria-expanded="false"
                   >
-                    <span class="max-w-[12rem] truncate">{@current_user.email}</span>
+                    <.nav_icon name={:user} />
+                    <span class="hidden sm:block max-w-[12rem] truncate">{@current_user.email}</span>
                     <.nav_icon name={:chevron_down} />
                   </button>
                   <div
@@ -452,6 +453,23 @@ defmodule CraftplanWeb.Layouts do
             d="M4 6h16M4 12h16M4 18h16"
           />
         </svg>
+      <% :user -> %>
+        <svg class={@classes} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
+          />
+          <circle
+            cx="12"
+            cy="7"
+            r="4"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
       <% :close -> %>
         <svg class={@classes} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -596,7 +614,8 @@ defmodule CraftplanWeb.Layouts do
     assigns = assign(assigns, :count, Enum.count(assigns.breadcrumbs))
 
     ~H"""
-    <nav class="flex items-center text-sm text-stone-500" aria-label="Breadcrumb">
+    <nav class="flex items-center text-sm text-stone-500 overflow-hidden" aria-label="Breadcrumb">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
       <ol class="inline-flex items-center gap-2">
         <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)} class="flex items-center gap-2">
           <.link
@@ -615,6 +634,7 @@ defmodule CraftplanWeb.Layouts do
           <span :if={index < @count - 1} class="text-stone-300">/</span>
         </li>
       </ol>
+      </div>
     </nav>
     """
   end

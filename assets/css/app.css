@@ -45,3 +45,12 @@ button {
 .kanban-column.drag-over {
     background-color: rgba(0, 0, 0, 0.05);
 }
+
+/* Utility to hide scrollbar but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

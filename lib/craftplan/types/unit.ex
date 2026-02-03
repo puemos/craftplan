@@ -1,28 +1,37 @@
 defmodule Craftplan.Types.Unit do
   @moduledoc """
   Represents measurement units with conversion and formatting capabilities.
-  Supports gram, milliliter, and piece units with appropriate abbreviations.
+  Supports gram, milliliter, piece, kcal, milligram, and percent units with appropriate abbreviations.
   """
-  use Ash.Type.Enum, values: [:gram, :milliliter, :piece]
+  use Ash.Type.Enum, values: [:gram, :milliliter, :piece, :kcal, :milligram, :percent]
 
   @unit_abbreviations %{
     kilogram: "kg",
     gram: "g",
     liter: "l",
     milliliter: "ml",
-    piece: "pc"
+    piece: "pc",
+    kcal: "kcal",
+    milligram: "mg",
+    percent: "%"
   }
 
   @singular_names %{
     gram: "gram",
     milliliter: "milliliter",
-    piece: "piece"
+    piece: "piece",
+    kcal: "kcal",
+    milligram: "mg",
+    percent: "%"
   }
 
   @plural_names %{
     gram: "grams",
     milliliter: "milliliters",
-    piece: "pieces"
+    piece: "pieces",
+    kcal: "kcal",
+    milligram: "mg",
+    percent: "%"
   }
 
   @doc """
@@ -95,6 +104,21 @@ defmodule Craftplan.Types.Unit do
   def abbreviation(:piece, value) when is_integer(value), do: "#{value} #{@plural_names.piece}"
 
   def abbreviation(:piece, value), do: "#{:erlang.float_to_binary(value, decimals: 0)} #{@plural_names.piece}"
+
+  # Kcal (kilocalories) - no conversion needed, always displays as kcal
+  def abbreviation(:kcal, value) when is_integer(value), do: "#{value} #{@unit_abbreviations.kcal}"
+
+  def abbreviation(:kcal, value), do: "#{format_number(value)} #{@unit_abbreviations.kcal}"
+
+  # Milligram - no automatic conversion to avoid confusion with gram conversions
+  def abbreviation(:milligram, value) when is_integer(value), do: "#{value} #{@unit_abbreviations.milligram}"
+
+  def abbreviation(:milligram, value), do: "#{format_number(value)} #{@unit_abbreviations.milligram}"
+
+  # Percent - displays with % symbol
+  def abbreviation(:percent, value) when is_integer(value), do: "#{value}#{@unit_abbreviations.percent}"
+
+  def abbreviation(:percent, value), do: "#{format_number(value)}#{@unit_abbreviations.percent}"
 
   @doc """
   Returns just the abbreviation for a unit.
