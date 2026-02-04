@@ -1,0 +1,21 @@
+diff --git a/index.js b/index.js
+index 44fe9034c15175de1938f0a2c40510026a4df17c..33f100596b278465203f856aa45a6a3ff787fe5c 100644
+--- a/index.js
++++ b/index.js
+@@ -542,6 +542,16 @@ function baseToString(value) {
+  */
+ function baseUnset(object, path) {
+   path = isKey(path, object) ? [path] : castPath(path);
++
++  // Security fix: prevent prototype pollution (CVE-2025-13465)
++  var pathLength = path.length;
++  for (var i = 0; i < pathLength; i++) {
++    var segment = toKey(path[i]);
++    if (segment === '__proto__' || segment === 'constructor' || segment === 'prototype') {
++      return false;
++    }
++  }
++
+   object = parent(object, path);
+ 
+   var key = toKey(last(path));

@@ -2,9 +2,15 @@
   "name": "craftplan-docs",
   "type": "module",
   "version": "0.0.1",
+  "packageManager": "pnpm@10.28.2",
+  "pnpm": {
+    "patchedDependencies": {
+      "lodash.unset@4.5.2": "patches/lodash.unset.patch"
+    }
+  },
   "scripts": {
     "dev": "astro dev",
-    "build": "npm run generate-graphql-docs && astro build",
+    "build": "pnpm run generate-graphql-docs && astro build",
     "preview": "astro preview",
     "generate-spec": "cd .. && mix run docs/generate_spec.exs",
     "generate-sdl": "cd .. && mix run docs/generate_sdl.exs",
