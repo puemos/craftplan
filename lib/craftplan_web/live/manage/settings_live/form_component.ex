@@ -251,6 +251,81 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
               <% end %>
             </div>
           </section>
+
+          <section
+            id="forecasting-settings"
+            aria-labelledby="forecasting-settings-title"
+            class="rounded-lg border border-stone-200 bg-stone-50"
+          >
+            <div class="border-b border-stone-200 px-4 py-3">
+              <h3 id="forecasting-settings-title" class="text-base font-semibold text-stone-800">
+                Inventory Forecasting
+              </h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Fine-tune how the reorder planner calculates safety stock, reorder points, and suggested quantities.
+              </p>
+            </div>
+            <div class="space-y-6 p-4">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <.input
+                  field={@form[:forecast_lookback_days]}
+                  type="number"
+                  min="7"
+                  max="365"
+                  label="Lookback days"
+                  placeholder="42"
+                />
+                <.input
+                  field={@form[:forecast_default_horizon_days]}
+                  type="number"
+                  min="7"
+                  max="90"
+                  label="Default horizon (days)"
+                  placeholder="14"
+                />
+                <.input
+                  field={@form[:forecast_min_samples]}
+                  type="number"
+                  min="3"
+                  max="100"
+                  label="Min samples for variability"
+                  placeholder="10"
+                />
+              </div>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <.input
+                  field={@form[:forecast_actual_weight]}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  label="Actual usage weight"
+                  placeholder="0.6"
+                />
+                <.input
+                  field={@form[:forecast_planned_weight]}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  label="Planned usage weight"
+                  placeholder="0.4"
+                />
+                <.input
+                  field={@form[:forecast_default_service_level]}
+                  type="number"
+                  step="0.01"
+                  min="0.8"
+                  max="0.999"
+                  label="Default service level"
+                  placeholder="0.95"
+                />
+              </div>
+              <p class="text-xs text-stone-500">
+                Actual and planned weights should sum to 1. Higher service levels increase safety stock.
+              </p>
+            </div>
+          </section>
         </div>
 
         <:actions>

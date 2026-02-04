@@ -134,7 +134,11 @@ defmodule CraftplanWeb.Components.CommandPalette do
 
         <div class="top-[15%] fixed inset-x-0 mx-auto w-full max-w-xl px-4">
           <div class="overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-stone-200">
-            <form phx-change="search" phx-target={@myself} class="flex items-center gap-3 border-b border-stone-200 px-4">
+            <form
+              phx-change="search"
+              phx-target={@myself}
+              class="flex items-center gap-3 border-b border-stone-200 px-4"
+            >
               <svg
                 class="h-5 w-5 text-stone-400"
                 fill="none"

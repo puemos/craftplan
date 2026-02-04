@@ -195,9 +195,26 @@ defmodule Craftplan.InventoryForecasting do
   Builds rich forecast rows ready for owner metrics consumption.
   """
   def owner_grid_rows(days_range, opts \\ [], actor \\ nil) when is_list(days_range) do
-    service_level = Keyword.get(opts, :service_level, 0.95)
+    settings = safe_get_settings()
+
+    service_level =
+      Keyword.get(opts, :service_level) ||
+        safe_decimal_to_float(settings.forecast_default_service_level, 0.95)
+
     service_level_z = service_level_to_z(service_level)
-    lookback_days = Keyword.get(opts, :lookback_days, 42)
+    lookback_days = Keyword.get(opts, :lookback_days) || settings.forecast_lookback_days || 42
+
+    # Extract forecast weights - prefer opts over settings
+    actual_weight =
+      Keyword.get(opts, :actual_weight) ||
+        safe_decimal_to_float(settings.forecast_actual_weight, 0.6)
+
+    planned_weight =
+      Keyword.get(opts, :planned_weight) ||
+        safe_decimal_to_float(settings.forecast_planned_weight, 0.4)
+
+    minimum_samples =
+      Keyword.get(opts, :min_samples) || settings.forecast_min_samples || 10
 
     materials_requirements = prepare_materials_requirements(days_range, actor)
 
@@ -212,7 +229,6 @@ defmodule Craftplan.InventoryForecasting do
       end)
 
     on_order_map = open_purchase_orders_by_material(actor)
-    settings = safe_get_settings()
     default_lead_time = settings.lead_time_days || 0
 
     rows =
@@ -238,7 +254,10 @@ defmodule Craftplan.InventoryForecasting do
           max_cover_days: nil,
           actual_usage: Map.get(actual_usage_map, material.id, []),
           planned_usage: planned_usage,
-          projected_balances: projected_balances
+          projected_balances: projected_balances,
+          actual_weight: actual_weight,
+          planned_weight: planned_weight,
+          minimum_samples: minimum_samples
         }
       end)
 
@@ -295,8 +314,23 @@ defmodule Craftplan.InventoryForecasting do
   defp safe_get_settings do
     Settings.get_settings!()
   rescue
-    _ -> %{lead_time_days: 0}
+    _ ->
+      %{
+        lead_time_days: 0,
+        forecast_lookback_days: 42,
+        forecast_actual_weight: D.new("0.6"),
+        forecast_planned_weight: D.new("0.4"),
+        forecast_min_samples: 10,
+        forecast_default_service_level: D.new("0.95"),
+        forecast_default_horizon_days: 14
+      }
   end
+
+  defp safe_decimal_to_float(nil, default), do: default
+  defp safe_decimal_to_float(%D{} = decimal, _default), do: D.to_float(decimal)
+  defp safe_decimal_to_float(value, _default) when is_float(value), do: value
+  defp safe_decimal_to_float(value, _default) when is_integer(value), do: value * 1.0
+  defp safe_decimal_to_float(_, default), do: default
 
   defp service_level_to_z(0.9), do: 1.28
   defp service_level_to_z(0.95), do: 1.65

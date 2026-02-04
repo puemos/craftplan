@@ -159,7 +159,8 @@ defmodule CraftplanWeb.HtmlHelpersTest do
     end
 
     test "supports custom decimal places" do
-      assert HtmlHelpers.format_percentage(Decimal.new("0.7567"), places: 2) == Decimal.new("75.67")
+      assert HtmlHelpers.format_percentage(Decimal.new("0.7567"), places: 2) ==
+               Decimal.new("75.67")
     end
 
     test "rounds up correctly" do

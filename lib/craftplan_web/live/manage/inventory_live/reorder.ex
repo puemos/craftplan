@@ -3,6 +3,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   use CraftplanWeb, :live_view
 
   alias Craftplan.InventoryForecasting
+  alias Craftplan.Settings
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
   alias Decimal, as: D
@@ -11,8 +12,6 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   @service_level_options [0.9, 0.95, 0.975, 0.99]
   @horizon_options [7, 14, 28]
-  @default_service_level 0.95
-  @default_horizon_days 14
   @default_risk_filters [:shortage, :watch, :balanced]
 
   ## LiveView callbacks
@@ -94,6 +93,93 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
                 </div>
               </fieldset>
             </div>
+
+            <div class="mt-2">
+              <button
+                type="button"
+                phx-click="toggle_advanced"
+                class="flex w-full items-center justify-between py-3 text-left"
+              >
+                <div class="flex items-center gap-2">
+                  <.icon
+                    name={if @advanced_open?, do: "hero-chevron-down", else: "hero-chevron-right"}
+                    class="h-4 w-4 text-stone-500"
+                  />
+                  <span class="text-xs font-semibold text-stone-900">Advanced settings</span>
+                  <span class="text-xs text-stone-500">(session only)</span>
+                </div>
+                <button
+                  :if={@advanced_open?}
+                  type="button"
+                  phx-click="reset_advanced"
+                  class="text-xs font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                >
+                  Reset to defaults
+                </button>
+              </button>
+
+              <div :if={@advanced_open?} class="border-t border-stone-200 py-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                  <div>
+                    <label class="mb-1 block text-xs font-medium text-stone-600">Lookback days</label>
+                    <input
+                      type="number"
+                      name="lookback_days"
+                      value={@lookback_days}
+                      min="7"
+                      max="365"
+                      phx-change="update_advanced"
+                      phx-debounce="500"
+                      class="w-full rounded-md border border-stone-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-xs font-medium text-stone-600">Actual weight</label>
+                    <input
+                      type="number"
+                      name="actual_weight"
+                      value={@actual_weight}
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      phx-change="update_advanced"
+                      phx-debounce="500"
+                      class="w-full rounded-md border border-stone-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-xs font-medium text-stone-600">Planned weight</label>
+                    <input
+                      type="number"
+                      name="planned_weight"
+                      value={@planned_weight}
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      phx-change="update_advanced"
+                      phx-debounce="500"
+                      class="w-full rounded-md border border-stone-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-xs font-medium text-stone-600">Min samples</label>
+                    <input
+                      type="number"
+                      name="min_samples"
+                      value={@min_samples}
+                      min="3"
+                      max="100"
+                      phx-change="update_advanced"
+                      phx-debounce="500"
+                      class="w-full rounded-md border border-stone-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <p class="mt-3 text-xs text-stone-500">
+                  These settings override your organization defaults for this session only. Changes refresh the forecast automatically.
+                </p>
+              </div>
+            </div>
           </Page.surface>
 
           <Page.surface full_bleed padding="p-0">
@@ -169,6 +255,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   @impl true
   def mount(_params, session, socket) do
     today = Date.utc_today()
+    settings = safe_get_settings()
 
     socket =
       socket
@@ -179,9 +266,46 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       |> assign(:service_level_options, @service_level_options)
       |> assign(:horizon_options, @horizon_options)
       |> assign(:show_forecast_help?, false)
-      |> assign_forecast_defaults(session)
+      |> assign(:forecast_settings, settings)
+      |> assign_forecast_defaults(session, settings)
+      |> assign_advanced_defaults(settings)
 
     {:ok, load_metrics(socket)}
+  end
+
+  defp assign_advanced_defaults(socket, settings) do
+    socket
+    |> assign(:advanced_open?, false)
+    |> assign(:lookback_days, Map.get(settings, :forecast_lookback_days) || 42)
+    |> assign(
+      :actual_weight,
+      safe_decimal_to_float(Map.get(settings, :forecast_actual_weight), 0.6)
+    )
+    |> assign(
+      :planned_weight,
+      safe_decimal_to_float(Map.get(settings, :forecast_planned_weight), 0.4)
+    )
+    |> assign(:min_samples, Map.get(settings, :forecast_min_samples) || 10)
+  end
+
+  defp safe_decimal_to_float(nil, default), do: default
+  defp safe_decimal_to_float(%D{} = decimal, _default), do: D.to_float(decimal)
+  defp safe_decimal_to_float(value, _default) when is_float(value), do: value
+  defp safe_decimal_to_float(value, _default) when is_integer(value), do: value * 1.0
+  defp safe_decimal_to_float(_, default), do: default
+
+  defp safe_get_settings do
+    Settings.get_settings!()
+  rescue
+    _ ->
+      %{
+        forecast_default_service_level: D.new("0.95"),
+        forecast_default_horizon_days: 14,
+        forecast_lookback_days: 42,
+        forecast_actual_weight: D.new("0.6"),
+        forecast_planned_weight: D.new("0.4"),
+        forecast_min_samples: 10
+      }
   end
 
   @impl true
@@ -209,6 +333,79 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
     {:noreply, assign(socket, :show_forecast_help?, false)}
   end
 
+  @impl true
+  def handle_event("toggle_advanced", _params, socket) do
+    {:noreply, assign(socket, :advanced_open?, !socket.assigns.advanced_open?)}
+  end
+
+  @impl true
+  def handle_event("update_advanced", params, socket) do
+    socket =
+      socket
+      |> maybe_update_lookback_days(params)
+      |> maybe_update_actual_weight(params)
+      |> maybe_update_planned_weight(params)
+      |> maybe_update_min_samples(params)
+
+    {:noreply, load_metrics(socket)}
+  end
+
+  @impl true
+  def handle_event("reset_advanced", _params, socket) do
+    settings = socket.assigns.forecast_settings
+
+    socket =
+      socket
+      |> assign(:lookback_days, Map.get(settings, :forecast_lookback_days) || 42)
+      |> assign(
+        :actual_weight,
+        safe_decimal_to_float(Map.get(settings, :forecast_actual_weight), 0.6)
+      )
+      |> assign(
+        :planned_weight,
+        safe_decimal_to_float(Map.get(settings, :forecast_planned_weight), 0.4)
+      )
+      |> assign(:min_samples, Map.get(settings, :forecast_min_samples) || 10)
+
+    {:noreply, load_metrics(socket)}
+  end
+
+  defp maybe_update_lookback_days(socket, %{"lookback_days" => value}) do
+    case Integer.parse(value) do
+      {days, _} when days >= 7 and days <= 365 -> assign(socket, :lookback_days, days)
+      _ -> socket
+    end
+  end
+
+  defp maybe_update_lookback_days(socket, _), do: socket
+
+  defp maybe_update_actual_weight(socket, %{"actual_weight" => value}) do
+    case Float.parse(value) do
+      {weight, _} when weight >= 0 and weight <= 1 -> assign(socket, :actual_weight, weight)
+      _ -> socket
+    end
+  end
+
+  defp maybe_update_actual_weight(socket, _), do: socket
+
+  defp maybe_update_planned_weight(socket, %{"planned_weight" => value}) do
+    case Float.parse(value) do
+      {weight, _} when weight >= 0 and weight <= 1 -> assign(socket, :planned_weight, weight)
+      _ -> socket
+    end
+  end
+
+  defp maybe_update_planned_weight(socket, _), do: socket
+
+  defp maybe_update_min_samples(socket, %{"min_samples" => value}) do
+    case Integer.parse(value) do
+      {samples, _} when samples >= 3 and samples <= 100 -> assign(socket, :min_samples, samples)
+      _ -> socket
+    end
+  end
+
+  defp maybe_update_min_samples(socket, _), do: socket
+
   ## Metrics loading
 
   defp refresh_metrics(socket, assigns) do
@@ -227,12 +424,15 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
     socket = assign(socket, :metrics_loaded?, false)
 
-    rows =
-      InventoryForecasting.owner_grid_rows(
-        days_range,
-        [service_level: socket.assigns.service_level],
-        actor
-      )
+    opts = [
+      service_level: socket.assigns.service_level,
+      lookback_days: socket.assigns.lookback_days,
+      actual_weight: socket.assigns.actual_weight,
+      planned_weight: socket.assigns.planned_weight,
+      min_samples: socket.assigns.min_samples
+    ]
+
+    rows = InventoryForecasting.owner_grid_rows(days_range, opts, actor)
 
     socket
     |> assign(:forecast_rows, rows)
@@ -260,58 +460,90 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   ## Preference defaults
 
-  defp assign_forecast_defaults(socket, session) do
+  defp assign_forecast_defaults(socket, session, settings) do
     prefs = forecast_preferences(session)
 
+    default_service_level = settings_service_level(settings)
+    default_horizon_days = settings_horizon_days(settings)
+
     defaults = [
-      service_level: prefs |> Map.get("service_level") |> normalize_service_level(),
-      horizon_days: prefs |> Map.get("horizon_days") |> normalize_horizon_days(),
+      service_level:
+        prefs |> Map.get("service_level") |> normalize_service_level(default_service_level),
+      horizon_days:
+        prefs |> Map.get("horizon_days") |> normalize_horizon_days(default_horizon_days),
       risk_filters: prefs |> Map.get("risk_filters") |> normalize_risk_filters()
     ]
 
     assign(socket, defaults)
   end
 
-  ## Normalization
-
-  defp normalize_service_level(nil), do: @default_service_level
-
-  defp normalize_service_level(%D{} = value) do
-    value
-    |> D.to_float()
-    |> normalize_service_level()
+  defp settings_service_level(%{forecast_default_service_level: %D{} = level}) do
+    D.to_float(level)
   end
 
-  defp normalize_service_level(value) when is_binary(value) do
+  defp settings_service_level(_), do: 0.95
+
+  defp settings_horizon_days(%{forecast_default_horizon_days: days}) when is_integer(days),
+    do: days
+
+  defp settings_horizon_days(_), do: 14
+
+  ## Normalization
+
+  defp normalize_service_level(value, default \\ 0.95)
+
+  defp normalize_service_level(nil, default), do: snap_to_service_level(default)
+
+  defp normalize_service_level(%D{} = value, default) do
+    value
+    |> D.to_float()
+    |> normalize_service_level(default)
+  end
+
+  defp normalize_service_level(value, default) when is_binary(value) do
     case Float.parse(value) do
-      {float, _} -> normalize_service_level(float)
-      :error -> @default_service_level
+      {float, _} -> normalize_service_level(float, default)
+      :error -> snap_to_service_level(default)
     end
   end
 
-  defp normalize_service_level(value) when is_integer(value) and value > 1 do
-    normalize_service_level(value / 100)
+  defp normalize_service_level(value, default) when is_integer(value) and value > 1 do
+    normalize_service_level(value / 100, default)
   end
 
-  defp normalize_service_level(value) when is_integer(value) do
-    normalize_service_level(value * 1.0)
+  defp normalize_service_level(value, default) when is_integer(value) do
+    normalize_service_level(value * 1.0, default)
   end
 
-  defp normalize_service_level(value) when is_float(value) do
+  defp normalize_service_level(value, _default) when is_float(value) do
+    snap_to_service_level(value)
+  end
+
+  defp snap_to_service_level(value) do
     Enum.min_by(@service_level_options, fn level -> abs(level - value) end)
   end
 
-  defp normalize_horizon_days(nil), do: @default_horizon_days
+  defp normalize_horizon_days(value, default \\ 14)
 
-  defp normalize_horizon_days(value) when is_binary(value) do
+  defp normalize_horizon_days(nil, default), do: snap_to_horizon(default)
+
+  defp normalize_horizon_days(value, default) when is_binary(value) do
     case Integer.parse(value) do
-      {int, _} -> normalize_horizon_days(int)
-      :error -> @default_horizon_days
+      {int, _} -> normalize_horizon_days(int, default)
+      :error -> snap_to_horizon(default)
     end
   end
 
-  defp normalize_horizon_days(value) when value in @horizon_options, do: value
-  defp normalize_horizon_days(_), do: @default_horizon_days
+  defp normalize_horizon_days(value, _default) when value in @horizon_options, do: value
+  defp normalize_horizon_days(_, default), do: snap_to_horizon(default)
+
+  defp snap_to_horizon(value) when value in @horizon_options, do: value
+
+  defp snap_to_horizon(value) when is_integer(value) do
+    Enum.min_by(@horizon_options, fn opt -> abs(opt - value) end)
+  end
+
+  defp snap_to_horizon(_), do: 14
 
   defp normalize_risk_filters(nil), do: @default_risk_filters
 
@@ -513,13 +745,14 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   ## UI helpers
 
   defp toggle_button_classes(true),
-    do: "rounded-md border border-stone-300 bg-stone-900 px-3 py-1 text-xs font-semibold tracking-wide text-white shadow"
+    do:
+      "rounded-md border border-stone-300 bg-stone-900 px-3 py-1 text-xs font-semibold tracking-wide text-white shadow"
 
   defp toggle_button_classes(false),
     do:
       "rounded-md border border-stone-200 bg-white px-3 py-1 text-xs font-semibold tracking-wide text-stone-600 transition hover:border-stone-300 hover:bg-stone-50"
 
-  defp percent_label(nil), do: percent_label(@default_service_level)
+  defp percent_label(nil), do: percent_label(0.95)
   defp percent_label(%D{} = value), do: percent_label(D.to_float(value))
 
   defp percent_label(value) when is_float(value) or is_integer(value) do
@@ -534,9 +767,11 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   defp decimal_display(value, opts \\ [])
   defp decimal_display(nil, _opts), do: "—"
 
-  defp decimal_display(value, opts) when is_integer(value), do: decimal_display(D.new(value), opts)
+  defp decimal_display(value, opts) when is_integer(value),
+    do: decimal_display(D.new(value), opts)
 
-  defp decimal_display(value, opts) when is_float(value), do: decimal_display(D.from_float(value), opts)
+  defp decimal_display(value, opts) when is_float(value),
+    do: decimal_display(D.from_float(value), opts)
 
   defp decimal_display(%D{} = value, opts) do
     places = Keyword.get(opts, :places, 1)
@@ -566,7 +801,9 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   defp risk_chip_classes(state) do
     @risk_styles
     |> Map.get(state, @risk_styles.balanced)
-    |> Kernel.<>(" inline-flex items-center px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset")
+    |> Kernel.<>(
+      " inline-flex items-center px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset"
+    )
   end
 
   defp cta_disabled?(_row, nil), do: true

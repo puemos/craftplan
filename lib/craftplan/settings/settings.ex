@@ -225,5 +225,57 @@ defmodule Craftplan.Settings.Settings do
       default :if_available
       constraints one_of: [:if_available, :always, :never]
     end
+
+    # Inventory forecasting configuration
+    attribute :forecast_lookback_days, :integer do
+      public? true
+      allow_nil? false
+      default 42
+      constraints min: 7, max: 365
+      description "Number of past days to analyze for historical usage patterns."
+    end
+
+    attribute :forecast_actual_weight, :decimal do
+      public? true
+      allow_nil? false
+      default Decimal.new("0.6")
+      constraints min: 0, max: 1
+
+      description "Weight given to actual historical usage (0-1). Remainder goes to planned usage."
+    end
+
+    attribute :forecast_planned_weight, :decimal do
+      public? true
+      allow_nil? false
+      default Decimal.new("0.4")
+      constraints min: 0, max: 1
+
+      description "Weight given to planned/forecasted usage (0-1). Should sum to 1 with actual weight."
+    end
+
+    attribute :forecast_min_samples, :integer do
+      public? true
+      allow_nil? false
+      default 10
+      constraints min: 3, max: 100
+
+      description "Minimum data points required before calculating demand variability statistically."
+    end
+
+    attribute :forecast_default_service_level, :decimal do
+      public? true
+      allow_nil? false
+      default Decimal.new("0.95")
+      constraints min: Decimal.new("0.8"), max: Decimal.new("0.999")
+      description "Target service level for safety stock calculations (e.g., 0.95 = 95%)."
+    end
+
+    attribute :forecast_default_horizon_days, :integer do
+      public? true
+      allow_nil? false
+      default 14
+      constraints min: 7, max: 90
+      description "Default forecast horizon in days for the reorder planner."
+    end
   end
 end

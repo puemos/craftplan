@@ -110,6 +110,7 @@ defmodule CraftplanWeb.ProductLive.Show do
           current_user={@current_user}
           settings={@settings}
           materials={@materials_available}
+          products={@products_available}
           selected_version={@selected_bom_version}
           patch={~p"/manage/products/#{@product.sku}/recipe"}
           on_cancel={hide_modal("product-material-modal")}
@@ -169,7 +170,8 @@ defmodule CraftplanWeb.ProductLive.Show do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
-       materials_available: list_available_materials()
+       materials_available: list_available_materials(),
+       products_available: list_available_products()
      )}
   end
 
@@ -361,6 +363,10 @@ defmodule CraftplanWeb.ProductLive.Show do
 
   defp list_available_materials do
     Inventory.list_materials!()
+  end
+
+  defp list_available_products do
+    Catalog.list_products!(load: [:bom_unit_cost])
   end
 
   # Pricing helper

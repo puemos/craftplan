@@ -107,7 +107,15 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
               </div>
 
               <.inputs_for :let={components_form} field={@form[:components]}>
-                <% material = material_for_form(@materials_map, components_form) %>
+                <% component_type = get_component_type(components_form) %>
+                <% material =
+                  if component_type == :material,
+                    do: material_for_form(@materials_map, components_form),
+                    else: nil %>
+                <% product =
+                  if component_type == :product,
+                    do: product_for_form(@products_map, components_form),
+                    else: nil %>
 
                 <div
                   role="row"
@@ -118,21 +126,47 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     <div class="block md:py-4 md:pr-6">
                       <div class="flex items-start justify-between">
                         <span class="relative font-medium md:font-normal">
-                          <.link
-                            :if={material}
-                            navigate={~p"/manage/inventory/#{material.sku}"}
-                            class="hover:text-blue-800 hover:underline"
-                          >
-                            {material.name}
-                          </.link>
-                          <span :if={!material} class="text-stone-400">
-                            Select material
-                          </span>
+                          <%= if component_type == :material do %>
+                            <.link
+                              :if={material}
+                              navigate={~p"/manage/inventory/#{material.sku}"}
+                              class="hover:text-blue-800 hover:underline"
+                            >
+                              {material.name}
+                            </.link>
+                            <span :if={!material} class="text-stone-400">
+                              Select material
+                            </span>
+                          <% else %>
+                            <span class="flex items-center gap-2">
+                              <.link
+                                :if={product}
+                                navigate={~p"/manage/products/#{product.sku}"}
+                                class="hover:text-blue-800 hover:underline"
+                              >
+                                {product.name}
+                              </.link>
+                              <span
+                                :if={product}
+                                class="text-[10px] rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-700"
+                              >
+                                Product
+                              </span>
+                              <span :if={!product} class="text-stone-400">
+                                Select product
+                              </span>
+                            </span>
+                          <% end %>
                           
     <!-- Shared Hidden Inputs -->
                           <.input
                             field={components_form[:material_id]}
                             value={components_form[:material_id].value}
+                            type="hidden"
+                          />
+                          <.input
+                            field={components_form[:product_id]}
+                            value={components_form[:product_id].value}
                             type="hidden"
                           />
                           <.input
@@ -172,7 +206,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                             min="0"
                             step="0.01"
                             phx-debounce="10"
-                            inline_label={get_material_unit(@materials_map, components_form)}
+                            inline_label={get_component_unit(@materials_map, components_form)}
                             disabled={latest_version(@boms) != @bom.version}
                           />
                         </div>
@@ -184,9 +218,11 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   <div class="relative hidden border-stone-200 p-0 last:border-r-0 md:block md:border-r md:pl-4">
                     <div class="md:block md:py-4 md:pr-6">
                       <span class="text-sm text-stone-900">
-                        {format_material_cost(
+                        {format_component_cost(
                           @settings.currency,
+                          component_type,
                           material,
+                          product,
                           components_form[:quantity].value
                         )}
                       </span>
@@ -217,7 +253,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </.inputs_for>
 
-              <div role="row" class="mt-3">
+              <div role="row" class="mt-3 flex gap-2">
                 <button
                   type="button"
                   phx-click="show_add_modal"
@@ -232,6 +268,19 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   }
                 >
                   <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add Material
+                </button>
+                <button
+                  type="button"
+                  phx-click="show_add_product_modal"
+                  phx-target={@myself}
+                  class={[
+                    "inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50",
+                    (Enum.empty?(@available_products) || latest_version(@boms) != @bom.version) &&
+                      "cursor-not-allowed opacity-50"
+                  ]}
+                  disabled={Enum.empty?(@available_products) || latest_version(@boms) != @bom.version}
+                >
+                  <.icon name="hero-plus" class="mr-2 h-4 w-4" /> Add Product
                 </button>
               </div>
             </div>
@@ -566,6 +615,82 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         </.modal>
       <% end %>
 
+      <%= if @show_product_modal do %>
+        <.modal
+          title="Select a product to add to the recipe:"
+          id="add-recipe-product-modal"
+          show
+          on_cancel={JS.push("hide_product_modal", target: @myself)}
+        >
+          <div class="space-y-4 p-4 sm:p-6">
+            <form
+              id="product-filter"
+              phx-change="filter_products"
+              phx-target={@myself}
+              class="flex items-center gap-2"
+            >
+              <input
+                type="search"
+                name="query"
+                value={@product_query}
+                placeholder="Search by name or SKU..."
+                phx-debounce="300"
+                class="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 transition focus:border-primary-400 focus:ring-primary-200/60 focus:outline-none focus:ring"
+              />
+            </form>
+
+            <div class="h-[28rem] overflow-y-auto">
+              <div
+                id="product-picker"
+                class="grid w-full grid-cols-3 gap-x-4 text-sm leading-6 text-stone-700"
+              >
+                <div
+                  role="row"
+                  class="col-span-3 grid grid-cols-3 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                >
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-1 font-normal">Name</div>
+                  <div class="border-r border-stone-200 p-0 pr-6 pb-1 pl-4 font-normal">SKU</div>
+                  <div class="p-0 pr-6 pb-1 pl-4 font-normal">Unit Cost</div>
+                </div>
+
+                <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
+                  <div>No products match your search.</div>
+                </div>
+
+                <%= for product <- @visible_products do %>
+                  <button
+                    type="button"
+                    phx-click="add_product"
+                    phx-value-product-id={product.id}
+                    phx-target={@myself}
+                    class="col-span-3 grid grid-cols-3 text-left hover:bg-stone-200/40"
+                  >
+                    <div class="relative border-r border-b border-stone-200 p-0 pr-6">
+                      <div class="block py-3 font-medium text-stone-900">{product.name}</div>
+                    </div>
+
+                    <div class="relative border-r border-b border-stone-200 p-0 pl-4">
+                      <div class="font-mono block py-3 text-xs text-stone-600">{product.sku}</div>
+                    </div>
+                    <div class="relative border-b border-stone-200 p-0 pl-4">
+                      <div class="block py-3 text-sm text-stone-800">
+                        {format_money(@settings.currency, product.bom_unit_cost || D.new(0))} per unit
+                      </div>
+                    </div>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <.button phx-click="hide_product_modal" phx-target={@myself} variant={:outline}>
+                Close
+              </.button>
+            </div>
+          </div>
+        </.modal>
+      <% end %>
+
       <.modal
         :if={@show_history}
         id="bom-history-modal"
@@ -616,20 +741,40 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     materials_map =
       Map.new(assigns.materials, fn m -> {m.id, m} end)
 
+    # Build products map excluding the current product to prevent self-reference
+    products_list = assigns[:products] || []
+    current_product_id = assigns.product.id
+
+    products_map =
+      products_list
+      |> Enum.reject(fn p -> p.id == current_product_id end)
+      |> Map.new(fn p -> {p.id, p} end)
+
     {available_materials, _selected_material} =
       recompute_availability(socket.assigns.form, assigns.materials)
+
+    {available_products, _selected_product} =
+      recompute_product_availability(socket.assigns.form, products_list, current_product_id)
 
     {:ok,
      socket
      |> assign(:changed, false)
      |> assign(:materials_map, materials_map)
+     |> assign(:products_map, products_map)
      |> assign(:available_materials, available_materials)
+     |> assign(:available_products, available_products)
      |> assign_new(:material_query, fn -> "" end)
+     |> assign_new(:product_query, fn -> "" end)
      |> assign(
        :visible_materials,
        filter_available_materials(available_materials, socket.assigns[:material_query] || "")
      )
+     |> assign(
+       :visible_products,
+       filter_available_products(available_products, socket.assigns[:product_query] || "")
+     )
      |> assign(:show_modal, false)
+     |> assign(:show_product_modal, false)
      |> compute_recipe_totals()
      |> assign_new(:show_history, fn -> false end)}
   end
@@ -706,6 +851,20 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   @impl true
+  def handle_event("show_add_product_modal", _, socket) do
+    if Enum.empty?(socket.assigns.available_products) do
+      {:noreply, socket}
+    else
+      {:noreply, assign(socket, :show_product_modal, true)}
+    end
+  end
+
+  @impl true
+  def handle_event("hide_product_modal", _, socket) do
+    {:noreply, assign(socket, :show_product_modal, false)}
+  end
+
+  @impl true
   def handle_event("show_history", _, socket) do
     {:noreply, assign(socket, :show_history, true)}
   end
@@ -737,6 +896,46 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
      )
      |> assign(:show_modal, false)
      |> compute_recipe_totals()}
+  end
+
+  @impl true
+  def handle_event("add_product", %{"product-id" => product_id}, socket) do
+    # Add a new component form with the selected product
+    form =
+      Form.add_form(socket.assigns.form, socket.assigns.form[:components].name,
+        params: %{product_id: product_id, quantity: 0, component_type: :product}
+      )
+
+    # Recompute available products after adding this one
+    products_list = socket.assigns[:products] || []
+    current_product_id = socket.assigns.product.id
+
+    {available_products, _selected_product} =
+      recompute_product_availability(form, products_list, current_product_id)
+
+    {:noreply,
+     socket
+     |> assign(:form, form)
+     |> assign(:available_products, available_products)
+     |> assign(
+       :visible_products,
+       filter_available_products(available_products, socket.assigns[:product_query] || "")
+     )
+     |> assign(:show_product_modal, false)
+     |> compute_recipe_totals()}
+  end
+
+  @impl true
+  def handle_event("filter_products", %{"query" => query}, socket) do
+    q = to_string(query || "")
+
+    {:noreply,
+     socket
+     |> assign(:product_query, q)
+     |> assign(
+       :visible_products,
+       filter_available_products(socket.assigns.available_products, q)
+     )}
   end
 
   @impl true
@@ -777,13 +976,24 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     {available_materials, _selected_material} =
       recompute_availability(form, socket.assigns.materials)
 
+    products_list = socket.assigns[:products] || []
+    current_product_id = socket.assigns.product.id
+
+    {available_products, _selected_product} =
+      recompute_product_availability(form, products_list, current_product_id)
+
     {:noreply,
      socket
      |> assign(:form, form)
      |> assign(:available_materials, available_materials)
+     |> assign(:available_products, available_products)
      |> assign(
        :visible_materials,
        filter_available_materials(available_materials, socket.assigns[:material_query] || "")
+     )
+     |> assign(
+       :visible_products,
+       filter_available_products(available_products, socket.assigns[:product_query] || "")
      )
      |> compute_recipe_totals()}
   end
@@ -829,16 +1039,35 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     materials_total =
       Enum.reduce(comps, D.new(0), fn comp_form, acc ->
-        material_id =
-          form_param(comp_form, :material_id) ||
-            (comp_form.data &&
-               (comp_form.data.material_id ||
-                  (comp_form.data.material && comp_form.data.material.id)))
-
-        material = Map.get(socket.assigns.materials_map, material_id)
+        component_type = get_component_type(comp_form)
         qty = form_param(comp_form, :quantity) || (comp_form.data && comp_form.data.quantity) || 0
-        price = (material && (material.price || D.new(0))) || D.new(0)
-        D.add(acc, D.mult(price, normalize_decimal(qty)))
+
+        cost =
+          case component_type do
+            :product ->
+              product_id =
+                form_param(comp_form, :product_id) ||
+                  (comp_form.data &&
+                     (comp_form.data.product_id ||
+                        (comp_form.data.product && comp_form.data.product.id)))
+
+              product = Map.get(socket.assigns.products_map, product_id)
+              unit_cost = (product && (product.bom_unit_cost || D.new(0))) || D.new(0)
+              D.mult(unit_cost, normalize_decimal(qty))
+
+            _ ->
+              material_id =
+                form_param(comp_form, :material_id) ||
+                  (comp_form.data &&
+                     (comp_form.data.material_id ||
+                        (comp_form.data.material && comp_form.data.material.id)))
+
+              material = Map.get(socket.assigns.materials_map, material_id)
+              price = (material && (material.price || D.new(0))) || D.new(0)
+              D.mult(price, normalize_decimal(qty))
+          end
+
+        D.add(acc, cost)
       end)
 
     steps = socket.assigns.form.source.forms[:labor_steps] || []
@@ -966,14 +1195,30 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     |> Enum.sort_by(fn {k, _} -> to_integer(k) end)
     |> Enum.with_index(1)
     |> Enum.map(fn {{_k, comp}, idx} ->
-      %{
-        component_type: :material,
-        material_id: comp["material_id"] || comp[:material_id],
+      component_type = normalize_component_type(comp["component_type"] || comp[:component_type])
+
+      base = %{
+        component_type: component_type,
         quantity: normalize_decimal(comp["quantity"] || comp[:quantity] || 0),
         position: idx
       }
+
+      case component_type do
+        :product ->
+          Map.put(base, :product_id, comp["product_id"] || comp[:product_id])
+
+        _ ->
+          Map.put(base, :material_id, comp["material_id"] || comp[:material_id])
+      end
     end)
   end
+
+  defp normalize_component_type(nil), do: :material
+  defp normalize_component_type(:material), do: :material
+  defp normalize_component_type(:product), do: :product
+  defp normalize_component_type("material"), do: :material
+  defp normalize_component_type("product"), do: :product
+  defp normalize_component_type(_), do: :material
 
   defp build_labor_steps_from_params(labor_map) when is_map(labor_map) do
     labor_map
@@ -998,6 +1243,27 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
       nil -> ""
       material -> Craftplan.Types.Unit.abbreviation(material.unit)
     end
+  end
+
+  defp get_component_unit(materials_map, components_form) do
+    case get_component_type(components_form) do
+      :product -> "units"
+      _ -> get_material_unit(materials_map, components_form)
+    end
+  end
+
+  defp get_component_type(components_form) do
+    type =
+      form_param(components_form, :component_type) ||
+        (components_form.data && components_form.data.component_type) ||
+        :material
+
+    case type do
+      type when is_binary(type) -> String.to_existing_atom(type)
+      type -> type
+    end
+  rescue
+    ArgumentError -> :material
   end
 
   defp recompute_availability(form, all_materials) do
@@ -1036,6 +1302,73 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         String.contains?(name, q) or String.contains?(sku, q)
       end)
     end
+  end
+
+  defp filter_available_products(products, query) when is_binary(query) do
+    q = String.trim(String.downcase(query))
+
+    if q == "" do
+      products
+    else
+      Enum.filter(products, fn p ->
+        name = String.downcase(p.name || "")
+        sku = String.downcase(p.sku || "")
+        String.contains?(name, q) or String.contains?(sku, q)
+      end)
+    end
+  end
+
+  defp filter_available_products(products, _), do: products
+
+  defp recompute_product_availability(form, all_products, current_product_id) do
+    existing_product_ids =
+      (form.source.forms[:components] || [])
+      |> Enum.map(fn comp_form ->
+        if product_component?(comp_form) do
+          form_param(comp_form, :product_id) ||
+            (comp_form.data && comp_form.data.product_id)
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+
+    # Exclude current product and already-selected products
+    available_products =
+      all_products
+      |> Enum.reject(fn p -> p.id == current_product_id end)
+      |> Enum.reject(fn p -> p.id in existing_product_ids end)
+
+    selected_product =
+      case available_products do
+        [first | _] -> first.id
+        [] -> nil
+      end
+
+    {available_products, selected_product}
+  end
+
+  defp product_component?(component_form) do
+    type =
+      form_param(component_form, :component_type) ||
+        (component_form.data && component_form.data.component_type) ||
+        :material
+
+    case type do
+      type when is_binary(type) -> String.to_existing_atom(type)
+      type -> type
+    end == :product
+  rescue
+    ArgumentError -> false
+  end
+
+  defp product_for_form(products_map, components_form) do
+    product_id =
+      components_form[:product_id].value ||
+        (components_form.data &&
+           (components_form.data.product_id ||
+              (components_form.data.product && components_form.data.product.id)))
+
+    Map.get(products_map, product_id)
   end
 
   defp material_component?(component_form) do
@@ -1085,6 +1418,25 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     qty = normalize_decimal(quantity)
 
     format_money(currency, D.mult(price, qty))
+  end
+
+  defp format_component_cost(currency, :material, material, _product, quantity) do
+    format_material_cost(currency, material, quantity)
+  end
+
+  defp format_component_cost(currency, :product, _material, nil, _quantity) do
+    format_money(currency, 0)
+  end
+
+  defp format_component_cost(currency, :product, _material, product, quantity) do
+    unit_cost = product.bom_unit_cost || D.new(0)
+    qty = normalize_decimal(quantity)
+
+    format_money(currency, D.mult(unit_cost, qty))
+  end
+
+  defp format_component_cost(currency, _, material, _product, quantity) do
+    format_material_cost(currency, material, quantity)
   end
 
   defp normalize_optional_decimal(nil), do: nil

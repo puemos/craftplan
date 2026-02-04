@@ -88,7 +88,10 @@ defmodule Craftplan.Inventory.ForecastRow do
       :max_cover_days,
       :actual_usage,
       :planned_usage,
-      :projected_balances
+      :projected_balances,
+      :actual_weight,
+      :planned_weight,
+      :minimum_samples
     ]
 
     @allowed_key_strings MapSet.new(Enum.map(@allowed_keys, &Atom.to_string/1))
@@ -117,8 +120,18 @@ defmodule Craftplan.Inventory.ForecastRow do
       pack_size = Map.get(row, :pack_size, 1)
       max_cover_days = Map.get(row, :max_cover_days)
 
-      avg_daily_use = ForecastMetrics.avg_daily_use(actual_usage, planned_usage)
-      demand_variability = ForecastMetrics.demand_variability(actual_usage, planned_usage)
+      # Optional forecast settings - use defaults from ForecastMetrics if not provided
+      forecast_opts =
+        []
+        |> maybe_add_opt(:actual_weight, Map.get(row, :actual_weight))
+        |> maybe_add_opt(:planned_weight, Map.get(row, :planned_weight))
+        |> maybe_add_opt(:minimum_samples, Map.get(row, :minimum_samples))
+
+      avg_daily_use = ForecastMetrics.avg_daily_use(actual_usage, planned_usage, forecast_opts)
+
+      demand_variability =
+        ForecastMetrics.demand_variability(actual_usage, planned_usage, forecast_opts)
+
       lead_time_demand = ForecastMetrics.lead_time_demand(avg_daily_use, lead_time_days)
 
       safety_stock =
@@ -220,5 +233,8 @@ defmodule Craftplan.Inventory.ForecastRow do
 
     defp decimal_from_number(value) when is_binary(value), do: Decimal.new(value)
     defp decimal_from_number(nil), do: Decimal.new(0)
+
+    defp maybe_add_opt(opts, _key, nil), do: opts
+    defp maybe_add_opt(opts, key, value), do: Keyword.put(opts, key, value)
   end
 end
