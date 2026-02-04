@@ -148,7 +148,9 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
                     />
                   </div>
                   <div>
-                    <label class="mb-1 block text-xs font-medium text-stone-600">Planned weight</label>
+                    <label class="mb-1 block text-xs font-medium text-stone-600">
+                      Planned weight
+                    </label>
                     <input
                       type="number"
                       name="planned_weight"
@@ -467,10 +469,8 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
     default_horizon_days = settings_horizon_days(settings)
 
     defaults = [
-      service_level:
-        prefs |> Map.get("service_level") |> normalize_service_level(default_service_level),
-      horizon_days:
-        prefs |> Map.get("horizon_days") |> normalize_horizon_days(default_horizon_days),
+      service_level: prefs |> Map.get("service_level") |> normalize_service_level(default_service_level),
+      horizon_days: prefs |> Map.get("horizon_days") |> normalize_horizon_days(default_horizon_days),
       risk_filters: prefs |> Map.get("risk_filters") |> normalize_risk_filters()
     ]
 
@@ -483,8 +483,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   defp settings_service_level(_), do: 0.95
 
-  defp settings_horizon_days(%{forecast_default_horizon_days: days}) when is_integer(days),
-    do: days
+  defp settings_horizon_days(%{forecast_default_horizon_days: days}) when is_integer(days), do: days
 
   defp settings_horizon_days(_), do: 14
 
@@ -745,8 +744,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   ## UI helpers
 
   defp toggle_button_classes(true),
-    do:
-      "rounded-md border border-stone-300 bg-stone-900 px-3 py-1 text-xs font-semibold tracking-wide text-white shadow"
+    do: "rounded-md border border-stone-300 bg-stone-900 px-3 py-1 text-xs font-semibold tracking-wide text-white shadow"
 
   defp toggle_button_classes(false),
     do:
@@ -767,11 +765,9 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   defp decimal_display(value, opts \\ [])
   defp decimal_display(nil, _opts), do: "—"
 
-  defp decimal_display(value, opts) when is_integer(value),
-    do: decimal_display(D.new(value), opts)
+  defp decimal_display(value, opts) when is_integer(value), do: decimal_display(D.new(value), opts)
 
-  defp decimal_display(value, opts) when is_float(value),
-    do: decimal_display(D.from_float(value), opts)
+  defp decimal_display(value, opts) when is_float(value), do: decimal_display(D.from_float(value), opts)
 
   defp decimal_display(%D{} = value, opts) do
     places = Keyword.get(opts, :places, 1)
@@ -801,9 +797,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   defp risk_chip_classes(state) do
     @risk_styles
     |> Map.get(state, @risk_styles.balanced)
-    |> Kernel.<>(
-      " inline-flex items-center px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset"
-    )
+    |> Kernel.<>(" inline-flex items-center px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset")
   end
 
   defp cta_disabled?(_row, nil), do: true

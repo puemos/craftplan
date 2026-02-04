@@ -79,7 +79,7 @@ defmodule CraftplanWeb.CommandPaletteTest do
       # Search for "order"
       view
       |> element("#command-palette")
-      |> render_hook("search", %{value: "order"})
+      |> render_hook("search", %{query: "order"})
 
       html = render(view)
       # Should show pages/actions containing "order"
@@ -117,7 +117,7 @@ defmodule CraftplanWeb.CommandPaletteTest do
 
       view
       |> element("#command-palette")
-      |> render_hook("search", %{value: "chocolate"})
+      |> render_hook("search", %{query: "chocolate"})
 
       html = render(view)
       assert html =~ "Chocolate Cake"
@@ -136,7 +136,7 @@ defmodule CraftplanWeb.CommandPaletteTest do
 
       view
       |> element("#command-palette")
-      |> render_hook("search", %{value: "cocoa"})
+      |> render_hook("search", %{query: "cocoa"})
 
       html = render(view)
       assert html =~ "Cocoa Powder"
@@ -155,7 +155,7 @@ defmodule CraftplanWeb.CommandPaletteTest do
 
       view
       |> element("#command-palette")
-      |> render_hook("search", %{value: "alice"})
+      |> render_hook("search", %{query: "alice"})
 
       html = render(view)
       assert html =~ "Alice Smith"
@@ -170,7 +170,7 @@ defmodule CraftplanWeb.CommandPaletteTest do
 
       view
       |> element("#command-palette")
-      |> render_hook("search", %{value: "xyznonexistent123"})
+      |> render_hook("search", %{query: "xyznonexistent123"})
 
       html = render(view)
       assert html =~ "No results found"
