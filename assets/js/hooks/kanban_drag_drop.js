@@ -3,16 +3,42 @@ const KanbanDragDrop = {
     this.setupDragAndDrop();
   },
   updated() {
+    this.cleanupEventListeners();
     this.setupDragAndDrop();
+  },
+  destroyed() {
+    this.cleanupEventListeners();
+  },
+
+  cleanupEventListeners() {
+    if (this.cardListeners) {
+      this.cardListeners.forEach(({ card, dragstart, dragend }) => {
+        card.removeEventListener("dragstart", dragstart);
+        card.removeEventListener("dragend", dragend);
+      });
+    }
+    if (this.columnListeners) {
+      this.columnListeners.forEach(({ column, dragover, dragleave, drop }) => {
+        column.removeEventListener("dragover", dragover);
+        column.removeEventListener("dragleave", dragleave);
+        column.removeEventListener("drop", drop);
+      });
+    }
+    this.cardListeners = [];
+    this.columnListeners = [];
   },
 
   setupDragAndDrop() {
     const cards = this.el.querySelectorAll(".kanban-card");
     const columns = this.el.querySelectorAll(".kanban-column");
 
+    this.cardListeners = [];
+    this.columnListeners = [];
+
     cards.forEach((card) => {
       card.setAttribute("draggable", "true");
-      card.addEventListener("dragstart", (e) => {
+
+      const dragstart = (e) => {
         e.dataTransfer.effectAllowed = "move";
 
         const payload = card.dataset.batchCode
@@ -29,26 +55,31 @@ const KanbanDragDrop = {
 
         e.dataTransfer.setData("application/json", JSON.stringify(payload));
         card.classList.add("dragging");
-      });
-      card.addEventListener("dragend", () => card.classList.remove("dragging"));
+      };
+
+      const dragend = () => card.classList.remove("dragging");
+
+      card.addEventListener("dragstart", dragstart);
+      card.addEventListener("dragend", dragend);
+      this.cardListeners.push({ card, dragstart, dragend });
     });
 
     columns.forEach((column) => {
-      column.addEventListener("dragover", (e) => {
+      const dragover = (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
         column.classList.add("drag-over");
-      });
-      column.addEventListener("dragleave", (e) => {
+      };
+
+      const dragleave = (e) => {
         if (e.target === column) column.classList.remove("drag-over");
-      });
-      column.addEventListener("drop", (e) => {
+      };
+
+      const drop = (e) => {
         e.preventDefault();
         column.classList.remove("drag-over");
         try {
-          const data = JSON.parse(
-            e.dataTransfer.getData("application/json"),
-          );
+          const data = JSON.parse(e.dataTransfer.getData("application/json"));
           const newStatus = column.dataset.status;
           if (data.currentStatus !== newStatus) {
             if (data.type === "unbatched") {
@@ -67,7 +98,12 @@ const KanbanDragDrop = {
         } catch (err) {
           console.error("Drop error:", err);
         }
-      });
+      };
+
+      column.addEventListener("dragover", dragover);
+      column.addEventListener("dragleave", dragleave);
+      column.addEventListener("drop", drop);
+      this.columnListeners.push({ column, dragover, dragleave, drop });
     });
   },
 };
