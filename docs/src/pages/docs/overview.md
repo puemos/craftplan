@@ -8,6 +8,20 @@ The planner lives at **Manage → Overview** (`/manage/overview`). It is the fir
 
 ![Craftplan Planner](/craftplan/screenshots/plan.webp)
 
+## Global Search (Command Palette)
+
+Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) anywhere in Craftplan to open the command palette. It provides instant fuzzy search across all your data:
+
+- **Products** — Jump to any product by name or SKU
+- **Materials** — Find raw materials and ingredients
+- **Orders** — Search orders by reference or date
+- **Customers** — Look up customers by name
+- **Production Batches** — Locate batches by code
+
+Use arrow keys to navigate results and Enter to select. Press Escape to close.
+
+![Global Search Command Palette](/craftplan/screenshots/search.webp)
+
 ## Layout & Tabs
 
 The planner is organized into four sections:

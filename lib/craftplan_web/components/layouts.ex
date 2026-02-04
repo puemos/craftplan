@@ -143,6 +143,12 @@ defmodule CraftplanWeb.Layouts do
               </div>
 
               <div class="flex items-center gap-4">
+                <.live_component
+                  :if={@current_user && @socket}
+                  module={CraftplanWeb.Components.CommandPalette}
+                  id="command-palette"
+                  current_user={@current_user}
+                />
                 <div :if={@current_user} class="relative">
                   <button
                     type="button"

@@ -100,6 +100,7 @@ defmodule CraftplanWeb.Router do
         CraftplanWeb.LiveCurrentPath,
         CraftplanWeb.LiveNav,
         CraftplanWeb.LiveSettings,
+        CraftplanWeb.LiveCommandPalette,
         {CraftplanWeb.LiveUserAuth, :live_admin_required}
       ] do
       # Settings Routes
@@ -125,6 +126,7 @@ defmodule CraftplanWeb.Router do
         CraftplanWeb.LiveCurrentPath,
         CraftplanWeb.LiveNav,
         CraftplanWeb.LiveSettings,
+        CraftplanWeb.LiveCommandPalette,
         {CraftplanWeb.LiveUserAuth, :live_staff_required}
       ] do
       # Products

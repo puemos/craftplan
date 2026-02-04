@@ -1,5 +1,6 @@
 import OrderCalendar from "./order_calendar";
 import KanbanDragDrop from "./kanban_drag_drop";
+import CommandPalette from "./command_palette";
 
 const Hooks = {
   TimezoneInput: {
@@ -9,6 +10,7 @@ const Hooks = {
   },
   OrderCalendar,
   KanbanDragDrop,
+  CommandPalette,
 };
 
 export default Hooks;

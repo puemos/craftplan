@@ -84,6 +84,10 @@ Craftplan brings all essential business tools into one platform: catalog managem
 - Admin and staff roles
 - Policy-based authorization on all resources
 
+**Global Search**
+- Command palette (`Cmd+K` / `Ctrl+K`) for instant access to any record
+- Fuzzy search across products, materials, orders, customers, and batches
+
 ## Screenshots
 
 <table>
@@ -93,7 +97,11 @@ Craftplan brings all essential business tools into one platform: catalog managem
   </tr>
   <tr>
     <td><img src="screenshots/inventory-forecast.webp" alt="Inventory forecasting" width="400"></td>
+    <td><img src="screenshots/search.webp" alt="Global search command palette" width="400"></td>
+  </tr>
+  <tr>
     <td><img src="screenshots/settings.webp" alt="Settings and email configuration" width="400"></td>
+    <td></td>
   </tr>
 </table>
 
