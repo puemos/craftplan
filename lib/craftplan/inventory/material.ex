@@ -52,8 +52,14 @@ defmodule Craftplan.Inventory.Material do
         :price,
         :minimum_stock,
         :maximum_stock
-      ],
-      update: [
+      ]
+    ]
+
+    update :update do
+      primary? true
+      require_atomic? false
+
+      accept [
         :name,
         :sku,
         :unit,
@@ -61,7 +67,9 @@ defmodule Craftplan.Inventory.Material do
         :minimum_stock,
         :maximum_stock
       ]
-    ]
+
+      change Craftplan.Inventory.Changes.RefreshAffectedBomRollups
+    end
 
     update :update_allergens do
       require_atomic? false
