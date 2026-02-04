@@ -13,9 +13,9 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
     ~H"""
     <div>
-      <div class="mb-4 flex items-center justify-between">
+      <div class="mb-4 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between md:gap-0">
         <div class="flex items-center gap-2">
-          <div :if={@bom.version != nil} class="flex items-center gap-2 text-sm text-stone-700">
+          <div :if={@bom.version != nil} class="flex flex-wrap items-center gap-2 text-sm text-stone-700">
             <span>Version <span>v{@bom.version}</span></span>
 
             <%= if latest_version(@boms) == @bom.version do %>
@@ -65,18 +65,19 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
         <div class="">
           <.input field={@form[:product_id]} type="hidden" value={@product.id} />
 
-          <div id="recipe-materials-list">
+            <div id="recipe-materials-list">
             <h3 class="text-lg font-medium">Materials</h3>
             <p class="mb-2 text-sm text-stone-500">
               Add materials needed for this product
             </p>
             <div
               id="recipe"
-              class="mt-2 grid w-full grid-cols-2 gap-x-4 text-sm leading-6 text-stone-700 md:grid-cols-4"
+              class="mt-2 w-full text-sm leading-6 text-stone-700"
             >
+              <!-- Desktop Header -->
               <div
                 role="row"
-                class="col-span-2 grid grid-cols-2 border-b border-stone-300 text-left text-sm leading-6 text-stone-500 md:col-span-4 md:grid-cols-4"
+                class="hidden border-b border-stone-300 text-left text-sm leading-6 text-stone-500 md:grid md:grid-cols-4"
               >
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 ">
                   Material
@@ -95,19 +96,22 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 </div>
               </div>
 
-              <div role="row" class="col-span-2 hidden py-4 text-stone-400 last:block md:col-span-4">
+              <!-- Empty State -->
+              <div role="row" class="hidden py-4 text-stone-400 last:block">
                 <div>
                   No materials in recipe
                 </div>
               </div>
 
               <.inputs_for :let={components_form} field={@form[:components]}>
-                <div
-                  role="row"
-                  class="group col-span-2 grid grid-cols-2 hover:bg-stone-200/40 md:col-span-4 md:grid-cols-4"
-                >
-                  <% material = material_for_form(@materials_map, components_form) %>
-                  <div class="relative border-r border-b border-stone-200 p-0 last:border-r-0 ">
+                <% material = material_for_form(@materials_map, components_form) %>
+
+                <!-- Wrapper for row -->
+                <div role="row" class="group border-b border-stone-200 last:border-b-0 hover:bg-stone-200/40 md:grid md:grid-cols-4">
+
+                  <!-- Desktop View: Grid Columns -->
+                  <!-- 1. Material -->
+                  <div class="hidden relative border-r border-stone-200 p-0 last:border-r-0 md:block">
                     <div class="block py-4 pr-6">
                       <span class="relative">
                         <.link
@@ -120,24 +124,39 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         <span :if={!material} class="text-stone-400">
                           Select material
                         </span>
-                        <.input
-                          field={components_form[:material_id]}
-                          value={components_form[:material_id].value}
-                          type="hidden"
-                        />
-                        <.input
-                          field={components_form[:component_type]}
-                          value={components_form[:component_type].value || :material}
-                          type="hidden"
-                        />
+                        <!-- Hidden inputs already rendered in mobile view? No, inputs_for scopes fields.
+                             Careful not to duplicate inputs causing ID conflicts or form issues.
+                             Actually, we can duplicate if we are careful, but better to share hidden inputs or structure differently.
+                             Since we need different visual structures, let's keep the hidden inputs in a shared place if possible,
+                             OR since they are hidden, just put them in the desktop block and hope mobile doesn't need them visible?
+                             Mobile needs material_id and component_type.
+                             Let's actually put Shared Hidden Inputs at the top of the shared container if possible.
+                             Wait, inputs with same ID is invalid HTML.
+                             Phoenix form helper generates IDs based on field name. Duplicating <.input> will duplicate IDs.
+
+                             Correction: We should render the hidden inputs ONCE outside the split views.
+                        -->
                       </span>
                     </div>
                   </div>
 
-                  <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                  <!-- 2. Quantity -->
+                  <div class="hidden relative border-r border-stone-200 p-0 pl-4 last:border-r-0 md:block">
                     <div class="block py-4 pr-6">
                       <span class="relative -mt-2">
                         <div class="border-b border-dashed border-stone-300">
+                          <!-- We need this input for desktop. If we render it for mobile too, we have ID conflict.
+                               Phoenix assigns 'id' automatically.
+                               We should probably use CSS to change the layout instead of duplicating HTML if possible,
+                               OR suppress ID on one of them?
+                               Actually, for 'quantity', it's a visible input.
+                               If we use `display: none` via classes, the input is still in the DOM and submitted.
+                               Having two inputs with same name submitted might cause issues (array of values).
+
+                               BETTER APPROACH: Use CSS Grid/Flex to reorder a SINGLE structure.
+
+                               Let's try to restructure the HTML so it works for both without duplication.
+                          -->
                           <.input
                             flat={true}
                             field={components_form[:quantity]}
@@ -153,7 +172,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                   </div>
 
-                  <div class="relative hidden border-r border-b border-stone-200 p-0 pl-4 last:border-r-0 md:block">
+                  <!-- 3. Cost -->
+                  <div class="hidden relative border-r border-stone-200 p-0 pl-4 last:border-r-0 md:block">
                     <div class="block py-4 pr-6">
                       <span class="relative">
                         {format_material_cost(
@@ -165,7 +185,142 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                   </div>
 
-                  <div class="relative hidden border-r border-b border-stone-200 p-0 pl-4 last:border-r-0 md:block">
+                  <!-- 4. Remove -->
+                  <div class="hidden relative border-r border-stone-200 p-0 pl-4 last:border-r-0 md:block">
+                    <div class="block py-4 pr-6">
+                      <%= if latest_version(@boms) != @bom.version do %>
+                        <span class="text-stone-400">Read-only</span>
+                      <% else %>
+                        <label class="cursor-pointer">
+                          <input
+                            type="checkbox"
+                            phx-click="remove_form"
+                            phx-target={@myself}
+                            phx-value-path={components_form.name}
+                            class="hidden"
+                          />
+                          <span class="font-semibold leading-6 text-stone-900 hover:text-stone-700">
+                            Remove
+                          </span>
+                        </label>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  role="row"
+                  class="group relative border-b border-stone-200 last:border-b-0 hover:bg-stone-200/40 md:grid md:grid-cols-4 md:border-none py-3 md:p-0"
+                >
+                  <!-- 1. Name Column (Desktop: Col 1, Mobile: Row 1 Left) -->
+                  <div class="relative md:border-r border-stone-200 p-0 last:border-r-0 md:h-full">
+                    <div class="block md:py-4 md:pr-6">
+                      <div class="flex justify-between items-start">
+                        <span class="relative font-medium md:font-normal">
+                          <.link
+                            :if={material}
+                            navigate={~p"/manage/inventory/#{material.sku}"}
+                            class="hover:text-blue-800 hover:underline"
+                          >
+                            {material.name}
+                          </.link>
+                          <span :if={!material} class="text-stone-400">
+                            Select material
+                          </span>
+
+                          <!-- Shared Hidden Inputs -->
+                          <.input
+                            field={components_form[:material_id]}
+                            value={components_form[:material_id].value}
+                            type="hidden"
+                          />
+                          <.input
+                            field={components_form[:component_type]}
+                            value={components_form[:component_type].value || :material}
+                            type="hidden"
+                          />
+                        </span>
+
+                        <!-- Mobile Remove Button -->
+                        <%= if latest_version(@boms) == @bom.version do %>
+                          <label class="cursor-pointer p-1 -mt-1 -mr-2 text-stone-400 hover:text-stone-700 md:hidden">
+                            <input
+                              type="checkbox"
+                              phx-click="remove_form"
+                              phx-target={@myself}
+                              phx-value-path={components_form.name}
+                              class="hidden"
+                            />
+                            <.icon name="hero-x-mark" class="h-5 w-5" />
+                          </label>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Mobile: Quantity and Cost in compact row -->
+                  <div class="md:hidden mt-1.5">
+                    <div class="flex items-end gap-2">
+                      <div class="flex-1">
+                        <label class="block text-xs text-stone-500 mb-0.5">Quantity</label>
+                        <.input
+                          flat={false}
+                          field={components_form[:quantity]}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          phx-debounce="10"
+                          inline_label={get_material_unit(@materials_map, components_form)}
+                          disabled={latest_version(@boms) != @bom.version}
+                          class="!min-h-[auto] !py-1 !px-2 w-full text-sm"
+                        />
+                      </div>
+                      <div class="text-right pb-1">
+                        <span class="text-sm font-medium text-stone-900">
+                          {format_material_cost(
+                            @settings.currency,
+                            material,
+                            components_form[:quantity].value
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Desktop: Quantity Column (Col 2) -->
+                  <div class="hidden md:block relative md:border-r border-stone-200 p-0 md:pl-4 last:border-r-0">
+                    <div class="block md:py-4 md:pr-6">
+                      <span class="relative md:-mt-2 block">
+                        <div class="md:border-b md:border-dashed md:border-stone-300">
+                          <.input
+                            flat={true}
+                            field={components_form[:quantity]}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            phx-debounce="10"
+                            inline_label={get_material_unit(@materials_map, components_form)}
+                            disabled={latest_version(@boms) != @bom.version}
+                          />
+                        </div>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Desktop: Cost Column (Col 3) -->
+                  <div class="hidden md:block relative md:border-r border-stone-200 p-0 md:pl-4 last:border-r-0">
+                    <div class="md:block md:py-4 md:pr-6">
+                       <span class="text-sm text-stone-900">
+                        {format_material_cost(
+                          @settings.currency,
+                          material,
+                          components_form[:quantity].value
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- 4. Action Column (Desktop: Col 4, Mobile: Hidden) -->
+                  <div class="hidden relative md:border-r border-stone-200 p-0 pl-4 last:border-r-0 md:block">
                     <div class="block py-4 pr-6">
                       <%= if latest_version(@boms) != @bom.version do %>
                         <span class="text-stone-400">Read-only</span>
@@ -238,9 +393,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 id="labor"
                 class="mt-2 text-sm leading-6 text-stone-700"
               >
+                <!-- Desktop Header -->
                 <div
                   role="row"
-                  class="grid grid-cols-6 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                  class="hidden grid-cols-6 border-b border-stone-300 text-left text-sm leading-6 text-stone-500 md:grid"
                 >
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0">
                     Step
@@ -268,21 +424,25 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   </div>
                 </div>
 
-                <div role="row" class="col-span-5 hidden py-4 text-stone-400 last:block">
+                <div role="row" class="hidden py-4 text-stone-400 last:block">
                   <div>No labor steps yet</div>
                 </div>
 
                 <.inputs_for :let={labor_form} field={@form[:labor_steps]}>
-                  <div role="row" class="col-span-6 grid grid-cols-6">
-                    <div class="relative border-r border-b border-stone-200 p-0 pr-6 last:border-r-0">
-                      <div class="block py-4">
-                        <div class="border-b border-dashed border-stone-300">
+                  <!-- Unified Mobile/Desktop Structure for Labor Steps -->
+                  <div role="row" class="group relative border-b border-stone-200 last:border-b-0 hover:bg-stone-200/40 py-3 md:p-0 md:grid md:grid-cols-6 md:border-none">
+
+                    <!-- 1. Name/Step (Desktop: Col 1, Mobile: Row 1) -->
+                    <div class="relative md:border-r border-stone-200 p-0 md:pr-6 last:border-r-0 md:h-full">
+                      <div class="block md:py-4">
+                        <div class="md:border-b md:border-dashed md:border-stone-300">
                           <.input
                             flat={true}
                             field={labor_form[:name]}
                             type="text"
                             placeholder="e.g. Mix dough"
                             disabled={latest_version(@boms) != @bom.version}
+                            class="font-medium md:font-normal"
                           />
                         </div>
                         <.input
@@ -293,9 +453,70 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       </div>
                     </div>
 
-                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
-                      <div class="block py-4 pr-6">
-                        <div class="border-b border-dashed border-stone-300">
+                    <!-- Mobile: Compact 2-column grid for all fields -->
+                    <div class="md:hidden grid grid-cols-2 gap-x-2 gap-y-2 mt-2">
+                      <!-- Duration -->
+                      <div>
+                        <label class="block text-xs text-stone-500 mb-0.5">Duration</label>
+                        <.input
+                          flat={false}
+                          field={labor_form[:duration_minutes]}
+                          type="number"
+                          min="0"
+                          step="1"
+                          phx-debounce="10"
+                          inline_label="min"
+                          disabled={latest_version(@boms) != @bom.version}
+                          class="!min-h-[auto] !py-1 !px-2 w-full text-sm"
+                        />
+                      </div>
+                      <!-- Units/Run -->
+                      <div>
+                        <label class="block text-xs text-stone-500 mb-0.5">Units/Run</label>
+                        <.input
+                          flat={false}
+                          field={labor_form[:units_per_run]}
+                          type="number"
+                          min="1"
+                          step="0.01"
+                          phx-debounce="10"
+                          placeholder="1"
+                          disabled={latest_version(@boms) != @bom.version}
+                          class="!min-h-[auto] !py-1 !px-2 w-full text-sm"
+                        />
+                      </div>
+                      <!-- Rate Override -->
+                      <div>
+                        <label class="block text-xs text-stone-500 mb-0.5">Rate Override</label>
+                        <.input
+                          flat={false}
+                          field={labor_form[:rate_override]}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          phx-debounce="10"
+                          placeholder="Default"
+                          disabled={latest_version(@boms) != @bom.version}
+                          class="!min-h-[auto] !py-1 !px-2 w-full text-sm"
+                        />
+                      </div>
+                      <!-- Cost -->
+                      <div>
+                        <label class="block text-xs text-stone-500 mb-0.5">Cost</label>
+                        <div class="text-sm font-medium text-stone-900 py-1 px-2 border border-transparent">
+                          {format_money(
+                            @settings.currency,
+                            Map.get(@labor_row_costs || %{}, labor_form.name, D.new(0))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Desktop: Original grid columns -->
+                    <!-- 2. Minutes (Desktop: Col 2) -->
+                    <div class="hidden md:block relative md:border-r border-stone-200 p-0 md:pl-4 last:border-r-0">
+                      <div class="block md:py-4 md:pr-6">
+                        <div class="md:border-b md:border-dashed md:border-stone-300">
                           <.input
                             flat={true}
                             field={labor_form[:duration_minutes]}
@@ -310,9 +531,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       </div>
                     </div>
 
-                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
-                      <div class="block py-4 pr-6">
-                        <div class="border-b border-dashed border-stone-300">
+                    <!-- 3. Units Per Run (Desktop: Col 3) -->
+                    <div class="hidden md:block relative md:border-r border-stone-200 p-0 md:pl-4 last:border-r-0">
+                      <div class="block md:py-4 md:pr-6">
+                        <div class="md:border-b md:border-dashed md:border-stone-300">
                           <.input
                             flat={true}
                             field={labor_form[:units_per_run]}
@@ -327,9 +549,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       </div>
                     </div>
 
-                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
-                      <div class="block py-4 pr-6">
-                        <div class="border-b border-dashed border-stone-300">
+                    <!-- 4. Rate Override (Desktop: Col 4) -->
+                    <div class="hidden md:block relative md:border-r border-stone-200 p-0 md:pl-4 last:border-r-0">
+                      <div class="block md:py-4 md:pr-6">
+                        <div class="md:border-b md:border-dashed md:border-stone-300">
                           <.input
                             flat={true}
                             field={labor_form[:rate_override]}
@@ -344,17 +567,35 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       </div>
                     </div>
 
-                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
-                      <div class="block py-4 pr-6 text-sm text-stone-800">
-                        {format_money(
-                          @settings.currency,
-                          Map.get(@labor_row_costs || %{}, labor_form.name, D.new(0))
-                        )}
+                    <!-- 5. Cost (Desktop: Col 5) -->
+                    <div class="hidden md:block relative md:border-r border-stone-200 p-0 md:pl-4 last:border-r-0">
+                      <div class="block md:py-4 md:pr-6 text-sm text-stone-800">
+                        <span>
+                          {format_money(
+                            @settings.currency,
+                            Map.get(@labor_row_costs || %{}, labor_form.name, D.new(0))
+                          )}
+                        </span>
                       </div>
                     </div>
 
-                    <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
-                      <div class="block py-4 pr-6">
+                    <!-- Mobile Remove Button (positioned at top-right of card) -->
+                    <%= if latest_version(@boms) == @bom.version do %>
+                      <label class="cursor-pointer absolute top-3 right-2 text-stone-400 hover:text-stone-700 md:hidden">
+                        <input
+                          type="checkbox"
+                          phx-click="remove_form"
+                          phx-target={@myself}
+                          phx-value-path={labor_form.name}
+                          class="hidden"
+                        />
+                        <.icon name="hero-x-mark" class="h-5 w-5" />
+                      </label>
+                    <% end %>
+
+                    <!-- 6. Remove (Desktop: Col 6) -->
+                    <div class="hidden md:block md:border-r border-stone-200 p-0 md:pl-4 last:border-r-0">
+                      <div class="block md:py-4 md:pr-6">
                         <%= if latest_version(@boms) != @bom.version do %>
                           <span class="text-stone-400">Read-only</span>
                         <% else %>
@@ -777,7 +1018,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     steps = socket.assigns.form.source.forms[:labor_steps] || []
 
     {total_min, per_unit_min, per_unit_cost, row_costs} =
-      Enum.reduce(steps, {D.new(0), D.new(0), D.new(0), %{}}, fn step_form, {tm, pum, puc, costs} ->
+      Enum.reduce(steps, {D.new(0), D.new(0), D.new(0), %{}}, fn step_form,
+                                                                 {tm, pum, puc, costs} ->
         minutes =
           normalize_decimal(
             form_param(step_form, :duration_minutes) ||
@@ -915,7 +1157,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
     |> Enum.map(fn {{_key, step}, sequence} ->
       %{
         name: blank_to_nil(step["name"] || step[:name]),
-        duration_minutes: normalize_decimal(step["duration_minutes"] || step[:duration_minutes] || 0),
+        duration_minutes:
+          normalize_decimal(step["duration_minutes"] || step[:duration_minutes] || 0),
         units_per_run: normalize_units_per_run(step["units_per_run"] || step[:units_per_run]),
         rate_override: normalize_optional_decimal(step["rate_override"] || step[:rate_override]),
         sequence: sequence

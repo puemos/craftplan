@@ -614,27 +614,25 @@ defmodule CraftplanWeb.Layouts do
     assigns = assign(assigns, :count, Enum.count(assigns.breadcrumbs))
 
     ~H"""
-    <nav class="flex items-center overflow-hidden text-sm text-stone-500" aria-label="Breadcrumb">
-      <div class="no-scrollbar flex items-center gap-2 overflow-x-auto">
-        <ol class="inline-flex items-center gap-2">
-          <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)} class="flex items-center gap-2">
-            <.link
-              :if={!Map.get(crumb, :current?, index == @count - 1)}
-              navigate={Map.get(crumb, :path) || Map.get(crumb, :navigate)}
-              class="transition hover:text-stone-900 hover:underline"
-            >
-              {crumb.label}
-            </.link>
-            <span
-              :if={Map.get(crumb, :current?, index == @count - 1)}
-              class="text-stone-900"
-            >
-              {crumb.label}
-            </span>
-            <span :if={index < @count - 1} class="text-stone-300">/</span>
-          </li>
-        </ol>
-      </div>
+    <nav class="flex items-center text-sm text-stone-500 min-w-0" aria-label="Breadcrumb">
+      <ol class="flex items-center gap-2 whitespace-nowrap min-w-0">
+        <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)} class="flex items-center gap-2 min-w-0">
+          <.link
+            :if={!Map.get(crumb, :current?, index == @count - 1)}
+            navigate={Map.get(crumb, :path) || Map.get(crumb, :navigate)}
+            class="transition hover:text-stone-900 hover:underline truncate"
+          >
+            {crumb.label}
+          </.link>
+          <span
+            :if={Map.get(crumb, :current?, index == @count - 1)}
+            class="text-stone-900 truncate"
+          >
+            {crumb.label}
+          </span>
+          <span :if={index < @count - 1} class="text-stone-300">/</span>
+        </li>
+      </ol>
     </nav>
     """
   end
