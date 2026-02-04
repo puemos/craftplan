@@ -293,7 +293,7 @@ defmodule CraftplanWeb.HtmlHelpers do
   def format_percentage(value, opts) when is_integer(value), do: format_percentage(Decimal.new(value), opts)
 
   def format_percentage(value, opts) do
-    places = Keyword.get(opts, :places, 2)
+    places = Keyword.get(opts, :places, 0)
     value |> Decimal.mult(100) |> Decimal.round(places)
   end
 

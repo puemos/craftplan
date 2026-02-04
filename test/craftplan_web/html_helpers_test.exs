@@ -132,4 +132,42 @@ defmodule CraftplanWeb.HtmlHelpersTest do
       assert HtmlHelpers.is_today?(naive)
     end
   end
+
+  describe "format_percentage/2" do
+    test "rounds to whole numbers by default" do
+      assert HtmlHelpers.format_percentage(Decimal.new("0.756")) == Decimal.new("76")
+    end
+
+    test "handles exact percentages" do
+      assert HtmlHelpers.format_percentage(Decimal.new("0.50")) == Decimal.new("50")
+    end
+
+    test "handles 0%" do
+      assert HtmlHelpers.format_percentage(Decimal.new("0")) == Decimal.new("0")
+    end
+
+    test "handles 100%" do
+      assert HtmlHelpers.format_percentage(Decimal.new("1")) == Decimal.new("100")
+    end
+
+    test "handles nil input" do
+      assert HtmlHelpers.format_percentage(nil) == Decimal.new("0")
+    end
+
+    test "handles integer input" do
+      assert HtmlHelpers.format_percentage(1) == Decimal.new("100")
+    end
+
+    test "supports custom decimal places" do
+      assert HtmlHelpers.format_percentage(Decimal.new("0.7567"), places: 2) == Decimal.new("75.67")
+    end
+
+    test "rounds up correctly" do
+      assert HtmlHelpers.format_percentage(Decimal.new("0.995")) == Decimal.new("100")
+    end
+
+    test "rounds down correctly" do
+      assert HtmlHelpers.format_percentage(Decimal.new("0.994")) == Decimal.new("99")
+    end
+  end
 end
