@@ -133,11 +133,20 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
   end
 
   seed_material = fn name, sku, unit, price, min, max ->
+    data = %{
+      name: name,
+      sku: sku,
+      unit: unit,
+      price: Money.new(:USD, price),
+      minimum_stock: Decimal.new(min),
+      maximum_stock: Decimal.new(max)
+    }
+
     Ash.Seed.seed!(Inventory.Material, %{
       name: name,
       sku: sku,
       unit: unit,
-      price: Decimal.new(price),
+      price: Money.new(:USD, price),
       minimum_stock: Decimal.new(min),
       maximum_stock: Decimal.new(max)
     })
@@ -196,7 +205,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
       name: name,
       sku: sku,
       status: :active,
-      price: Decimal.new(price)
+      price: Money.new(:USD, price)
     })
   end
 
@@ -273,12 +282,12 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
     end
   end
 
-  seed_purchase_order_item = fn po, material, quantity, unit_price ->
+  seed_purchase_order_item = fn po, material, quantity, price ->
     Ash.Seed.seed!(Inventory.PurchaseOrderItem, %{
       purchase_order_id: po.id,
       material_id: material.id,
       quantity: Decimal.new(quantity),
-      unit_price: Decimal.new(unit_price)
+      unit_price: Money.new(:USD, price)
     })
   end
 
@@ -327,8 +336,8 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
     offers_delivery: true,
     lead_time_days: 1,
     daily_capacity: 25,
-    shipping_flat: Decimal.new("5.00"),
-    labor_hourly_rate: Decimal.new("18.50"),
+    shipping_flat: Money.from_integer(500, :USD),
+    labor_hourly_rate: Money.from_integer(1850, :USD),
     labor_overhead_percent: Decimal.new("0.15"),
     retail_markup_mode: :percent,
     retail_markup_value: Decimal.new("35"),
@@ -813,7 +822,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
         %{
           name: "Bake trays",
           duration_minutes: Decimal.new("12"),
-          rate_override: Decimal.new("25"),
+          rate_override: Money.new("25", :USD),
           units_per_run: Decimal.new("48")
         }
       ],
@@ -922,7 +931,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
         %{
           name: "Bulk proof",
           duration_minutes: Decimal.new("60"),
-          rate_override: Decimal.new("18")
+          rate_override: Money.new("18", :USD)
         },
         %{
           name: "Bake loaves",
@@ -1127,7 +1136,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
         %{
           name: "Frost & decorate",
           duration_minutes: Decimal.new("10"),
-          rate_override: Decimal.new("22"),
+          rate_override: Money.new("22", :USD),
           units_per_run: Decimal.new("1")
         }
       ],

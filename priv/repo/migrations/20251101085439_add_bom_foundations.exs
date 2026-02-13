@@ -9,7 +9,7 @@ defmodule Craftplan.Repo.Migrations.AddBomFoundations do
 
   def up do
     alter table(:settings) do
-      add :labor_hourly_rate, :decimal, null: false, default: "0"
+      add :labor_hourly_rate, :money_with_currency, default: fragment("('USD', 0)")
       add :labor_overhead_percent, :decimal, null: false, default: "0"
       add :retail_markup_mode, :text, null: false, default: "percent"
       add :retail_markup_value, :decimal, null: false, default: "0"
@@ -19,10 +19,11 @@ defmodule Craftplan.Repo.Migrations.AddBomFoundations do
 
     alter table(:orders_items) do
       add :batch_code, :text
-      add :material_cost, :decimal, null: false, default: "0"
-      add :labor_cost, :decimal, null: false, default: "0"
-      add :overhead_cost, :decimal, null: false, default: "0"
-      add :unit_cost, :decimal, null: false, default: "0"
+      add :material_cost, :money_with_currency, null: false, default: fragment("('USD', 0)")
+      add :labor_cost, :money_with_currency, null: false, default: fragment("('USD', 0)")
+      add :overhead_cost, :money_with_currency, null: false, default: fragment("('USD', 0)")
+      add :unit_cost, :money_with_currency, null: false, default: fragment("('USD', 0)")
+
       add :bom_id, :uuid
     end
 
@@ -31,7 +32,7 @@ defmodule Craftplan.Repo.Migrations.AddBomFoundations do
       add :name, :text, null: false
       add :sequence, :bigint, null: false, default: 0
       add :duration_minutes, :decimal, null: false, default: "0"
-      add :rate_override, :decimal
+      add :rate_override, :money_with_currency, default: fragment("('USD', 0)")
       add :notes, :text
 
       add :inserted_at, :utc_datetime_usec,

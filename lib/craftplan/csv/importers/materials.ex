@@ -6,7 +6,7 @@ defmodule Craftplan.CSV.Importers.Materials do
 
   alias NimbleCSV.RFC4180, as: CSV
 
-  @type row :: %{name: String.t(), sku: String.t(), unit: atom(), price: Decimal.t()}
+  @type row :: %{name: String.t(), sku: String.t(), unit: atom(), price: Money.t()}
   @type error :: %{row: non_neg_integer(), message: String.t()}
 
   @spec dry_run(String.t(), keyword) :: {:ok, %{rows: [row()], errors: [error()]}}
@@ -162,7 +162,7 @@ defmodule Craftplan.CSV.Importers.Materials do
     name = fields |> fetch_field(header_map, "name") |> to_string() |> String.trim()
     sku = fields |> fetch_field(header_map, "sku") |> to_string() |> String.trim()
     unit_str = fields |> fetch_field(header_map, "unit") |> to_string() |> String.trim()
-    price_str = fields |> fetch_field(header_map, "price") |> to_string() |> String.trim()
+    price_str = fields |> fetch_field(header_map, "price") |> Money.to_string() |> String.trim()
 
     with :ok <- present?(name, "name"),
          :ok <- present?(sku, "sku"),

@@ -145,7 +145,7 @@ defmodule Craftplan.Inventory.Material do
       allow_nil? false
     end
 
-    attribute :price, :decimal do
+    attribute :price, AshMoney.Types.Money do
       public? true
       allow_nil? false
     end

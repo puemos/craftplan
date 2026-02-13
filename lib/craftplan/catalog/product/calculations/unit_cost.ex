@@ -6,13 +6,14 @@ defmodule Craftplan.Catalog.Product.Calculations.UnitCost do
   use Ash.Resource.Calculation
 
   alias Ash.NotLoaded
-  alias Decimal, as: D
 
   @impl true
   def load(_query, _opts, _context), do: [active_bom: [rollup: [:unit_cost]]]
 
   @impl true
   def calculate(records, _opts, _context) do
+    currency = Craftplan.Settings.get_settings!().currency
+
     Enum.map(records, fn record ->
       rollup =
         case Map.get(record, :active_bom) do
@@ -29,8 +30,8 @@ defmodule Craftplan.Catalog.Product.Calculations.UnitCost do
         end
 
       case unit_cost do
-        %NotLoaded{} -> D.new(0)
-        nil -> D.new(0)
+        %NotLoaded{} -> Money.new!(0, currency)
+        nil -> Money.new!(0, currency)
         cost -> cost
       end
     end)

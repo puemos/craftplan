@@ -10,11 +10,11 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
   require Catalog
 
-  @spec calculate(BOM.t(), number | D.t(), keyword) :: %{
-          material_cost: D.t(),
-          labor_cost: D.t(),
-          overhead_cost: D.t(),
-          unit_cost: D.t()
+  @spec calculate(BOM.t(), number | Money.t(), keyword) :: %{
+          material_cost: Money.t(),
+          labor_cost: Money.t(),
+          overhead_cost: Money.t(),
+          unit_cost: Money.t()
         }
   def calculate(%BOM{} = bom, quantity, opts \\ []) do
     settings = fetch_settings(opts)
@@ -24,14 +24,15 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
   end
 
   @spec do_calculate(BOM.t(), D.t(), keyword(), map(), MapSet.t()) :: %{
-          material_cost: D.t(),
-          labor_cost: D.t(),
-          overhead_cost: D.t(),
-          unit_cost: D.t()
+          material_cost: Money.t(),
+          labor_cost: Money.t(),
+          overhead_cost: Money.t(),
+          unit_cost: Money.t()
         }
   defp do_calculate(%BOM{} = bom, quantity, opts, settings, path) do
     authorize? = Keyword.get(opts, :authorize?, true)
     actor = Keyword.get(opts, :actor)
+    currency = Settings.get_settings!().currency
 
     bom =
       Ash.load!(
@@ -48,9 +49,9 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     material_cost =
       bom.components
       |> Enum.sort_by(& &1.position)
-      |> Enum.reduce(D.new(0), fn component, acc ->
+      |> Enum.reduce(Money.new!(0, currency), fn component, acc ->
         cost = component_cost(component, quantity, opts, settings, path)
-        D.add(acc, cost)
+        Money.add!(acc, cost)
       end)
 
     labor_cost = labor_cost(bom.labor_steps, quantity, settings)
@@ -58,14 +59,14 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
     total_cost =
       material_cost
-      |> D.add(labor_cost)
-      |> D.add(overhead_cost)
+      |> Money.add!(labor_cost)
+      |> Money.add!(overhead_cost)
 
     unit_cost =
       if D.compare(quantity, D.new(0)) == :gt do
-        D.div(total_cost, quantity)
+        Money.div!(total_cost, quantity)
       else
-        D.new(0)
+        Money.new!(0, currency)
       end
 
     %{
@@ -77,7 +78,8 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
   end
 
   @spec component_cost(BOMComponent.t(), D.t(), keyword(), map(), MapSet.t()) :: D.t()
-  defp component_cost(%BOMComponent{component_type: :material} = component, quantity, _opts, _settings, _path) do
+  defp component_cost(%BOMComponent{component_type: :material} = component, quantity, opts, _settings, _path) do
+    currency = Settings.get_settings!().currency
     multiplier = waste_multiplier(component)
 
     total_quantity =
@@ -85,11 +87,11 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
     price =
       case component.material do
-        %{price: price} -> DecimalHelpers.to_decimal(price)
-        _ -> D.new(0)
+        %{price: price} -> price
+        _ -> Money.new!(0, currency)
       end
 
-    D.mult(total_quantity, price)
+    Money.mult!(price, total_quantity)
   end
 
   defp component_cost(%BOMComponent{component_type: :product} = component, quantity, opts, settings, path) do
@@ -105,13 +107,13 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
          :ok <- check_for_circular_dependency(product.id, path),
          {:ok, bom} <- get_active_bom_for_product(product.id, actor, authorize?) do
       nested_cost = calculate_nested_cost(bom, opts, settings, MapSet.put(path, product.id))
-      D.mult(total_quantity, nested_cost)
+      Money.mult!(nested_cost, total_quantity)
     else
       _error ->
         # Fallback to the product's price if any step fails
         product = Map.get(component, :product)
-        fallback_price = product |> Map.get(:price) |> DecimalHelpers.to_decimal()
-        D.mult(total_quantity, fallback_price)
+        fallback_price = Map.get(product, :price)
+        Money.mult!(fallback_price, total_quantity)
     end
   end
 
@@ -143,10 +145,12 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
   @spec calculate_nested_cost(BOM.t(), keyword(), map(), MapSet.t()) :: D.t()
   defp calculate_nested_cost(bom, opts, settings, path) do
+    currency = Settings.get_settings!().currency
+
     nested =
       do_calculate(
         bom,
-        D.new(1),
+        Money.new!(1, currency),
         opts,
         settings,
         path
@@ -168,11 +172,11 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
 
     labor_steps
     |> Enum.sort_by(& &1.sequence)
-    |> Enum.reduce(D.new(0), fn step, acc ->
+    |> Enum.reduce(Money.new(0, settings.currency), fn step, acc ->
       minutes = DecimalHelpers.to_decimal(step.duration_minutes)
-      hourly_rate = DecimalHelpers.to_decimal(step.rate_override || settings.labor_hourly_rate)
+      hourly_rate = step.rate_override || settings.labor_hourly_rate
       hours = D.div(minutes, D.new(60))
-      per_run_cost = D.mult(hours, hourly_rate)
+      per_run_cost = Money.mult!(hourly_rate, hours)
 
       units_per_run =
         step
@@ -183,38 +187,43 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
         end)
 
       runs = D.div(base_quantity, units_per_run)
-      D.add(acc, D.mult(per_run_cost, runs))
+      Money.add!(acc, Money.mult!(per_run_cost, D.to_float(runs)))
     end)
   end
 
-  @spec overhead_cost(D.t(), D.t(), map()) :: D.t()
+  @spec overhead_cost(Money.t(), Money.t(), map()) :: Money.t()
   defp overhead_cost(material_cost, labor_cost, settings) do
-    base = D.add(material_cost, labor_cost)
-    D.mult(base, settings.labor_overhead_percent)
+    base = Money.add!(material_cost, labor_cost)
+    Money.mult!(base, settings.labor_overhead_percent)
   end
 
   @spec fetch_settings(keyword()) :: map()
   defp fetch_settings(opts) do
     authorize? = Keyword.get(opts, :authorize?, true)
     actor = Keyword.get(opts, :actor)
+    currency = Settings.get_settings!().currency
 
     case Settings.get_settings(actor: actor, authorize?: authorize?) do
       {:ok, nil} ->
-        default_settings()
+        default_settings(currency)
 
       {:ok, settings} ->
-        Map.merge(default_settings(), %{
-          labor_hourly_rate: DecimalHelpers.to_decimal(settings.labor_hourly_rate),
+        Map.merge(default_settings(currency), %{
+          labor_hourly_rate: settings.labor_hourly_rate,
           labor_overhead_percent: DecimalHelpers.to_decimal(settings.labor_overhead_percent)
         })
 
       {:error, _} ->
-        default_settings()
+        default_settings(currency)
     end
   end
 
-  defp default_settings do
-    %{labor_hourly_rate: D.new(0), labor_overhead_percent: D.new(0)}
+  defp default_settings(currency) do
+    %{
+      labor_hourly_rate: Money.new!(0, currency),
+      labor_overhead_percent: D.new(0),
+      currency: currency
+    }
   end
 
   @spec maybe_track_product(MapSet.t(), any()) :: MapSet.t()

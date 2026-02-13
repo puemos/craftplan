@@ -12,7 +12,7 @@ defmodule Craftplan.Repo.Migrations.AddTaxAndFulfillmentSettings do
       add :offers_delivery, :boolean, null: false, default: true
       add :lead_time_days, :integer, null: false, default: 0
       add :daily_capacity, :integer, null: false, default: 0
-      add :shipping_flat, :decimal, null: false, default: "0"
+      add :shipping_flat, :money_with_currency, default: fragment("('USD', 0)")
     end
   end
 

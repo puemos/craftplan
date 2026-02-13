@@ -9,7 +9,7 @@ defmodule Craftplan.Repo.Migrations.AddOrderUnitPrice do
 
   def up do
     alter table(:orders_items) do
-      add :unit_price, :decimal, null: false
+      add :unit_price, :money_with_currency, default: fragment("('USD', 0)")
     end
   end
 

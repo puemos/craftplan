@@ -14,18 +14,17 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
   alias Craftplan.Catalog.Services.BatchCostCalculator
   alias Craftplan.DecimalHelpers
   alias Craftplan.Orders.OrderItem
-  alias Decimal, as: D
 
   @impl true
-  def change(changeset, _opts, _context) do
+  def change(changeset, opts, _context) do
     if transitioning_to_done?(changeset) do
-      apply_costing(changeset)
+      apply_costing(changeset, opts)
     else
       changeset
     end
   end
 
-  defp apply_costing(changeset) do
+  defp apply_costing(changeset, opts) do
     actor = actor_from(changeset)
     product = resolve_product(changeset, actor)
 
@@ -43,11 +42,12 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
         batch_quantity = DecimalHelpers.to_decimal(quantity)
         bom = resolve_bom(changeset, product)
         authorize? = false
+        currency = Craftplan.Settings.get_settings!().currency
 
         costs =
           case bom do
             nil ->
-              zero_costs()
+              zero_costs(currency)
 
             bom ->
               BatchCostCalculator.calculate(bom, batch_quantity,
@@ -61,14 +61,20 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
         |> ensure_batch_code(sku, actor, authorize?)
         |> Changeset.force_change_attribute(
           :material_cost,
-          Map.get(costs, :material_cost, D.new(0))
+          Map.get(costs, :material_cost, Money.new!(0, currency))
         )
-        |> Changeset.force_change_attribute(:labor_cost, Map.get(costs, :labor_cost, D.new(0)))
+        |> Changeset.force_change_attribute(
+          :labor_cost,
+          Map.get(costs, :labor_cost, Money.new!(0, currency))
+        )
         |> Changeset.force_change_attribute(
           :overhead_cost,
-          Map.get(costs, :overhead_cost, D.new(0))
+          Map.get(costs, :overhead_cost, Money.new!(0, currency))
         )
-        |> Changeset.force_change_attribute(:unit_cost, Map.get(costs, :unit_cost, D.new(0)))
+        |> Changeset.force_change_attribute(
+          :unit_cost,
+          Map.get(costs, :unit_cost, Money.new!(0, currency))
+        )
     end
   end
 
@@ -212,8 +218,13 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
     _ -> Map.get(changeset.data, field)
   end
 
-  defp zero_costs do
-    %{material_cost: D.new(0), labor_cost: D.new(0), overhead_cost: D.new(0), unit_cost: D.new(0)}
+  defp zero_costs(currency) do
+    %{
+      material_cost: Money.new!(0, currency),
+      labor_cost: Money.new!(0, currency),
+      overhead_cost: Money.new!(0, currency),
+      unit_cost: Money.new!(0, currency)
+    }
   end
 
   defp actor_from(changeset) do

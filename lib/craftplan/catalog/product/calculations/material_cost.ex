@@ -6,17 +6,17 @@ defmodule Craftplan.Catalog.Product.Calculations.MaterialCost do
   use Ash.Resource.Calculation
 
   alias Ash.NotLoaded
-  alias Decimal, as: D
 
   @impl true
   def load(_query, _opts, _context), do: [active_bom: [rollup: [:material_cost]]]
 
   @impl true
-  def calculate(records, _opts, _context) do
-    Enum.map(records, &material_cost/1)
+  def calculate(records, opts, _context) do
+    currency = Craftplan.Settings.get_settings!().currency
+    Enum.map(records, &material_cost(&1, currency))
   end
 
-  defp material_cost(record) do
+  defp material_cost(record, currency) do
     rollup =
       case Map.get(record, :active_bom) do
         %NotLoaded{} -> nil
@@ -32,8 +32,8 @@ defmodule Craftplan.Catalog.Product.Calculations.MaterialCost do
       end
 
     case material_cost do
-      %NotLoaded{} -> D.new(0)
-      nil -> D.new(0)
+      %NotLoaded{} -> Money.new!(0, currency)
+      nil -> Money.new!(0, currency)
       cost -> cost
     end
   end

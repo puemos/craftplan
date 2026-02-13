@@ -384,10 +384,12 @@ defmodule CraftplanWeb.ProductLive.Show do
 
     case mode do
       :percent ->
-        Decimal.add(unit, Decimal.mult(unit, Decimal.div(val, Decimal.new(100))))
+        Money.add!(unit, Money.mult!(unit, Decimal.div(val, Decimal.new(100))))
 
       :fixed ->
-        Decimal.add(unit, val)
+        unit
+        |> Money.to_decimal()
+        |> Decimal.add(val)
 
       _ ->
         unit

@@ -343,10 +343,20 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
 
   @impl true
   def handle_event("validate", %{"settings" => setting_params}, socket) do
+    setting_params = %{
+      setting_params
+      | "shipping_flat" => Money.new!(setting_params["shipping_flat"], String.to_atom(setting_params["currency"]))
+    }
+
     {:noreply, assign(socket, form: AshPhoenix.Form.validate(socket.assigns.form, setting_params))}
   end
 
   def handle_event("save", %{"settings" => setting_params}, socket) do
+    setting_params = %{
+      setting_params
+      | "shipping_flat" => Money.new!(setting_params["shipping_flat"], String.to_atom(setting_params["currency"]))
+    }
+
     case AshPhoenix.Form.submit(socket.assigns.form, params: setting_params) do
       {:ok, settings} ->
         Craftplan.Mailer.apply_settings(settings)

@@ -41,7 +41,7 @@ defmodule Craftplan.MixProject do
       {:ash_authentication_phoenix, "~> 2.0"},
       {:ash_graphql, "~> 1.0"},
       {:ash_json_api, "~> 1.0"},
-      {:ash_money, "~> 0.1"},
+      {:ash_money, "~> 0.2.5"},
       {:ash_phoenix, "~> 2.0"},
       {:ash_postgres, "~> 2.0"},
       {:absinthe_plug, "~> 1.5"},
