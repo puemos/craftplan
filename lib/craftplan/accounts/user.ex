@@ -9,6 +9,7 @@ defmodule Craftplan.Accounts.User do
 
   alias AshAuthentication.Strategy.Password.HashPasswordChange
   alias AshAuthentication.Strategy.Password.PasswordConfirmationValidation
+  alias Craftplan.Accounts.User.Types.Role
 
   authentication do
     tokens do
@@ -53,6 +54,46 @@ defmodule Craftplan.Accounts.User do
 
     read :list_admins do
       filter expr(role == :admin)
+    end
+
+    read :list_members do
+      description "List all users for the members management page"
+    end
+
+    update :update_role do
+      description "Admin changes a user's role"
+
+      argument :role, Role do
+        allow_nil? false
+      end
+
+      change set_attribute(:role, arg(:role))
+    end
+
+    destroy :remove_member do
+      description "Admin removes a team member"
+    end
+
+    create :invite do
+      description "Admin invites a new team member by email and role"
+
+      argument :email, :ci_string do
+        allow_nil? false
+      end
+
+      argument :role, Role do
+        allow_nil? false
+        default :staff
+      end
+
+      change set_attribute(:email, arg(:email))
+      change set_attribute(:role, arg(:role))
+
+      change fn changeset, _ ->
+        temp_password = 32 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
+        hashed = Bcrypt.hash_pwd_salt(temp_password)
+        Ash.Changeset.force_change_attribute(changeset, :hashed_password, hashed)
+      end
     end
 
     read :get_by_subject do
@@ -217,6 +258,10 @@ defmodule Craftplan.Accounts.User do
       authorize_if always()
     end
 
+    bypass action([:list_members, :invite, :update_role, :remove_member]) do
+      authorize_if actor_attribute_equals(:role, :admin)
+    end
+
     policy always() do
       forbid_if always()
     end
@@ -235,7 +280,7 @@ defmodule Craftplan.Accounts.User do
       sensitive? true
     end
 
-    attribute :role, Craftplan.Accounts.User.Types.Role do
+    attribute :role, Role do
       allow_nil? false
       public? true
       default :customer

@@ -77,6 +77,16 @@ defmodule CraftplanWeb.SettingsLive.Index do
         </div>
       </div>
 
+      <div :if={@live_action == :members}>
+        <div>
+          <.live_component
+            module={CraftplanWeb.SettingsLive.MembersComponent}
+            id="members-component"
+            current_user={@current_user}
+          />
+        </div>
+      </div>
+
       <div :if={@live_action == :csv} class="space-y-6">
         <.header>
           Import data into Craftplan
@@ -246,6 +256,10 @@ defmodule CraftplanWeb.SettingsLive.Index do
     assign(socket, :page_title, "Calendar Feed")
   end
 
+  defp apply_action(socket, :members, _params) do
+    assign(socket, :page_title, "Members")
+  end
+
   def csv_import_entities do
     [
       %{
@@ -285,6 +299,8 @@ defmodule CraftplanWeb.SettingsLive.Index do
 
   defp settings_trail(:calendar_feed), do: [Navigation.root(:settings), Navigation.page(:settings, :calendar_feed)]
 
+  defp settings_trail(:members), do: [Navigation.root(:settings), Navigation.page(:settings, :members)]
+
   defp settings_trail(_), do: [Navigation.root(:settings)]
 
   # Component close callback from ImportModalComponent
@@ -308,5 +324,10 @@ defmodule CraftplanWeb.SettingsLive.Index do
   def handle_info({:saved_nutritional_facts, _id}, socket) do
     nutritional_facts = Inventory.list_nutritional_facts!()
     {:noreply, assign(socket, :nutritional_facts, nutritional_facts)}
+  end
+
+  @impl true
+  def handle_info(_msg, socket) do
+    {:noreply, socket}
   end
 end
