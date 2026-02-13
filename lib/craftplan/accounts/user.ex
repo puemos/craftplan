@@ -57,7 +57,8 @@ defmodule Craftplan.Accounts.User do
     end
 
     read :list_members do
-      description "List all users for the members management page"
+      description "List all staff and admin users for the members management page"
+      filter expr(role in [:staff, :admin])
     end
 
     update :update_role do
