@@ -44,3 +44,4 @@ npm-debug.log
 .lexical
 .mix_complete.cache
 *.DS_Store
+.claude/worktrees/
