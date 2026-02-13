@@ -3,6 +3,7 @@ defmodule CraftplanWeb.SettingsMembersLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias Ash.Error.Forbidden
   alias Craftplan.Accounts.User
 
   defp create_staff_member!(email) do
@@ -19,6 +20,32 @@ defmodule CraftplanWeb.SettingsMembersLiveTest do
         private: %{ash_authentication?: true}
       }
     )
+  end
+
+  describe "authorization" do
+    @tag role: :staff
+    test "staff cannot access members page", %{conn: conn} do
+      assert {:error, {:redirect, _}} = live(conn, ~p"/manage/settings/members")
+    end
+
+    test "unauthenticated user cannot access members page", %{conn: conn} do
+      assert {:error, {:redirect, _}} = live(conn, ~p"/manage/settings/members")
+    end
+
+    @tag role: :staff
+    test "staff cannot update roles via Ash action", %{user: staff_user} do
+      assert {:error, %Forbidden{}} =
+               Craftplan.Accounts.update_user_role(staff_user, %{role: :admin}, actor: staff_user)
+    end
+
+    @tag role: :staff
+    test "staff cannot invite members via Ash action", %{user: staff_user} do
+      assert {:error, %Forbidden{}} =
+               Craftplan.Accounts.invite_member(
+                 %{email: "hack+#{System.unique_integer()}@test.com", role: :admin},
+                 actor: staff_user
+               )
+    end
   end
 
   describe "index" do
