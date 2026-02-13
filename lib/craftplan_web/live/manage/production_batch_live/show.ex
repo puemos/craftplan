@@ -428,7 +428,10 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
     case parse_decimal(produced_qty) do
       {:ok, qty} ->
         complete_params =
-          maybe_put_duration(%{produced_qty: qty, completed_map: completed_map, lot_plan: lot_plan}, duration)
+          maybe_put_duration(
+            %{produced_qty: qty, completed_map: completed_map, lot_plan: lot_plan},
+            duration
+          )
 
         case Orders.complete_batch(batch, complete_params, actor: actor) do
           {:ok, _} ->
