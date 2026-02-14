@@ -21,7 +21,7 @@ defmodule Craftplan.MixProject do
   def application do
     [
       mod: {Craftplan.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :debugger, :observer, :wx]
     ]
   end
 

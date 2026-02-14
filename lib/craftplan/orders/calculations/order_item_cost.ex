@@ -16,8 +16,6 @@ defmodule Craftplan.Orders.OrderItem.Cost do
   end
 
   def cost(record) do
-    x = Money.mult!(Map.get(record, :unit_price), Map.get(record, :quantity))
-    IO.inspect(x, label: "x")
-    x
+    Money.mult!(Map.get(record, :unit_price), Map.get(record, :quantity))
   end
 end

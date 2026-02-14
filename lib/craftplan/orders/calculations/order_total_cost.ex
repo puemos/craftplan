@@ -22,12 +22,8 @@ defmodule Craftplan.Orders.OrderTotal.Cost do
   end
 
   def cost(record, currency) do
-    cost =
-      Enum.reduce(record.items, Money.new(0, currency), fn x, acc ->
-        x |> Map.get(:unit_price) |> Money.mult!(Map.get(x, :quantity)) |> Money.add!(acc)
-      end)
-
-    IO.inspect(cost, label: "cost")
-    cost
+    Enum.reduce(record.items, Money.new(0, currency), fn x, acc ->
+      x |> Map.get(:unit_price) |> Money.mult!(Map.get(x, :quantity)) |> Money.add!(acc)
+    end)
   end
 end
