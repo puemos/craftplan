@@ -173,11 +173,14 @@ defmodule Craftplan.CRM.Customer do
 
   calculations do
     calculate :full_name, :string, expr(first_name <> " " <> last_name)
-    calculate :total_orders_value, AshMoney.Types.Money, Money.new("55", :USD)
   end
 
   aggregates do
     count :total_orders, :orders
+
+    sum :total_orders_value, [:orders, :items], :cost do
+      filter expr(cost[:currency_code] == Settings.get_settings!().currency)
+    end
   end
 
   identities do
