@@ -173,6 +173,16 @@ defmodule Craftplan.CRM.Customer do
 
   calculations do
     calculate :full_name, :string, expr(first_name <> " " <> last_name)
+
+    calculate :total_orders_value_by_currency,
+              AshMoney.Types.Money,
+              expr(
+                sum(orders.items,
+                  query: [filter: expr(cost[:currency_code] == ^arg(:currency_code))]
+                )
+              ) do
+      argument :currency_code, :string, allow_nil?: false
+    end
   end
 
   aggregates do

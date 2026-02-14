@@ -24,7 +24,7 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
     end
   end
 
-  defp apply_costing(changeset, opts) do
+  defp apply_costing(changeset, _opts) do
     actor = actor_from(changeset)
     product = resolve_product(changeset, actor)
 

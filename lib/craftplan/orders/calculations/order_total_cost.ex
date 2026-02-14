@@ -15,7 +15,7 @@ defmodule Craftplan.Orders.OrderTotal.Cost do
   def load(_query, opts, _context), do: opts[:keys] ++ [items: [:unit_price, :quantity]]
 
   @impl true
-  def calculate(records, opts, _context) do
+  def calculate(records, _opts, _context) do
     currency = Craftplan.Settings.get_settings!().currency
 
     Enum.map(records, &cost(&1, currency))
