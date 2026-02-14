@@ -215,9 +215,7 @@ defmodule Craftplan.Orders.OrderItem do
   end
 
   calculations do
-    calculate :cost, AshMoney.Types.Money, Craftplan.Orders.OrderItem.Cost do
-      description "Order item cost for quantity."
-    end
+    calculate :cost, AshMoney.Types.Money, expr(quantity * unit_price)
   end
 
   aggregates do

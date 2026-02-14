@@ -266,7 +266,7 @@ defmodule Craftplan.Production do
   """
   def list_recent_batches(limit \\ 20, opts \\ []) when limit > 0 do
     actor = Keyword.get(opts, :actor)
-    currency = Settings.get_settings!().currency
+    currency = Craftplan.Settings.get_settings!().currency
     search_limit = max(limit * 5, limit)
 
     OrderItem

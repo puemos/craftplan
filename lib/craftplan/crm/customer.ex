@@ -183,13 +183,21 @@ defmodule Craftplan.CRM.Customer do
               ) do
       argument :currency_code, :string, allow_nil?: false
     end
+
+    calculate :total_orders_value_to_currency,
+              AshMoney.Types.Money,
+              orders.items
+              |> sum()
+              |> apply(Money, :to_currency, [^arg(:currency_code)])
+              |> expr() do
+      argument :currency_code, :string, allow_nil?: false
+    end
   end
 
   aggregates do
     count :total_orders, :orders
 
     sum :total_orders_value, [:orders, :items], :cost do
-      filter expr(cost[:currency_code] == Settings.get_settings!().currency)
     end
   end
 

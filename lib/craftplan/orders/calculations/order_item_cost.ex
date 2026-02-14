@@ -3,19 +3,15 @@ defmodule Craftplan.Orders.OrderItem.Cost do
   use Ash.Resource.Calculation
 
   @impl true
-  def init(_opts), do: {:ok, []}
+  def init(_opts) do
+    {:ok, []}
+  end
 
   @impl true
   def load(_query, _opts, _context), do: []
 
   @impl true
-  def calculate(records, _opts, _context) do
-    Enum.map(records, fn x ->
-      cost(x)
-    end)
-  end
-
-  def cost(record) do
+  def calculate(record, _opts, _context) do
     Money.mult!(Map.get(record, :unit_price), Map.get(record, :quantity))
   end
 end
