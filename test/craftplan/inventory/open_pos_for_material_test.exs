@@ -23,7 +23,7 @@ defmodule Craftplan.Inventory.OpenPOsForMaterialTest do
         name: name,
         sku: sku,
         unit: unit,
-        price: Decimal.new(price)
+        price: Money.new(price, :usd)
       })
       |> Ash.create(actor: actor)
 

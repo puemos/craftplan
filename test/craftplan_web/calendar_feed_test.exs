@@ -50,7 +50,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
       order =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 5, unit_price: Decimal.new("10.00")}],
+          [%{product_id: product.id, quantity: 5, unit_price: Money.new("10.00", :USD)}],
           delivery_date: DateTime.utc_now()
         )
 
@@ -86,14 +86,14 @@ defmodule CraftplanWeb.CalendarFeedTest do
       order1 =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 2, unit_price: Decimal.new("8.00")}],
+          [%{product_id: product.id, quantity: 2, unit_price: Money.new("8.00", :USD)}],
           delivery_date: DateTime.utc_now()
         )
 
       order2 =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 3, unit_price: Decimal.new("12.00")}],
+          [%{product_id: product.id, quantity: 3, unit_price: Money.new("12.00", :USD)}],
           delivery_date: DateTime.add(DateTime.utc_now(), 7, :day)
         )
 
@@ -118,7 +118,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
       old_order =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
+          [%{product_id: product.id, quantity: 1, unit_price: Money.new("5.00", :USD)}],
           delivery_date: DateTime.add(DateTime.utc_now(), -60, :day)
         )
 
@@ -140,7 +140,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
       future_order =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
+          [%{product_id: product.id, quantity: 1, unit_price: Money.new("5.00", :USD)}],
           delivery_date: DateTime.add(DateTime.utc_now(), 120, :day)
         )
 
@@ -160,14 +160,14 @@ defmodule CraftplanWeb.CalendarFeedTest do
       recent_order =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
+          [%{product_id: product.id, quantity: 1, unit_price: Money.new("5.00", :USD)}],
           delivery_date: DateTime.add(DateTime.utc_now(), -10, :day)
         )
 
       old_order =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
+          [%{product_id: product.id, quantity: 1, unit_price: Money.new("5.00", :USD)}],
           delivery_date: DateTime.add(DateTime.utc_now(), -45, :day)
         )
 
@@ -192,7 +192,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
       order =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
+          [%{product_id: product.id, quantity: 1, unit_price: Money.new("5.00", :USD)}],
           delivery_date: DateTime.utc_now()
         )
 
@@ -216,7 +216,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
       order =
         Factory.create_order_with_items!(
           customer,
-          [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
+          [%{product_id: product.id, quantity: 1, unit_price: Money.new("5.00", :USD)}],
           delivery_date: DateTime.utc_now()
         )
 

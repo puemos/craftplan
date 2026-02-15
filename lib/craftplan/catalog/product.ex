@@ -7,6 +7,7 @@ defmodule Craftplan.Catalog.Product do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
+  alias AshMoney.Types.Money
   alias Craftplan.Catalog.BOM
 
   json_api do
@@ -133,7 +134,7 @@ defmodule Craftplan.Catalog.Product do
       default :draft
     end
 
-    attribute :price, :decimal do
+    attribute :price, Money do
       public? true
       allow_nil? false
     end
@@ -184,11 +185,15 @@ defmodule Craftplan.Catalog.Product do
   end
 
   calculations do
-    calculate :materials_cost, :decimal, Craftplan.Catalog.Product.Calculations.MaterialCost do
+    calculate :materials_cost,
+              Money,
+              Craftplan.Catalog.Product.Calculations.MaterialCost do
       description "Material cost per unit based on the active BOM."
     end
 
-    calculate :bom_unit_cost, :decimal, Craftplan.Catalog.Product.Calculations.UnitCost do
+    calculate :bom_unit_cost,
+              Money,
+              Craftplan.Catalog.Product.Calculations.UnitCost do
       description "Total unit cost (materials + labor + overhead) derived from the active BOM."
     end
 
@@ -198,7 +203,9 @@ defmodule Craftplan.Catalog.Product do
       description "The ratio of profit to cost, expressed as a decimal percentage"
     end
 
-    calculate :gross_profit, :decimal, Craftplan.Catalog.Product.Calculations.GrossProfit do
+    calculate :gross_profit,
+              Money,
+              Craftplan.Catalog.Product.Calculations.GrossProfit do
       description "The profit amount calculated as selling price minus unit cost"
     end
 

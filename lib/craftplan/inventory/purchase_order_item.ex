@@ -61,7 +61,7 @@ defmodule Craftplan.Inventory.PurchaseOrderItem do
       default 0
     end
 
-    attribute :unit_price, :decimal do
+    attribute :unit_price, AshMoney.Types.Money do
       allow_nil? true
     end
 

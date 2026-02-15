@@ -15,7 +15,7 @@ defmodule CraftplanWeb.CSVExportTest do
 
       Factory.create_order_with_items!(
         customer,
-        [%{product_id: product.id, quantity: 5, unit_price: Decimal.new("3.00")}],
+        [%{product_id: product.id, quantity: 5, unit_price: Money.new("3.00", :USD)}],
         actor: user
       )
 
@@ -67,13 +67,13 @@ defmodule CraftplanWeb.CSVExportTest do
 
       Factory.create_order_with_items!(
         customer,
-        [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("2.00")}],
+        [%{product_id: product.id, quantity: 1, unit_price: Money.new("2.00", :USD)}],
         actor: user
       )
 
       Factory.create_order_with_items!(
         customer,
-        [%{product_id: product.id, quantity: 3, unit_price: Decimal.new("4.00")}],
+        [%{product_id: product.id, quantity: 3, unit_price: Money.new("4.00", :USD)}],
         actor: user
       )
 
@@ -248,7 +248,7 @@ defmodule CraftplanWeb.CSVExportTest do
 
       Factory.create_order_with_items!(
         customer,
-        [%{product_id: product.id, quantity: 2, unit_price: Decimal.new("1.50")}],
+        [%{product_id: product.id, quantity: 2, unit_price: Money.new("1.50", :USD)}],
         actor: actor
       )
 

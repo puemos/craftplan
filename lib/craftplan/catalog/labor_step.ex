@@ -71,7 +71,7 @@ defmodule Craftplan.Catalog.LaborStep do
       constraints min: 0
     end
 
-    attribute :rate_override, :decimal do
+    attribute :rate_override, AshMoney.Types.Money do
       allow_nil? true
     end
 

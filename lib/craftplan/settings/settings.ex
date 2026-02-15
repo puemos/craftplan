@@ -111,17 +111,16 @@ defmodule Craftplan.Settings.Settings do
       constraints min: 0
     end
 
-    attribute :shipping_flat, :decimal do
+    attribute :shipping_flat, AshMoney.Types.Money do
       public? true
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
     end
 
-    attribute :labor_hourly_rate, :decimal do
+    attribute :labor_hourly_rate, AshMoney.Types.Money do
       public? true
       allow_nil? false
-      default 0
-      constraints min: 0
+      default Money.new!(0, :USD)
       description "Default hourly labor rate used for cost calculations."
     end
 

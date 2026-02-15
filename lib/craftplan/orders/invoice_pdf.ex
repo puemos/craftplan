@@ -69,7 +69,7 @@ defmodule Craftplan.Orders.InvoicePdf do
     end)
   end
 
-  defp format_decimal(%D{} = d), do: D.to_string(D.normalize(d))
+  defp format_decimal(%D{} = d), do: D.to_string(d)
   defp format_decimal(_), do: "0"
 
   defp format_date(%Date{} = d), do: Calendar.strftime(d, "%b %d, %Y")
@@ -84,9 +84,10 @@ defmodule Craftplan.Orders.InvoicePdf do
   defp format_datetime(_), do: ""
 
   defp format_money(currency, %D{} = amount) do
-    currency |> Money.new(amount) |> Money.to_string!()
+    currency |> Money.new!(amount) |> Money.to_string!()
   end
 
-  defp format_money(_currency, %Money{} = money), do: Money.to_string!(money)
+  defp format_money(currency, %Money{} = money), do: money |> Money.to_currency!(currency) |> Money.to_string!()
+
   defp format_money(currency, _), do: format_money(currency, D.new(0))
 end

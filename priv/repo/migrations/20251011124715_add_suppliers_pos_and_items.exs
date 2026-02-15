@@ -57,7 +57,7 @@ defmodule Craftplan.Repo.Migrations.AddSuppliersPosAndItems do
     create table(:inventory_purchase_order_items, primary_key: false) do
       add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
       add :quantity, :decimal, null: false, default: "0"
-      add :unit_price, :decimal
+      add :unit_price, :money_with_currency, default: fragment("('USD', 0)")
 
       add :inserted_at, :utc_datetime_usec,
         null: false,

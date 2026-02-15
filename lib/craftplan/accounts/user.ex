@@ -230,6 +230,12 @@ defmodule Craftplan.Accounts.User do
       public? true
     end
 
+    #    attribute :currency, Craftplan.Types.Currency do
+    #      public? true
+    #      allow_nil? false
+    #      default :USD
+    #    end
+
     attribute :hashed_password, :string do
       allow_nil? false
       sensitive? true

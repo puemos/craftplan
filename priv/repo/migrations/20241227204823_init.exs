@@ -100,7 +100,7 @@ defmodule Craftplan.Repo.Migrations.Init do
       add :name, :text, null: false
       add :sku, :text, null: false
       add :unit, :text, null: false
-      add :price, :decimal, null: false
+      add :price, :money_with_currency, default: fragment("('USD', 0)")
       add :minimum_stock, :decimal
       add :maximum_stock, :decimal
 
@@ -240,7 +240,7 @@ defmodule Craftplan.Repo.Migrations.Init do
     alter table(:catalog_products) do
       add :name, :text, null: false
       add :status, :text, null: false, default: "idea"
-      add :price, :decimal, null: false
+      add :price, :money_with_currency, default: fragment("('USD', 0)")
       add :sku, :text, null: false
 
       add :inserted_at, :utc_datetime_usec,

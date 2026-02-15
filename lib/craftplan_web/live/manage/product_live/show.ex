@@ -379,15 +379,17 @@ defmodule CraftplanWeb.ProductLive.Show do
   end
 
   defp apply_markup(unit_cost, mode, value) do
-    unit = unit_cost || Decimal.new(0)
-    val = value || Decimal.new(0)
+    unit = unit_cost || Money.new(0, :USD)
+    val = value || Money.new(0, :USD)
 
     case mode do
       :percent ->
-        Decimal.add(unit, Decimal.mult(unit, Decimal.div(val, Decimal.new(100))))
+        Money.add!(unit, Money.mult!(unit, Money.div(val, Money.new(100, :USD))))
 
       :fixed ->
-        Decimal.add(unit, val)
+        unit
+        |> Money.to_decimal()
+        |> Decimal.add(val)
 
       _ ->
         unit

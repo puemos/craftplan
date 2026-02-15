@@ -37,8 +37,8 @@ defmodule CraftplanWeb.ManageProductsLiveTest do
     @tag role: :staff
     test "index renders products with cost calculations without crashing", %{conn: conn} do
       # Create a product with a simple BOM so calculations run
-      material = Factory.create_material!(%{price: Decimal.new("1.00"), unit: :gram})
-      product = Factory.create_product!(%{price: Decimal.new("3.99"), status: :active})
+      material = Factory.create_material!(%{price: Money.new("1.00", :USD), unit: :gram})
+      product = Factory.create_product!(%{price: Money.new("3.99", :USD), status: :active})
 
       _bom =
         Craftplan.Catalog.BOM

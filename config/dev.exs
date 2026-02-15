@@ -16,7 +16,8 @@ config :craftplan, Craftplan.Repo,
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  port: 55_432
 
 config :craftplan, Craftplan.Vault,
   ciphers: [

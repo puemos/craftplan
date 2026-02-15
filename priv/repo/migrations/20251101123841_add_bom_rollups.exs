@@ -10,10 +10,10 @@ defmodule Craftplan.Repo.Migrations.AddBomRollups do
   def up do
     create table(:catalog_bom_rollups, primary_key: false) do
       add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
-      add :material_cost, :decimal, null: false, default: "0"
-      add :labor_cost, :decimal, null: false, default: "0"
-      add :overhead_cost, :decimal, null: false, default: "0"
-      add :unit_cost, :decimal, null: false, default: "0"
+      add :material_cost, :money_with_currency, default: fragment("('USD', 0)")
+      add :labor_cost, :money_with_currency, default: fragment("('USD', 0)")
+      add :overhead_cost, :money_with_currency, default: fragment("('USD', 0)")
+      add :unit_cost, :money_with_currency, default: fragment("('USD', 0)")
 
       add :inserted_at, :utc_datetime_usec,
         null: false,

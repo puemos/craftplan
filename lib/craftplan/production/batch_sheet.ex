@@ -15,7 +15,7 @@ defmodule Craftplan.Production.BatchSheet do
   """
   def generate_pdf(batch_code, opts \\ []) do
     actor = Keyword.get(opts, :actor)
-    currency = Keyword.get(opts, :currency, :USD)
+    currency = Craftplan.Settings.get_settings!().currency
 
     report = Production.batch_report!(batch_code, actor: actor)
     bom = load_bom_details(report.bom, actor)
@@ -159,9 +159,7 @@ defmodule Craftplan.Production.BatchSheet do
   defp format_datetime(%NaiveDateTime{} = ndt), do: Calendar.strftime(ndt, "%b %d, %Y %H:%M")
   defp format_datetime(_), do: ""
 
-  defp format_money(currency, %D{} = amount) do
-    currency |> Money.new(amount) |> Money.to_string!()
-  end
+  defp format_money(currency, %Money{} = money), do: money |> Money.to_currency!(currency) |> Money.to_string!()
 
   defp format_money(currency, _), do: format_money(currency, D.new(0))
 end

@@ -189,7 +189,7 @@ defmodule Craftplan.Production.Batching do
     actor = Keyword.fetch!(opts, :actor)
     produced_qty = opts |> Keyword.fetch!(:produced_qty) |> normalize()
     _duration_minutes = opts |> Keyword.get(:duration_minutes, 0) |> normalize()
-
+    currency = Craftplan.Settings.get_settings!().currency
     batch = Ash.reload!(batch, actor: actor)
 
     # Load allocations
@@ -236,10 +236,10 @@ defmodule Craftplan.Production.Batching do
           BatchCostCalculator.calculate(bom, produced_qty, actor: actor, authorize?: false)
         else
           %{
-            material_cost: D.new(0),
-            labor_cost: D.new(0),
-            overhead_cost: D.new(0),
-            unit_cost: D.new(0)
+            material_cost: Money.new!(0, currency),
+            labor_cost: Money.new!(0, currency),
+            overhead_cost: Money.new!(0, currency),
+            unit_cost: Money.new!(0, currency)
           }
         end
 
@@ -253,17 +253,17 @@ defmodule Craftplan.Production.Batching do
         item =
           Orders.get_order_item_by_id!(a.order_item_id, actor: actor, load: [:quantity, :status])
 
-        inc_material = D.mult(costs.material_cost, ratio)
-        inc_labor = D.mult(costs.labor_cost, ratio)
-        inc_overhead = D.mult(costs.overhead_cost, ratio)
+        inc_material = Money.mult!(costs.material_cost, ratio)
+        inc_labor = Money.mult!(costs.labor_cost, ratio)
+        inc_overhead = Money.mult!(costs.overhead_cost, ratio)
 
         _ =
           item
           |> Changeset.for_update(:update, %{
             status: new_item_status(item, a.completed_qty),
-            material_cost: D.add(item.material_cost || D.new(0), inc_material),
-            labor_cost: D.add(item.labor_cost || D.new(0), inc_labor),
-            overhead_cost: D.add(item.overhead_cost || D.new(0), inc_overhead),
+            material_cost: Money.add!(item.material_cost || Money.new!(0, currency), inc_material),
+            labor_cost: Money.add!(item.labor_cost || Money.new!(0, currency), inc_labor),
+            overhead_cost: Money.add!(item.overhead_cost || Money.new!(0, currency), inc_overhead),
             unit_cost: costs.unit_cost
           })
           |> Ash.update!(actor: actor)

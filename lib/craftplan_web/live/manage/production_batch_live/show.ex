@@ -110,7 +110,10 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
               <.summary_card
                 label="Average Unit Cost"
                 value={
-                  format_money(@settings.currency, (@totals && @totals.unit_cost) || Decimal.new(0))
+                  format_money(
+                    @settings.currency,
+                    (@totals && @totals.unit_cost) || Money.new(0, :USD)
+                  )
                 }
               >
                 <div class="text-xs text-stone-500">Material + labor + overhead</div>
@@ -120,12 +123,12 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
             <div class="mt-6 grid gap-4 md:grid-cols-3">
               <.cost_chip
                 label="Material Cost"
-                amount={(@totals && @totals.material_cost) || Decimal.new(0)}
+                amount={(@totals && @totals.material_cost) || Money.new(0, :USD)}
                 currency={@settings.currency}
               />
               <.cost_chip
                 label="Labor Cost"
-                amount={(@totals && @totals.labor_cost) || Decimal.new(0)}
+                amount={(@totals && @totals.labor_cost) || Money.new(0, :USD)}
                 currency={@settings.currency}
               />
               <.cost_chip

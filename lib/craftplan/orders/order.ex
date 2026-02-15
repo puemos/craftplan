@@ -309,29 +309,29 @@ defmodule Craftplan.Orders.Order do
     end
 
     # Monetary totals (persisted)
-    attribute :subtotal, :decimal do
+    attribute :subtotal, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
     end
 
-    attribute :tax_total, :decimal do
+    attribute :tax_total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
     end
 
-    attribute :shipping_total, :decimal do
+    attribute :shipping_total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
     end
 
-    attribute :discount_total, :decimal do
+    attribute :discount_total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
     end
 
-    attribute :total, :decimal do
+    attribute :total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
     end
 
     attribute :paid_at, :utc_datetime do
@@ -350,8 +350,15 @@ defmodule Craftplan.Orders.Order do
     end
   end
 
+  calculations do
+    calculate :total_cost_by_currency,
+              AshMoney.Types.Money,
+              {Craftplan.Orders.OrderTotal.Cost, keys: [:currency]}
+  end
+
   aggregates do
     count :total_items, :items
+
     sum :total_cost, :items, :cost
   end
 

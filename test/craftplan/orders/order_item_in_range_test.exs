@@ -24,7 +24,7 @@ defmodule Craftplan.Orders.OrderItemInRangeTest do
       |> Ash.Changeset.for_create(:create, %{
         name: "P1",
         status: :active,
-        price: Decimal.new("5.00"),
+        price: Money.new("5.00", :USD),
         sku: "P-1"
       })
       |> Ash.create(actor: staff)
@@ -34,7 +34,7 @@ defmodule Craftplan.Orders.OrderItemInRangeTest do
       |> Ash.Changeset.for_create(:create, %{
         name: "P2",
         status: :active,
-        price: Decimal.new("7.00"),
+        price: Money.new("7.00", :USD),
         sku: "P-2"
       })
       |> Ash.create(actor: staff)

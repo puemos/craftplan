@@ -142,7 +142,7 @@ defmodule Craftplan.Orders.OrderItem do
   attributes do
     uuid_primary_key :id
 
-    attribute :unit_price, :decimal do
+    attribute :unit_price, AshMoney.Types.Money do
       allow_nil? false
     end
 
@@ -165,27 +165,27 @@ defmodule Craftplan.Orders.OrderItem do
       description "Production batch identifier generated when marking the item done"
     end
 
-    attribute :material_cost, :decimal do
+    attribute :material_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
       description "Material cost allocated to this order item during batch completion"
     end
 
-    attribute :labor_cost, :decimal do
+    attribute :labor_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
       description "Labor cost allocated to this order item during batch completion"
     end
 
-    attribute :overhead_cost, :decimal do
+    attribute :overhead_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
       description "Overhead cost allocated to this order item during batch completion"
     end
 
-    attribute :unit_cost, :decimal do
+    attribute :unit_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :USD)
       description "Per-unit production cost captured at batch completion"
     end
 
@@ -215,7 +215,7 @@ defmodule Craftplan.Orders.OrderItem do
   end
 
   calculations do
-    calculate :cost, :decimal, expr(quantity * unit_price)
+    calculate :cost, AshMoney.Types.Money, expr(quantity * unit_price)
   end
 
   aggregates do

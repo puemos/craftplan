@@ -179,7 +179,7 @@ defmodule CraftplanWeb.OrderLive.Show do
             <% end %>
           </:col>
           <:col :let={item} label="Unit Cost">
-            {format_money(@settings.currency, item.unit_cost || Decimal.new(0))}
+            {format_money(@settings.currency, item.unit_cost || Money.new(0, :USD))}
           </:col>
         </.table>
       </.tabs_content>

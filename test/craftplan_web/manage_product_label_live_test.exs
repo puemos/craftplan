@@ -18,7 +18,7 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
         name: name,
         sku: Base.encode16("MAT-" <> :crypto.strong_rand_bytes(4), case: :lower),
         unit: :gram,
-        price: Decimal.new("1.00"),
+        price: Money.new("1.00", :USD),
         minimum_stock: Decimal.new("0"),
         maximum_stock: Decimal.new("10000")
       })
@@ -46,7 +46,7 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
         name: "Sourdough Bread",
         sku: Base.encode16("SKU-" <> :crypto.strong_rand_bytes(4), case: :lower),
         status: :active,
-        price: Decimal.new("6.50")
+        price: Money.new("6.50", :USD)
       })
       |> Ash.create!(actor: staff)
 

@@ -10,11 +10,11 @@ defmodule Craftplan.Repo.Migrations.AddOrderTotalsAndCurrency do
   def up do
     alter table(:orders_orders) do
       add :currency, :text, null: false, default: "USD"
-      add :subtotal, :decimal, null: false, default: "0"
-      add :tax_total, :decimal, null: false, default: "0"
-      add :shipping_total, :decimal, null: false, default: "0"
-      add :discount_total, :decimal, null: false, default: "0"
-      add :total, :decimal, null: false, default: "0"
+      add :subtotal, :money_with_currency, default: fragment("('USD', 0)")
+      add :tax_total, :money_with_currency, default: fragment("('USD', 0)")
+      add :shipping_total, :money_with_currency, default: fragment("('USD', 0)")
+      add :discount_total, :money_with_currency, default: fragment("('USD', 0)")
+      add :total, :money_with_currency, default: fragment("('USD', 0)")
       add :paid_at, :utc_datetime
     end
   end

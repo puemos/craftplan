@@ -180,7 +180,7 @@ defmodule Craftplan.Production do
 
     Orders.list_orders!(
       %{delivery_date_start: start_dt, delivery_date_end: end_dt},
-      load: [:total_cost, :reference, customer: [:full_name]]
+      load: [:reference, customer: [:full_name]]
     )
   end
 
@@ -266,6 +266,7 @@ defmodule Craftplan.Production do
   """
   def list_recent_batches(limit \\ 20, opts \\ []) when limit > 0 do
     actor = Keyword.get(opts, :actor)
+    currency = Craftplan.Settings.get_settings!().currency
     search_limit = max(limit * 5, limit)
 
     OrderItem
@@ -287,9 +288,7 @@ defmodule Craftplan.Production do
 
         true ->
           report =
-            batch_report!(code,
-              actor: actor
-            )
+            batch_report!(code, actor: actor, currency: currency)
 
           summary = %{
             batch_code: code,
@@ -321,7 +320,7 @@ defmodule Craftplan.Production do
   """
   def batch_report!(batch_code, opts \\ []) do
     actor = Keyword.get(opts, :actor)
-
+    currency = Keyword.get(opts, :currency)
     production_batch = maybe_load_production_batch(batch_code, actor)
 
     items =
@@ -337,7 +336,7 @@ defmodule Craftplan.Production do
     product = resolve_batch_product(production_batch, items)
     bom = resolve_batch_bom(production_batch, items)
     produced_at = resolve_produced_at(production_batch, items)
-    totals = summarize_batch(items)
+    totals = summarize_batch(items, currency)
     lots = lot_rollup(items)
     materials = material_rollup_from_lots(lots)
 
@@ -355,35 +354,35 @@ defmodule Craftplan.Production do
     }
   end
 
-  def summarize_batch(items) do
+  def summarize_batch(items, currency) do
     totals =
       Enum.reduce(
         items,
         %{
           quantity: D.new(0),
-          material_cost: D.new(0),
-          labor_cost: D.new(0),
-          overhead_cost: D.new(0)
+          material_cost: Money.new!(0, currency),
+          labor_cost: Money.new!(0, currency),
+          overhead_cost: Money.new!(0, currency)
         },
         fn item, acc ->
           %{
             quantity: D.add(acc.quantity, item.quantity || D.new(0)),
-            material_cost: D.add(acc.material_cost, item.material_cost || D.new(0)),
-            labor_cost: D.add(acc.labor_cost, item.labor_cost || D.new(0)),
-            overhead_cost: D.add(acc.overhead_cost, item.overhead_cost || D.new(0))
+            material_cost: Money.add!(acc.material_cost, item.material_cost || Money.new!(0, currency)),
+            labor_cost: Money.add!(acc.labor_cost, item.labor_cost || Money.new!(0, currency)),
+            overhead_cost: Money.add!(acc.overhead_cost, item.overhead_cost || Money.new!(0, currency))
           }
         end
       )
 
     total_cost =
       totals.material_cost
-      |> D.add(totals.labor_cost)
-      |> D.add(totals.overhead_cost)
+      |> Money.add!(totals.labor_cost)
+      |> Money.add!(totals.overhead_cost)
 
     unit_cost =
       case D.compare(totals.quantity, D.new(0)) do
-        :eq -> D.new(0)
-        _ -> D.div(total_cost, totals.quantity)
+        :eq -> Money.new!(0, currency)
+        _ -> Money.div!(total_cost, totals.quantity)
       end
 
     totals
@@ -391,14 +390,14 @@ defmodule Craftplan.Production do
     |> Map.put(:unit_cost, unit_cost)
   end
 
-  def batch_order_rows(items) do
+  def batch_order_rows(items, currency \\ :usd) do
     items
     |> Enum.map(fn item ->
       order = item.order
       customer = order.customer
 
       line_total =
-        D.mult(item.quantity || D.new(0), item.unit_price || D.new(0))
+        Money.mult!(item.quantity || D.new(0), item.unit_price || Money.new!(0, currency))
 
       %{
         id: item.id,
@@ -407,10 +406,10 @@ defmodule Craftplan.Production do
         quantity: item.quantity || D.new(0),
         status: item.status,
         line_total: line_total,
-        unit_cost: item.unit_cost || D.new(0),
-        material_cost: item.material_cost || D.new(0),
-        labor_cost: item.labor_cost || D.new(0),
-        overhead_cost: item.overhead_cost || D.new(0),
+        unit_cost: item.unit_cost || Money.new!(0, currency),
+        material_cost: item.material_cost || Money.new!(0, currency),
+        labor_cost: item.labor_cost || Money.new!(0, currency),
+        overhead_cost: item.overhead_cost || Money.new!(0, currency),
         consumed_at: item.consumed_at
       }
     end)

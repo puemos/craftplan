@@ -12,7 +12,7 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     |> Ash.Changeset.for_create(:create, %{
       name: "Mat-#{System.unique_integer()}",
       sku: "MAT-#{System.unique_integer()}",
-      price: Decimal.new("1.00"),
+      price: Money.new("1.00", :USD),
       unit: :gram,
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)

@@ -17,26 +17,27 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
   def change(changeset, _opts, _context) do
     import Ash.Changeset
 
+    currency = Craftplan.Settings.get_settings!().currency
     items_arg = get_argument(changeset, :items)
 
     {subtotal, changeset} =
       case items_arg do
         items when is_list(items) ->
-          {sum_items(items), changeset}
+          {sum_items(items, currency), changeset}
 
         _ ->
           # Fallback: load from DB if we have an ID (updates)
           case changeset.data do
             %{items: items} when is_list(items) ->
-              {sum_items(items), changeset}
+              {sum_items(items, currency), changeset}
 
             %{id: _id} ->
               # If items are not preloaded, fall back to zero rather than loading from DB
               # to avoid cross-context authorization issues during form builds.
-              {Decimal.new(0), changeset}
+              {Money.new!(0, currency), changeset}
 
             _ ->
-              {Decimal.new(0), changeset}
+              {Money.new!(0, currency), changeset}
           end
       end
 
@@ -49,47 +50,47 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
           percent = get_attribute(changeset, :discount_value) || Decimal.new(0)
 
           subtotal
-          |> Decimal.mult(Decimal.div(percent, Decimal.new(100)))
-          |> Decimal.max(Decimal.new(0))
+          |> Money.mult!(Money.div(percent, Money.new(100, currency)))
+          |> Money.max!(Money.new!(0, currency))
 
         :fixed ->
-          fixed = get_attribute(changeset, :discount_value) || Decimal.new(0)
-          if Decimal.compare(fixed, subtotal) == :gt, do: subtotal, else: fixed
+          fixed = get_attribute(changeset, :discount_value) || Money.new(0, currency)
+          if Money.compare!(fixed, subtotal) == :gt, do: subtotal, else: fixed
 
         _ ->
-          Decimal.new(0)
+          Money.new!(0, currency)
       end
 
-    shipping_total = get_attribute(changeset, :shipping_total) || Decimal.new(0)
+    shipping_total = get_attribute(changeset, :shipping_total) || Money.new!(0, currency)
 
-    tax_base = Decimal.sub(subtotal, discount_total)
+    tax_base = Money.sub!(subtotal, discount_total)
 
     tax_total =
       case settings do
         %{tax_mode: :exclusive, tax_rate: rate} ->
-          Decimal.mult(tax_base, rate || Decimal.new(0))
+          Money.mult!(tax_base, rate || Money.new!(0, currency))
 
         %{tax_mode: :inclusive, tax_rate: rate} ->
           # derive included tax portion from tax_base
           case rate do
             r when not is_nil(r) ->
-              denom = Decimal.add(Decimal.new(1), r)
-              net = Decimal.div(tax_base, denom)
-              Decimal.sub(tax_base, net)
+              denom = Money.mult!(Money.new!(1, currency), r)
+              net = Money.div!(tax_base, denom)
+              Money.sub!(tax_base, net)
 
             _ ->
-              Decimal.new(0)
+              Money.new!(0, currency)
           end
 
         _ ->
-          Decimal.new(0)
+          Money.new!(0, currency)
       end
 
     total =
       subtotal
-      |> Decimal.sub(discount_total)
-      |> Decimal.add(tax_total)
-      |> Decimal.add(shipping_total)
+      |> Money.sub!(discount_total)
+      |> Money.add!(tax_total)
+      |> Money.add!(shipping_total)
 
     changeset
     |> Ash.Changeset.force_change_attribute(:subtotal, subtotal)
@@ -98,15 +99,15 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
     |> Ash.Changeset.force_change_attribute(:total, total)
   end
 
-  defp sum_items(items) do
-    Enum.reduce(items, Decimal.new(0), fn item, acc ->
+  defp sum_items(items, currency) do
+    Enum.reduce(items, Money.new!(0, currency), fn item, acc ->
       quantity =
         DecimalHelpers.to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
 
       unit_price =
-        DecimalHelpers.to_decimal(Map.get(item, :unit_price) || Map.get(item, "unit_price") || 0)
+        Map.get(item, :unit_price) || Money.new!(0, currency)
 
-      Decimal.add(acc, Decimal.mult(quantity, unit_price))
+      Money.add!(acc, Money.mult!(unit_price, quantity))
     end)
   end
 

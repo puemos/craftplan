@@ -21,7 +21,7 @@ defmodule Craftplan.Test.Factory do
         name: Map.get(attrs, :name, "Test Product"),
         sku: Map.get(attrs, :sku, unique_code("SKU")),
         status: Map.get(attrs, :status, :active),
-        price: Map.get(attrs, :price, Decimal.new("10.00"))
+        price: Map.get(attrs, :price, Money.new("10.00", :USD))
       }
 
     Product
@@ -36,7 +36,7 @@ defmodule Craftplan.Test.Factory do
         name: Map.get(attrs, :name, "Test Material"),
         sku: Map.get(attrs, :sku, unique_code("MAT")),
         unit: Map.get(attrs, :unit, :gram),
-        price: Map.get(attrs, :price, Decimal.new("1.00")),
+        price: Map.get(attrs, :price, Money.new("1.00", :USD)),
         minimum_stock: Map.get(attrs, :minimum_stock, Decimal.new(0)),
         maximum_stock: Map.get(attrs, :maximum_stock, Decimal.new(0))
       }

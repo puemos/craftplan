@@ -91,7 +91,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                 <div class="hidden border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0 md:block">
                   <span>Total Cost</span>
                   <span class="text-stone-700">
-                    ({format_money(@settings.currency, @materials_total || D.new(0))})
+                    ({format_money(@settings.currency, @materials_total || Money.new(0, :USD))})
                   </span>
                 </div>
                 <div class="hidden border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0 md:block">
@@ -339,7 +339,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                     Cost per unit
                     <span class="text-stone-700">
-                      ({format_money(@settings.currency, @labor_per_unit_cost || D.new(0))})
+                      ({format_money(@settings.currency, @labor_per_unit_cost || Money.new(0, :USD))})
                     </span>
                   </div>
                   <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
@@ -600,7 +600,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                     <div class="relative border-b border-stone-200 p-0 pl-4">
                       <div class="block py-3 text-sm text-stone-800">
-                        {format_money(@settings.currency, material.price || D.new(0))} per {material.unit}
+                        {format_money(@settings.currency, material.price || Money.new(0, :USD))} per {material.unit}
                       </div>
                     </div>
                   </button>
@@ -674,7 +674,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     </div>
                     <div class="relative border-b border-stone-200 p-0 pl-4">
                       <div class="block py-3 text-sm text-stone-800">
-                        {format_money(@settings.currency, product.bom_unit_cost || D.new(0))} per unit
+                        {format_money(@settings.currency, product.bom_unit_cost || Money.new(0, :USD))} per unit
                       </div>
                     </div>
                   </button>
@@ -733,7 +733,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   @impl true
   def update(assigns, socket) do
-    socket = assign(socket, assigns)
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:currency, :USD)
 
     socket = assign_lists(socket)
     socket = assign_form(socket)
@@ -1034,11 +1037,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   defp compute_recipe_totals(socket) do
     actor_settings = socket.assigns.settings
+    currency = socket.assigns.currency || :USD
 
     comps = socket.assigns.form.source.forms[:components] || []
 
     materials_total =
-      Enum.reduce(comps, D.new(0), fn comp_form, acc ->
+      Enum.reduce(comps, Money.new!(0, currency), fn comp_form, acc ->
         component_type = get_component_type(comp_form)
         qty = form_param(comp_form, :quantity) || (comp_form.data && comp_form.data.quantity) || 0
 
@@ -1052,8 +1056,12 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         (comp_form.data.product && comp_form.data.product.id)))
 
               product = Map.get(socket.assigns.products_map, product_id)
-              unit_cost = (product && (product.bom_unit_cost || D.new(0))) || D.new(0)
-              D.mult(unit_cost, normalize_decimal(qty))
+
+              unit_cost =
+                (product && (product.bom_unit_cost || Money.new(0, currency))) ||
+                  Money.new(0, currency)
+
+              Money.mult!(unit_cost, normalize_decimal(qty))
 
             _ ->
               material_id =
@@ -1063,17 +1071,20 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         (comp_form.data.material && comp_form.data.material.id)))
 
               material = Map.get(socket.assigns.materials_map, material_id)
-              price = (material && (material.price || D.new(0))) || D.new(0)
-              D.mult(price, normalize_decimal(qty))
+
+              price =
+                (material && (material.price || Money.new(0, currency))) || Money.new(0, currency)
+
+              Money.mult!(price, normalize_decimal(qty))
           end
 
-        D.add(acc, cost)
+        Money.add!(acc, cost)
       end)
 
     steps = socket.assigns.form.source.forms[:labor_steps] || []
 
     {total_min, per_unit_min, per_unit_cost, row_costs} =
-      Enum.reduce(steps, {D.new(0), D.new(0), D.new(0), %{}}, fn step_form, {tm, pum, puc, costs} ->
+      Enum.reduce(steps, {D.new(0), D.new(0), Money.new!(0, currency), %{}}, fn step_form, {tm, pum, puc, costs} ->
         minutes =
           normalize_decimal(
             form_param(step_form, :duration_minutes) ||
@@ -1087,16 +1098,18 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
           )
 
         rate_override =
-          normalize_optional_decimal(
-            form_param(step_form, :rate_override) ||
-              (step_form.data && step_form.data.rate_override)
-          )
+          form_param(step_form, :rate_override) ||
+            (step_form.data && step_form.data.rate_override)
 
-        rate = rate_override || actor_settings.labor_hourly_rate || D.new(0)
+        rate = rate_override || actor_settings.labor_hourly_rate || Money.new!(0, currency)
         per_unit_min_step = D.div(minutes, upr)
-        per_unit_cost_step = per_unit_min_step |> D.div(D.new(60)) |> D.mult(rate)
+        pr = D.to_float(D.div(per_unit_min_step, D.new(60)))
+
+        per_unit_cost_step = Money.mult!(rate, pr)
+
         costs = Map.put(costs, step_form.name, per_unit_cost_step)
-        {D.add(tm, minutes), D.add(pum, per_unit_min_step), D.add(puc, per_unit_cost_step), costs}
+
+        {D.add(tm, minutes), D.add(pum, per_unit_min_step), Money.add!(puc, per_unit_cost_step), costs}
       end)
 
     socket
@@ -1414,10 +1427,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   defp format_material_cost(currency, material, quantity) do
-    price = material.price || D.new(0)
+    price = material.price || Money.new(0, currency)
     qty = normalize_decimal(quantity)
 
-    format_money(currency, D.mult(price, qty))
+    format_money(currency, Money.mult!(price, qty))
   end
 
   defp format_component_cost(currency, :material, material, _product, quantity) do
@@ -1429,10 +1442,10 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
   end
 
   defp format_component_cost(currency, :product, _material, product, quantity) do
-    unit_cost = product.bom_unit_cost || D.new(0)
+    unit_cost = product.bom_unit_cost || Money.new(0, currency)
     qty = normalize_decimal(quantity)
 
-    format_money(currency, D.mult(unit_cost, qty))
+    format_money(currency, Money.mult!(unit_cost, qty))
   end
 
   defp format_component_cost(currency, _, material, _product, quantity) do
