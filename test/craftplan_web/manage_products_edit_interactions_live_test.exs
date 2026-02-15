@@ -10,7 +10,7 @@ defmodule CraftplanWeb.ManageProductsEditInteractionsLiveTest do
     |> Ash.Changeset.for_create(:create, %{
       name: "P-#{System.unique_integer()}",
       sku: "SKU-#{System.unique_integer()}",
-      price: Decimal.new("4.00"),
+      price: Money.new("4.00", :USD),
       status: :active
     })
     |> Ash.create!(actor: Craftplan.DataCase.staff_actor())

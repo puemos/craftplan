@@ -84,7 +84,8 @@ defmodule Craftplan.CSV.Importers.Products do
                   name: row.name,
                   sku: row.sku,
                   price: row.price,
-                  status: row.status
+                  status: row.status,
+                  currency: row.currency
                 }
 
                 case upsert_product(attrs, actor) do
@@ -144,7 +145,7 @@ defmodule Craftplan.CSV.Importers.Products do
 
   defp apply_mapping(header_map, mapping) do
     # For each known field, if a mapped header exists, point the key to that index too
-    Enum.reduce(["name", "sku", "price", "status"], header_map, fn field, acc ->
+    Enum.reduce(["name", "sku", "price", "status", "currency"], header_map, fn field, acc ->
       case Map.get(mapping, field) do
         nil ->
           acc
@@ -168,14 +169,19 @@ defmodule Craftplan.CSV.Importers.Products do
   defp cast_row(fields, header_map) do
     name = fields |> fetch_field(header_map, "name") |> to_string() |> String.trim()
     sku = fields |> fetch_field(header_map, "sku") |> to_string() |> String.trim()
-    price_decimal = fields |> fetch_field(header_map, "price") |> Money.to_decimal()
+    currency = fields |> fetch_field(header_map, "currency") |> to_string() |> String.trim()
+
+    price_decimal =
+      fields |> fetch_field(header_map, "price") |> Money.new(currency) |> Money.to_decimal()
+
     status_str = fields |> fetch_field(header_map, "status") |> to_string() |> String.trim()
 
     with :ok <- present?(name, "name"),
          :ok <- present?(sku, "sku"),
-         {:ok, price} <- parse_decimal(price_decimal),
+         :ok <- present?(currency, "currency"),
+         {:ok, price} <- price_decimal,
          {:ok, status} <- parse_status(status_str) do
-      {:ok, %{name: name, sku: sku, price: price, status: status}}
+      {:ok, %{name: name, sku: sku, price: price, status: status, currency: currency}}
     end
   end
 

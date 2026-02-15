@@ -269,7 +269,7 @@ defmodule Craftplan.InventoryForecasting do
   defp projected_closing_balances(day_quantities, initial_on_hand) do
     day_quantities
     |> Enum.map_reduce(initial_on_hand, fn {quantity, day}, balance ->
-      closing = Money.sub!(balance, quantity)
+      closing = D.sub(balance, quantity)
       {{day, closing}, closing}
     end)
     |> elem(0)

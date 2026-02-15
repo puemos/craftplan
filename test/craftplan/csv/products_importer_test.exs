@@ -6,7 +6,7 @@ defmodule Craftplan.CSV.ProductsImporterTest do
 
   describe "dry_run/2" do
     test "returns errors on invalid rows and no rows on failure" do
-      csv = "name,sku,price\nBad,BAD,xxx\n"
+      csv = "name,sku,price,currency\nBad,BAD,0,USD\n"
 
       assert {:ok, %{rows: rows, errors: errors}} =
                Products.dry_run(csv, delimiter: ",", mapping: %{})
@@ -21,7 +21,7 @@ defmodule Craftplan.CSV.ProductsImporterTest do
     test "inserts new products and updates existing ones" do
       actor = Craftplan.DataCase.staff_actor()
 
-      csv1 = "name,sku,price\nProd A,PA-1,1.00\nProd B,PB-2,2.50\n"
+      csv1 = "name,sku,price,currency\nProd A,PA-1,1.00,USD\nProd B,PB-2,2.50,USD\n"
 
       assert {:ok, %{inserted: 2, updated: 0, errors: []}} =
                Products.import(csv1, delimiter: ",", mapping: %{}, actor: actor)
@@ -31,7 +31,7 @@ defmodule Craftplan.CSV.ProductsImporterTest do
       assert {:ok, _} = Catalog.get_product_by_sku("PB-2", actor: actor)
 
       # Update one
-      csv2 = "name,sku,price\nProd A v2,PA-1,1.25\nProd B,PB-2,2.50\n"
+      csv2 = "name,sku,price,currency\nProd A v2,PA-1,1.25\nProd B,PB-2,2.50,USD\n"
 
       assert {:ok, %{inserted: 0, updated: updated, errors: []}} =
                Products.import(csv2, delimiter: ",", mapping: %{}, actor: actor)

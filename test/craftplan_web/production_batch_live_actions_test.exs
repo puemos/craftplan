@@ -15,7 +15,7 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
     |> Ash.Changeset.for_create(:create, %{
       name: "P-#{System.unique_integer()}",
       sku: "SKU-#{System.unique_integer()}",
-      price: Decimal.new("5.00"),
+      price: Money.new("5.00", :USD),
       status: :active
     })
     |> Ash.create!(actor: staff())
@@ -83,7 +83,7 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
         name: name,
         sku: "MAT-#{System.unique_integer([:positive])}",
         unit: :gram,
-        price: Decimal.new("1.00"),
+        price: Money.new("1.00", :USD),
         minimum_stock: Decimal.new(0),
         maximum_stock: Decimal.new(0)
       })

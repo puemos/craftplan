@@ -42,7 +42,7 @@ defmodule Craftplan.Emails.SmtpE2eTest do
 
       order =
         Factory.create_order_with_items!(customer, [
-          %{product_id: product.id, quantity: 3, unit_price: Decimal.new("10.00")}
+          %{product_id: product.id, quantity: 3, unit_price: Money.new("10.00", :USD)}
         ])
 
       # Reload with customer and items — customer read policy requires staff actor

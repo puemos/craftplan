@@ -28,7 +28,7 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         name: "Cap Product",
         status: :active,
-        price: Decimal.new("10.00"),
+        price: Money.new("10.00", :USD),
         sku: "CAP-1",
         max_daily_quantity: 5
       })

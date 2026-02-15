@@ -13,7 +13,7 @@ defmodule CraftplanWeb.ManageProductsRecipeProductComponentsLiveTest do
     defaults = %{
       name: "P-#{System.unique_integer()}",
       sku: "SKU-#{System.unique_integer()}",
-      price: Decimal.new("5.00"),
+      price: Money.new("5.00", :USD),
       status: :active
     }
 
@@ -27,7 +27,7 @@ defmodule CraftplanWeb.ManageProductsRecipeProductComponentsLiveTest do
       name: "Mat-#{System.unique_integer()}",
       sku: "MAT-#{System.unique_integer()}",
       unit: :gram,
-      price: Decimal.new("1.00"),
+      price: Money.new("1.00", :USD),
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
     }

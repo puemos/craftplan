@@ -50,11 +50,11 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
           percent = get_attribute(changeset, :discount_value) || Decimal.new(0)
 
           subtotal
-          |> Money.mult!(Decimal.div(percent, Decimal.new(100)))
+          |> Money.mult!(Money.div(percent, Money.new(100, currency)))
           |> Money.max!(Money.new!(0, currency))
 
         :fixed ->
-          fixed = get_attribute(changeset, :discount_value) || Decimal.new(0)
+          fixed = get_attribute(changeset, :discount_value) || Money.new(0, currency)
           if Money.compare!(fixed, subtotal) == :gt, do: subtotal, else: fixed
 
         _ ->

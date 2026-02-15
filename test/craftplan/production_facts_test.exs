@@ -24,7 +24,7 @@ defmodule Craftplan.ProductionFactsTest do
       |> Ash.Changeset.for_create(:create, %{
         name: "Prod",
         status: :active,
-        price: Decimal.new("9.00"),
+        price: Money.new("9.00", :USD),
         sku: "PR-1",
         max_daily_quantity: 4
       })

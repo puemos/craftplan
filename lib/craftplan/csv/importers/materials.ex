@@ -80,7 +80,7 @@ defmodule Craftplan.CSV.Importers.Materials do
                   name: row.name,
                   sku: row.sku,
                   unit: row.unit,
-                  price: row.price
+                  price: Money.new(row.price, row.currency)
                 }
 
                 case upsert_material(attrs, actor) do
@@ -137,7 +137,7 @@ defmodule Craftplan.CSV.Importers.Materials do
   defp apply_mapping(header_map, mapping) when mapping == %{}, do: header_map
 
   defp apply_mapping(header_map, mapping) do
-    Enum.reduce(["name", "sku", "unit", "price"], header_map, fn field, acc ->
+    Enum.reduce(["name", "sku", "unit", "price", "currency"], header_map, fn field, acc ->
       case Map.get(mapping, field) do
         nil ->
           acc
@@ -161,14 +161,16 @@ defmodule Craftplan.CSV.Importers.Materials do
   defp cast_row(fields, header_map) do
     name = fields |> fetch_field(header_map, "name") |> to_string() |> String.trim()
     sku = fields |> fetch_field(header_map, "sku") |> to_string() |> String.trim()
+    currency = fields |> fetch_field(header_map, "currency") |> to_string() |> String.trim()
     unit_str = fields |> fetch_field(header_map, "unit") |> to_string() |> String.trim()
-    price_str = fields |> fetch_field(header_map, "price") |> Money.to_string() |> String.trim()
+    price_str = fields |> fetch_field(header_map, "price") |> to_string() |> String.trim()
 
     with :ok <- present?(name, "name"),
          :ok <- present?(sku, "sku"),
+         :ok <- present?(currency, "currency"),
          {:ok, unit} <- parse_unit(unit_str),
          {:ok, price} <- parse_decimal(price_str) do
-      {:ok, %{name: name, sku: sku, unit: unit, price: price}}
+      {:ok, %{name: name, sku: sku, unit: unit, price: price, currency: currency}}
     end
   end
 

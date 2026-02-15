@@ -11,11 +11,15 @@ defmodule Craftplan.ProductionBatchingTest do
   defp setup_product_with_material(actor) do
     product =
       Factory.create_product!(
-        %{name: "Sourdough", sku: "sourdough", price: D.new("12.00")},
+        %{name: "Sourdough", sku: "sourdough", price: Money.new("12.00", :USD)},
         actor
       )
 
-    flour = Factory.create_material!(%{name: "Flour", unit: :gram, price: D.new("0.01")}, actor)
+    flour =
+      Factory.create_material!(
+        %{name: "Flour", unit: :gram, price: Money.new("0.01", :USD)},
+        actor
+      )
 
     bom =
       Factory.create_recipe!(product, [%{material_id: flour.id, quantity: D.new("500")}], actor)
@@ -203,7 +207,7 @@ defmodule Craftplan.ProductionBatchingTest do
 
       product =
         Factory.create_product!(
-          %{name: "NoComp", sku: "nocomp", price: D.new("5.00")},
+          %{name: "NoComp", sku: "nocomp", price: Money.new("5.00", :USD)},
           actor
         )
 

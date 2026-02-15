@@ -12,6 +12,7 @@ config :craftplan, Craftplan.Repo,
   hostname: "localhost",
   database: "craftplan_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
+  port: 55_432,
   # We don't run a server during test. If one is required,
   # you can enable the server option below.
   # Print only warnings and errors during test
