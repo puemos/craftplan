@@ -179,6 +179,17 @@ defmodule Craftplan.Accounts.User do
       filter expr(email == ^arg(:email))
     end
 
+    read :get_by_id do
+      description "Looks up a user by their id"
+      get? true
+
+      argument :id, :uuid do
+        allow_nil? false
+      end
+
+      filter expr(id == ^arg(:id))
+    end
+
     update :password_reset_with_password do
       argument :reset_token, :string do
         allow_nil? false

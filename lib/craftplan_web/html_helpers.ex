@@ -260,6 +260,14 @@ defmodule CraftplanWeb.HtmlHelpers do
     end
   end
 
+  def format_currency(_currency, {:ok, data} = _money, opts) do
+    if Keyword.get(opts, :format) == :string do
+      Money.to_string!(data, opts)
+    else
+      data
+    end
+  end
+
   def format_currency(currency, %Decimal{} = amount, opts) do
     money = Money.new(currency, amount)
     format_currency(currency, money, opts)
@@ -309,7 +317,9 @@ defmodule CraftplanWeb.HtmlHelpers do
 
   def format_amount(unit, %Money{} = amount) when is_atom(unit), do: "#{amount}/#{Unit.abbreviation(unit)}"
 
-  def format_amount(unit, amount) when is_number(amount), do: Unit.abbreviation(unit, amount)
+  def format_amount(unit, amount) when is_number(amount) do
+    Unit.abbreviation(unit, amount)
+  end
 
   @spec format_label(atom() | String.t(), String.t()) :: String.t()
   def format_label(term, replace \\ " ") do

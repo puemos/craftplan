@@ -5,7 +5,7 @@ defmodule Craftplan.Orders.Order do
     domain: Craftplan.Orders,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource, AshOban]
 
   alias Craftplan.Orders.Changes.CalculateTotals
   alias Craftplan.Orders.Changes.ValidateConstraints
@@ -43,6 +43,20 @@ defmodule Craftplan.Orders.Order do
     repo Craftplan.Repo
   end
 
+  oban do
+    triggers do
+      trigger :update_currency do
+        action :change_currency
+        worker_read_action(:list)
+        queue(:default)
+        worker_module_name(Craftplan.Orders.Order.AshOban.Worker.Process)
+        scheduler_module_name(Craftplan.Orders.Order.AshOban.Scheduler.Process)
+      end
+    end
+
+    domain Craftplan.System
+  end
+
   actions do
     defaults [:read, :destroy]
 
@@ -69,6 +83,9 @@ defmodule Craftplan.Orders.Order do
       change {ValidateConstraints, []}
     end
 
+    read :last do
+    end
+
     update :update do
       require_atomic? false
 
@@ -93,6 +110,31 @@ defmodule Craftplan.Orders.Order do
       change manage_relationship(:items, type: :direct_control)
       change {CalculateTotals, []}
       change {ValidateConstraints, []}
+    end
+
+    update :update_currency do
+      require_atomic? false
+
+      accept [
+        :status,
+        :customer_id,
+        :delivery_date,
+        :invoice_number,
+        :invoice_status,
+        :invoiced_at,
+        :payment_method,
+        :discount_type,
+        :discount_value,
+        :delivery_method,
+        :tax_total,
+        :shipping_total,
+        :discount_total
+      ]
+
+      argument :items, {:array, :map}
+
+      change manage_relationship(:items, type: :direct_control)
+      change {CalculateTotals, []}
     end
 
     read :list do
@@ -203,9 +245,21 @@ defmodule Craftplan.Orders.Order do
                   )
               )
     end
+
+    update :change_currency do
+      accept []
+      require_atomic? false
+
+      change Craftplan.Orders.Changes.AssignCurrencyOrder
+      change CalculateTotals
+    end
   end
 
   policies do
+    bypass AshOban.Checks.AshObanInteraction do
+      authorize_if always()
+    end
+
     # API key scope check
     policy always() do
       authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
@@ -233,11 +287,6 @@ defmodule Craftplan.Orders.Order do
 
   attributes do
     uuid_primary_key :id
-
-    attribute :currency, Craftplan.Types.Currency do
-      allow_nil? false
-      default :USD
-    end
 
     attribute :reference, :string do
       writable? false
@@ -309,29 +358,29 @@ defmodule Craftplan.Orders.Order do
     end
 
     # Monetary totals (persisted)
-    attribute :subtotal, :decimal do
+    attribute :subtotal, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
-    attribute :tax_total, :decimal do
+    attribute :tax_total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
-    attribute :shipping_total, :decimal do
+    attribute :shipping_total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
-    attribute :discount_total, :decimal do
+    attribute :discount_total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
-    attribute :total, :decimal do
+    attribute :total, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
     attribute :paid_at, :utc_datetime do
@@ -348,6 +397,12 @@ defmodule Craftplan.Orders.Order do
       allow_nil? false
       domain Craftplan.CRM
     end
+  end
+
+  calculations do
+    calculate :total_cost_by_currency,
+              AshMoney.Types.Money,
+              OrderTotalCost
   end
 
   aggregates do

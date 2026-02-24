@@ -19,15 +19,40 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMaterial do
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:sku]} type="text" label="SKU" />
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <.input field={@form[:price]} type="number" label="Price" step="0.001" min="0" />
+          <.input field={@form[:price]} type="text" label="Price" class="h-24 w-full" />
 
-          <.input
-            field={@form[:unit]}
-            type="radiogroup"
-            label="Measured in"
-            value={@form[:unit].value || :gram}
-            options={[{"Gram", :gram}, {"Milliliter", :milliliter}, {"Piece", :piece}]}
-          />
+          <.radio_card id="unit" field={@form[:unit]} cols="two" variant="bordered">
+            <:radio
+              value="gram"
+              title="Gram"
+              checked={
+                if @form[:unit].value == :gram || @form[:unit].value == nil do
+                  true
+                end
+              }
+            >
+            </:radio>
+            <:radio
+              value="milliliter"
+              title="Milliliter"
+              checked={
+                if @form[:unit].value == :milliliter do
+                  true
+                end
+              }
+            >
+            </:radio>
+            <:radio
+              value="piece"
+              title="Piece"
+              checked={
+                if @form[:unit].value == :piece do
+                  true
+                end
+              }
+            >
+            </:radio>
+          </.radio_card>
         </div>
 
         <.input
@@ -45,6 +70,13 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMaterial do
           label="Maximum Stock"
           step="0.001"
           min="0"
+        />
+
+        <.input
+          field={@form[:location_id]}
+          type="select"
+          options={Enum.map(@locations, &{&1.name, &1.id})}
+          label="Material Location"
         />
 
         <:actions>
@@ -66,6 +98,12 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMaterial do
   end
 
   def handle_event("save", %{"material" => material_params}, socket) do
+    currency = Craftplan.Settings.get_settings!().currency
+
+    price = Money.parse(material_params["price"], default_currency: currency)
+
+    material_params = Map.replace(material_params, "price", price)
+
     case Form.submit(socket.assigns.form, params: material_params) do
       {:ok, material} ->
         send(self(), {:saved, material})
@@ -94,6 +132,6 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMaterial do
         )
       end
 
-    assign(socket, form: to_form(form))
+    socket |> assign(form: to_form(form)) |> assign(locations: Inventory.list_locations!())
   end
 end

@@ -5,7 +5,7 @@ defmodule Craftplan.Settings.Settings do
     domain: Craftplan.Settings,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshJsonApi.Resource]
+    extensions: [AshJsonApi.Resource, AshOban]
 
   alias Craftplan.Types.EncryptedBinary
 
@@ -24,17 +24,63 @@ defmodule Craftplan.Settings.Settings do
     repo Craftplan.Repo
   end
 
+  oban do
+    triggers do
+      trigger :update do
+        action :update
+        worker_read_action(:get)
+        queue(:default)
+        worker_module_name(Craftplan.Settings.Settings.AshOban.Worker.Process)
+        scheduler_module_name(Craftplan.Settings.Settings.AshOban.Scheduler.Process)
+      end
+    end
+
+    domain Craftplan.System
+  end
+
   actions do
     default_accept :*
 
-    defaults [:read, :update]
+    defaults [:read]
 
     create :init do
       accept []
     end
 
+    read :list do
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
     read :get do
       get? true
+    end
+
+    update :update do
+      require_atomic? false
+
+      accept [
+        :currency,
+        :shipping_flat,
+        :labor_hourly_rate,
+        :tax_mode,
+        :tax_rate,
+        :offers_pickup,
+        :offers_delivery,
+        :lead_time_days,
+        :daily_capacity,
+        :labor_overhead_percent,
+        :retail_markup_value,
+        :retail_markup_value,
+        :wholesale_markup_mode,
+        :wholesale_markup_value
+      ]
+
+      change Craftplan.Settings.Changes.AssignCurrency
     end
   end
 
@@ -66,7 +112,7 @@ defmodule Craftplan.Settings.Settings do
     attribute :currency, Craftplan.Types.Currency do
       public? true
       allow_nil? false
-      default :USD
+      default :EUR
     end
 
     # Tax configuration
@@ -111,17 +157,16 @@ defmodule Craftplan.Settings.Settings do
       constraints min: 0
     end
 
-    attribute :shipping_flat, :decimal do
+    attribute :shipping_flat, AshMoney.Types.Money do
       public? true
-      allow_nil? false
-      default 0
+      allow_nil? true
+      default Money.new!(0, :EUR)
     end
 
-    attribute :labor_hourly_rate, :decimal do
+    attribute :labor_hourly_rate, AshMoney.Types.Money do
       public? true
-      allow_nil? false
-      default 0
-      constraints min: 0
+      allow_nil? true
+      default Money.new!(0, :EUR)
       description "Default hourly labor rate used for cost calculations."
     end
 

@@ -28,7 +28,7 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         name: "Cap Product",
         status: :active,
-        price: Decimal.new("10.00"),
+        price: Money.new("10.00", :EUR),
         sku: "CAP-1",
         max_daily_quantity: 5
       })
@@ -53,7 +53,8 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: DateTime.new!(Date.utc_today(), ~T[09:00:00], "Etc/UTC"),
-        items: items
+        items: items,
+        currency: :EUR
       })
       |> Ash.create(actor: Craftplan.DataCase.staff_actor())
 
@@ -65,7 +66,8 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: DateTime.new!(Date.add(Date.utc_today(), 1), ~T[09:00:00], "Etc/UTC"),
-        items: items
+        items: items,
+        currency: :EUR
       })
       |> Ash.create(actor: Craftplan.DataCase.staff_actor())
   end
@@ -91,7 +93,8 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: today_dt,
-        items: items
+        items: items,
+        currency: :EUR
       })
       |> Ash.create(actor: staff)
 
@@ -100,7 +103,8 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: today_dt,
-        items: items
+        items: items,
+        currency: :EUR
       })
       |> Ash.create(actor: staff)
 
@@ -116,7 +120,8 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: day_dt,
-        items: [%{product_id: product.id, quantity: Decimal.new(3), unit_price: product.price}]
+        items: [%{product_id: product.id, quantity: Decimal.new(3), unit_price: product.price}],
+        currency: :EUR
       })
       |> Ash.create(actor: staff)
 
@@ -125,7 +130,8 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: day_dt,
-        items: [%{product_id: product.id, quantity: Decimal.new(3), unit_price: product.price}]
+        items: [%{product_id: product.id, quantity: Decimal.new(3), unit_price: product.price}],
+        currency: :EUR
       })
       |> Ash.create(actor: staff)
 
@@ -144,7 +150,8 @@ defmodule Craftplan.Orders.OrderConstraintsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: day_dt,
-        items: [%{product_id: product.id, quantity: Decimal.new(2), unit_price: product.price}]
+        items: [%{product_id: product.id, quantity: Decimal.new(2), unit_price: product.price}],
+        currency: :EUR
       })
       |> Ash.create(actor: staff)
 

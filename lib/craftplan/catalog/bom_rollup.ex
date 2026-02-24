@@ -3,15 +3,39 @@ defmodule Craftplan.Catalog.BOMRollup do
   use Ash.Resource,
     otp_app: :craftplan,
     domain: Craftplan.Catalog,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshOban]
 
   postgres do
     table "catalog_bom_rollups"
     repo Craftplan.Repo
   end
 
+  oban do
+    triggers do
+      trigger :update_currency do
+        action :change_currency
+        worker_read_action(:list)
+        queue(:default)
+        worker_module_name(Craftplan.Catalog.BOMRollup.AshOban.Worker.Process)
+        scheduler_module_name(Craftplan.Catalog.BOMRollup.AshOban.Scheduler.Process)
+      end
+    end
+
+    domain Craftplan.Catalog.BOMRollup
+  end
+
   actions do
     defaults [:read]
+
+    read :list do
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
 
     create :create do
       primary? true
@@ -30,29 +54,35 @@ defmodule Craftplan.Catalog.BOMRollup do
     update :update do
       accept [:material_cost, :labor_cost, :overhead_cost, :unit_cost, :components_map]
     end
+
+    update :change_currency do
+      accept []
+
+      change Craftplan.Catalog.Changes.AssignCurrencyBOM
+    end
   end
 
   attributes do
     uuid_primary_key :id
 
-    attribute :material_cost, :decimal do
+    attribute :material_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
-    attribute :labor_cost, :decimal do
+    attribute :labor_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
-    attribute :overhead_cost, :decimal do
+    attribute :overhead_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
-    attribute :unit_cost, :decimal do
+    attribute :unit_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
     end
 
     # Flattened materials used per unit (JSONB map: material_id => quantity as string)

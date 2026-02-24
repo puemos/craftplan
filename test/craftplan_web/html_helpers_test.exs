@@ -91,19 +91,19 @@ defmodule CraftplanWeb.HtmlHelpersTest do
 
   describe "format_currency/3" do
     test "returns Money struct by default" do
-      money = HtmlHelpers.format_currency(:USD, Decimal.new("123"))
+      money = HtmlHelpers.format_currency(:EUR, Decimal.new("123"))
 
       assert match?(%Money{}, money)
-      assert money.currency == :USD
+      assert money.currency == :EUR
       assert money.amount == Decimal.new("123")
     end
 
     test "supports integers and string formatting" do
-      assert HtmlHelpers.format_currency(:USD, 25, format: :string) == "$25.00"
+      assert HtmlHelpers.format_currency(:EUR, 25, format: :string) == "$25.00"
     end
 
     test "handles nil values" do
-      assert HtmlHelpers.format_currency(:USD, nil, format: :string) == "$0.00"
+      assert HtmlHelpers.format_currency(:EUR, nil, format: :string) == "$0.00"
     end
   end
 

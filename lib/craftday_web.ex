@@ -97,6 +97,7 @@ defmodule CraftplanWeb do
       use Gettext, backend: CraftplanWeb.Gettext
       use CraftplanWeb.Components
 
+      import CraftplanWeb.Components.RadioCard
       import CraftplanWeb.HtmlHelpers
 
       # HTML escaping functionality

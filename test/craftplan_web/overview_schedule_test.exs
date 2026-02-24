@@ -15,7 +15,7 @@ defmodule CraftplanWeb.OverviewScheduleTest do
     |> Ash.Changeset.for_create(:create, %{
       name: "P-#{System.unique_integer([:positive])}",
       sku: "SKU-#{System.unique_integer([:positive])}",
-      price: Decimal.new("5.00"),
+      price: Money.new("5.00", :EUR),
       status: :active
     })
     |> Ash.create!(actor: staff())
@@ -38,7 +38,8 @@ defmodule CraftplanWeb.OverviewScheduleTest do
       Orders.Order
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
-        delivery_date: delivery_date
+        delivery_date: delivery_date,
+        currency: :EUR
       })
       |> Ash.create!(actor: staff())
 

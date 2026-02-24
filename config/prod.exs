@@ -3,6 +3,16 @@ import Config
 # Note we also include the path to a cache manifest
 # containing the digested version of static files. This
 
+dsn =
+  if System.get_env("SENTRY_DSN") != nil && String.length(System.get_env("SENTRY_DSN") > 30) do
+    System.get_env("SENTRY_DSN")
+  end
+
+dsn =
+  if System.get_env("SENTRY_DSN") != nil && String.length(System.get_env("SENTRY_DSN")) > 80 do
+    System.get_env("SENTRY_DSN")
+  end
+
 config :craftplan, CraftplanWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
@@ -14,6 +24,9 @@ config :craftplan, CraftplanWeb.Endpoint, cache_static_manifest: "priv/static/ca
 # of environment variables, is done on config/runtime.exs.
 # Disable Swoosh Local Memory Storage
 config :logger, level: :info
+
+config :sentry,
+  dsn: dsn
 
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Craftplan.Finch
 config :swoosh, local: false

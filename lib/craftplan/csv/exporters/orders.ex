@@ -33,9 +33,9 @@ defmodule Craftplan.CSV.Exporters.Orders do
           to_string(order.payment_method || ""),
           to_string(order.payment_status || ""),
           to_string(order.status || ""),
-          to_string(order.subtotal || "0"),
-          to_string(order.tax_total || "0"),
-          to_string(order.total || "0"),
+          Money.to_string(order.subtotal),
+          Money.to_string(order.tax_total),
+          Money.to_string(order.total),
           customer_name(order)
         ]
       end)

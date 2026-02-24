@@ -264,18 +264,6 @@ defmodule CraftplanWeb.Navigation do
             active?: &__MODULE__.settings_general_active?/1
           },
           %{
-            key: :allergens,
-            label: "Allergens",
-            navigate: "/manage/settings/allergens",
-            active?: &__MODULE__.settings_allergens_active?/1
-          },
-          %{
-            key: :nutritional_facts,
-            label: "Nutritional Facts",
-            navigate: "/manage/settings/nutritional_facts",
-            active?: &__MODULE__.settings_nutrition_active?/1
-          },
-          %{
             key: :csv,
             label: "Import & Export",
             navigate: "/manage/settings/csv",

@@ -7,6 +7,8 @@ defmodule Craftplan.Application do
 
   @impl true
   def start(_type, _args) do
+    oban_params = Application.fetch_env!(:craftplan, Oban)
+
     children = [
       CraftplanWeb.Telemetry,
       Craftplan.Vault,
@@ -15,10 +17,12 @@ defmodule Craftplan.Application do
       {Phoenix.PubSub, name: Craftplan.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Craftplan.Finch},
+      {Oban, oban_params},
       # Start a worker by calling: Craftplan.Worker.start_link(arg)
       # {Craftplan.Worker, arg},
       # Start to serve requests, typically the last entry
       CraftplanWeb.Endpoint,
+      {Craftplan.Accounts.DefaultPasswordReset, []},
       {AshAuthentication.Supervisor, [otp_app: :craftplan]}
     ]
 
@@ -46,4 +50,16 @@ defmodule Craftplan.Application do
     CraftplanWeb.Endpoint.config_change(changed, removed)
     :ok
   end
+
+  @app Mix.Project.config()[:app]
+  @version Mix.Project.config()[:version]
+  @description Mix.Project.config()[:description]
+  @build_date Mix.Project.config()[:build_date]
+  @build_hash Mix.Project.config()[:build_hash]
+
+  def build_hash, do: [build_hash: @build_hash]
+  def build_date, do: [build_date: @build_date]
+  def description, do: [description: @description]
+  def version, do: [version: @version]
+  def name, do: [app: @app]
 end

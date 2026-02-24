@@ -63,6 +63,9 @@ defmodule CraftplanWeb.InventoryLive.Show do
           <:item title="Maximum Stock">
             {format_amount(@material.unit, @material.maximum_stock)}
           </:item>
+          <:item title="Location">
+            {@material.location.name}
+          </:item>
         </.list>
 
         <div :if={!Enum.empty?(@open_po_items)} class="mt-6">
@@ -308,6 +311,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
           :allergens,
           :material_allergens,
           :nutritional_facts,
+          :location,
           material_nutritional_facts: [:nutritional_fact]
         ]
       )

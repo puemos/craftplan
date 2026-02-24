@@ -6,14 +6,329 @@
 
 @import "tailwindcss";
 @import "./event-calendar.css";
-
+@import "../vendor/components.css";
 @plugin "@tailwindcss/forms";
 @plugin "./tailwind_heroicons.js";
 
 @theme {
-    --color-brand: "#FD4F00";
-}
+    --color-base-border-light: var(--base-border-light);
+    --color-base-border-dark: var(--base-border-dark);
+    --color-base-text-light: var(--base-text-light);
+    --color-base-text-dark: var(--base-text-dark);
+    --color-base-bg-dark: var(--base-bg-dark);
+    --color-base-hover-light: var(--base-hover-light);
+    --color-base-hover-dark: var(--base-hover-dark);
+    --color-base-text-hover-light: var(--base-text-hover-light);
+    --color-base-text-hover-dark: var(--base-text-hover-dark);
+    --color-base-disabled-bg-light: var(--base-disabled-bg-light);
+    --color-base-disabled-bg-dark: var(--base-disabled-bg-dark);
+    --color-base-disabled-text-light: var(--base-disabled-text-light);
+    --color-base-disabled-text-dark: var(--base-disabled-text-dark);
+    --color-base-disabled-border-light: var(--base-disabled-border-light);
+    --color-base-disabled-border-dark: var(--base-disabled-border-dark);
+    --color-base-tab-bg-light: var(--base-tab-bg-light);
 
+    --color-default-dark-bg: var(--default-dark-bg);
+    --color-ring-dark: var(--ring-dark);
+    --color-default-light-gray: var(--default-light-gray);
+    --color-default-device-dark: var(--default-device-dark);
+    --color-default-gray: var(--default-gray);
+    --color-range-light-gray: var(--range-light-gray);
+
+    --color-natural-light: var(--natural-light);
+    --color-natural-dark: var(--natural-dark);
+    --color-natural-hover-light: var(--natural-hover-light);
+    --color-natural-hover-dark: var(--natural-hover-dark);
+    --color-natural-bg-light: var(--natural-bg-light);
+    --color-natural-bg-dark: var(--natural-bg-dark);
+    --color-natural-border-light: var(--natural-border-light);
+    --color-natural-border-dark: var(--natural-border-dark);
+    --color-natural-bordered-text-light: var(--natural-bordered-text-light);
+    --color-natural-bordered-text-dark: var(--natural-bordered-text-dark);
+    --color-natural-bordered-bg-light: var(--natural-bordered-bg-light);
+    --color-natural-bordered-bg-dark: var(--natural-bordered-bg-dark);
+    --color-natural-disabled-light: var(--natural-disabled-light);
+    --color-natural-disabled-dark: var(--natural-disabled-dark);
+    --color-natural-bordered-hover-light: var(--natural-bordered-hover-light);
+    --color-natural-bordered-hover-dark: var(--natural-bordered-hover-dark);
+
+    --color-primary-light: var(--primary-light);
+    --color-primary-dark: var(--primary-dark);
+    --color-primary-hover-light: var(--primary-hover-light);
+    --color-primary-hover-dark: var(--primary-hover-dark);
+    --color-primary-bordered-text-light: var(--primary-bordered-text-light);
+    --color-primary-bordered-text-dark: var(--primary-bordered-text-dark);
+    --color-primary-bordered-bg-light: var(--primary-bordered-bg-light);
+    --color-primary-bordered-bg-dark: var(--primary-bordered-bg-dark);
+    --color-primary-indicator-light: var(--primary-indicator-light);
+    --color-primary-indicator-dark: var(--primary-indicator-dark);
+
+    --color-secondary-light: var(--secondary-light);
+    --color-secondary-dark: var(--secondary-dark);
+    --color-secondary-hover-light: var(--secondary-hover-light);
+    --color-secondary-hover-dark: var(--secondary-hover-dark);
+    --color-secondary-bordered-text-light: var(--secondary-bordered-text-light);
+    --color-secondary-bordered-text-dark: var(--secondary-bordered-text-dark);
+    --color-secondary-bordered-bg-light: var(--secondary-bordered-bg-light);
+    --color-secondary-bordered-bg-dark: var(--secondary-bordered-bg-dark);
+    --color-secondary-indicator-light: var(--secondary-indicator-light);
+    --color-secondary-indicator-dark: var(--secondary-indicator-dark);
+
+    --color-success-light: var(--success-light);
+    --color-success-dark: var(--success-dark);
+    --color-success-hover-light: var(--success-hover-light);
+    --color-success-hover-dark: var(--success-hover-dark);
+    --color-success-bordered-text-light: var(--success-bordered-text-light);
+    --color-success-bordered-text-dark: var(--success-bordered-text-dark);
+    --color-success-bordered-bg-light: var(--success-bordered-bg-light);
+    --color-success-bordered-bg-dark: var(--success-bordered-bg-dark);
+    --color-success-indicator-light: var(--success-indicator-light);
+    --color-success-indicator-alt-light: var(--success-indicator-alt-light);
+    --color-success-indicator-dark: var(--success-indicator-dark);
+
+    --color-warning-light: var(--warning-light);
+    --color-warning-dark: var(--warning-dark);
+    --color-warning-hover-light: var(--warning-hover-light);
+    --color-warning-hover-dark: var(--warning-hover-dark);
+    --color-warning-bordered-text-light: var(--warning-bordered-text-light);
+    --color-warning-bordered-text-dark: var(--warning-bordered-text-dark);
+    --color-warning-bordered-bg-light: var(--warning-bordered-bg-light);
+    --color-warning-bordered-bg-dark: var(--warning-bordered-bg-dark);
+    --color-warning-indicator-light: var(--warning-indicator-light);
+    --color-warning-indicator-alt-light: var(--warning-indicator-alt-light);
+    --color-warning-indicator-dark: var(--warning-indicator-dark);
+
+    --color-danger-light: var(--danger-light);
+    --color-danger-dark: var(--danger-dark);
+    --color-danger-hover-light: var(--danger-hover-light);
+    --color-danger-hover-dark: var(--danger-hover-dark);
+    --color-danger-bordered-text-light: var(--danger-bordered-text-light);
+    --color-danger-bordered-text-dark: var(--danger-bordered-text-dark);
+    --color-danger-bordered-bg-light: var(--danger-bordered-bg-light);
+    --color-danger-bordered-bg-dark: var(--danger-bordered-bg-dark);
+    --color-danger-indicator-light: var(--danger-indicator-light);
+    --color-danger-indicator-alt-light: var(--danger-indicator-alt-light);
+    --color-danger-indicator-dark: var(--danger-indicator-dark);
+
+    --color-info-light: var(--info-light);
+    --color-info-dark: var(--info-dark);
+    --color-info-hover-light: var(--info-hover-light);
+    --color-info-hover-dark: var(--info-hover-dark);
+    --color-info-bordered-text-light: var(--info-bordered-text-light);
+    --color-info-bordered-text-dark: var(--info-bordered-text-dark);
+    --color-info-bordered-bg-light: var(--info-bordered-bg-light);
+    --color-info-bordered-bg-dark: var(--info-bordered-bg-dark);
+    --color-info-indicator-light: var(--info-indicator-light);
+    --color-info-indicator-alt-light: var(--info-indicator-alt-light);
+    --color-info-indicator-dark: var(--info-indicator-dark);
+
+    --color-misc-light: var(--misc-light);
+    --color-misc-dark: var(--misc-dark);
+    --color-misc-hover-light: var(--misc-hover-light);
+    --color-misc-hover-dark: var(--misc-hover-dark);
+    --color-misc-bordered-text-light: var(--misc-bordered-text-light);
+    --color-misc-bordered-text-dark: var(--misc-bordered-text-dark);
+    --color-misc-bordered-bg-light: var(--misc-bordered-bg-light);
+    --color-misc-bordered-bg-dark: var(--misc-bordered-bg-dark);
+    --color-misc-indicator-light: var(--misc-indicator-light);
+    --color-misc-indicator-alt-light: var(--misc-indicator-alt-light);
+    --color-misc-indicator-dark: var(--misc-indicator-dark);
+
+    --color-dawn-light: var(--dawn-light);
+    --color-dawn-dark: var(--dawn-dark);
+    --color-dawn-hover-light: var(--dawn-hover-light);
+    --color-dawn-hover-dark: var(--dawn-hover-dark);
+    --color-dawn-bordered-text-light: var(--dawn-bordered-text-light);
+    --color-dawn-bordered-text-dark: var(--dawn-bordered-text-dark);
+    --color-dawn-bordered-bg-light: var(--dawn-bordered-bg-light);
+    --color-dawn-bordered-bg-dark: var(--dawn-bordered-bg-dark);
+    --color-dawn-indicator-light: var(--dawn-indicator-light);
+    --color-dawn-indicator-alt-light: var(--dawn-indicator-alt-light);
+    --color-dawn-indicator-dark: var(--dawn-indicator-dark);
+
+    --color-silver-light: var(--silver-light);
+    --color-silver-dark: var(--silver-dark);
+    --color-silver-hover-light: var(--silver-hover-light);
+    --color-silver-hover-dark: var(--silver-hover-dark);
+    --color-silver-hover-bordered-light: var(--silver-hover-bordered-light);
+    --color-silver-hover-bordered-dark: var(--silver-hover-bordered-dark);
+    --color-silver-bordered-text-light: var(--silver-bordered-text-light);
+    --color-silver-bordered-text-dark: var(--silver-bordered-text-dark);
+    --color-silver-bordered-bg-light: var(--silver-bordered-bg-light);
+    --color-silver-bordered-bg-dark: var(--silver-bordered-bg-dark);
+    --color-silver-indicator-light: var(--silver-indicator-light);
+    --color-silver-indicator-alt-light: var(--silver-indicator-alt-light);
+    --color-silver-indicator-dark: var(--silver-indicator-dark);
+
+    --color-bordered-white-border: var(--bordered-white-border);
+    --color-bordered-dark-bg: var(--bordered-dark-bg);
+    --color-bordered-dark-border: var(--bordered-dark-border);
+
+    --color-disabled-bg-light: var(--disabled-bg-light);
+    --color-disabled-bg-dark: var(--disabled-bg-dark);
+    --color-disabled-text-light: var(--disabled-text-light);
+    --color-disabled-text-dark: var(--disabled-text-dark);
+
+    --color-shadow-natural: var(--shadow-natural);
+    --color-shadow-primary: var(--shadow-primary);
+    --color-shadow-secondary: var(--shadow-secondary);
+    --color-shadow-success: var(--shadow-success);
+    --color-shadow-warning: var(--shadow-warning);
+    --color-shadow-danger: var(--shadow-danger);
+    --color-shadow-info: var(--shadow-info);
+    --color-shadow-misc: var(--shadow-misc);
+    --color-shadow-dawn: var(--shadow-dawn);
+    --color-shadow-silver: var(--shadow-silver);
+
+    --color-gradient-natural-from-light: var(--gradient-natural-from-light);
+    --color-gradient-natural-to-light: var(--gradient-natural-to-light);
+    --color-gradient-natural-from-dark: var(--gradient-natural-from-dark);
+
+    --color-gradient-primary-from-light: var(--gradient-primary-from-light);
+    --color-gradient-primary-to-light: var(--gradient-primary-to-light);
+    --color-gradient-primary-from-dark: var(--gradient-primary-from-dark);
+    --color-gradient-primary-to-dark: var(--gradient-primary-to-dark);
+
+    --color-gradient-secondary-from-light: var(--gradient-secondary-from-light);
+    --color-gradient-secondary-to-light: var(--gradient-secondary-to-light);
+    --color-gradient-secondary-from-dark: var(--gradient-secondary-from-dark);
+    --color-gradient-secondary-to-dark: var(--gradient-secondary-to-dark);
+
+    --color-gradient-success-from-light: var(--gradient-success-from-light);
+    --color-gradient-success-to-light: var(--gradient-success-to-light);
+    --color-gradient-success-from-dark: var(--gradient-success-from-dark);
+    --color-gradient-success-to-dark: var(--gradient-success-to-dark);
+
+    --color-gradient-warning-from-light: var(--gradient-warning-from-light);
+    --color-gradient-warning-to-light: var(--gradient-warning-to-light);
+    --color-gradient-warning-from-dark: var(--gradient-warning-from-dark);
+    --color-gradient-warning-to-dark: var(--gradient-warning-to-dark);
+
+    --color-gradient-danger-from-light: var(--gradient-danger-from-light);
+    --color-gradient-danger-to-light: var(--gradient-danger-to-light);
+    --color-gradient-danger-from-dark: var(--gradient-danger-from-dark);
+    --color-gradient-danger-to-dark: var(--gradient-danger-to-dark);
+
+    --color-gradient-info-from-light: var(--gradient-info-from-light);
+    --color-gradient-info-to-light: var(--gradient-info-to-light);
+    --color-gradient-info-from-dark: var(--gradient-info-from-dark);
+    --color-gradient-info-to-dark: var(--gradient-info-to-dark);
+
+    --color-gradient-misc-from-light: var(--gradient-misc-from-light);
+    --color-gradient-misc-to-light: var(--gradient-misc-to-light);
+    --color-gradient-misc-from-dark: var(--gradient-misc-from-dark);
+    --color-gradient-misc-to-dark: var(--gradient-misc-to-dark);
+
+    --color-gradient-dawn-from-light: var(--gradient-dawn-from-light);
+    --color-gradient-dawn-to-light: var(--gradient-dawn-to-light);
+    --color-gradient-dawn-from-dark: var(--gradient-dawn-from-dark);
+    --color-gradient-dawn-to-dark: var(--gradient-dawn-to-dark);
+
+    --color-gradient-silver-from-light: var(--gradient-silver-from-light);
+    --color-gradient-silver-to-light: var(--gradient-silver-to-light);
+    --color-gradient-silver-from-dark: var(--gradient-silver-from-dark);
+    --color-gradient-silver-to-dark: var(--gradient-silver-to-dark);
+
+    --color-primary-gradient-indicator-dark: var(
+        --primary-gradient-indicator-dark
+    );
+    --color-secondary-gradient-indicator-dark: var(
+        --secondary-gradient-indicator-dark
+    );
+    --color-success-gradient-indicator-dark: var(
+        --success-gradient-indicator-dark
+    );
+    --color-warning-gradient-indicator-dark: var(
+        --warning-gradient-indicator-dark
+    );
+    --color-danger-gradient-indicator-dark: var(
+        --danger-gradient-indicator-dark
+    );
+    --color-info-gradient-indicator-dark: var(--info-gradient-indicator-dark);
+    --color-misc-gradient-indicator-dark: var(--misc-gradient-indicator-dark);
+    --color-dawn-gradient-indicator-dark: var(--dawn-gradient-indicator-dark);
+
+    --color-primary-border-light: var(--primary-border-light);
+    --color-primary-border-dark: var(--primary-border-dark);
+    --color-secondary-border-light: var(--secondary-border-light);
+    --color-secondary-border-dark: var(--secondary-border-dark);
+    --color-success-border-light: var(--success-border-light);
+    --color-success-border-dark: var(--success-border-dark);
+    --color-warning-border-light: var(--warning-border-light);
+    --color-warning-border-dark: var(--warning-border-dark);
+    --color-danger-border-light: var(--danger-border-light);
+    --color-danger-border-dark: var(--danger-border-dark);
+    --color-info-border-light: var(--info-border-light);
+    --color-info-border-dark: var(--info-border-dark);
+    --color-misc-border-light: var(--misc-border-light);
+    --color-misc-border-dark: var(--misc-border-dark);
+    --color-dawn-border-light: var(--dawn-border-light);
+    --color-dawn-border-dark: var(--dawn-border-dark);
+    --color-silver-border-light: var(--silver-border-light);
+    --color-silver-border-dark: var(--silver-border-dark);
+
+    --color-base-form-border-light: var(--base-form-border-light);
+    --color-base-form-border-dark: var(--base-form-border-dark);
+    --color-base-form-focus-dark: var(--base-form-focus-dark);
+    --color-form-white-text: var(--form-white-text);
+    --color-form-white-focus: var(--form-white-focus);
+
+    --color-checkbox-white-checked: var(--checkbox-white-checked);
+    --color-checkbox-dark-checked: var(--checkbox-dark-checked);
+    --color-checkbox-unchecked-dark: var(--checkbox-unchecked-dark);
+    --color-checkbox-primary-checked: var(--checkbox-primary-checked);
+    --color-checkbox-secondary-checked: var(--checkbox-secondary-checked);
+    --color-checkbox-success-checked: var(--checkbox-success-checked);
+    --color-checkbox-warning-checked: var(--checkbox-warning-checked);
+    --color-checkbox-danger-checked: var(--checkbox-danger-checked);
+    --color-checkbox-info-checked: var(--checkbox-info-checked);
+    --color-checkbox-misc-checked: var(--checkbox-misc-checked);
+    --color-checkbox-dawn-checked: var(--checkbox-dawn-checked);
+    --color-checkbox-silver-checked: var(--checkbox-silver-checked);
+
+    /* Stepper specific colors - only NEW colors not covered by existing system */
+    --color-stepper-loading-icon-fill: var(--stepper-loading-icon-fill);
+    --color-stepper-current-step-text-light: var(
+        --stepper-current-step-text-light
+    );
+    --color-stepper-current-step-text-dark: var(
+        --stepper-current-step-text-dark
+    );
+    --color-stepper-current-step-border-light: var(
+        --stepper-current-step-border-light
+    );
+    --color-stepper-current-step-border-dark: var(
+        --stepper-current-step-border-dark
+    );
+    --color-stepper-completed-step-bg-light: var(
+        --stepper-completed-step-bg-light
+    );
+    --color-stepper-completed-step-bg-dark: var(
+        --stepper-completed-step-bg-dark
+    );
+    --color-stepper-completed-step-border-light: var(
+        --stepper-completed-step-border-light
+    );
+    --color-stepper-completed-step-border-dark: var(
+        --stepper-completed-step-border-dark
+    );
+    --color-stepper-canceled-step-bg-light: var(
+        --stepper-canceled-step-bg-light
+    );
+    --color-stepper-canceled-step-bg-dark: var(--stepper-canceled-step-bg-dark);
+    --color-stepper-canceled-step-border-light: var(
+        --stepper-canceled-step-border-light
+    );
+    --color-stepper-canceled-step-border-dark: var(
+        --stepper-canceled-step-border-dark
+    );
+    --color-stepper-separator-completed-border-light: var(
+        --stepper-separator-completed-border-light
+    );
+    --color-stepper-separator-completed-border-dark: var(
+        --stepper-separator-completed-border-dark
+    );
+}
 button {
     cursor: pointer;
 }

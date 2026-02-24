@@ -17,7 +17,7 @@ defmodule CraftplanWeb.ProductLive.FormComponent do
       >
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:sku]} type="text" label="SKU" />
-        <.input field={@form[:price]} type="number" label="Price" />
+        <.input field={@form[:price]} type="text" label="Price" class="h-24 w-full" />
 
         <.input
           field={@form[:status]}
@@ -71,6 +71,11 @@ defmodule CraftplanWeb.ProductLive.FormComponent do
   end
 
   def handle_event("save", %{"product" => product_params}, socket) do
+    currency = Craftplan.Settings.get_settings!().currency
+
+    price = Money.parse(product_params["price"], default_currency: currency)
+    product_params = Map.replace(product_params, "price", price)
+
     case AshPhoenix.Form.submit(socket.assigns.form, params: product_params) do
       {:ok, product} ->
         notify_parent({:saved, product})

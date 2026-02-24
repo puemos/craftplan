@@ -21,7 +21,7 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Test Material",
           sku: "MAT-001",
           unit: :gram,
-          price: Decimal.new("1.00")
+          price: Money.new("1.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
@@ -32,7 +32,7 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Test Product",
           sku: "PROD-001",
           status: :active,
-          price: Decimal.new("10.00")
+          price: Money.new("10.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
@@ -52,17 +52,17 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
 
       # Verify initial rollup cost is $100 (100 units * $1.00)
       rollup = get_rollup_for_product(product.id, staff)
-      assert Decimal.equal?(rollup.material_cost, Decimal.new("100.00"))
+      assert Money.equal?(rollup.material_cost, Money.new("100.00", :EUR))
 
       # Update material price to $2.00
       _updated_material =
         material
-        |> Ash.Changeset.for_update(:update, %{price: Decimal.new("2.00")})
+        |> Ash.Changeset.for_update(:update, %{price: Money.new("2.00", :EUR)})
         |> Ash.update!(actor: staff)
 
       # Verify rollup cost is now $200 (100 units * $2.00)
       updated_rollup = get_rollup_for_product(product.id, staff)
-      assert Decimal.equal?(updated_rollup.material_cost, Decimal.new("200.00"))
+      assert Money.equal?(updated_rollup.material_cost, Money.new("200.00", :EUR))
     end
 
     test "non-price change does not trigger rollup refresh" do
@@ -74,7 +74,7 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Original Name",
           sku: "MAT-002",
           unit: :gram,
-          price: Decimal.new("1.00")
+          price: Money.new("1.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
@@ -84,7 +84,7 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Test Product 2",
           sku: "PROD-002",
           status: :active,
-          price: Decimal.new("10.00")
+          price: Money.new("10.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
@@ -125,7 +125,7 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Shared Material",
           sku: "MAT-003",
           unit: :gram,
-          price: Decimal.new("1.00")
+          price: Money.new("1.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
@@ -136,7 +136,7 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Product A",
           sku: "PROD-003A",
           status: :active,
-          price: Decimal.new("10.00")
+          price: Money.new("10.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
@@ -146,7 +146,7 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Product B",
           sku: "PROD-003B",
           status: :active,
-          price: Decimal.new("20.00")
+          price: Money.new("20.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
@@ -173,20 +173,20 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
       # Verify initial costs
       rollup1 = get_rollup_for_product(product1.id, staff)
       rollup2 = get_rollup_for_product(product2.id, staff)
-      assert Decimal.equal?(rollup1.material_cost, Decimal.new("10.00"))
-      assert Decimal.equal?(rollup2.material_cost, Decimal.new("20.00"))
+      assert Money.equal?(rollup1.material_cost, Money.new("10.00", :EUR))
+      assert Money.equal?(rollup2.material_cost, Money.new("20.00", :EUR))
 
       # Update material price
       _updated_material =
         material
-        |> Ash.Changeset.for_update(:update, %{price: Decimal.new("3.00")})
+        |> Ash.Changeset.for_update(:update, %{price: Money.new("3.00", :EUR)})
         |> Ash.update!(actor: staff)
 
       # Both rollups should be updated
       updated_rollup1 = get_rollup_for_product(product1.id, staff)
       updated_rollup2 = get_rollup_for_product(product2.id, staff)
-      assert Decimal.equal?(updated_rollup1.material_cost, Decimal.new("30.00"))
-      assert Decimal.equal?(updated_rollup2.material_cost, Decimal.new("60.00"))
+      assert Money.equal?(updated_rollup1.material_cost, Money.new("30.00", :EUR))
+      assert Money.equal?(updated_rollup2.material_cost, Money.new("60.00", :EUR))
     end
 
     test "material not used in any BOM handles gracefully" do
@@ -198,17 +198,17 @@ defmodule Craftplan.Catalog.MaterialPriceBomRollupTest do
           name: "Unused Material",
           sku: "MAT-004",
           unit: :gram,
-          price: Decimal.new("1.00")
+          price: Money.new("1.00", :EUR)
         })
         |> Ash.create!(actor: staff)
 
       # Update price - should not raise even though no BOMs use this material
       updated_material =
         material
-        |> Ash.Changeset.for_update(:update, %{price: Decimal.new("5.00")})
+        |> Ash.Changeset.for_update(:update, %{price: Money.new("5.00", :EUR)})
         |> Ash.update!(actor: staff)
 
-      assert Decimal.equal?(updated_material.price, Decimal.new("5.00"))
+      assert Money.equal?(updated_material.price, Money.new("5.00", :EUR))
     end
   end
 

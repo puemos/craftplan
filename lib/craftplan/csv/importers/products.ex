@@ -1,13 +1,19 @@
 defmodule Craftplan.CSV.Importers.Products do
   @moduledoc """
   CSV importer for products (dry-run supported).
-  Expected headers: name, sku, price, status (optional).
+  Expected headers: name, sku, price, status (optional), currency.
   """
 
   alias Craftplan.Catalog.Product.Types.Status
   alias NimbleCSV.RFC4180, as: CSV
 
-  @type row :: %{name: String.t(), sku: String.t(), price: Decimal.t(), status: atom()}
+  @type row :: %{
+          name: String.t(),
+          sku: String.t(),
+          price: String.t(),
+          status: atom(),
+          currency: String.t()
+        }
   @type error :: %{row: non_neg_integer(), message: String.t()}
 
   @spec dry_run(String.t(), keyword) :: {:ok, %{rows: [row()], errors: [error()]}}
@@ -144,7 +150,7 @@ defmodule Craftplan.CSV.Importers.Products do
 
   defp apply_mapping(header_map, mapping) do
     # For each known field, if a mapped header exists, point the key to that index too
-    Enum.reduce(["name", "sku", "price", "status"], header_map, fn field, acc ->
+    Enum.reduce(["name", "sku", "price", "status", "currency"], header_map, fn field, acc ->
       case Map.get(mapping, field) do
         nil ->
           acc
@@ -168,28 +174,24 @@ defmodule Craftplan.CSV.Importers.Products do
   defp cast_row(fields, header_map) do
     name = fields |> fetch_field(header_map, "name") |> to_string() |> String.trim()
     sku = fields |> fetch_field(header_map, "sku") |> to_string() |> String.trim()
-    price_str = fields |> fetch_field(header_map, "price") |> to_string() |> String.trim()
+    currency = fields |> fetch_field(header_map, "currency") |> to_string() |> String.trim()
+
+    price_money =
+      fields |> fetch_field(header_map, "price") |> Money.new(currency)
+
     status_str = fields |> fetch_field(header_map, "status") |> to_string() |> String.trim()
 
     with :ok <- present?(name, "name"),
          :ok <- present?(sku, "sku"),
-         {:ok, price} <- parse_decimal(price_str),
+         :ok <- present?(currency, "currency"),
+         price = price_money,
          {:ok, status} <- parse_status(status_str) do
-      {:ok, %{name: name, sku: sku, price: price, status: status}}
+      {:ok, %{name: name, sku: sku, price: price, status: status, currency: currency}}
     end
   end
 
   defp present?("", field), do: {:error, "Missing #{field}"}
   defp present?(_val, _field), do: :ok
-
-  defp parse_decimal(""), do: {:ok, Decimal.new("0")}
-
-  defp parse_decimal(str) do
-    case Decimal.parse(str) do
-      :error -> {:error, "Invalid price: #{str}"}
-      {dec, _} -> {:ok, dec}
-    end
-  end
 
   defp parse_status(""), do: {:ok, :active}
 

@@ -5,7 +5,7 @@ defmodule Craftplan.Orders.OrderItem do
     domain: Craftplan.Orders,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource, AshOban]
 
   alias Craftplan.Orders.Changes.AssignBatchCodeAndCost
 
@@ -38,6 +38,20 @@ defmodule Craftplan.Orders.OrderItem do
   postgres do
     table "orders_items"
     repo Craftplan.Repo
+  end
+
+  oban do
+    triggers do
+      trigger :update_currency do
+        action :change_currency
+        worker_read_action(:list)
+        queue(:default)
+        worker_module_name(Craftplan.Orders.OrderItem.AshOban.Worker.Process)
+        scheduler_module_name(Craftplan.Orders.OrderItem.AshOban.Scheduler.Process)
+      end
+    end
+
+    domain Craftplan.System
   end
 
   @plan_load [
@@ -106,6 +120,15 @@ defmodule Craftplan.Orders.OrderItem do
       filter expr(is_nil(^arg(:exclude_order_id)) or order_id != ^arg(:exclude_order_id))
     end
 
+    read :list do
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
     read :plan_pending do
       get? false
 
@@ -116,9 +139,19 @@ defmodule Craftplan.Orders.OrderItem do
       prepare build(load: @plan_load)
       filter expr(order.delivery_date <= ^arg(:to))
     end
+
+    update :change_currency do
+      accept []
+      require_atomic? false
+      change Craftplan.Orders.Changes.AssignCurrencyItem
+    end
   end
 
   policies do
+    bypass AshOban.Checks.AshObanInteraction do
+      authorize_if always()
+    end
+
     # API key scope check
     policy always() do
       authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
@@ -142,7 +175,7 @@ defmodule Craftplan.Orders.OrderItem do
   attributes do
     uuid_primary_key :id
 
-    attribute :unit_price, :decimal do
+    attribute :unit_price, AshMoney.Types.Money do
       allow_nil? false
     end
 
@@ -165,27 +198,27 @@ defmodule Craftplan.Orders.OrderItem do
       description "Production batch identifier generated when marking the item done"
     end
 
-    attribute :material_cost, :decimal do
+    attribute :material_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
       description "Material cost allocated to this order item during batch completion"
     end
 
-    attribute :labor_cost, :decimal do
+    attribute :labor_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
       description "Labor cost allocated to this order item during batch completion"
     end
 
-    attribute :overhead_cost, :decimal do
+    attribute :overhead_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
       description "Overhead cost allocated to this order item during batch completion"
     end
 
-    attribute :unit_cost, :decimal do
+    attribute :unit_cost, AshMoney.Types.Money do
       allow_nil? false
-      default 0
+      default Money.new!(0, :EUR)
       description "Per-unit production cost captured at batch completion"
     end
 
@@ -215,7 +248,7 @@ defmodule Craftplan.Orders.OrderItem do
   end
 
   calculations do
-    calculate :cost, :decimal, expr(quantity * unit_price)
+    calculate :cost, AshMoney.Types.Money, expr(quantity * unit_price)
   end
 
   aggregates do

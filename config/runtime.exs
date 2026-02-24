@@ -108,10 +108,18 @@ if config_env() == :prod do
   # Email provider (env-var fallback — DB settings take precedence at boot)
   email_provider = System.get_env("EMAIL_PROVIDER")
 
+  dsn =
+    if System.get_env("SENTRY_DSN") != nil && String.length(System.get_env("SENTRY_DSN")) > 80 do
+      System.get_env("SENTRY_DSN")
+    end
+
   config :craftplan, Craftplan.Vault,
     ciphers: [
       default: {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: Base.decode64!(cloak_key)}
     ]
+
+  config :sentry,
+    dsn: nil
 
   cond do
     email_provider in ~w(sendgrid postmark brevo) ->

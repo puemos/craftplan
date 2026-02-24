@@ -22,7 +22,8 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
     costs =
       BatchCostCalculator.calculate(bom, D.new(1),
         actor: actor,
-        authorize?: authorize?
+        authorize?: authorize?,
+        currency: Craftplan.Settings.get_settings!().currency
       )
 
     components_map = flatten_components(bom, D.new(1), actor: actor, authorize?: authorize?)

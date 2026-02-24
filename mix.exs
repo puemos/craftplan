@@ -1,18 +1,33 @@
 defmodule Craftplan.MixProject do
   use Mix.Project
 
+  @version "0.3.7"
+  @description "Open-source ERP for small-scale artisanal manufacturers and craft businesses"
+  @build_date DateTime.utc_now()
+
   def project do
     [
       app: :craftplan,
-      version: "0.3.7",
+      version: @version,
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :dev,
       listeners: [Phoenix.CodeReloader],
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      description: @description,
+      releases: releases(),
+      build_date: @build_date,
+      build_hash: __MODULE__.get_hash()
     ]
+  end
+
+  def get_hash do
+    {hash, _} = System.cmd("git", ["rev-parse", "--short=8", "HEAD"])
+    String.trim(hash)
+  catch
+    _x -> ""
   end
 
   # Configuration for the OTP application.
@@ -41,7 +56,7 @@ defmodule Craftplan.MixProject do
       {:ash_authentication_phoenix, "~> 2.0"},
       {:ash_graphql, "~> 1.0"},
       {:ash_json_api, "~> 1.0"},
-      {:ash_money, "~> 0.1"},
+      {:ash_money, "~> 0.2.5"},
       {:ash_phoenix, "~> 2.0"},
       {:ash_postgres, "~> 2.0"},
       {:absinthe_plug, "~> 1.5"},
@@ -54,7 +69,7 @@ defmodule Craftplan.MixProject do
       {:ecto_sql, "~> 3.13"},
       {:esbuild, "~> 0.9", runtime: Mix.env() == :dev},
       {:ex_money_sql, "~> 1.0"},
-      {:finch, "~> 0.13"},
+      {:finch, ">= 0.0.0"},
       {:floki, ">= 0.30.0", only: :test},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:gettext, "~> 0.26"},
@@ -89,7 +104,10 @@ defmodule Craftplan.MixProject do
       {:icalendar, "~> 1.1"},
       {:imprintor, "~> 0.5"},
       {:open_api_spex, "~> 3.16"},
-      {:req, "~> 0.5", only: [:dev, :test]}
+      {:req, "~> 0.5", only: [:dev, :test]},
+      {:ash_oban, "~> 0.7.1"},
+      {:sentry, "~> 12.0.1"},
+      {:oban, "~> 2.20"}
     ]
   end
 
@@ -111,6 +129,14 @@ defmodule Craftplan.MixProject do
         "tailwind craftplan --minify",
         "esbuild craftplan --minify",
         "phx.digest"
+      ]
+    ]
+  end
+
+  defp releases do
+    [
+      craftplan: [
+        steps: [:assemble, :tar]
       ]
     ]
   end

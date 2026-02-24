@@ -34,6 +34,7 @@ config :craftplan, CraftplanWeb.Endpoint,
   secret_key_base: "IPun5u1kwt9+i88jrjN5mJzlM1E6BJE68ZGIG0169TQxjb6GAKdivKt5SWLHYP26",
   server: false
 
+config :craftplan, Oban, testing: :manual
 config :craftplan, token_signing_secret: "/7GrJHgmCNYkIsiOKCsK28JJckAxvMLD"
 
 config :logger, level: :warning

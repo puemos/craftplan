@@ -86,7 +86,7 @@ defmodule CraftplanWeb.Components.Forms do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox checkdrop checkgroup color date datetime-local email file month number password
-               range search select tel text textarea time url week radiogroup badge-select hidden)
+               range search select tel text textarea time url week radiogroup badge-select hidden money)
 
   attr :field, FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -448,6 +448,58 @@ defmodule CraftplanWeb.Components.Forms do
     """
   end
 
+  defp selected_label(options, selected_value, placeholder) do
+    options
+    |> Enum.find(fn {_label, value} -> to_string(value) == to_string(selected_value) end)
+    |> case do
+      nil -> placeholder || "Select option..."
+      {label, _value} -> label
+    end
+  end
+
+  defp selected_labels(options, selected_values, placeholder) do
+    options
+    |> Enum.filter(fn {_label, value} -> value in selected_values end)
+    |> Enum.map(fn {label, _value} -> label end)
+    |> case do
+      [] -> placeholder || "Select options..."
+      selected -> Enum.join(selected, ", ")
+    end
+  end
+
+  def input(%{field: %FormField{} = field, type: "text"} = assigns) do
+    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+
+    assigns =
+      assigns
+      |> assign(field: nil)
+      |> assign_new(:id, fn -> field.id end)
+      |> assign(:errors, Enum.map(errors, &translate_error(&1)))
+      |> assign_new(:name, fn -> field.name end)
+      |> assign_new(:value, fn -> field.value end)
+
+    ~H"""
+    <fieldset class="fieldset mb-2">
+      <label>
+        <span :if={@label} class="fieldset-label mb-1">{@label}</span>
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={["input w-full", @errors != [] && "input-error"]}
+        />
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </fieldset>
+    """
+  end
+
+  def nested_used_input?(%FormField{field: field, form: form}, subkey) do
+    nested_params = Map.get(form.params, to_string(field), %{})
+    not Map.has_key?(nested_params, "_unused_#{subkey}")
+  end
+
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
@@ -485,24 +537,5 @@ defmodule CraftplanWeb.Components.Forms do
       <.error :for={msg <- @errors} :if={@flat != true}>{msg}</.error>
     </div>
     """
-  end
-
-  defp selected_label(options, selected_value, placeholder) do
-    options
-    |> Enum.find(fn {_label, value} -> to_string(value) == to_string(selected_value) end)
-    |> case do
-      nil -> placeholder || "Select option..."
-      {label, _value} -> label
-    end
-  end
-
-  defp selected_labels(options, selected_values, placeholder) do
-    options
-    |> Enum.filter(fn {_label, value} -> value in selected_values end)
-    |> Enum.map(fn {label, _value} -> label end)
-    |> case do
-      [] -> placeholder || "Select options..."
-      selected -> Enum.join(selected, ", ")
-    end
   end
 end

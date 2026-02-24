@@ -19,6 +19,8 @@ config :ash,
     unit: Craftplan.Types.Unit
   ]
 
+config :ash_oban, :actor_persister, Craftplan.AshObanActorPersister
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
@@ -38,6 +40,29 @@ config :craftplan, CraftplanWeb.Endpoint,
   ],
   pubsub_server: Craftplan.PubSub,
   live_view: [signing_salt: "vNk6HzXn"]
+
+config :craftplan, Oban,
+  engine: Oban.Engines.Basic,
+  repo: Craftplan.Repo,
+  prefix: "oban",
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron,
+     crontab: [
+       # {"0 * * * *", Framework.Workers.Hourly}
+     ]}
+  ],
+  queues: [
+    default: 10
+  ]
+
+config :craftplan,
+  default_users: [
+    {"test@test.com", "Aa123123123123", "admin"},
+    {"staff@staff.com", "Aa123123123123", "staff"},
+    {"customer@customer.com", "Aa123123123123", "customer"}
+  ],
+  default_password: "Aa123123123123"
 
 config :craftplan,
   ecto_repos: [Craftplan.Repo],
@@ -60,9 +85,24 @@ config :esbuild,
     args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+  ],
+  service_worker: [
+    args: ~w(js/service_worker.js --bundle --target=es2016 --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
 config :ex_cldr, default_backend: Craftplan.Cldr
+
+config :ex_money,
+  open_exchange_rates_app_id: {:system, "OPEN_EXCHANGE_RATES_APP_ID"},
+  exchange_rates_retrieve_every: 300_000,
+  api_module: Money.ExchangeRates.OpenExchangeRates,
+  callback_module: Money.ExchangeRates.Callback,
+  exchange_rates_cache_module: Money.ExchangeRates.Cache.Ets,
+  json_library: Jason,
+  default_cldr_backend: Craftplan.Cldr,
+  auto_start_exchange_rate_service: true
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -71,6 +111,23 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+config :sentry,
+  dsn: nil,
+  environment_name: Mix.env(),
+  enable_source_code_context: true,
+  root_source_code_paths: [File.cwd!()],
+  integrations: [
+    oban: [
+      # Capture errors:
+      capture_errors: true,
+      # Monitor cron jobs:
+      cron: [enabled: true]
+    ],
+    telemetry: [
+      report_handler_failures: true
+    ]
+  ]
 
 config :spark,
   formatter: [
