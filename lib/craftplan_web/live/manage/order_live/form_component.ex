@@ -73,7 +73,7 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
                       />
                       <.input
                         field={items_form[:unit_price]}
-                        value={@products_map[items_form[:product_id].value].price}
+                        value={Money.to_string!(@products_map[items_form[:product_id].value].price)}
                         type="hidden"
                       />
                     </span>
@@ -95,8 +95,9 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
                     <span class="relative">
                       {format_money(
                         @settings.currency,
-                        Decimal.mult(
-                          @products_map[items_form[:product_id].value].price || 0,
+                        Money.mult(
+                          @products_map[items_form[:product_id].value].price ||
+                            Money.new(0, @settings.currency),
                           items_form[:quantity].value || 0
                         )
                       )}
@@ -161,7 +162,7 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
             variant={:primary}
             disabled={
               not @form.source.changed? || not @form.source.valid? ||
-                Enum.empty?((@form.source.forms && @form.source.forms[:items]) || [])
+                Enum.empty?(@form.source.forms && @form.source.forms[:items])
             }
             phx-disable-with="Saving..."
           >

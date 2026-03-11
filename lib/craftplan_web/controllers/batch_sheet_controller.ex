@@ -44,8 +44,8 @@ defmodule CraftplanWeb.BatchSheetController do
 
   defp load_currency(actor) do
     case Craftplan.Settings.get_settings(actor: actor) do
-      {:ok, settings} -> settings.currency || :USD
-      _ -> :USD
+      {:ok, settings} -> settings.currency || :EUR
+      _ -> :EUR
     end
   end
 end

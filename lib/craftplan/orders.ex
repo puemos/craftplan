@@ -24,6 +24,7 @@ defmodule Craftplan.Orders do
     resource Craftplan.Orders.OrderItem do
       define :get_order_item_by_id, action: :read, get_by: [:id]
       define :update_item, action: :update
+      define :list_order_items, action: :list
       define :list_order_items_for_plan, action: :plan_pending
     end
 

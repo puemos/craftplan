@@ -29,9 +29,16 @@ defmodule Craftplan.Catalog do
       define :update_bom, action: :update
     end
 
-    resource Craftplan.Catalog.BOMRollup
+    resource Craftplan.Catalog.BOMRollup do
+      define :list_rollups, action: :list
+    end
+
     resource Craftplan.Catalog.BOMComponent
-    resource Craftplan.Catalog.LaborStep
+
+    resource Craftplan.Catalog.LaborStep do
+      define :list_labor_steps, action: :list
+    end
+
     # Recipes removed (BOM-only)
   end
 end

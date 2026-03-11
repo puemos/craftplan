@@ -26,7 +26,7 @@ defmodule Craftplan.Orders.EmailsTest do
       |> Ash.Changeset.for_create(:create, %{
         name: "Email Test Product",
         status: :active,
-        price: Decimal.new("9.99"),
+        price: Money.new("9.99", :EUR),
         sku: "EMAIL-1"
       })
       |> Ash.create(actor: staff)
@@ -36,7 +36,8 @@ defmodule Craftplan.Orders.EmailsTest do
       |> Ash.Changeset.for_create(:create, %{
         customer_id: customer.id,
         delivery_date: DateTime.utc_now(),
-        items: [%{product_id: product.id, quantity: Decimal.new(1), unit_price: product.price}]
+        items: [%{product_id: product.id, quantity: Decimal.new(1), unit_price: product.price}],
+        currency: :EUR
       })
       |> Ash.create(actor: staff)
 

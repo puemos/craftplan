@@ -13,6 +13,19 @@ require Ash.Query
 # ------------------------------------------------------------------------------
 # 1. Define helper functions for readability and code organization
 # ------------------------------------------------------------------------------
+seed_locations = fn ->
+  seed_single_location = fn name ->
+    [location] =
+      Ash.Seed.seed!(
+        Inventory.Location,
+        [%{name: name}]
+      )
+
+    location
+  end
+
+  [seed_single_location.("A1"), seed_single_location.("A2")]
+end
 
 seed_allergens = fn ->
   seed_single_allergen = fn name ->
@@ -132,14 +145,15 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
     user
   end
 
-  seed_material = fn name, sku, unit, price, min, max ->
+  seed_material = fn name, sku, unit, price, min, max, location ->
     Ash.Seed.seed!(Inventory.Material, %{
       name: name,
       sku: sku,
       unit: unit,
-      price: Decimal.new(price),
+      price: Money.new(:EUR, price),
       minimum_stock: Decimal.new(min),
-      maximum_stock: Decimal.new(max)
+      maximum_stock: Decimal.new(max),
+      location: location
     })
   end
 
@@ -155,7 +169,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
     Ash.Seed.seed!(Inventory.MaterialNutritionalFact, %{
       material_id: material.id,
       nutritional_fact_id: nutritional_fact.id,
-      amount: Decimal.new(amount),
+      amount: amount,
       unit: unit
     })
   end
@@ -196,7 +210,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
       name: name,
       sku: sku,
       status: :active,
-      price: Decimal.new(price)
+      price: Money.new(:EUR, price)
     })
   end
 
@@ -278,7 +292,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
       purchase_order_id: po.id,
       material_id: material.id,
       quantity: Decimal.new(quantity),
-      unit_price: Decimal.new(unit_price)
+      unit_price: Money.new(:EUR, unit_price)
     })
   end
 
@@ -320,15 +334,15 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
 
   # -- 3.2 Set up global bakery settings
   Ash.Seed.seed!(Settings.Settings, %{
-    currency: :USD,
+    currency: :EUR,
     tax_mode: :exclusive,
     tax_rate: Decimal.new("0.10"),
     offers_pickup: true,
     offers_delivery: true,
     lead_time_days: 1,
     daily_capacity: 25,
-    shipping_flat: Decimal.new("5.00"),
-    labor_hourly_rate: Decimal.new("18.50"),
+    shipping_flat: Money.new(:EUR, "5.00"),
+    labor_hourly_rate: Money.new(:EUR, "5.00"),
     labor_overhead_percent: Decimal.new("0.15"),
     retail_markup_mode: :percent,
     retail_markup_value: Decimal.new("35"),
@@ -342,26 +356,27 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
   # -- 3.4 Nutritional facts data
   nutritional_facts = seed_nutritional_facts.()
 
+  location = Enum.random(seed_locations.())
   # -- 3.5 Materials
   materials = %{
-    flour: seed_material.("All Purpose Flour", "FLOUR-001", :gram, "0.002", "5000", "20000"),
-    whole_wheat: seed_material.("Whole Wheat Flour", "FLOUR-002", :gram, "0.003", "3000", "15000"),
-    rye_flour: seed_material.("Rye Flour", "FLOUR-003", :gram, "0.004", "2000", "8000"),
-    gluten_free_mix: seed_material.("Gluten-Free Flour Mix", "GF-001", :gram, "0.005", "1000", "7000"),
-    oats: seed_material.("Rolled Oats", "OATS-001", :gram, "0.0025", "2000", "10000"),
-    almonds: seed_material.("Whole Almonds", "NUTS-001", :gram, "0.02", "2000", "10000"),
-    walnuts: seed_material.("Walnuts", "NUTS-002", :gram, "0.025", "1500", "8000"),
-    eggs: seed_material.("Fresh Eggs", "EGG-001", :piece, "0.15", "100", "500"),
-    milk: seed_material.("Whole Milk", "MILK-001", :milliliter, "0.003", "2000", "10000"),
-    butter: seed_material.("Butter", "DAIRY-001", :gram, "0.01", "1000", "5000"),
-    cream_cheese: seed_material.("Cream Cheese", "DAIRY-002", :gram, "0.015", "500", "3000"),
-    sugar: seed_material.("White Sugar", "SUGAR-001", :gram, "0.003", "3000", "15000"),
-    brown_sugar: seed_material.("Brown Sugar", "SUGAR-002", :gram, "0.004", "2000", "10000"),
-    chocolate: seed_material.("Dark Chocolate", "CHOC-001", :gram, "0.02", "2000", "8000"),
-    vanilla: seed_material.("Vanilla Extract", "FLAV-001", :milliliter, "0.15", "500", "2000"),
-    cinnamon: seed_material.("Ground Cinnamon", "SPICE-001", :gram, "0.006", "300", "1500"),
-    yeast: seed_material.("Active Dry Yeast", "YEAST-001", :gram, "0.05", "500", "2000"),
-    salt: seed_material.("Sea Salt", "SALT-001", :gram, "0.001", "1000", "5000")
+    flour: seed_material.("All Purpose Flour", "FLOUR-001", :gram, "0.002", "5000", "20000", location),
+    whole_wheat: seed_material.("Whole Wheat Flour", "FLOUR-002", :gram, "0.003", "3000", "15000", location),
+    rye_flour: seed_material.("Rye Flour", "FLOUR-003", :gram, "0.004", "2000", "8000", location),
+    gluten_free_mix: seed_material.("Gluten-Free Flour Mix", "GF-001", :gram, "0.005", "1000", "7000", location),
+    oats: seed_material.("Rolled Oats", "OATS-001", :gram, "0.0025", "2000", "10000", location),
+    almonds: seed_material.("Whole Almonds", "NUTS-001", :gram, "0.02", "2000", "10000", location),
+    walnuts: seed_material.("Walnuts", "NUTS-002", :gram, "0.025", "1500", "8000", location),
+    eggs: seed_material.("Fresh Eggs", "EGG-001", :piece, "0.15", "100", "500", location),
+    milk: seed_material.("Whole Milk", "MILK-001", :milliliter, "0.003", "100", "2000", location),
+    butter: seed_material.("Butter", "DAIRY-001", :gram, "0.01", "1000", "5000", location),
+    cream_cheese: seed_material.("Cream Cheese", "DAIRY-002", :gram, "0.015", "500", "3000", location),
+    sugar: seed_material.("White Sugar", "SUGAR-001", :gram, "0.003", "3000", "15000", location),
+    brown_sugar: seed_material.("Brown Sugar", "SUGAR-002", :gram, "0.004", "2000", "10000", location),
+    chocolate: seed_material.("Dark Chocolate", "CHOC-001", :gram, "0.02", "2000", "8000", location),
+    vanilla: seed_material.("Vanilla Extract", "FLAV-001", :milliliter, "0.15", "500", "2000", location),
+    cinnamon: seed_material.("Ground Cinnamon", "SPICE-001", :gram, "0.006", "300", "1500", location),
+    yeast: seed_material.("Active Dry Yeast", "YEAST-001", :gram, "0.05", "500", "2000", location),
+    salt: seed_material.("Sea Salt", "SALT-001", :gram, "0.001", "1000", "5000", location)
   }
 
   # -- 3.6 Link materials to relevant allergens
@@ -720,9 +735,9 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
 
   # A) New materials to unlock more recipes
   new_materials = %{
-    blueberries: seed_material.("Blueberries", "FRUIT-001", :gram, "0.010", "500", "3000"),
-    sesame_seeds: seed_material.("Sesame Seeds", "SEED-001", :gram, "0.012", "500", "3000"),
-    peanut_butter: seed_material.("Peanut Butter", "PB-001", :gram, "0.015", "500", "3000")
+    blueberries: seed_material.("Blueberries", "FRUIT-001", :gram, "0.010", "500", "3000", location),
+    sesame_seeds: seed_material.("Sesame Seeds", "SEED-001", :gram, "0.012", "500", "3000", location),
+    peanut_butter: seed_material.("Peanut Butter", "PB-001", :gram, "0.015", "500", "3000", location)
   }
 
   materials = Map.merge(materials, new_materials)
@@ -813,7 +828,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
         %{
           name: "Bake trays",
           duration_minutes: Decimal.new("12"),
-          rate_override: Decimal.new("25"),
+          rate_override: Money.new(:EUR, "25"),
           units_per_run: Decimal.new("48")
         }
       ],
@@ -922,7 +937,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
         %{
           name: "Bulk proof",
           duration_minutes: Decimal.new("60"),
-          rate_override: Decimal.new("18")
+          rate_override: Money.new(:EUR, "18")
         },
         %{
           name: "Bake loaves",
@@ -1127,7 +1142,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
         %{
           name: "Frost & decorate",
           duration_minutes: Decimal.new("10"),
-          rate_override: Decimal.new("22"),
+          rate_override: Money.new(:EUR, "22"),
           units_per_run: Decimal.new("1")
         }
       ],

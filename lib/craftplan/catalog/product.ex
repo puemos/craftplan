@@ -5,8 +5,9 @@ defmodule Craftplan.Catalog.Product do
     domain: Craftplan.Catalog,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshJsonApi.Resource, AshGraphql.Resource]
+    extensions: [AshJsonApi.Resource, AshGraphql.Resource, AshOban]
 
+  alias AshMoney.Types.Money
   alias Craftplan.Catalog.BOM
 
   json_api do
@@ -42,20 +43,24 @@ defmodule Craftplan.Catalog.Product do
     repo Craftplan.Repo
   end
 
+  oban do
+    triggers do
+      trigger :update_currency do
+        action :change_currency
+        worker_read_action(:list)
+        queue(:default)
+        worker_module_name(Craftplan.Catalog.Product.AshOban.Worker.Process)
+        scheduler_module_name(Craftplan.Catalog.Product.AshOban.Scheduler.Process)
+      end
+    end
+
+    domain Craftplan.System
+  end
+
   actions do
     defaults [
       :read,
       :destroy,
-      create: [
-        :name,
-        :status,
-        :price,
-        :sku,
-        :photos,
-        :featured_photo,
-        :selling_availability,
-        :max_daily_quantity
-      ],
       update: [
         :name,
         :status,
@@ -90,9 +95,35 @@ defmodule Craftplan.Catalog.Product do
       prepare build(sort: :name)
       pagination keyset?: true
     end
+
+    create :create do
+      primary? true
+
+      accept [
+        :name,
+        :status,
+        :price,
+        :sku,
+        :photos,
+        :featured_photo,
+        :selling_availability,
+        :max_daily_quantity
+      ]
+    end
+
+    update :change_currency do
+      require_atomic? false
+      accept []
+
+      change Craftplan.Catalog.Changes.AssignCurrencyProduct
+    end
   end
 
   policies do
+    bypass AshOban.Checks.AshObanInteraction do
+      authorize_if always()
+    end
+
     # API key scope check
     policy always() do
       authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
@@ -133,7 +164,7 @@ defmodule Craftplan.Catalog.Product do
       default :draft
     end
 
-    attribute :price, :decimal do
+    attribute :price, Money do
       public? true
       allow_nil? false
     end
@@ -184,11 +215,15 @@ defmodule Craftplan.Catalog.Product do
   end
 
   calculations do
-    calculate :materials_cost, :decimal, Craftplan.Catalog.Product.Calculations.MaterialCost do
+    calculate :materials_cost,
+              Money,
+              Craftplan.Catalog.Product.Calculations.MaterialCost do
       description "Material cost per unit based on the active BOM."
     end
 
-    calculate :bom_unit_cost, :decimal, Craftplan.Catalog.Product.Calculations.UnitCost do
+    calculate :bom_unit_cost,
+              Money,
+              Craftplan.Catalog.Product.Calculations.UnitCost do
       description "Total unit cost (materials + labor + overhead) derived from the active BOM."
     end
 
@@ -198,7 +233,9 @@ defmodule Craftplan.Catalog.Product do
       description "The ratio of profit to cost, expressed as a decimal percentage"
     end
 
-    calculate :gross_profit, :decimal, Craftplan.Catalog.Product.Calculations.GrossProfit do
+    calculate :gross_profit,
+              Money,
+              Craftplan.Catalog.Product.Calculations.GrossProfit do
       description "The profit amount calculated as selling price minus unit cost"
     end
 

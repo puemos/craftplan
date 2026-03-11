@@ -3,8 +3,10 @@ defmodule Craftplan.Catalog.LaborStep do
   use Ash.Resource,
     otp_app: :craftplan,
     domain: Craftplan.Catalog,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshOban]
 
+  alias AshMoney.Types.Money
   alias Craftplan.Catalog.Services.BOMRollup
 
   postgres do
@@ -12,8 +14,31 @@ defmodule Craftplan.Catalog.LaborStep do
     repo Craftplan.Repo
   end
 
+  oban do
+    triggers do
+      trigger :update_currency do
+        action :change_currency
+        worker_read_action(:list)
+        queue(:default)
+        worker_module_name(Craftplan.Catalog.LaborStep.AshOban.Worker.Process)
+        scheduler_module_name(Craftplan.Catalog.LaborStep.AshOban.Scheduler.Process)
+      end
+    end
+
+    domain Craftplan.System
+  end
+
   actions do
     defaults [:read, :destroy]
+
+    read :list do
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
 
     create :create do
       primary? true
@@ -49,6 +74,12 @@ defmodule Craftplan.Catalog.LaborStep do
                {:ok, result}
              end)
     end
+
+    update :change_currency do
+      accept []
+
+      change Craftplan.Catalog.Changes.AssignCurrencyLS
+    end
   end
 
   attributes do
@@ -71,7 +102,7 @@ defmodule Craftplan.Catalog.LaborStep do
       constraints min: 0
     end
 
-    attribute :rate_override, :decimal do
+    attribute :rate_override, Money do
       allow_nil? true
     end
 

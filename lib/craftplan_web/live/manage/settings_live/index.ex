@@ -34,7 +34,6 @@ defmodule CraftplanWeb.SettingsLive.Index do
           <aside class="lg:w-64"></aside>
         </div>
       </div>
-
       <div :if={@live_action == :allergens}>
         <div>
           <.live_component
@@ -179,8 +178,6 @@ defmodule CraftplanWeb.SettingsLive.Index do
     socket =
       socket
       |> assign(:settings, settings)
-      |> assign(:allergens, allergens)
-      |> assign(:nutritional_facts, nutritional_facts)
       |> assign(:csv_form, to_form(%{}))
       |> assign(:csv_export_form, to_form(%{}))
       |> assign(:show_mapping_modal, false)

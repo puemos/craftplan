@@ -14,29 +14,31 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
   alias Craftplan.DecimalHelpers
 
   @impl true
-  def change(changeset, _opts, _context) do
+  def change(changeset, opts, _context) do
     import Ash.Changeset
+
+    currency = Craftplan.Settings.get_settings!().currency
 
     items_arg = get_argument(changeset, :items)
 
     {subtotal, changeset} =
       case items_arg do
         items when is_list(items) ->
-          {sum_items(items), changeset}
+          {sum_items(items, currency), changeset}
 
         _ ->
           # Fallback: load from DB if we have an ID (updates)
           case changeset.data do
             %{items: items} when is_list(items) ->
-              {sum_items(items), changeset}
+              {sum_items(items, currency), changeset}
 
             %{id: _id} ->
               # If items are not preloaded, fall back to zero rather than loading from DB
               # to avoid cross-context authorization issues during form builds.
-              {Decimal.new(0), changeset}
+              {Money.new!(0, currency), changeset}
 
             _ ->
-              {Decimal.new(0), changeset}
+              {Money.new!(0, currency), changeset}
           end
       end
 
@@ -47,49 +49,56 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
       case get_attribute(changeset, :discount_type) || :none do
         :percent ->
           percent = get_attribute(changeset, :discount_value) || Decimal.new(0)
+          subtotal_decimal = Money.to_decimal(subtotal)
+          percent = Decimal.div(percent, 100)
+          subtotal = subtotal_decimal |> Decimal.mult(percent) |> Money.new(currency)
 
-          subtotal
-          |> Decimal.mult(Decimal.div(percent, Decimal.new(100)))
-          |> Decimal.max(Decimal.new(0))
+          Money.max!(subtotal, Money.new!(0, currency))
 
         :fixed ->
           fixed = get_attribute(changeset, :discount_value) || Decimal.new(0)
-          if Decimal.compare(fixed, subtotal) == :gt, do: subtotal, else: fixed
+          subtotal_decimal = Money.to_decimal(subtotal)
+
+          if Decimal.compare(fixed, subtotal_decimal) == :gt,
+            do: subtotal,
+            else: Money.new(fixed, currency)
 
         _ ->
-          Decimal.new(0)
+          Money.new!(0, currency)
       end
 
-    shipping_total = get_attribute(changeset, :shipping_total) || Decimal.new(0)
+    shipping_total = get_attribute(changeset, :shipping_total) || Money.new!(0, currency)
 
-    tax_base = Decimal.sub(subtotal, discount_total)
+    subtotal_decimal = Money.to_decimal(subtotal)
+    discount_decimal = Money.to_decimal(discount_total)
+    tax_base = subtotal_decimal |> Decimal.sub(discount_decimal) |> Money.new(currency)
 
     tax_total =
       case settings do
         %{tax_mode: :exclusive, tax_rate: rate} ->
-          Decimal.mult(tax_base, rate || Decimal.new(0))
+          Money.mult!(tax_base, rate || Money.new!(0, currency))
 
         %{tax_mode: :inclusive, tax_rate: rate} ->
           # derive included tax portion from tax_base
           case rate do
             r when not is_nil(r) ->
-              denom = Decimal.add(Decimal.new(1), r)
-              net = Decimal.div(tax_base, denom)
-              Decimal.sub(tax_base, net)
+              denom = Money.mult!(Money.new!(1, currency), r)
+              net = Money.div!(tax_base, denom)
+              Money.sub!(tax_base, net)
 
             _ ->
-              Decimal.new(0)
+              Money.new!(0, currency)
           end
 
         _ ->
-          Decimal.new(0)
+          Money.new!(0, currency)
       end
 
     total =
       subtotal
-      |> Decimal.sub(discount_total)
-      |> Decimal.add(tax_total)
-      |> Decimal.add(shipping_total)
+      |> Money.sub!(discount_total)
+      |> Money.add!(tax_total)
+      |> Money.add!(shipping_total)
 
     changeset
     |> Ash.Changeset.force_change_attribute(:subtotal, subtotal)
@@ -98,15 +107,26 @@ defmodule Craftplan.Orders.Changes.CalculateTotals do
     |> Ash.Changeset.force_change_attribute(:total, total)
   end
 
-  defp sum_items(items) do
-    Enum.reduce(items, Decimal.new(0), fn item, acc ->
+  defp sum_items(items, currency) do
+    Enum.reduce(items, Money.new!(0, currency), fn item, acc ->
       quantity =
         DecimalHelpers.to_decimal(Map.get(item, :quantity) || Map.get(item, "quantity") || 0)
 
       unit_price =
-        DecimalHelpers.to_decimal(Map.get(item, :unit_price) || Map.get(item, "unit_price") || 0)
+        Map.get(item, :unit_price) || Map.get(item, "unit_price") || Money.new("0.00", currency)
 
-      Decimal.add(acc, Decimal.mult(quantity, unit_price))
+      unit_price =
+        if is_binary(unit_price) do
+          Money.parse(unit_price)
+        else
+          unit_price
+        end
+
+      unit_price = Money.to_decimal(unit_price)
+
+      product = Decimal.mult(unit_price, quantity)
+
+      Money.add!(acc, Money.new!(product, currency))
     end)
   end
 

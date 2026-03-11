@@ -15,7 +15,8 @@ defmodule CraftplanWeb.Router do
            "frame-ancestors 'self'",
            "img-src 'self' data: blob:",
            "style-src 'self' 'unsafe-inline'",
-           "font-src 'self' data:",
+           "font-src 'self' data: https://rsms.me",
+           "style-src-elem 'self' https://rsms.me",
            "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
            "connect-src 'self' ws: wss:"
          ],

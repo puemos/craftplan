@@ -11,11 +11,15 @@ defmodule Craftplan.ProductionBatchingTest do
   defp setup_product_with_material(actor) do
     product =
       Factory.create_product!(
-        %{name: "Sourdough", sku: "sourdough", price: D.new("12.00")},
+        %{name: "Sourdough", sku: "sourdough", price: Money.new("12.00", :EUR)},
         actor
       )
 
-    flour = Factory.create_material!(%{name: "Flour", unit: :gram, price: D.new("0.01")}, actor)
+    flour =
+      Factory.create_material!(
+        %{name: "Flour", unit: :gram, price: Money.new("0.01", :EUR)},
+        actor
+      )
 
     bom =
       Factory.create_recipe!(product, [%{material_id: flour.id, quantity: D.new("500")}], actor)
@@ -60,14 +64,14 @@ defmodule Craftplan.ProductionBatchingTest do
     order1 =
       Factory.create_order_with_items!(
         customer,
-        [%{product_id: product.id, quantity: D.new("10"), unit_price: D.new("12.00")}],
+        [%{product_id: product.id, quantity: D.new("10"), unit_price: Money.new("12.00", :EUR)}],
         actor: actor
       )
 
     order2 =
       Factory.create_order_with_items!(
         customer,
-        [%{product_id: product.id, quantity: D.new("5"), unit_price: D.new("12.00")}],
+        [%{product_id: product.id, quantity: D.new("5"), unit_price: Money.new("12.00", :EUR)}],
         actor: actor
       )
 
@@ -203,7 +207,7 @@ defmodule Craftplan.ProductionBatchingTest do
 
       product =
         Factory.create_product!(
-          %{name: "NoComp", sku: "nocomp", price: D.new("5.00")},
+          %{name: "NoComp", sku: "nocomp", price: Money.new("5.00", :EUR)},
           actor
         )
 

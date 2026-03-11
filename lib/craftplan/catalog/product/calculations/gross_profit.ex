@@ -4,8 +4,6 @@ defmodule Craftplan.Catalog.Product.Calculations.GrossProfit do
   use Ash.Resource.Calculation
 
   alias Ash.NotLoaded
-  alias Craftplan.DecimalHelpers
-  alias Decimal, as: D
 
   @impl true
   def init(_opts), do: {:ok, []}
@@ -15,13 +13,13 @@ defmodule Craftplan.Catalog.Product.Calculations.GrossProfit do
 
   @impl true
   def calculate(records, _opts, _context) do
-    Enum.map(records, fn record ->
-      price = DecimalHelpers.to_decimal(record.price)
+    currency = Craftplan.Settings.get_settings!().currency
 
+    Enum.map(records, fn record ->
       case record.bom_unit_cost do
-        %NotLoaded{} -> D.sub(price, D.new(0))
-        nil -> D.sub(price, D.new(0))
-        unit_cost -> D.sub(price, DecimalHelpers.to_decimal(unit_cost))
+        %NotLoaded{} -> Money.sub!(record.price, Money.new!(0, currency))
+        nil -> Money.sub!(record.price, Money.new!(0, currency))
+        unit_cost -> Money.sub!(record.price, unit_cost)
       end
     end)
   end

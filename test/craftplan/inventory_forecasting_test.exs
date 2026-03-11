@@ -14,7 +14,7 @@ defmodule Craftplan.InventoryForecastingTest do
     |> Ash.Changeset.for_create(:create, %{
       name: name,
       sku: name <> "-SKU",
-      price: Decimal.new("1.00"),
+      price: Money.new("1.00", :EUR),
       unit: :gram,
       minimum_stock: Decimal.new(0),
       maximum_stock: Decimal.new(0)
@@ -28,7 +28,7 @@ defmodule Craftplan.InventoryForecastingTest do
       |> Ash.Changeset.for_create(:create, %{
         name: "Prod-#{System.unique_integer()}",
         sku: "SKU-#{System.unique_integer()}",
-        price: Decimal.new("3.00"),
+        price: Money.new("3.00", :EUR),
         status: :active
       })
       |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
@@ -61,7 +61,8 @@ defmodule Craftplan.InventoryForecastingTest do
     |> Ash.Changeset.for_create(:create, %{
       customer_id: customer.id,
       delivery_date: dt,
-      items: [%{"product_id" => product.id, "quantity" => qty, "unit_price" => product.price}]
+      items: [%{"product_id" => product.id, "quantity" => qty, "unit_price" => product.price}],
+      currency: :EUR
     })
     |> Ash.create!(actor: Craftplan.DataCase.staff_actor())
   end

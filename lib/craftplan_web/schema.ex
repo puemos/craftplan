@@ -11,6 +11,16 @@ defmodule CraftplanWeb.Schema do
       Craftplan.Settings
     ]
 
+  object :money do
+    field(:amount, non_null(:decimal))
+    field(:currency, non_null(:string))
+  end
+
+  input_object :money_input do
+    field(:amount, non_null(:decimal))
+    field(:currency, non_null(:string))
+  end
+
   query do
   end
 

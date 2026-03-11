@@ -7,6 +7,7 @@ defmodule Craftplan.Accounts do
 
     resource Craftplan.Accounts.User do
       define :get_user_by_email, args: [:email], action: :get_by_email
+      define :get_user_by_id, args: [:id], action: :get_by_id
       define :list_admin_users, action: :list_admins
     end
 

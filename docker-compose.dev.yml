@@ -6,7 +6,7 @@ services:
     container_name: craftplan-postgres
     image: postgres:16
     ports:
-      - 5432:5432
+      - "${POSTGRES_LOCAL_MACHINE_PORT:-5432}:5432"
     environment:
       - POSTGRES_DB=craftplan_dev
       - POSTGRES_USER=postgres
@@ -21,8 +21,8 @@ services:
     command: -c 'mkdir -p /data/craftplan && /usr/bin/minio server /data --console-address ":9001"'
     hostname: minio
     ports:
-      - 9000:9000
-      - 9001:9001
+      - "${MINIO_LOCAL_MACHINE_PORT:-9000}:9000"
+      - "${MINIO_LOCAL_MACHINE_PORT_ALT:-9001}:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -37,5 +37,5 @@ services:
     container_name: craftplan-mailpit
     image: axllent/mailpit
     ports:
-      - 1025:1025
-      - 8025:8025
+      - "${MAILPIT_LOCAL_MACHINE_PORT:-1025}:1025"
+      - "${MAILPIT_LOCAL_MACHINE_PORT_ALT:-8025}:8025"

@@ -1,0 +1,328 @@
+/* Do not change this file, if you want to override it, call :root inside your app.css */
+:root {
+    --opacity-base: 10;
+    --overlay-opacity: 100%;
+    --base-border-light: #e4e4e7;
+    --base-border-dark: #27272a;
+    --base-text-light: #09090b;
+    --base-text-dark: #fafafa;
+    --base-bg-dark: #18181b;
+    --base-hover-light: #f8f9fa;
+    --base-hover-dark: #242424;
+    --base-disabled-bg-light: #f1f3f5;
+    --base-text-hover-light: #1b1b1f;
+    --base-text-hover-dark: #ededed;
+    --base-disabled-bg-dark: #2e2e2e;
+    --base-disabled-text-light: #adb5bd;
+    --base-disabled-text-dark: #696969;
+    --base-disabled-border-light: #dee2e6;
+    --base-disabled-border-dark: #424242;
+    --base-tab-bg-light: #f4f4f5;
+
+    --default-dark-bg: #282828;
+    --default-light-gray: #f4f4f4;
+    --default-gray: #b6b6b6;
+    --ring-dark: #050404;
+    --default-device-dark: #404040;
+    --range-light-gray: #e6e6e6;
+
+    --natural-light: #4b4b4b;
+    --natural-dark: #dddddd;
+    --natural-hover-light: #282828;
+    --natural-hover-dark: #e8e8e8;
+    --natural-bordered-hover-light: #e8e8e8;
+    --natural-bordered-hover-dark: #5e5e5e;
+    --natural-bg-light: #f3f3f3;
+    --natural-bg-dark: #4b4b4b;
+    --natural-border-light: #282828;
+    --natural-border-dark: #e8e8e8;
+    --natural-bordered-text-light: #282828;
+    --natural-bordered-text-dark: #e8e8e8;
+    --natural-bordered-bg-light: #f3f3f3;
+    --natural-bordered-bg-dark: #4b4b4b;
+    --natural-disabled-light: #dddddd;
+    --natural-disabled-dark: #727272;
+
+    --primary-light: #007f8c;
+    --primary-dark: #01b8ca;
+    --primary-hover-light: #016974;
+    --primary-hover-dark: #77d5e3;
+    --primary-bordered-text-light: #016974;
+    --primary-bordered-text-dark: #77d5e3;
+    --primary-bordered-bg-light: #e2f8fb;
+    --primary-bordered-bg-dark: #002d33;
+    --primary-indicator-light: #1a535a;
+    --primary-indicator-dark: #b0e7ef;
+
+    --secondary-light: #266ef1;
+    --secondary-dark: #6daafb;
+    --secondary-hover-light: #175bcc;
+    --secondary-hover-dark: #a9c9ff;
+    --secondary-bordered-text-light: #175bcc;
+    --secondary-bordered-text-dark: #a9c9ff;
+    --secondary-bordered-bg-light: #eff4fe;
+    --secondary-bordered-bg-dark: #002661;
+    --secondary-indicator-light: #1948a3;
+    --secondary-indicator-dark: #cddeff;
+
+    --success-light: #0e8345;
+    --success-dark: #06c167;
+    --success-hover-light: #166c3b;
+    --success-hover-dark: #7fd99a;
+    --success-bordered-text-light: #166c3b;
+    --success-bordered-text-dark: #7fd99a;
+    --success-bordered-bg-light: #eaf6ed;
+    --success-bordered-bg-dark: #002f14;
+    --success-indicator-light: #047857;
+    --success-indicator-alt-light: #0d572d;
+    --success-indicator-dark: #b1eac2;
+
+    --warning-light: #ca8d01;
+    --warning-dark: #fdc034;
+    --warning-hover-light: #976a01;
+    --warning-hover-dark: #fdd067;
+    --warning-bordered-text-light: #976a01;
+    --warning-bordered-text-dark: #fdd067;
+    --warning-bordered-bg-light: #fff7e6;
+    --warning-bordered-bg-dark: #322300;
+    --warning-indicator-light: #ff8b08;
+    --warning-indicator-alt-light: #654600;
+    --warning-indicator-dark: #fedf99;
+
+    --danger-light: #de1135;
+    --danger-dark: #fc7f79;
+    --danger-hover-light: #bb032a;
+    --danger-hover-dark: #ffb2ab;
+    --danger-bordered-text-light: #bb032a;
+    --danger-bordered-text-dark: #ffb2ab;
+    --danger-bordered-bg-light: #fff0ee;
+    --danger-bordered-bg-dark: #520810;
+    --danger-indicator-light: #e73b3b;
+    --danger-indicator-alt-light: #950f22;
+    --danger-indicator-dark: #ffd2cd;
+
+    --info-light: #0b84ba;
+    --info-dark: #3eb7ed;
+    --info-hover-light: #08638c;
+    --info-hover-dark: #6ec9f2;
+    --info-bordered-text-light: #0b84ba;
+    --info-bordered-text-dark: #6ec9f2;
+    --info-bordered-bg-light: #e7f6fd;
+    --info-bordered-bg-dark: #03212f;
+    --info-indicator-light: #004fc4;
+    --info-indicator-alt-light: #06425d;
+    --info-indicator-dark: #9fdbf6;
+
+    --misc-light: #8750c5;
+    --misc-dark: #ba83f9;
+    --misc-hover-light: #653c94;
+    --misc-hover-dark: #cba2fa;
+    --misc-bordered-text-light: #653c94;
+    --misc-bordered-text-dark: #cba2fa;
+    --misc-bordered-bg-light: #f6f0fe;
+    --misc-bordered-bg-dark: #221431;
+    --misc-indicator-light: #52059c;
+    --misc-indicator-alt-light: #442863;
+    --misc-indicator-dark: #ddc1fc;
+
+    --dawn-light: #a86438;
+    --dawn-dark: #db976b;
+    --dawn-hover-light: #7e4b2a;
+    --dawn-hover-dark: #e4b190;
+    --dawn-bordered-text-light: #7e4b2a;
+    --dawn-bordered-text-dark: #e4b190;
+    --dawn-bordered-bg-light: #fbf2ed;
+    --dawn-bordered-bg-dark: #2a190e;
+    --dawn-indicator-light: #4d4137;
+    --dawn-indicator-alt-light: #54321c;
+    --dawn-indicator-dark: #edcbb5;
+
+    --silver-light: #868686;
+    --silver-dark: #a6a6a6;
+    --silver-hover-light: #727272;
+    --silver-hover-dark: #bbbbbb;
+    --silver-hover-bordered-light: #e8e8e8;
+    --silver-hover-bordered-dark: #5e5e5e;
+    --silver-bordered-text-light: #727272;
+    --silver-bordered-text-dark: #bbbbbb;
+    --silver-bordered-bg-light: #f3f3f3;
+    --silver-bordered-bg-dark: #4b4b4b;
+    --silver-indicator-light: #707483;
+    --silver-indicator-alt-light: #5e5e5e;
+    --silver-indicator-dark: #dddddd;
+
+    --bordered-white-border: #dddddd;
+    --bordered-dark-bg: #282828;
+    --bordered-dark-border: #727272;
+
+    --disabled-bg-light: #f3f3f3;
+    --disabled-bg-dark: #4b4b4b;
+    --disabled-text-light: #bbbbbb;
+    --disabled-text-dark: #868686;
+
+    --shadow-natural: rgba(134, 134, 134, 0.5);
+    --shadow-primary: rgba(0, 149, 164, 0.5);
+    --shadow-secondary: rgba(6, 139, 238, 0.5);
+    --shadow-success: rgba(0, 154, 81, 0.5);
+    --shadow-warning: rgba(252, 176, 1, 0.5);
+    --shadow-danger: rgba(248, 52, 70, 0.5);
+    --shadow-info: rgba(14, 165, 233, 0.5);
+    --shadow-misc: rgba(169, 100, 247, 0.5);
+    --shadow-dawn: rgba(210, 125, 70, 0.5);
+    --shadow-silver: rgba(134, 134, 134, 0.5);
+
+    --gradient-natural-from-light: #282828;
+    --gradient-natural-to-light: #727272;
+    --gradient-natural-from-dark: #a6a6a6;
+
+    --gradient-primary-from-light: #016974;
+    --gradient-primary-to-light: #01b8ca;
+    --gradient-primary-from-dark: #01b8ca;
+    --gradient-primary-to-dark: #b0e7ef;
+
+    --gradient-secondary-from-light: #175bcc;
+    --gradient-secondary-to-light: #6daafb;
+    --gradient-secondary-from-dark: #6daafb;
+    --gradient-secondary-to-dark: #cddeff;
+
+    --gradient-success-from-light: #166c3b;
+    --gradient-success-to-light: #06c167;
+    --gradient-success-from-dark: #06c167;
+    --gradient-success-to-dark: #b1eac2;
+
+    --gradient-warning-from-light: #976a01;
+    --gradient-warning-to-light: #fdc034;
+    --gradient-warning-from-dark: #fdc034;
+    --gradient-warning-to-dark: #fedf99;
+
+    --gradient-danger-from-light: #bb032a;
+    --gradient-danger-to-light: #fc7f79;
+    --gradient-danger-from-dark: #fc7f79;
+    --gradient-danger-to-dark: #ffd2cd;
+
+    --gradient-info-from-light: #08638c;
+    --gradient-info-to-light: #3eb7ed;
+    --gradient-info-from-dark: #3eb7ed;
+    --gradient-info-to-dark: #9fdbf6;
+
+    --gradient-misc-from-light: #653c94;
+    --gradient-misc-to-light: #ba83f9;
+    --gradient-misc-from-dark: #ba83f9;
+    --gradient-misc-to-dark: #ddc1fc;
+
+    --gradient-dawn-from-light: #7e4b2a;
+    --gradient-dawn-to-light: #db976b;
+    --gradient-dawn-from-dark: #db976b;
+    --gradient-dawn-to-dark: #edcbb5;
+
+    --gradient-silver-from-light: #5e5e5e;
+    --gradient-silver-to-light: #a6a6a6;
+    --gradient-silver-from-dark: #868686;
+    --gradient-silver-to-dark: #bbbbbb;
+
+    --primary-gradient-indicator-dark: #cdeef3;
+    --secondary-gradient-indicator-dark: #dee9fe;
+    --success-gradient-indicator-dark: #d3efda;
+    --warning-gradient-indicator-dark: #feefcc;
+    --danger-gradient-indicator-dark: #ffe1de;
+    --info-gradient-indicator-dark: #cfedfb;
+    --misc-gradient-indicator-dark: #eee0fd;
+    --dawn-gradient-indicator-dark: #f6e5da;
+
+    --primary-border-light: #000000;
+    --primary-border-dark: #b0e7ef;
+    --secondary-border-light: #1948a3;
+    --secondary-border-dark: #cddeff;
+    --success-border-light: #0d572d;
+    --success-border-dark: #b1eac2;
+    --warning-border-light: #654600;
+    --warning-border-dark: #fedf99;
+    --danger-border-light: #950f22;
+    --danger-border-dark: #ffd2cd;
+    --info-border-light: #06425d;
+    --info-border-dark: #9fdbf6;
+    --misc-border-light: #442863;
+    --misc-border-dark: #ddc1fc;
+    --dawn-border-light: #54321c;
+    --dawn-border-dark: #edcbb5;
+    --silver-border-light: #5e5e5e;
+    --silver-border-dark: #dddddd;
+
+    --base-form-border-light: #8b8b8d;
+    --base-form-border-dark: #818182;
+    --base-form-focus-dark: #696969;
+    --form-white-text: #3e3e3e;
+    --form-white-focus: #dadada;
+
+    /* Checkbox specific colors */
+    --checkbox-unchecked-dark: #333333;
+    --checkbox-white-checked: #ede8e8;
+    --checkbox-dark-checked: #616060;
+    --checkbox-primary-checked: #0095a4;
+    --checkbox-secondary-checked: #068bee;
+    --checkbox-success-checked: #009a51;
+    --checkbox-warning-checked: #fcb001;
+    --checkbox-danger-checked: #f83446;
+    --checkbox-info-checked: #0ea5e9;
+    --checkbox-misc-checked: #a964f7;
+    --checkbox-dawn-checked: #d27d46;
+    --checkbox-silver-checked: #a6a6a6;
+
+    /* Stepper specific colors - only NEW colors not covered by existing system */
+    --stepper-loading-icon-fill: #2563eb;
+    --stepper-current-step-text-light: #2563eb;
+    --stepper-current-step-text-dark: #1971c2;
+    --stepper-current-step-border-light: #2563eb;
+    --stepper-current-step-border-dark: #1971c2;
+    --stepper-completed-step-bg-light: #14b8a6;
+    --stepper-completed-step-bg-dark: #099268;
+    --stepper-completed-step-border-light: #14b8a6;
+    --stepper-completed-step-border-dark: #099268;
+    --stepper-canceled-step-bg-light: #fa5252;
+    --stepper-canceled-step-bg-dark: #e03131;
+    --stepper-canceled-step-border-light: #fa5252;
+    --stepper-canceled-step-border-dark: #e03131;
+    --stepper-separator-completed-border-light: #14b8a6;
+    --stepper-separator-completed-border-dark: #099268;
+}
+
+/* 10% */
+[data-opacity="transparent"] {
+    --overlay-opacity: calc(var(--opacity-base) * 1%);
+}
+/* 20% */
+[data-opacity="translucent"] {
+    --overlay-opacity: calc(var(--opacity-base) * 2%);
+}
+/* 30% */
+[data-opacity="semi_transparent"] {
+    --overlay-opacity: calc(var(--opacity-base) * 3%);
+}
+/* 40% */
+[data-opacity="lightly_tinted"] {
+    --overlay-opacity: calc(var(--opacity-base) * 4%);
+}
+/* 50% */
+[data-opacity="tinted"] {
+    --overlay-opacity: calc(var(--opacity-base) * 5%);
+}
+/* 60% */
+[data-opacity="semi_opaque"] {
+    --overlay-opacity: calc(var(--opacity-base) * 6%);
+}
+/* 70% */
+[data-opacity="opaque"] {
+    --overlay-opacity: calc(var(--opacity-base) * 7%);
+}
+/* 80% */
+[data-opacity="heavily_tinted"] {
+    --overlay-opacity: calc(var(--opacity-base) * 8%);
+}
+/* 90% */
+[data-opacity="almost_solid"] {
+    --overlay-opacity: calc(var(--opacity-base) * 9%);
+}
+/* 100% */
+[data-opacity="solid"] {
+    --overlay-opacity: calc(var(--opacity-base) * 10%);
+}

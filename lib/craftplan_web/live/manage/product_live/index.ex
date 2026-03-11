@@ -176,6 +176,7 @@ defmodule CraftplanWeb.ProductLive.Index do
         actor: socket.assigns.current_user
       )
 
+    currency = Craftplan.Settings.get_settings!().currency
     {:noreply, stream_insert(socket, :products, product)}
   end
 end
