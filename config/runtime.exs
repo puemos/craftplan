@@ -18,7 +18,8 @@ import Config
 # script that automatically sets the env var above.
 alias Swoosh.ApiClient.Finch
 
-if System.get_env("PHX_SERVER") do
+if System.get_env("PHX_SERVER") ||
+     System.get_env("RAILWAY_PUBLIC_DOMAIN") do
   config :craftplan, CraftplanWeb.Endpoint, server: true
 end
 
@@ -44,7 +45,11 @@ if config_env() == :prod do
       You can generate one by running: openssl rand -base64 48
       """
 
-  host = System.get_env("HOST") || System.get_env("PHX_HOST") || "example.com"
+  host =
+    System.get_env("HOST") || System.get_env("PHX_HOST") ||
+      System.get_env("RAILWAY_PUBLIC_DOMAIN") ||
+      "localhost"
+
   port = String.to_integer(System.get_env("PORT") || "4000")
 
   config :craftplan, Craftplan.Repo,
@@ -54,7 +59,9 @@ if config_env() == :prod do
     socket_options: maybe_ipv6,
     # Handle traffic bursts - allow queries to queue longer before failing
     queue_target: 500,
-    queue_interval: 1000
+    queue_interval: 1000,
+    database: "craftplan",
+    start_apps_before_migration: [:logger]
 
   config :craftplan, CraftplanWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

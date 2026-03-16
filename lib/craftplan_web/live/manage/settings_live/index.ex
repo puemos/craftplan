@@ -3,6 +3,7 @@ defmodule CraftplanWeb.SettingsLive.Index do
   use CraftplanWeb, :live_view
 
   alias Craftplan.Inventory
+  alias Craftplan.Repo
   alias Craftplan.Settings
   alias CraftplanWeb.Navigation
 
@@ -204,6 +205,39 @@ defmodule CraftplanWeb.SettingsLive.Index do
     socket = apply_action(socket, live_action, params)
 
     {:noreply, Navigation.assign(socket, :settings, settings_trail(live_action))}
+  end
+
+  @impl true
+  def handle_event("seed_demo", _, socket) do
+    Craftplan.Seeder.Demo.run()
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("delete_data", _, socket) do
+    Repo.delete_all(Craftplan.Orders.ProductionBatchLot)
+    Repo.delete_all(Craftplan.Orders.OrderItemBatchAllocation)
+    Repo.delete_all(Craftplan.Orders.OrderItemLot)
+    Repo.delete_all(Craftplan.Orders.OrderItem)
+    Repo.delete_all(Craftplan.Orders.Order)
+    Repo.delete_all(Craftplan.Catalog.BOMRollup)
+    Repo.delete_all(Craftplan.Catalog.BOMComponent)
+    Repo.delete_all(Craftplan.Catalog.LaborStep)
+    Repo.delete_all(Craftplan.Catalog.BOM)
+    Repo.delete_all(Craftplan.Catalog.Product)
+    Repo.delete_all(Craftplan.Inventory.Movement)
+    Repo.delete_all(Craftplan.Inventory.Lot)
+    Repo.delete_all(Craftplan.Inventory.MaterialNutritionalFact)
+    Repo.delete_all(Craftplan.Inventory.NutritionalFact)
+    Repo.delete_all(Craftplan.Inventory.MaterialAllergen)
+    Repo.delete_all(Craftplan.Inventory.PurchaseOrderItem)
+    Repo.delete_all(Craftplan.Inventory.PurchaseOrder)
+    Repo.delete_all(Craftplan.Inventory.Supplier)
+    Repo.delete_all(Craftplan.Orders.ProductionBatch)
+    Repo.delete_all(Craftplan.Inventory.Material)
+    Repo.delete_all(Craftplan.Inventory.Allergen)
+    Repo.delete_all(Craftplan.CRM.Customer)
+    {:noreply, socket}
   end
 
   @impl true
