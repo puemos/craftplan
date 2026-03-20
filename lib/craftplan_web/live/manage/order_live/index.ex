@@ -57,9 +57,6 @@ defmodule CraftplanWeb.OrderLive.Index do
         </:header>
         <:actions>
           <Page.filter_reset />
-          <.link patch={~p"/manage/orders/new"}>
-            <.button variant={:primary}>New Order</.button>
-          </.link>
         </:actions>
         <form id="filters-form" phx-change="apply_filters">
           <Page.form_grid columns={4} class="max-w-full">
