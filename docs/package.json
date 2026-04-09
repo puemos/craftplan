@@ -4,8 +4,9 @@
   "version": "0.0.1",
   "packageManager": "pnpm@10.28.2",
   "pnpm": {
-    "patchedDependencies": {
-      "lodash.unset@4.5.2": "patches/lodash.unset.patch"
+    "overrides": {
+      "minimatch@<3.1.5": "3.1.5",
+      "lodash@<=4.17.23": "4.18.1"
     }
   },
   "scripts": {
@@ -14,20 +15,22 @@
     "preview": "astro preview",
     "generate-spec": "cd .. && mix run docs/generate_spec.exs",
     "generate-sdl": "cd .. && mix run docs/generate_sdl.exs",
-    "generate-graphql-docs": "spectaql spectaql.yml"
+    "generate-graphql-docs": "spectaql spectaql.yml",
+    "audit": "pnpm audit",
+    "audit:fix": "pnpm audit --fix"
   },
   "dependencies": {
-    "@astrojs/react": "^4.4.2",
-    "@scalar/astro": "^0.1.15",
-    "@tailwindcss/typography": "^0.5.16",
-    "@tailwindcss/vite": "^4.0.6",
-    "astro": "^5.3.0",
-    "graphql": "^16.10.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "tailwindcss": "^4.0.6"
+    "@astrojs/react": "4.4.2",
+    "@scalar/astro": "0.1.24",
+    "@tailwindcss/typography": "0.5.19",
+    "@tailwindcss/vite": "4.2.2",
+    "astro": "5.18.1",
+    "graphql": "16.13.2",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "tailwindcss": "4.2.2"
   },
   "devDependencies": {
-    "spectaql": "^3.0.1"
+    "spectaql": "3.0.9"
   }
 }
