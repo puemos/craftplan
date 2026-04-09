@@ -10,6 +10,11 @@ defmodule CraftplanWeb.CustomerLive.Index do
     <.header>
       Customers
       <:subtitle>Manage your customer records</:subtitle>
+      <:actions>
+        <.link patch={~p"/manage/customers/new"}>
+          <.button variant={:primary}>New Customer</.button>
+        </.link>
+      </:actions>
     </.header>
 
     <.table
@@ -125,7 +130,7 @@ defmodule CraftplanWeb.CustomerLive.Index do
   defp customer_index_trail(_), do: [Navigation.root(:customers)]
 
   @impl true
-  def handle_info({{CraftplanWeb.CustomerLive.FormComponent, :saved, customer}}, socket) do
+  def handle_info({CraftplanWeb.CustomerLive.FormComponent, {:saved, customer}}, socket) do
     {:noreply, stream_insert(socket, :customers, customer)}
   end
 

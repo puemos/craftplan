@@ -9,7 +9,7 @@ defmodule CraftplanWeb.ManageProductsRecipeProductComponentsLiveTest do
 
   defp staff, do: Craftplan.DataCase.staff_actor()
 
-  defp product!(attrs \\ %{}) do
+  defp product!(attrs) do
     defaults = %{
       name: "P-#{System.unique_integer()}",
       sku: "SKU-#{System.unique_integer()}",
@@ -37,7 +37,7 @@ defmodule CraftplanWeb.ManageProductsRecipeProductComponentsLiveTest do
     |> Ash.create!(actor: staff())
   end
 
-  defp product_with_bom!(attrs \\ %{}) do
+  defp product_with_bom!(attrs) do
     require Ash.Query
 
     m = material!()
