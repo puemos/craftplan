@@ -128,8 +128,8 @@ defmodule Craftplan.Inventory.Material do
       allow_nil? false
 
       constraints min_length: 2,
-                  max_length: 50,
-                  match: ~r/^[\w\s\-\.]+$/
+                  max_length: 255,
+                  match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
     end
 
     attribute :sku, :string do
