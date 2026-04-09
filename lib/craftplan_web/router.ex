@@ -111,6 +111,7 @@ defmodule CraftplanWeb.Router do
       live "/manage/settings/csv", SettingsLive.Index, :csv
       live "/manage/settings/api_keys", SettingsLive.Index, :api_keys
       live "/manage/settings/calendar", SettingsLive.Index, :calendar_feed
+      live "/manage/settings/members", SettingsLive.Index, :members
     end
 
     # CSV Export (regular controller, not LiveView)

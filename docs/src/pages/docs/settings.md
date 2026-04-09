@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: Settings
-description: General configuration, markup, allergens, nutritional facts, calendar feed, CSV import/export, and email
+description: General configuration, markup, allergens, nutritional facts, calendar feed, CSV import/export, email, and member management
 ---
 
 The Settings area at **Manage → Settings** controls global configuration for your Craftplan instance.
@@ -54,6 +54,26 @@ The feed covers a rolling window: 30 days in the past through 90 days in the fut
 - **Production batches** — Summary shows the batch code and product name
 
 The feed endpoint is at `/api/calendar/feed.ics?key=<your-key>`. Calendar apps refresh automatically on their own schedule.
+
+## Members
+
+Manage team members who can access the Craftplan management interface. Navigate to **Settings → Members**.
+
+- **Invite Member** — Enter an email and choose a role (Staff or Admin). The user is created with a temporary password; they should use the password reset flow to set their own.
+- **Edit** — Change a member's role between Staff and Admin.
+- **Remove** — Remove a member's access entirely.
+
+Admins cannot edit or remove themselves, preventing accidental lockout.
+
+Only Staff and Admin users appear in this list. Customer-role users (created via public registration or checkout) are managed separately under **Customers**.
+
+### Roles
+
+| Role | Access |
+|------|--------|
+| **Admin** | Full access including Settings, Members, API Keys |
+| **Staff** | Day-to-day operations: products, orders, inventory, production, customers |
+| **Customer** | No management access (public-facing only) |
 
 ## CSV Import & Export
 

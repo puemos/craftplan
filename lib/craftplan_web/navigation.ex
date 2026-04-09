@@ -63,6 +63,7 @@ defmodule CraftplanWeb.Navigation do
   def settings_csv_active?(socket), do: settings_active?(:csv, socket)
   def settings_api_keys_active?(socket), do: settings_active?(:api_keys, socket)
   def settings_calendar_feed_active?(socket), do: settings_active?(:calendar_feed, socket)
+  def settings_members_active?(socket), do: settings_active?(:members, socket)
 
   # Production nav helpers
   def production_weekly_active?(socket) do
@@ -254,7 +255,8 @@ defmodule CraftplanWeb.Navigation do
           },
           csv: %{label: "Import & Export", path: "/manage/settings/csv"},
           api_keys: %{label: "API Keys", path: "/manage/settings/api_keys"},
-          calendar_feed: %{label: "Calendar Feed", path: "/manage/settings/calendar"}
+          calendar_feed: %{label: "Calendar Feed", path: "/manage/settings/calendar"},
+          members: %{label: "Members", path: "/manage/settings/members"}
         },
         sub_links: [
           %{
@@ -292,6 +294,12 @@ defmodule CraftplanWeb.Navigation do
             label: "Calendar Feed",
             navigate: "/manage/settings/calendar",
             active?: &__MODULE__.settings_calendar_feed_active?/1
+          },
+          %{
+            key: :members,
+            label: "Members",
+            navigate: "/manage/settings/members",
+            active?: &__MODULE__.settings_members_active?/1
           }
         ]
       },
