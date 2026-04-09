@@ -657,11 +657,9 @@ defmodule CraftplanWeb.OverviewLive do
                         <%!-- Unbatched items in week view --%>
                         <div
                           :for={{product, items} <- wk_unbatched}
-                          phx-click={
-                            JS.patch(
-                              ~p"/manage/production/schedule?view=day&date=#{Date.to_iso8601(day)}"
-                            )
-                          }
+                          phx-click="open_unbatched_modal"
+                          phx-value-product-id={product.id}
+                          phx-value-day={Date.to_iso8601(day)}
                           class={[
                             "group mb-2 cursor-pointer border p-2",
                             capacity_cell_class(product, items),
@@ -690,11 +688,9 @@ defmodule CraftplanWeb.OverviewLive do
                         <%!-- Batched items in week view --%>
                         <div
                           :for={batch_group <- wk_batched}
-                          phx-click={
-                            JS.patch(
-                              ~p"/manage/production/schedule?view=day&date=#{Date.to_iso8601(day)}"
-                            )
-                          }
+                          phx-click="open_batch_modal"
+                          phx-value-batch-code={batch_group.batch_code}
+                          phx-value-day={Date.to_iso8601(day)}
                           class={[
                             "group mb-2 cursor-pointer border p-2",
                             capacity_cell_class(batch_group.product, batch_group.items),
@@ -963,8 +959,8 @@ defmodule CraftplanWeb.OverviewLive do
   end
 
   @impl true
-  def handle_event("open_batch_modal", %{"batch-code" => batch_code}, socket) do
-    day = List.first(socket.assigns.days_range)
+  def handle_event("open_batch_modal", %{"batch-code" => batch_code} = params, socket) do
+    day = param_day(params) || List.first(socket.assigns.days_range)
 
     {_unbatched, batched} =
       split_day_items(day, socket.assigns.production_items, socket.assigns.allocation_map)
@@ -979,8 +975,8 @@ defmodule CraftplanWeb.OverviewLive do
   end
 
   @impl true
-  def handle_event("open_unbatched_modal", %{"product-id" => product_id}, socket) do
-    day = List.first(socket.assigns.days_range)
+  def handle_event("open_unbatched_modal", %{"product-id" => product_id} = params, socket) do
+    day = param_day(params) || List.first(socket.assigns.days_range)
 
     {unbatched, _batched} =
       split_day_items(day, socket.assigns.production_items, socket.assigns.allocation_map)
@@ -1403,6 +1399,9 @@ defmodule CraftplanWeb.OverviewLive do
   defp batch_status_class(:open), do: "bg-blue-100 text-blue-700"
   defp batch_status_class(:in_progress), do: "bg-amber-100 text-amber-700"
   defp batch_status_class(:completed), do: "bg-green-100 text-green-700"
+
+  defp param_day(%{"day" => day_str}) when is_binary(day_str), do: Date.from_iso8601!(day_str)
+  defp param_day(_), do: nil
 
   defp split_day_items(day, production_items, allocation_map) do
     all = get_items_for_day(day, production_items)
