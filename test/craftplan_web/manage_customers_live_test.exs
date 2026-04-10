@@ -30,6 +30,12 @@ defmodule CraftplanWeb.ManageCustomersLiveTest do
     end
 
     @tag role: :staff
+    test "renders new customer button for staff", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/manage/customers")
+      assert has_element?(view, "a[href='/manage/customers/new']")
+    end
+
+    @tag role: :staff
     test "renders new customer modal", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/manage/customers/new")
       assert has_element?(view, "#customer-modal")

@@ -5,7 +5,6 @@
 @variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
 
 @import "tailwindcss";
-@import "./event-calendar.css";
 
 @plugin "@tailwindcss/forms";
 @plugin "./tailwind_heroicons.js";

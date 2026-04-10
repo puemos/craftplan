@@ -22,6 +22,10 @@ docker compose up -d
 
 Craftplan will be available at `http://localhost:4000` (or the `PORT` you configured). Migrations run automatically on startup.
 
+### First-time setup
+
+On first launch, Craftplan shows a setup screen where you create your **admin account**. Once signed in, invite additional team members from **Settings → Members** — choose Staff or Admin role for each.
+
 ---
 
 ## Single Container (`docker run`)

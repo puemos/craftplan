@@ -14,20 +14,10 @@ defmodule CraftplanWeb.OverviewLive do
 
   @impl true
   def render(assigns) do
-    first_schedule_day =
-      assigns
-      |> Map.get(:days_range)
-      |> case do
-        nil -> nil
-        [] -> nil
-        days -> List.first(days)
-      end
-
     assigns =
       assigns
       |> assign_new(:nav_sub_links, fn -> [] end)
       |> assign_new(:breadcrumbs, fn -> [] end)
-      |> assign(:first_schedule_day, first_schedule_day)
 
     ~H"""
     <Page.page>
@@ -198,547 +188,92 @@ defmodule CraftplanWeb.OverviewLive do
 
       <div :if={@live_action == :schedule} class="mt-4">
         <div class="mt-8">
-          <div
-            id="controls"
-            class="border-gray-200/70 flex items-center justify-between border-b pb-4"
-          >
-            <% day = List.first(@days_range) %>
-            <div>
-              <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
-                <span>
-                  {format_date(List.first(@days_range), format: "%B %Y")}
-                </span>
-                <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
-                  <span>
-                    //
-                  </span>
-                  <span>
-                    {format_day_name(day)}
-                  </span>
-                  <span>
-                    {format_short_date(day, @time_zone)}
-                  </span>
-                </div>
-              </span>
-            </div>
-            <div class="flex items-center space-x-4">
-              <!-- View toggle -->
-              <div class="mr-2 hidden items-center sm:flex">
-                <button
-                  phx-click="set_schedule_view"
-                  phx-value-view="week"
-                  aria-pressed={@schedule_view == :week}
-                  class={[
-                    "rounded-l-md border border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
-                    (@schedule_view == :week && "border-blue-300 bg-blue-100 text-blue-700") ||
-                      "bg-white text-stone-700 hover:bg-blue-50"
-                  ]}
-                >
-                  Week
-                </button>
-                <button
-                  phx-click="set_schedule_view"
-                  phx-value-view="day"
-                  aria-pressed={@schedule_view == :day}
-                  class={[
-                    "rounded-r-md border border-l-0 border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
-                    (@schedule_view == :day && "border-blue-300 bg-blue-100 text-blue-700") ||
-                      "bg-white text-stone-700 hover:bg-blue-50"
-                  ]}
-                >
-                  Day
-                </button>
-              </div>
-              
-    <!-- Prev / Today / Next segmented control -->
-              <div class="flex items-center">
-                <button
-                  phx-click="previous_week"
-                  size={:sm}
-                  title="Previous"
-                  class="px-[6px] cursor-pointer rounded-l-md border border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M11 17l-5-5m0 0l5-5m-5 5h12"
-                    />
-                  </svg>
-                </button>
-
-                <button
-                  phx-click="today"
-                  size={:sm}
-                  variant={:outline}
-                  aria-pressed={@is_today}
-                  title="Jump to today"
-                  class={[
-                    "flex cursor-pointer items-center border-y border-r border-l-0 border-stone-300 bg-white px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-default disabled:bg-stone-100 disabled:text-stone-400",
-                    (@is_today && "border-blue-300 bg-blue-100 text-blue-700") ||
-                      "text-stone-700 hover:bg-blue-50"
-                  ]}
-                  disabled={@is_today}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mr-1 h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Today
-                </button>
-
-                <button
-                  phx-click="next_week"
-                  size={:sm}
-                  title="Next"
-                  class="px-[6px] cursor-pointer rounded-r-md border border-l-0 border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+          <.schedule_controls
+            days_range={@days_range}
+            schedule_view={@schedule_view}
+            time_zone={@time_zone}
+            is_today={@is_today}
+          />
 
           <%= if @schedule_view == :day do %>
-            <% {unbatched, batched} = split_day_items(day, @production_items, @allocation_map) %>
-            <div
-              :if={Enum.empty?(unbatched) && Enum.empty?(batched)}
-              class="mt-4 rounded-md border border-dashed border-stone-200 bg-stone-50 py-6 text-center text-sm text-stone-500"
-            >
-              No production scheduled for this day.
-            </div>
-            <div
-              :if={!Enum.empty?(unbatched) || !Enum.empty?(batched)}
-              id="kanban-batches"
-              phx-hook="KanbanDragDrop"
-              class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
-            >
-              <%!-- Unbatched column --%>
-              <div class="kanban-column rounded-lg bg-stone-50 p-3" data-status="unbatched">
-                <h4 class="mb-2 text-xs font-semibold uppercase text-stone-400">Unbatched</h4>
-                <div class="space-y-2">
-                  <.unbatched_kanban_card
-                    :for={{product, items} <- unbatched}
-                    product={product}
-                    items={items}
-                    day={day}
-                  />
-                </div>
-              </div>
-              <%!-- Open column --%>
-              <div class="kanban-column bg-blue-50/50 rounded-lg p-3" data-status="open">
-                <h4 class="mb-2 text-xs font-semibold uppercase text-blue-600">Open</h4>
-                <div class="space-y-2">
-                  <.batch_kanban_card
-                    :for={bg <- Enum.filter(batched, &(&1.status == :open))}
-                    batch_group={bg}
-                  />
-                </div>
-              </div>
-              <%!-- In Progress column --%>
-              <div class="kanban-column bg-amber-50/50 rounded-lg p-3" data-status="in_progress">
-                <h4 class="mb-2 text-xs font-semibold uppercase text-amber-600">In Progress</h4>
-                <div class="space-y-2">
-                  <.batch_kanban_card
-                    :for={bg <- Enum.filter(batched, &(&1.status == :in_progress))}
-                    batch_group={bg}
-                  />
-                </div>
-              </div>
-              <%!-- Completed column --%>
-              <div class="kanban-column bg-green-50/50 rounded-lg p-3" data-status="completed">
-                <h4 class="mb-2 text-xs font-semibold uppercase text-green-600">Done</h4>
-                <div class="space-y-2">
-                  <.batch_kanban_card
-                    :for={bg <- Enum.filter(batched, &(&1.status == :completed))}
-                    batch_group={bg}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <%!-- Batch detail modal --%>
-            <.modal
-              :if={@selected_batch}
-              id="batch-detail-modal"
-              show
-              title={@selected_batch.batch_code}
-              on_cancel={JS.push("close_batch_modal")}
-            >
-              <div class="space-y-4 px-4 py-3">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <span class="text-lg font-medium text-stone-900">
-                      {@selected_batch.product.name}
-                    </span>
-                    <span class={[
-                      "ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      batch_status_class(@selected_batch.status)
-                    ]}>
-                      {batch_status_label(@selected_batch.status)}
-                    </span>
-                  </div>
-                  <span class="text-sm text-stone-500">
-                    {format_amount(:piece, total_quantity(@selected_batch.items))} &middot; {length(
-                      Enum.uniq_by(@selected_batch.items, & &1.order.id)
-                    )} orders
-                  </span>
-                </div>
-
-                <%!-- Order details --%>
-                <div class="space-y-2">
-                  <h4 class="text-xs font-semibold uppercase text-stone-400">Orders</h4>
-                  <div
-                    :for={item <- @selected_batch.items}
-                    class="flex items-center justify-between rounded border border-stone-100 bg-stone-50 px-3 py-2 text-sm"
-                  >
-                    <div class="flex items-center gap-2">
-                      <.link
-                        navigate={~p"/manage/orders/#{item.order.reference}/items"}
-                        class="font-medium text-blue-700 hover:underline"
-                      >
-                        <.kbd>{format_reference(item.order.reference)}</.kbd>
-                      </.link>
-                      <span class="text-stone-500">{item.order.customer.full_name}</span>
-                    </div>
-                    <span class="text-stone-700">{item.quantity} pcs</span>
-                  </div>
-                </div>
-
-                <%!-- Action buttons --%>
-                <div class="flex items-center justify-between border-t border-stone-200 pt-3">
-                  <.link
-                    navigate={~p"/manage/production/batches/#{@selected_batch.batch_code}"}
-                    class="text-sm font-medium text-blue-700 hover:underline"
-                  >
-                    View full batch &rarr;
-                  </.link>
-                  <div class="flex items-center gap-2">
-                    <%= case @selected_batch.status do %>
-                      <% :open -> %>
-                        <.button
-                          size={:sm}
-                          variant={:outline}
-                          phx-click={
-                            JS.push("start_batch",
-                              value: %{"batch-code" => @selected_batch.batch_code}
-                            )
-                          }
-                        >
-                          Start
-                        </.button>
-                      <% :in_progress -> %>
-                        <.button
-                          :if={!@completing_batch_code}
-                          size={:sm}
-                          variant={:outline}
-                          phx-click={
-                            JS.push("toggle_complete_form",
-                              value: %{"batch-code" => @selected_batch.batch_code}
-                            )
-                          }
-                        >
-                          Mark Done
-                        </.button>
-                      <% _ -> %>
-                    <% end %>
-                  </div>
-                </div>
-
-                <%!-- Inline completion form --%>
-                <div
-                  :if={@completing_batch_code == @selected_batch.batch_code}
-                  class="rounded-lg border border-stone-200 bg-stone-50 p-4"
-                >
-                  <.form
-                    id={"complete-form-#{@selected_batch.batch_code}"}
-                    for={%{}}
-                    phx-submit="complete_batch"
-                  >
-                    <input type="hidden" name="batch-code" value={@selected_batch.batch_code} />
-                    <div class="flex items-end gap-4">
-                      <div class="flex-1">
-                        <.input
-                          type="number"
-                          name="produced_qty"
-                          label="Produced qty"
-                          value={total_quantity(@selected_batch.items) |> Decimal.to_string()}
-                          min="0"
-                          step="any"
-                          required
-                        />
-                      </div>
-                      <div class="flex-1">
-                        <.input
-                          type="number"
-                          name="duration_minutes"
-                          label="Duration (min)"
-                          value=""
-                          placeholder="optional"
-                          min="0"
-                          step="any"
-                        />
-                      </div>
-                      <div class="flex items-center gap-2 pb-1">
-                        <.button
-                          size={:sm}
-                          variant={:outline}
-                          type="button"
-                          phx-click={
-                            JS.push("toggle_complete_form",
-                              value: %{"batch-code" => @selected_batch.batch_code}
-                            )
-                          }
-                        >
-                          Cancel
-                        </.button>
-                        <.button size={:sm} variant={:primary} type="submit">
-                          Complete
-                        </.button>
-                      </div>
-                    </div>
-                  </.form>
-                </div>
-              </div>
-            </.modal>
-
-            <%!-- Unbatched detail modal --%>
-            <.modal
-              :if={@selected_unbatched}
-              id="unbatched-detail-modal"
-              show
-              title={@selected_unbatched.product.name}
-              on_cancel={JS.push("close_batch_modal")}
-            >
-              <div class="space-y-4 px-4 py-3">
-                <div class="flex items-center justify-between">
-                  <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
-                    Not Batched
-                  </span>
-                  <span class="text-sm text-stone-500">
-                    {format_amount(:piece, total_quantity(@selected_unbatched.items))} &middot; {length(
-                      Enum.uniq_by(@selected_unbatched.items, & &1.order.id)
-                    )} orders
-                  </span>
-                </div>
-
-                <div class="space-y-2">
-                  <h4 class="text-xs font-semibold uppercase text-stone-400">Orders</h4>
-                  <div
-                    :for={item <- @selected_unbatched.items}
-                    class="flex items-center justify-between rounded border border-stone-100 bg-stone-50 px-3 py-2 text-sm"
-                  >
-                    <div class="flex items-center gap-2">
-                      <.link
-                        navigate={~p"/manage/orders/#{item.order.reference}/items"}
-                        class="font-medium text-blue-700 hover:underline"
-                      >
-                        <.kbd>{format_reference(item.order.reference)}</.kbd>
-                      </.link>
-                      <span class="text-stone-500">{item.order.customer.full_name}</span>
-                    </div>
-                    <span class="text-stone-700">{item.quantity} pcs</span>
-                  </div>
-                </div>
-
-                <div class="border-t border-stone-200 pt-3">
-                  <.button
-                    size={:sm}
-                    variant={:outline}
-                    phx-click={
-                      JS.push("create_batch",
-                        value: %{
-                          date: Date.to_iso8601(@selected_unbatched.day),
-                          product_id: @selected_unbatched.product.id
-                        }
-                      )
-                    }
-                  >
-                    Batch All
-                  </.button>
-                </div>
-              </div>
-            </.modal>
+            <.day_kanban
+              days_range={@days_range}
+              production_items={@production_items}
+              allocation_map={@allocation_map}
+            />
           <% else %>
-            <%!-- Week View --%>
-            <div class="w-full overflow-x-auto">
-              <table class="min-w-[1000px] w-full table-fixed border-collapse">
-                <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
-                  <tr>
-                    <th
-                      :for={
-                        {day, index} <-
-                          Enum.with_index(
-                            @days_range
-                            |> Enum.take((@schedule_view == :day && 1) || 7)
-                          )
-                      }
-                      class={
-                        [
-                          "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
-                          index > 0 && "pl-4",
-                          index > 0 && "border-l",
-                          index < 6 && "border-r",
-                          is_today?(day) && "bg-indigo-100/50 border-r-indigo-300",
-                          is_today?(Date.add(day, 1)) && "border-r-indigo-300"
-                        ]
-                        |> Enum.filter(& &1)
-                        |> Enum.join("  ")
-                      }
-                    >
-                      <div class={["flex items-center justify-center"]}>
-                        <div class={[
-                          "inline-flex items-center justify-center space-x-1 rounded px-2",
-                          is_today?(day) && "bg-indigo-500 text-white"
-                        ]}>
-                          <div>{format_day_name(day)}</div>
-                          <div>{format_short_date(day, @time_zone)}</div>
-                        </div>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="h-[60vh]">
-                    <td
-                      :for={
-                        {day, index} <-
-                          Enum.with_index(
-                            @days_range
-                            |> Enum.take((@schedule_view == :day && 1) || 7)
-                          )
-                      }
-                      class={
-                        [
-                          "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top",
-                          "border-t border-t-stone-200",
-                          index > 0 && "border-l",
-                          index < 6 && "border-r",
-                          is_today?(day) && "bg-indigo-100/50 border-r-indigo-300",
-                          is_today?(Date.add(day, 1)) && "border-r-indigo-300"
-                        ]
-                        |> Enum.filter(& &1)
-                        |> Enum.join("  ")
-                      }
-                    >
-                      <div class="h-full overflow-y-auto">
-                        <% {wk_unbatched, wk_batched} =
-                          split_day_items(day, @production_items, @allocation_map) %>
-                        <%!-- Unbatched items in week view --%>
-                        <div
-                          :for={{product, items} <- wk_unbatched}
-                          phx-click={
-                            JS.patch(
-                              ~p"/manage/production/schedule?view=day&date=#{Date.to_iso8601(day)}"
-                            )
-                          }
-                          class={[
-                            "group mb-2 cursor-pointer border p-2",
-                            capacity_cell_class(product, items),
-                            "hover:bg-stone-100"
-                          ]}
-                        >
-                          <div class="mb-1.5 flex items-center justify-between gap-2 overflow-hidden">
-                            <span class="min-w-0 truncate text-sm font-medium" title={product.name}>
-                              {product.name}
-                            </span>
-                            <.badge
-                              :if={capacity_status(product, items) == :over}
-                              text="Over capacity"
-                              class="flex-shrink-0"
-                            />
-                          </div>
-                          <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
-                            <span>
-                              {format_amount(:piece, total_quantity(items))}
-                            </span>
-                            <span class="text-[10px] inline-flex flex-shrink-0 items-center rounded-full bg-stone-100 px-1.5 py-0.5 font-medium text-stone-600">
-                              Unbatched
-                            </span>
-                          </div>
-                        </div>
-                        <%!-- Batched items in week view --%>
-                        <div
-                          :for={batch_group <- wk_batched}
-                          phx-click={
-                            JS.patch(
-                              ~p"/manage/production/schedule?view=day&date=#{Date.to_iso8601(day)}"
-                            )
-                          }
-                          class={[
-                            "group mb-2 cursor-pointer border p-2",
-                            capacity_cell_class(batch_group.product, batch_group.items),
-                            "hover:bg-stone-100"
-                          ]}
-                        >
-                          <div class="mb-1.5 flex items-center justify-between gap-2 overflow-hidden">
-                            <span
-                              class="min-w-0 truncate text-sm font-medium"
-                              title={batch_group.product.name}
-                            >
-                              {batch_group.product.name}
-                            </span>
-                            <.badge
-                              :if={capacity_status(batch_group.product, batch_group.items) == :over}
-                              text="Over capacity"
-                              class="flex-shrink-0"
-                            />
-                          </div>
-                          <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
-                            <span>
-                              {format_amount(:piece, total_quantity(batch_group.items))}
-                            </span>
-                            <span class={[
-                              "text-[10px] inline-flex flex-shrink-0 items-center rounded-full px-1.5 py-0.5 font-medium",
-                              batch_status_class(batch_group.status)
-                            ]}>
-                              {batch_status_label(batch_group.status)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div
-                          :if={get_items_for_day(day, @production_items) |> Enum.empty?()}
-                          class="flex h-full pt-2 text-sm text-stone-400"
-                        >
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <.week_table
+              days_range={@days_range}
+              schedule_view={@schedule_view}
+              production_items={@production_items}
+              allocation_map={@allocation_map}
+              time_zone={@time_zone}
+            />
           <% end %>
+
+          <.batch_detail_modal
+            :if={@selected_batch}
+            selected_batch={@selected_batch}
+            completing_batch_code={@completing_batch_code}
+          />
+
+          <%!-- Unbatched detail modal --%>
+          <.modal
+            :if={@selected_unbatched}
+            id="unbatched-detail-modal"
+            show
+            title={@selected_unbatched.product.name}
+            on_cancel={JS.push("close_batch_modal")}
+          >
+            <div class="space-y-4 px-4 py-3">
+              <div class="flex items-center justify-between">
+                <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
+                  Not Batched
+                </span>
+                <span class="text-sm text-stone-500">
+                  {format_amount(:piece, total_quantity(@selected_unbatched.items))} &middot; {length(
+                    Enum.uniq_by(@selected_unbatched.items, & &1.order.id)
+                  )} orders
+                </span>
+              </div>
+
+              <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase text-stone-400">Orders</h4>
+                <div
+                  :for={item <- @selected_unbatched.items}
+                  class="flex items-center justify-between rounded border border-stone-100 bg-stone-50 px-3 py-2 text-sm"
+                >
+                  <div class="flex items-center gap-2">
+                    <.link
+                      navigate={~p"/manage/orders/#{item.order.reference}/items"}
+                      class="font-medium text-blue-700 hover:underline"
+                    >
+                      <.kbd>{format_reference(item.order.reference)}</.kbd>
+                    </.link>
+                    <span class="text-stone-500">{item.order.customer.full_name}</span>
+                  </div>
+                  <span class="text-stone-700">{item.quantity} pcs</span>
+                </div>
+              </div>
+
+              <div class="border-t border-stone-200 pt-3">
+                <.button
+                  size={:sm}
+                  variant={:outline}
+                  phx-click={
+                    JS.push("create_batch",
+                      value: %{
+                        date: Date.to_iso8601(@selected_unbatched.day),
+                        product_id: @selected_unbatched.product.id
+                      }
+                    )
+                  }
+                >
+                  Batch All
+                </.button>
+              </div>
+            </div>
+          </.modal>
         </div>
       </div>
       <.modal
@@ -785,6 +320,7 @@ defmodule CraftplanWeb.OverviewLive do
       |> assign(:material_details, nil)
       |> assign(:material_day_quantity, nil)
       |> assign(:material_day_balance, nil)
+      |> assign(:first_schedule_day, nil)
       |> assign(:expanded_card, nil)
       |> assign(:completing_batch_code, nil)
       |> assign(:selected_batch, nil)
@@ -963,8 +499,8 @@ defmodule CraftplanWeb.OverviewLive do
   end
 
   @impl true
-  def handle_event("open_batch_modal", %{"batch-code" => batch_code}, socket) do
-    day = List.first(socket.assigns.days_range)
+  def handle_event("open_batch_modal", %{"batch-code" => batch_code} = params, socket) do
+    day = param_day(params) || List.first(socket.assigns.days_range)
 
     {_unbatched, batched} =
       split_day_items(day, socket.assigns.production_items, socket.assigns.allocation_map)
@@ -979,8 +515,8 @@ defmodule CraftplanWeb.OverviewLive do
   end
 
   @impl true
-  def handle_event("open_unbatched_modal", %{"product-id" => product_id}, socket) do
-    day = List.first(socket.assigns.days_range)
+  def handle_event("open_unbatched_modal", %{"product-id" => product_id} = params, socket) do
+    day = param_day(params) || List.first(socket.assigns.days_range)
 
     {unbatched, _batched} =
       split_day_items(day, socket.assigns.production_items, socket.assigns.allocation_map)
@@ -1235,6 +771,493 @@ defmodule CraftplanWeb.OverviewLive do
     """
   end
 
+  defp schedule_controls(assigns) do
+    ~H"""
+    <div
+      id="controls"
+      class="border-gray-200/70 flex items-center justify-between border-b pb-4"
+    >
+      <% day = List.first(@days_range) %>
+      <div>
+        <span class="inline-flex items-center space-x-2 font-medium text-stone-700">
+          <span>
+            {format_date(List.first(@days_range), format: "%B %Y")}
+          </span>
+          <div :if={@schedule_view == :day} class="inline-flex items-center space-x-2">
+            <span>
+              //
+            </span>
+            <span>
+              {format_day_name(day)}
+            </span>
+            <span>
+              {format_short_date(day, @time_zone)}
+            </span>
+          </div>
+        </span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <!-- View toggle -->
+        <div class="mr-2 hidden items-center sm:flex">
+          <button
+            phx-click="set_schedule_view"
+            phx-value-view="week"
+            aria-pressed={@schedule_view == :week}
+            class={[
+              "rounded-l-md border border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
+              (@schedule_view == :week && "border-blue-300 bg-blue-100 text-blue-700") ||
+                "bg-white text-stone-700 hover:bg-blue-50"
+            ]}
+          >
+            Week
+          </button>
+          <button
+            phx-click="set_schedule_view"
+            phx-value-view="day"
+            aria-pressed={@schedule_view == :day}
+            class={[
+              "rounded-r-md border border-l-0 border-stone-300 px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400",
+              (@schedule_view == :day && "border-blue-300 bg-blue-100 text-blue-700") ||
+                "bg-white text-stone-700 hover:bg-blue-50"
+            ]}
+          >
+            Day
+          </button>
+        </div>
+        <!-- Prev / Today / Next segmented control -->
+        <div class="flex items-center">
+          <button
+            phx-click="previous_week"
+            size={:sm}
+            title="Previous"
+            class="px-[6px] cursor-pointer rounded-l-md border border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M11 17l-5-5m0 0l5-5m-5 5h12"
+              />
+            </svg>
+          </button>
+
+          <button
+            phx-click="today"
+            size={:sm}
+            variant={:outline}
+            aria-pressed={@is_today}
+            title="Jump to today"
+            class={[
+              "flex cursor-pointer items-center border-y border-r border-l-0 border-stone-300 bg-white px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-default disabled:bg-stone-100 disabled:text-stone-400",
+              (@is_today && "border-blue-300 bg-blue-100 text-blue-700") ||
+                "text-stone-700 hover:bg-blue-50"
+            ]}
+            disabled={@is_today}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="mr-1 h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            Today
+          </button>
+
+          <button
+            phx-click="next_week"
+            size={:sm}
+            title="Next"
+            class="px-[6px] cursor-pointer rounded-r-md border border-l-0 border-stone-300 bg-white py-1 transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp day_kanban(assigns) do
+    day = List.first(assigns.days_range)
+    {unbatched, batched} = split_day_items(day, assigns.production_items, assigns.allocation_map)
+    assigns = assign(assigns, day: day, unbatched: unbatched, batched: batched)
+
+    ~H"""
+    <div
+      :if={Enum.empty?(@unbatched) && Enum.empty?(@batched)}
+      class="mt-4 rounded-md border border-dashed border-stone-200 bg-stone-50 py-6 text-center text-sm text-stone-500"
+    >
+      No production scheduled for this day.
+    </div>
+    <div
+      :if={!Enum.empty?(@unbatched) || !Enum.empty?(@batched)}
+      id="kanban-batches"
+      phx-hook="KanbanDragDrop"
+      class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      <%!-- Unbatched column --%>
+      <div class="kanban-column rounded-lg bg-stone-50 p-3" data-status="unbatched">
+        <h4 class="mb-2 text-xs font-semibold uppercase text-stone-400">Unbatched</h4>
+        <div class="space-y-2">
+          <.unbatched_kanban_card
+            :for={{product, items} <- @unbatched}
+            product={product}
+            items={items}
+            day={@day}
+          />
+        </div>
+      </div>
+      <%!-- Open column --%>
+      <div class="kanban-column bg-blue-50/50 rounded-lg p-3" data-status="open">
+        <h4 class="mb-2 text-xs font-semibold uppercase text-blue-600">Open</h4>
+        <div class="space-y-2">
+          <.batch_kanban_card
+            :for={bg <- Enum.filter(@batched, &(&1.status == :open))}
+            batch_group={bg}
+          />
+        </div>
+      </div>
+      <%!-- In Progress column --%>
+      <div class="kanban-column bg-amber-50/50 rounded-lg p-3" data-status="in_progress">
+        <h4 class="mb-2 text-xs font-semibold uppercase text-amber-600">In Progress</h4>
+        <div class="space-y-2">
+          <.batch_kanban_card
+            :for={bg <- Enum.filter(@batched, &(&1.status == :in_progress))}
+            batch_group={bg}
+          />
+        </div>
+      </div>
+      <%!-- Completed column --%>
+      <div class="kanban-column bg-green-50/50 rounded-lg p-3" data-status="completed">
+        <h4 class="mb-2 text-xs font-semibold uppercase text-green-600">Done</h4>
+        <div class="space-y-2">
+          <.batch_kanban_card
+            :for={bg <- Enum.filter(@batched, &(&1.status == :completed))}
+            batch_group={bg}
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp week_table(assigns) do
+    ~H"""
+    <div class="w-full overflow-x-auto">
+      <table class="min-w-[1000px] w-full table-fixed border-collapse">
+        <thead class="border-stone-200 text-left text-sm leading-6 text-stone-500">
+          <tr>
+            <th
+              :for={
+                {day, index} <-
+                  Enum.with_index(
+                    @days_range
+                    |> Enum.take((@schedule_view == :day && 1) || 7)
+                  )
+              }
+              class={[
+                "w-1/7 border-r border-stone-200 p-0 pt-4 pr-4 pb-4 font-normal last:border-r-0",
+                index > 0 && "pl-4",
+                index > 0 && "border-l",
+                index < 6 && "border-r",
+                is_today?(day) && "bg-indigo-100/50 border-r-indigo-300",
+                is_today?(Date.add(day, 1)) && "border-r-indigo-300"
+              ]}
+            >
+              <div class={["flex items-center justify-center"]}>
+                <div class={[
+                  "inline-flex items-center justify-center space-x-1 rounded px-2",
+                  is_today?(day) && "bg-indigo-500 text-white"
+                ]}>
+                  <div>{format_day_name(day)}</div>
+                  <div>{format_short_date(day, @time_zone)}</div>
+                </div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="h-[60vh]">
+            <td
+              :for={
+                {day, index} <-
+                  Enum.with_index(
+                    @days_range
+                    |> Enum.take((@schedule_view == :day && 1) || 7)
+                  )
+              }
+              class={[
+                "min-h-[200px] w-1/7 overflow-hidden border-stone-200 p-2 align-top",
+                "border-t border-t-stone-200",
+                index > 0 && "border-l",
+                index < 6 && "border-r",
+                is_today?(day) && "bg-indigo-100/50 border-r-indigo-300",
+                is_today?(Date.add(day, 1)) && "border-r-indigo-300"
+              ]}
+            >
+              <div class="h-full overflow-y-auto">
+                <% {wk_unbatched, wk_batched} =
+                  split_day_items(day, @production_items, @allocation_map) %>
+                <%!-- Unbatched items in week view --%>
+                <div
+                  :for={{product, items} <- wk_unbatched}
+                  phx-click="open_unbatched_modal"
+                  phx-value-product-id={product.id}
+                  phx-value-day={Date.to_iso8601(day)}
+                  class={[
+                    "group mb-2 cursor-pointer border p-2",
+                    capacity_cell_class(product, items),
+                    "hover:bg-stone-100"
+                  ]}
+                >
+                  <div class="mb-1.5 flex items-center justify-between gap-2 overflow-hidden">
+                    <span class="min-w-0 truncate text-sm font-medium" title={product.name}>
+                      {product.name}
+                    </span>
+                    <.badge
+                      :if={capacity_status(product, items) == :over}
+                      text="Over capacity"
+                      class="flex-shrink-0"
+                    />
+                  </div>
+                  <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
+                    <span>
+                      {format_amount(:piece, total_quantity(items))}
+                    </span>
+                    <span class="text-[10px] inline-flex flex-shrink-0 items-center rounded-full bg-stone-100 px-1.5 py-0.5 font-medium text-stone-600">
+                      Unbatched
+                    </span>
+                  </div>
+                </div>
+                <%!-- Batched items in week view --%>
+                <div
+                  :for={batch_group <- wk_batched}
+                  phx-click="open_batch_modal"
+                  phx-value-batch-code={batch_group.batch_code}
+                  phx-value-day={Date.to_iso8601(day)}
+                  class={[
+                    "group mb-2 cursor-pointer border p-2",
+                    capacity_cell_class(batch_group.product, batch_group.items),
+                    "hover:bg-stone-100"
+                  ]}
+                >
+                  <div class="mb-1.5 flex items-center justify-between gap-2 overflow-hidden">
+                    <span
+                      class="min-w-0 truncate text-sm font-medium"
+                      title={batch_group.product.name}
+                    >
+                      {batch_group.product.name}
+                    </span>
+                    <.badge
+                      :if={capacity_status(batch_group.product, batch_group.items) == :over}
+                      text="Over capacity"
+                      class="flex-shrink-0"
+                    />
+                  </div>
+                  <div class="mt-1.5 flex items-center justify-between text-xs text-stone-500">
+                    <span>
+                      {format_amount(:piece, total_quantity(batch_group.items))}
+                    </span>
+                    <span class={[
+                      "text-[10px] inline-flex flex-shrink-0 items-center rounded-full px-1.5 py-0.5 font-medium",
+                      batch_status_bg(batch_group.status),
+                      batch_status_color(batch_group.status)
+                    ]}>
+                      {batch_status_label(batch_group.status)}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  :if={get_items_for_day(day, @production_items) |> Enum.empty?()}
+                  class="flex h-full pt-2 text-sm text-stone-400"
+                >
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    """
+  end
+
+  defp batch_detail_modal(assigns) do
+    ~H"""
+    <.modal
+      id="batch-detail-modal"
+      show
+      title={@selected_batch.batch_code}
+      on_cancel={JS.push("close_batch_modal")}
+    >
+      <div class="space-y-4 px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-lg font-medium text-stone-900">
+              {@selected_batch.product.name}
+            </span>
+            <span class={[
+              "ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+              batch_status_bg(@selected_batch.status),
+              batch_status_color(@selected_batch.status)
+            ]}>
+              {batch_status_label(@selected_batch.status)}
+            </span>
+          </div>
+          <span class="text-sm text-stone-500">
+            {format_amount(:piece, total_quantity(@selected_batch.items))} &middot; {length(
+              Enum.uniq_by(@selected_batch.items, & &1.order.id)
+            )} orders
+          </span>
+        </div>
+
+        <%!-- Order details --%>
+        <div class="space-y-2">
+          <h4 class="text-xs font-semibold uppercase text-stone-400">Orders</h4>
+          <div
+            :for={item <- @selected_batch.items}
+            class="flex items-center justify-between rounded border border-stone-100 bg-stone-50 px-3 py-2 text-sm"
+          >
+            <div class="flex items-center gap-2">
+              <.link
+                navigate={~p"/manage/orders/#{item.order.reference}/items"}
+                class="font-medium text-blue-700 hover:underline"
+              >
+                <.kbd>{format_reference(item.order.reference)}</.kbd>
+              </.link>
+              <span class="text-stone-500">{item.order.customer.full_name}</span>
+            </div>
+            <span class="text-stone-700">{item.quantity} pcs</span>
+          </div>
+        </div>
+
+        <%!-- Action buttons --%>
+        <div class="flex items-center justify-between border-t border-stone-200 pt-3">
+          <.link
+            navigate={~p"/manage/production/batches/#{@selected_batch.batch_code}"}
+            class="text-sm font-medium text-blue-700 hover:underline"
+          >
+            View full batch &rarr;
+          </.link>
+          <div class="flex items-center gap-2">
+            <%= case @selected_batch.status do %>
+              <% :open -> %>
+                <.button
+                  size={:sm}
+                  variant={:outline}
+                  phx-click={
+                    JS.push("start_batch",
+                      value: %{"batch-code" => @selected_batch.batch_code}
+                    )
+                  }
+                >
+                  Start
+                </.button>
+              <% :in_progress -> %>
+                <.button
+                  :if={!@completing_batch_code}
+                  size={:sm}
+                  variant={:outline}
+                  phx-click={
+                    JS.push("toggle_complete_form",
+                      value: %{"batch-code" => @selected_batch.batch_code}
+                    )
+                  }
+                >
+                  Mark Done
+                </.button>
+              <% _ -> %>
+            <% end %>
+          </div>
+        </div>
+
+        <%!-- Inline completion form --%>
+        <div
+          :if={@completing_batch_code == @selected_batch.batch_code}
+          class="rounded-lg border border-stone-200 bg-stone-50 p-4"
+        >
+          <.form
+            id={"complete-form-#{@selected_batch.batch_code}"}
+            for={%{}}
+            phx-submit="complete_batch"
+          >
+            <input type="hidden" name="batch-code" value={@selected_batch.batch_code} />
+            <div class="flex items-end gap-4">
+              <div class="flex-1">
+                <.input
+                  type="number"
+                  name="produced_qty"
+                  label="Produced qty"
+                  value={total_quantity(@selected_batch.items) |> Decimal.to_string()}
+                  min="0"
+                  step="any"
+                  required
+                />
+              </div>
+              <div class="flex-1">
+                <.input
+                  type="number"
+                  name="duration_minutes"
+                  label="Duration (min)"
+                  value=""
+                  placeholder="optional"
+                  min="0"
+                  step="any"
+                />
+              </div>
+              <div class="flex items-center gap-2 pb-1">
+                <.button
+                  size={:sm}
+                  variant={:outline}
+                  type="button"
+                  phx-click={
+                    JS.push("toggle_complete_form",
+                      value: %{"batch-code" => @selected_batch.batch_code}
+                    )
+                  }
+                >
+                  Cancel
+                </.button>
+                <.button size={:sm} variant={:primary} type="submit">
+                  Complete
+                </.button>
+              </div>
+            </div>
+          </.form>
+        </div>
+      </div>
+    </.modal>
+    """
+  end
+
   defp beginning_of_week(date) do
     Date.add(date, -(Date.day_of_week(date) - 1))
   end
@@ -1394,15 +1417,8 @@ defmodule CraftplanWeb.OverviewLive do
 
   defp plan_trail(_), do: [Navigation.root(:overview)]
 
-  defp batch_status_label(:not_batched), do: "Not Batched"
-  defp batch_status_label(:open), do: "Open"
-  defp batch_status_label(:in_progress), do: "In Progress"
-  defp batch_status_label(:completed), do: "Completed"
-
-  defp batch_status_class(:not_batched), do: "bg-stone-100 text-stone-600"
-  defp batch_status_class(:open), do: "bg-blue-100 text-blue-700"
-  defp batch_status_class(:in_progress), do: "bg-amber-100 text-amber-700"
-  defp batch_status_class(:completed), do: "bg-green-100 text-green-700"
+  defp param_day(%{"day" => day_str}) when is_binary(day_str), do: Date.from_iso8601!(day_str)
+  defp param_day(_), do: nil
 
   defp split_day_items(day, production_items, allocation_map) do
     all = get_items_for_day(day, production_items)
@@ -1443,23 +1459,35 @@ defmodule CraftplanWeb.OverviewLive do
     {unbatched, batched}
   end
 
-  defp compute_week_metrics(socket, days_range, production_items, materials_requirements) do
-    over_capacity_days =
-      Enum.count(days_range, fn day ->
-        production_items
-        |> Enum.filter(fn {d, _p, _i} -> Date.compare(d, day) == :eq end)
-        |> Enum.group_by(fn {_d, p, _i} -> p end, fn {_d, _p, i} -> i end)
-        |> Enum.any?(fn {product, groups} ->
-          max = product.max_daily_quantity || 0
+  defp items_by_day_and_product(production_items, days_range) do
+    Enum.flat_map(days_range, fn day ->
+      production_items
+      |> Enum.filter(fn {d, _p, _i} -> Date.compare(d, day) == :eq end)
+      |> Enum.group_by(fn {_d, p, _i} -> p end, fn {_d, _p, i} -> i end)
+      |> Enum.map(fn {product, groups} ->
+        items = List.flatten(groups)
 
-          if max <= 0 do
-            false
-          else
-            qty = groups |> List.flatten() |> total_quantity()
-            Decimal.compare(qty, Decimal.new(max)) == :gt
-          end
-        end)
+        %{
+          day: day,
+          product: product,
+          items: items,
+          qty: total_quantity(items),
+          max: product.max_daily_quantity || 0
+        }
       end)
+    end)
+  end
+
+  defp compute_week_metrics(socket, days_range, production_items, materials_requirements) do
+    grouped = items_by_day_and_product(production_items, days_range)
+
+    over_capacity_days =
+      grouped
+      |> Enum.filter(fn %{max: max, qty: qty} ->
+        max > 0 and Decimal.compare(qty, Decimal.new(max)) == :gt
+      end)
+      |> Enum.uniq_by(& &1.day)
+      |> length()
 
     orders_by_day_counts = Map.get(socket.assigns, :orders_by_day_counts, %{})
     cap = socket.assigns.settings.daily_capacity || 0
@@ -1517,26 +1545,11 @@ defmodule CraftplanWeb.OverviewLive do
   end
 
   defp compute_overview_tables_from(socket, assigns) do
+    grouped = items_by_day_and_product(assigns.production_items, assigns.days_range)
+
     over_capacity_rows =
-      Enum.flat_map(assigns.days_range, fn day ->
-        assigns.production_items
-        |> Enum.filter(fn {d, _p, _i} -> Date.compare(d, day) == :eq end)
-        |> Enum.group_by(fn {_d, p, _i} -> p end, fn {_d, _p, i} -> i end)
-        |> Enum.flat_map(fn {product, groups} ->
-          max = product.max_daily_quantity || 0
-
-          if max > 0 do
-            qty = groups |> List.flatten() |> total_quantity()
-
-            if Decimal.compare(qty, Decimal.new(max)) == :gt do
-              [%{day: day, product: product, qty: qty, max: max}]
-            else
-              []
-            end
-          else
-            []
-          end
-        end)
+      Enum.filter(grouped, fn %{max: max, qty: qty} ->
+        max > 0 and Decimal.compare(qty, Decimal.new(max)) == :gt
       end)
 
     cap = assigns.settings.daily_capacity || 0
@@ -1581,13 +1594,11 @@ defmodule CraftplanWeb.OverviewLive do
     orders_today_rows = Map.get(socket.assigns, :orders_today_rows, [])
 
     today = Date.utc_today()
+    today_grouped = items_by_day_and_product(assigns.production_items, [today])
 
     outstanding_today_rows =
-      assigns.production_items
-      |> Enum.filter(fn {d, _p, _i} -> Date.compare(d, today) == :eq end)
-      |> Enum.group_by(fn {_d, p, _i} -> p end, fn {_d, _p, i} -> i end)
-      |> Enum.map(fn {product, groups} ->
-        items = List.flatten(groups)
+      today_grouped
+      |> Enum.map(fn %{product: product, items: items} ->
         todo = items |> Enum.filter(&(&1.status == :todo)) |> total_quantity()
         in_progress = items |> Enum.filter(&(&1.status == :in_progress)) |> total_quantity()
         %{product: product, todo: todo, in_progress: in_progress}
@@ -1652,6 +1663,7 @@ defmodule CraftplanWeb.OverviewLive do
       end
 
     socket
+    |> assign(:first_schedule_day, List.first(days_range))
     |> assign(:days_range, days_range)
     |> assign(:production_items, production_items)
     |> assign(:materials_requirements, materials_requirements)

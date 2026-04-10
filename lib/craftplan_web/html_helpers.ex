@@ -416,6 +416,13 @@ defmodule CraftplanWeb.HtmlHelpers do
       in_progress: "text-blue-700 border-blue-600",
       done: "text-green-700 border-green-600",
       default: "text-gray-700 border-gray-600"
+    },
+    batch: %{
+      not_batched: "text-stone-600 border-stone-500",
+      open: "text-blue-700 border-blue-600",
+      in_progress: "text-amber-700 border-amber-600",
+      completed: "text-green-700 border-green-600",
+      default: "text-stone-600 border-stone-500"
     }
   }
 
@@ -461,6 +468,13 @@ defmodule CraftplanWeb.HtmlHelpers do
       in_progress: "bg-blue-100",
       done: "bg-green-100",
       default: "bg-gray-100"
+    },
+    batch: %{
+      not_batched: "bg-stone-100",
+      open: "bg-blue-100",
+      in_progress: "bg-amber-100",
+      completed: "bg-green-100",
+      default: "bg-stone-100"
     }
   }
 
@@ -532,6 +546,17 @@ defmodule CraftplanWeb.HtmlHelpers do
   def payment_status_bg(status), do: status_bg(status, "payment")
   def order_item_status_bg(status), do: status_bg(status, "order_item")
   def order_dot_status_bg(status), do: status_bg(status, "order_dot")
+
+  @batch_status_labels %{
+    not_batched: "Not Batched",
+    open: "Open",
+    in_progress: "In Progress",
+    completed: "Completed"
+  }
+
+  def batch_status_color(status), do: status_color(status, "batch")
+  def batch_status_bg(status), do: status_bg(status, "batch")
+  def batch_status_label(status), do: @batch_status_labels[status] || "Unknown"
 
   def product_status_dot(status) do
     @status_dots[status] || @status_dots[:default]
