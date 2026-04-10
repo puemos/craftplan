@@ -56,7 +56,7 @@ defmodule Craftplan.Catalog.LaborStep do
 
     attribute :name, :string do
       allow_nil? false
-      constraints min_length: 1, allow_empty?: false
+      constraints min_length: 1, allow_empty?: false, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
     end
 
     attribute :sequence, :integer do
