@@ -48,6 +48,7 @@ defmodule Craftplan.Inventory.Allergen do
     attribute :name, :string do
       public? true
       allow_nil? false
+      constraints min_length: 1, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
     end
 
     timestamps()

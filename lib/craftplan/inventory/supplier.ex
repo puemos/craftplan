@@ -75,10 +75,12 @@ defmodule Craftplan.Inventory.Supplier do
 
     attribute :name, :string do
       allow_nil? false
+      constraints min_length: 1, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
     end
 
     attribute :contact_name, :string do
       allow_nil? true
+      constraints match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
     end
 
     attribute :contact_email, :string do

@@ -1473,7 +1473,14 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
   defp normalize_decimal(%D{} = value), do: value
   defp normalize_decimal(nil), do: D.new(0)
-  defp normalize_decimal(value) when is_binary(value), do: D.new(value)
+
+  defp normalize_decimal(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> D.new(0)
+      trimmed_value -> D.new(trimmed_value)
+    end
+  end
+
   defp normalize_decimal(value) when is_integer(value), do: D.new(value)
   defp normalize_decimal(value) when is_float(value), do: D.from_float(value)
   defp normalize_decimal(_), do: D.new(0)
