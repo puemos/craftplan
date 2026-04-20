@@ -1,6 +1,5 @@
 #!/bin/sh
 set -eu
 
-cd -P -- "$(dirname -- "$0")/.."
-./bin/migrate
-PHX_SERVER=true exec ./bin/craftplan start
+cd -P -- "$(dirname -- "$0")"
+PHX_SERVER=true exec ./craftplan start

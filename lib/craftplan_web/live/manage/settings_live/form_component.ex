@@ -327,6 +327,45 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
             </div>
           </section>
         </div>
+        <section
+          id="forecasting-settings"
+          aria-labelledby="forecasting-settings-title"
+          class="rounded-lg border border-stone-200 bg-stone-50"
+        >
+          <div class="border-b border-stone-200 px-4 py-3">
+            <h3 id="forecasting-settings-title" class="text-base font-semibold text-stone-800">
+              Demo Data
+            </h3>
+          </div>
+          <div class="flex justify-between px-5">
+            <p class="mt-1 text-sm text-stone-600">
+              Seed the database with demo data.
+            </p>
+            <.button variant={:secondary} phx-click="seed_demo" phx-disable-with="Seeding...">
+              Seed
+            </.button>
+          </div>
+        </section>
+
+        <section
+          id="forecasting-settings"
+          aria-labelledby="forecasting-settings-title"
+          class="rounded-lg border border-stone-200 bg-stone-50"
+        >
+          <div class="border-b border-stone-200 px-4 py-3">
+            <h3 id="forecasting-settings-title" class="text-base font-semibold text-stone-800">
+              Danger
+            </h3>
+          </div>
+          <div class="flex justify-between px-5">
+            <p class="mt-1 text-sm text-stone-600">
+              Reset all the database data (except users/settings).
+            </p>
+            <.button variant={:danger} phx-click="delete_data" phx-disable-with="resetting...">
+              Reset
+            </.button>
+          </div>
+        </section>
 
         <:actions>
           <.button variant={:primary} phx-disable-with="Saving...">Save Settings</.button>
