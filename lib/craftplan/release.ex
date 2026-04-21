@@ -1,12 +1,12 @@
 defmodule Craftplan.Release do
   @moduledoc """
-  Release tasks that can be run without Mix (inside OTP releases).
+  Used for executing DB release tasks when run in production without Mix
+  installed.
 
   Usage:
 
       bin/craftplan eval "Craftplan.Release.migrate"
   """
-
   @app :craftplan
 
   def migrate do
