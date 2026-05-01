@@ -53,7 +53,7 @@ defmodule Craftplan.Orders.OrderItem do
 
     create :create do
       primary? true
-      accept [:product_id, :quantity, :unit_price, :status]
+      accept [:order_id, :product_id, :quantity, :unit_price, :status]
 
       change {AssignBatchCodeAndCost, []}
     end
