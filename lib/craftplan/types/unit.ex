@@ -128,5 +128,11 @@ defmodule Craftplan.Types.Unit do
   # Helper function to format numbers nicely
   defp format_number(value) when is_integer(value), do: "#{value}"
   defp format_number(value) when value == trunc(value), do: "#{trunc(value)}"
-  defp format_number(value), do: :erlang.float_to_binary(value, decimals: 1)
+
+  defp format_number(value) do
+    value
+    |> :erlang.float_to_binary(decimals: 3)
+    |> String.trim_trailing("0")
+    |> String.trim_trailing(".")
+  end
 end
