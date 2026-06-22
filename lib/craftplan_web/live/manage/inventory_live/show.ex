@@ -2,8 +2,28 @@ defmodule CraftplanWeb.InventoryLive.Show do
   @moduledoc false
   use CraftplanWeb, :live_view
 
+  require Ash.Query
+
   alias Craftplan.Inventory
+  alias Craftplan.Inventory.Movement
   alias CraftplanWeb.Navigation
+
+  defp movements_query do
+    Movement
+    |> Ash.Query.sort(occurred_at: :desc)
+    |> Ash.Query.load(:lot)
+  end
+
+  defp material_load_opts do
+    [
+      :current_stock,
+      {:movements, movements_query()},
+      :allergens,
+      :material_allergens,
+      :nutritional_facts,
+      material_nutritional_facts: [:nutritional_fact]
+    ]
+  end
 
   @impl true
   def render(assigns) do
@@ -116,19 +136,29 @@ defmodule CraftplanWeb.InventoryLive.Show do
             <:empty>
               <div class="block py-4 pr-6">
                 <span class={["relative"]}>
-                  No movements found
+                  No movements yet. Stock changes will appear here.
                 </span>
               </div>
             </:empty>
 
             <:col :let={entry} label="Date">
-              {format_time(entry.inserted_at, @time_zone)}
+              {format_time(entry.occurred_at || entry.inserted_at, @time_zone)}
             </:col>
 
             <:col :let={entry} label="Quantity">
-              {format_amount(@material.unit, entry.quantity)}
+              <span class={if Decimal.negative?(entry.quantity), do: "text-rose-700", else: "text-emerald-700"}>
+                {format_amount(@material.unit, entry.quantity)}
+              </span>
             </:col>
-            <:col :let={entry} label="Reason">{entry.reason}</:col>
+
+            <:col :let={entry} label="Lot">
+              <.kbd :if={entry.lot && entry.lot.lot_code}>{entry.lot.lot_code}</.kbd>
+              <span :if={!entry.lot} class="text-stone-400">—</span>
+            </:col>
+
+            <:col :let={entry} label="Reason">
+              {render_reason(entry.reason)}
+            </:col>
           </.table>
         </div>
       </.tabs_content>
@@ -190,14 +220,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
     material =
       Inventory.get_material_by_sku!(sku,
         actor: socket.assigns[:current_user],
-        load: [
-          :current_stock,
-          :movements,
-          :allergens,
-          :material_allergens,
-          :nutritional_facts,
-          material_nutritional_facts: [:nutritional_fact]
-        ]
+        load: material_load_opts()
       )
 
     open_po_items =
@@ -248,14 +271,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
     material =
       Inventory.get_material_by_id!(material_id,
         actor: socket.assigns[:current_user],
-        load: [
-          :current_stock,
-          :movements,
-          :allergens,
-          :material_allergens,
-          :nutritional_facts,
-          material_nutritional_facts: [:nutritional_fact]
-        ]
+        load: material_load_opts()
       )
 
     {:noreply, assign(socket, :material, material)}
@@ -266,14 +282,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
     material =
       Inventory.get_material_by_id!(material_id,
         actor: socket.assigns[:current_user],
-        load: [
-          :current_stock,
-          :movements,
-          :allergens,
-          :material_allergens,
-          :nutritional_facts,
-          material_nutritional_facts: [:nutritional_fact]
-        ]
+        load: material_load_opts()
       )
 
     {:noreply, assign(socket, :material, material)}
@@ -284,14 +293,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
     material =
       Inventory.get_material_by_id!(material_id,
         actor: socket.assigns[:current_user],
-        load: [
-          :current_stock,
-          :movements,
-          :allergens,
-          :material_allergens,
-          :nutritional_facts,
-          material_nutritional_facts: [:nutritional_fact]
-        ]
+        load: material_load_opts()
       )
 
     {:noreply, assign(socket, :material, material)}
@@ -302,17 +304,38 @@ defmodule CraftplanWeb.InventoryLive.Show do
     material =
       Inventory.get_material_by_id!(material_id,
         actor: socket.assigns[:current_user],
-        load: [
-          :current_stock,
-          :movements,
-          :allergens,
-          :material_allergens,
-          :nutritional_facts,
-          material_nutritional_facts: [:nutritional_fact]
-        ]
+        load: material_load_opts()
       )
 
     {:noreply, assign(socket, :material, material)}
+  end
+
+  # If the reason starts with "PO <reference> receive", split out the reference
+  # so we can link to the purchase order page. Otherwise render as plain text.
+  defp render_reason(nil), do: assigns_to_text("")
+  defp render_reason(reason) when is_binary(reason) do
+    case Regex.run(~r/^PO\s+(\S+)\s+(.*)$/, reason) do
+      [_, po_ref, rest] ->
+        assigns = %{po_ref: po_ref, rest: rest}
+
+        ~H"""
+        <.link navigate={~p"/manage/purchasing/#{@po_ref}"} class="font-medium hover:underline">
+          PO {@po_ref}
+        </.link>
+        <span class="text-stone-500">{@rest}</span>
+        """
+
+      _ ->
+        assigns_to_text(reason)
+    end
+  end
+
+  defp assigns_to_text(text) do
+    assigns = %{text: text}
+
+    ~H"""
+    <span>{@text}</span>
+    """
   end
 
   defp page_title(:show), do: "Show Material"
