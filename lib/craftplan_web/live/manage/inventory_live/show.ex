@@ -37,7 +37,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
             </.kbd>
           </:item>
           <:item title="Price">
-            {format_money(@settings.currency, @material.price)}
+            {format_unit_price(@settings.currency, @material.price)} / {Craftplan.Types.Unit.abbreviation(@material.unit)}
           </:item>
           <:item title="Allergens">
             <div class="flex-inline items-center space-x-1">

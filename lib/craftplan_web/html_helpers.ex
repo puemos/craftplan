@@ -303,6 +303,27 @@ defmodule CraftplanWeb.HtmlHelpers do
     format_currency(currency, amount, opts)
   end
 
+  @doc """
+  Format a per-unit price (e.g. cost per gram, price per piece) with enough
+  precision to be useful for bulk-ingredient bakery costing.
+
+  Bakery materials are stored per-gram, so per-unit prices are typically
+  in the $0.001–$0.10 range. The default `format_money` (2 decimal places)
+  collapses everything sub-cent into `$0.01` or `$0.00`. This helper
+  forces 4 fractional digits so `$0.0011/g` is distinguishable from
+  `$0.0067/g`.
+  """
+  @spec format_unit_price(atom(), Decimal.t() | Money.t() | number() | nil, Keyword.t()) ::
+          String.t()
+  def format_unit_price(currency, amount, opts \\ []) do
+    opts =
+      opts
+      |> Keyword.put_new(:fractional_digits, 4)
+      |> Keyword.put_new(:format, :string)
+
+    format_currency(currency, amount, opts)
+  end
+
   @spec format_amount(atom(), Decimal.t() | Money.t() | number() | nil) :: String.t()
   def format_amount(unit, nil), do: format_amount(unit, Decimal.new(0))
   def format_amount(unit, %Decimal{} = amount), do: format_amount(unit, Decimal.to_float(amount))

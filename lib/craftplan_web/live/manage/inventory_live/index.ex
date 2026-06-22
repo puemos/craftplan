@@ -72,7 +72,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
                   {format_amount(material.unit, material.current_stock)}
                 </:col>
                 <:col :let={{_, material}} label="Price">
-                  {format_money(@settings.currency, material.price)} per {material.unit}
+                  {format_unit_price(@settings.currency, material.price)} per {Craftplan.Types.Unit.abbreviation(material.unit)}
                 </:col>
                 <:action :let={{_, material}}>
                   <div class="sr-only">
