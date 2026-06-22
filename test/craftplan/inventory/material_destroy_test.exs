@@ -66,6 +66,77 @@ defmodule Craftplan.Inventory.MaterialDestroyTest do
       assert error_message(error) =~ "Cannot delete"
       assert error_message(error) =~ "lot"
     end
+
+    test "refuses when an allergen association exists" do
+      mat = create_material("DESTROY-4")
+
+      {:ok, allergen} =
+        Inventory.Allergen
+        |> Ash.Changeset.for_create(:create, %{name: "Test-Allergen-#{System.unique_integer([:positive])}"})
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        Inventory.MaterialAllergen
+        |> Ash.Changeset.for_create(:create, %{material_id: mat.id, allergen_id: allergen.id})
+        |> Ash.create(actor: staff())
+
+      assert {:error, error} = Ash.destroy(mat, actor: staff())
+      assert error_message(error) =~ "Cannot delete"
+      assert error_message(error) =~ "allergen"
+    end
+
+    test "refuses when a purchase order item references the material" do
+      mat = create_material("DESTROY-5")
+      supplier = create_supplier("DSUP-PO")
+
+      {:ok, po} =
+        Inventory.PurchaseOrder
+        |> Ash.Changeset.for_create(:create, %{
+          supplier_id: supplier.id,
+          status: :ordered,
+          ordered_at: DateTime.utc_now()
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        Inventory.PurchaseOrderItem
+        |> Ash.Changeset.for_create(:create, %{
+          purchase_order_id: po.id,
+          material_id: mat.id,
+          quantity: Decimal.new("5"),
+          unit_price: Decimal.new("1.00")
+        })
+        |> Ash.create(actor: staff())
+
+      assert {:error, error} = Ash.destroy(mat, actor: staff())
+      assert error_message(error) =~ "Cannot delete"
+      assert error_message(error) =~ "purchase order item"
+    end
+
+    test "lists multiple blocker types in one message" do
+      mat = create_material("DESTROY-6")
+
+      {:ok, _} =
+        Inventory.adjust_stock(
+          %{material_id: mat.id, quantity: Decimal.new(10), reason: "seed"},
+          actor: staff()
+        )
+
+      {:ok, allergen} =
+        Inventory.Allergen
+        |> Ash.Changeset.for_create(:create, %{name: "Multi-#{System.unique_integer([:positive])}"})
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        Inventory.MaterialAllergen
+        |> Ash.Changeset.for_create(:create, %{material_id: mat.id, allergen_id: allergen.id})
+        |> Ash.create(actor: staff())
+
+      assert {:error, error} = Ash.destroy(mat, actor: staff())
+      msg = error_message(error)
+      assert msg =~ "movement"
+      assert msg =~ "allergen"
+    end
   end
 
   defp error_message(%Ash.Error.Invalid{errors: errors}) do
