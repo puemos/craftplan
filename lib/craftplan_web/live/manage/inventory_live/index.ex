@@ -44,11 +44,29 @@ defmodule CraftplanWeb.InventoryLive.Index do
           <:left>
             <Page.surface>
               <:header>
-                <div>
-                  <h3 class="text-sm font-semibold text-stone-900">Material catalog</h3>
-                  <p class="text-xs text-stone-500">
-                    Browse SKUs, stock on hand, and pricing.
-                  </p>
+                <div class="flex w-full items-start justify-between gap-4">
+                  <div>
+                    <h3 class="text-sm font-semibold text-stone-900">Material catalog</h3>
+                    <p class="text-xs text-stone-500">
+                      Browse SKUs, stock on hand, and pricing.
+                    </p>
+                  </div>
+                  <div class="text-xs">
+                    <.link
+                      :if={!@include_archived}
+                      patch={~p"/manage/inventory?archived=1"}
+                      class="text-stone-500 hover:text-stone-900"
+                    >
+                      Show archived
+                    </.link>
+                    <.link
+                      :if={@include_archived}
+                      patch={~p"/manage/inventory"}
+                      class="text-stone-500 hover:text-stone-900"
+                    >
+                      Hide archived
+                    </.link>
+                  </div>
                 </div>
               </:header>
               <.table
@@ -62,7 +80,12 @@ defmodule CraftplanWeb.InventoryLive.Index do
                     No materials found. Add your first ingredient to start tracking stock.
                   </div>
                 </:empty>
-                <:col :let={{_, material}} label="Material">{material.name}</:col>
+                <:col :let={{_, material}} label="Material">
+                  <span class={if material.archived_at, do: "text-stone-400 italic", else: ""}>
+                    {material.name}
+                  </span>
+                  <.badge :if={material.archived_at} text="archived" />
+                </:col>
                 <:col :let={{_, material}} label="SKU">
                   <.kbd>
                     {material.sku}
@@ -81,10 +104,25 @@ defmodule CraftplanWeb.InventoryLive.Index do
                 </:action>
                 <:action :let={{_, material}}>
                   <.link
+                    :if={!material.archived_at}
+                    phx-click={JS.push("archive", value: %{id: material.id})}
+                    data-confirm={"Archive #{material.name}? It will be hidden from the default list. Stock history is preserved."}
+                  >
+                    <.button size={:sm}>Archive</.button>
+                  </.link>
+                  <.link
+                    :if={material.archived_at}
+                    phx-click={JS.push("unarchive", value: %{id: material.id})}
+                  >
+                    <.button size={:sm}>Unarchive</.button>
+                  </.link>
+                </:action>
+                <:action :let={{_, material}}>
+                  <.link
                     phx-click={
                       JS.push("delete", value: %{id: material.id}) |> hide("##{material.sku}")
                     }
-                    data-confirm="Are you sure?"
+                    data-confirm="Delete this material? This only works if it has no inventory history."
                   >
                     <.button size={:sm} variant={:danger}>
                       Delete
@@ -496,10 +534,12 @@ defmodule CraftplanWeb.InventoryLive.Index do
     |> assign(:material, nil)
   end
 
-  defp apply_action(socket, :index, _params) do
-    # Reload materials when returning to index
+  defp apply_action(socket, :index, params) do
+    include_archived = params["archived"] in ["1", "true"]
+
     materials =
       Inventory.list_materials!(
+        %{include_archived: include_archived},
         actor: socket.assigns[:current_user],
         stream?: true,
         load: [:current_stock]
@@ -507,6 +547,7 @@ defmodule CraftplanWeb.InventoryLive.Index do
 
     socket
     |> stream(:materials, materials, reset: true)
+    |> assign(:include_archived, include_archived)
     |> assign(:page_title, "Inventory")
     |> assign(:material, nil)
   end
@@ -643,6 +684,45 @@ defmodule CraftplanWeb.InventoryLive.Index do
        do: message
 
   defp destroy_error_message(_), do: "Failed to delete material."
+
+  @impl true
+  def handle_event("archive", %{"id" => id}, socket) do
+    actor = socket.assigns.current_user
+
+    with material <- Inventory.get_material_by_id!(id, actor: actor),
+         {:ok, _archived} <- Inventory.archive_material(material, actor: actor) do
+      socket =
+        if socket.assigns.include_archived do
+          # Refresh row in-place when archived materials are visible
+          updated = Inventory.get_material_by_id!(id, actor: actor, load: [:current_stock])
+          stream_insert(socket, :materials, updated)
+        else
+          # Default list hides archived, so drop the row
+          stream_delete(socket, :materials, %{id: id})
+        end
+
+      {:noreply, put_flash(socket, :info, "Material archived")}
+    else
+      {:error, _} -> {:noreply, put_flash(socket, :error, "Failed to archive material.")}
+    end
+  end
+
+  @impl true
+  def handle_event("unarchive", %{"id" => id}, socket) do
+    actor = socket.assigns.current_user
+
+    with material <- Inventory.get_material_by_id!(id, actor: actor),
+         {:ok, _restored} <- Inventory.unarchive_material(material, actor: actor) do
+      updated = Inventory.get_material_by_id!(id, actor: actor, load: [:current_stock])
+
+      {:noreply,
+       socket
+       |> put_flash(:info, "Material restored")
+       |> stream_insert(:materials, updated)}
+    else
+      {:error, _} -> {:noreply, put_flash(socket, :error, "Failed to unarchive material.")}
+    end
+  end
 
   @impl true
   def handle_info({:saved, material}, socket) do

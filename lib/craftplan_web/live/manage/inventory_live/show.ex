@@ -34,10 +34,23 @@ defmodule CraftplanWeb.InventoryLive.Show do
 
     ~H"""
     <.header>
-      {@material.name}
+      <div class="flex items-center gap-2">
+        <span>{@material.name}</span>
+        <.badge :if={@material.archived_at} text="archived" />
+      </div>
       <:actions>
         <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit</.button>
+        </.link>
+        <.link
+          :if={!@material.archived_at}
+          phx-click="archive"
+          data-confirm={"Archive #{@material.name}? It will be hidden from the default list. Stock history is preserved and the material can be restored anytime."}
+        >
+          <.button>Archive</.button>
+        </.link>
+        <.link :if={@material.archived_at} phx-click="unarchive">
+          <.button>Unarchive</.button>
         </.link>
         <.link patch={~p"/manage/inventory/#{@material.sku}/adjust"} phx-click={JS.push_focus()}>
           <.button variant={:primary}>Adjust Stock</.button>
@@ -262,6 +275,34 @@ defmodule CraftplanWeb.InventoryLive.Show do
       |> assign(:tabs_links, tabs_links)
 
     {:noreply, Navigation.assign(socket, :inventory, material_trail(material, live_action))}
+  end
+
+  @impl true
+  def handle_event("archive", _params, socket) do
+    case Inventory.archive_material(socket.assigns.material, actor: socket.assigns.current_user) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Material archived")
+         |> push_navigate(to: ~p"/manage/inventory")}
+
+      {:error, _error} ->
+        {:noreply, put_flash(socket, :error, "Failed to archive material.")}
+    end
+  end
+
+  @impl true
+  def handle_event("unarchive", _params, socket) do
+    case Inventory.unarchive_material(socket.assigns.material, actor: socket.assigns.current_user) do
+      {:ok, material} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Material restored")
+         |> assign(:material, material)}
+
+      {:error, _error} ->
+        {:noreply, put_flash(socket, :error, "Failed to unarchive material.")}
+    end
   end
 
   # helper functions removed; calls now pass actor explicitly in mount

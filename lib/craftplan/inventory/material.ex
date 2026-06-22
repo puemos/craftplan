@@ -33,6 +33,8 @@ defmodule Craftplan.Inventory.Material do
     mutations do
       create :create_material, :create
       update :update_material, :update
+      update :archive_material, :archive
+      update :unarchive_material, :unarchive
     end
   end
 
@@ -95,8 +97,28 @@ defmodule Craftplan.Inventory.Material do
       change manage_relationship(:material_nutritional_facts, type: :direct_control)
     end
 
+    update :archive do
+      description "Mark a material as archived. Preserves all history; hides from default list."
+      accept []
+      change set_attribute(:archived_at, &DateTime.utc_now/0)
+    end
+
+    update :unarchive do
+      description "Restore an archived material."
+      accept []
+      change set_attribute(:archived_at, nil)
+    end
+
     read :list do
+      argument :include_archived, :boolean do
+        allow_nil? false
+        default false
+        description "Include archived materials in the result."
+      end
+
       prepare build(sort: :name)
+
+      filter expr(^arg(:include_archived) == true or is_nil(archived_at))
 
       pagination do
         required? false
@@ -180,6 +202,12 @@ defmodule Craftplan.Inventory.Material do
       public? true
       allow_nil? true
       description "When Material.price was last set. Auto-stamped when :price is in the changeset."
+    end
+
+    attribute :archived_at, :utc_datetime do
+      public? true
+      allow_nil? true
+      description "When the material was archived. Nil means active."
     end
 
     timestamps()
