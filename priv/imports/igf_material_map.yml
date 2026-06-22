@@ -1,0 +1,12 @@
+# IGF product code → Craftplan material SKU
+#
+# Updated by the igf-import skill each time a new IGF line is mapped to a
+# Craftplan Material. The source of truth on the database side is
+# Material.external_sku — this file mirrors it so the skill can resolve
+# without round-tripping a GraphQL query for every line, and so the
+# mapping survives a database wipe / re-import.
+#
+# Format: "IGF code": craftplan-sku
+# Keep quoted — some IGF codes are numeric, some alphanumeric (e.g. NSSA357).
+
+mappings: {}
