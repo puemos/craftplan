@@ -71,18 +71,22 @@ defmodule Craftplan.Inventory.Lot do
     uuid_primary_key :id
 
     attribute :lot_code, :string do
+      public? true
       allow_nil? false
     end
 
     attribute :expiry_date, :date do
+      public? true
       allow_nil? true
     end
 
     attribute :received_at, :utc_datetime do
+      public? true
       allow_nil? true
     end
 
     attribute :unit_cost, :decimal do
+      public? true
       allow_nil? true
       description "Cost per unit (in Material.unit) at time of receipt. Frozen on this lot."
     end

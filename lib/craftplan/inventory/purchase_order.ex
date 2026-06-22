@@ -34,6 +34,7 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     mutations do
       create :create_purchase_order, :create
       update :update_purchase_order, :update
+      update :receive_purchase_order, :receive
     end
   end
 
@@ -149,6 +150,7 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     uuid_primary_key :id
 
     attribute :reference, :string do
+      public? true
       writable? false
       allow_nil? false
       generated? true
@@ -167,15 +169,18 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     end
 
     attribute :status, Status do
+      public? true
       allow_nil? false
       default :draft
     end
 
     attribute :ordered_at, :utc_datetime do
+      public? true
       allow_nil? true
     end
 
     attribute :received_at, :utc_datetime do
+      public? true
       allow_nil? true
     end
 
