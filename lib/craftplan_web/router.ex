@@ -47,6 +47,7 @@ defmodule CraftplanWeb.Router do
     plug :accepts, ["json"]
     plug :load_from_bearer
     plug CraftplanWeb.Plugs.ApiKeyAuth
+    plug AshGraphql.Plug
   end
 
   pipeline :calendar_api do

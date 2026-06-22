@@ -44,7 +44,8 @@ defmodule CraftplanWeb.PurchasingLive.Show do
             <:col :let={i} label="Material">{i.material.name}</:col>
             <:col :let={i} label="Quantity">{format_amount(i.material.unit, i.quantity)}</:col>
             <:col :let={i} label="Unit Price">
-              {format_money(@settings.currency, i.unit_price || Decimal.new(0))}
+              {format_unit_price(@settings.currency, i.unit_price || Decimal.new(0))}
+              <span class="text-xs text-zinc-500">/ {Craftplan.Types.Unit.abbreviation(i.material.unit)}</span>
             </:col>
           </.table>
         </div>

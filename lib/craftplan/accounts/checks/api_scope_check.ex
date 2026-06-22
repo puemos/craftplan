@@ -20,6 +20,7 @@ defmodule Craftplan.Accounts.Checks.ApiScopeCheck do
     Craftplan.Inventory.Movement => "movements",
     Craftplan.Inventory.Supplier => "suppliers",
     Craftplan.Inventory.PurchaseOrder => "purchase_orders",
+    Craftplan.Inventory.PurchaseOrderItem => "purchase_order_items",
     Craftplan.CRM.Customer => "customers",
     Craftplan.Settings.Settings => "settings"
   }

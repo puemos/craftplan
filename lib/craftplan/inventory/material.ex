@@ -48,6 +48,7 @@ defmodule Craftplan.Inventory.Material do
       create: [
         :name,
         :sku,
+        :external_sku,
         :unit,
         :price,
         :minimum_stock,
@@ -62,12 +63,14 @@ defmodule Craftplan.Inventory.Material do
       accept [
         :name,
         :sku,
+        :external_sku,
         :unit,
         :price,
         :minimum_stock,
         :maximum_stock
       ]
 
+      change Craftplan.Inventory.Changes.StampPriceUpdatedAt
       change Craftplan.Inventory.Changes.RefreshAffectedBomRollups
     end
 
@@ -140,6 +143,14 @@ defmodule Craftplan.Inventory.Material do
                   max_length: 50
     end
 
+    attribute :external_sku, :string do
+      public? true
+      allow_nil? true
+      description "Supplier product code (e.g. IGF 34998) for invoice-to-material matching"
+
+      constraints max_length: 50
+    end
+
     attribute :unit, :unit do
       public? true
       allow_nil? false
@@ -158,6 +169,12 @@ defmodule Craftplan.Inventory.Material do
     attribute :maximum_stock, :decimal do
       public? true
       constraints min: 0
+    end
+
+    attribute :price_updated_at, :utc_datetime do
+      public? true
+      allow_nil? true
+      description "When Material.price was last set. Auto-stamped when :price is in the changeset."
     end
 
     timestamps()
@@ -181,5 +198,6 @@ defmodule Craftplan.Inventory.Material do
   identities do
     identity :name, [:name]
     identity :sku, [:sku]
+    identity :external_sku, [:external_sku], nils_distinct?: true
   end
 end
