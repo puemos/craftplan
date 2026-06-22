@@ -8,12 +8,17 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMovement do
 
   @impl true
   def update(assigns, socket) do
+    reverses = Map.get(assigns, :reverses)
+    initial_mode = initial_mode_for(reverses)
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_new(:mode, fn -> :add end)
-     |> assign_new(:calculated_new_total, fn -> nil end)
-     |> assign_new(:form, fn -> build_form(assigns.current_user) end)}
+     |> assign_new(:mode, fn -> initial_mode end)
+     |> assign_new(:calculated_new_total, fn ->
+       preview_new_total(assigns.material.current_stock, initial_mode, reverses)
+     end)
+     |> assign_new(:form, fn -> build_form(assigns.current_user, reverses) end)}
   end
 
   @impl true
@@ -163,12 +168,58 @@ defmodule CraftplanWeb.InventoryLive.FormComponentMovement do
     format_amount(unit, D.to_float(value))
   end
 
-  defp build_form(current_user) do
+  defp build_form(current_user, nil) do
     Inventory.Movement
     |> Form.for_create(:adjust_stock,
       as: "movement",
       actor: current_user
     )
     |> to_form()
+  end
+
+  defp build_form(current_user, %Inventory.Movement{} = original) do
+    abs_qty = D.abs(original.quantity) |> D.to_string()
+    template = correction_reason_template(original)
+
+    Inventory.Movement
+    |> Form.for_create(:adjust_stock,
+      as: "movement",
+      actor: current_user,
+      params: %{"quantity" => abs_qty, "reason" => template, "lot_id" => original.lot_id}
+    )
+    |> to_form()
+  end
+
+  defp initial_mode_for(nil), do: :add
+
+  defp initial_mode_for(%Inventory.Movement{quantity: q}) do
+    if D.compare(q, D.new(0)) == :gt, do: :subtract, else: :add
+  end
+
+  defp preview_new_total(_current_stock, _mode, nil), do: nil
+
+  defp preview_new_total(current_stock, mode, %Inventory.Movement{quantity: q}) do
+    new_total(current_stock, mode, D.abs(q))
+  end
+
+  defp correction_reason_template(%Inventory.Movement{
+         reason: reason,
+         quantity: q,
+         occurred_at: occurred_at
+       }) do
+    date =
+      case occurred_at do
+        nil -> "unknown date"
+        %DateTime{} = dt -> dt |> DateTime.to_date() |> Date.to_string()
+      end
+
+    summary =
+      case reason do
+        nil -> "movement of #{D.to_string(q)}"
+        "" -> "movement of #{D.to_string(q)}"
+        r -> "'#{String.slice(r, 0, 60)}'"
+      end
+
+    "Correction of #{summary} on #{date}: "
   end
 end
