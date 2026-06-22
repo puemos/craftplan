@@ -63,7 +63,8 @@ defmodule Craftplan.Inventory.Changes.PreventDestroyWithHistory do
       |> Enum.filter(& &1)
       |> Enum.join(" and ")
 
-    "Cannot delete: material has #{parts}. Archive it instead, or delete the history first."
+    "Cannot delete: material has #{parts}. Materials with inventory history are kept " <>
+      "to preserve the audit trail."
   end
 
   defp plural(1), do: ""
