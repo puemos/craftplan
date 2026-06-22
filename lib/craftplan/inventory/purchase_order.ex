@@ -77,7 +77,6 @@ defmodule Craftplan.Inventory.PurchaseOrder do
       change set_attribute(:received_at, &DateTime.utc_now/0)
 
       change after_action(fn changeset, po, _ctx ->
-               actor = changeset.context[:actor]
                receipts = Ash.Changeset.get_argument(changeset, :lot_receipts) || []
 
                # Direct read of PO items — at this point we're inside an after_action
@@ -93,6 +92,10 @@ defmodule Craftplan.Inventory.PurchaseOrder do
                    {item.material_id, item.unit_price}
                  end)
 
+               # Lots + movements are implementation detail of :receive. The outer
+               # :receive action is already authorized; these inner writes run
+               # without authorization so they don't depend on actor being threaded
+               # through the changeset context (which is unreliable across callers).
                Enum.each(receipts, fn r ->
                  material_id = Map.get(r, :material_id) || Map.get(r, "material_id")
                  lot_code = Map.get(r, :lot_code) || Map.get(r, "lot_code")
@@ -103,7 +106,6 @@ defmodule Craftplan.Inventory.PurchaseOrder do
                    Map.get(r, :unit_cost) || Map.get(r, "unit_cost") ||
                      Map.get(unit_price_by_material, material_id)
 
-                 # Create/find lot
                  lot =
                    Ash.Seed.seed!(Craftplan.Inventory.Lot, %{
                      lot_code: lot_code,
@@ -114,7 +116,6 @@ defmodule Craftplan.Inventory.PurchaseOrder do
                      unit_cost: unit_cost
                    })
 
-                 # Create movement with lot
                  Craftplan.Inventory.adjust_stock(
                    %{
                      material_id: material_id,
@@ -122,7 +123,7 @@ defmodule Craftplan.Inventory.PurchaseOrder do
                      quantity: qty,
                      reason: "PO #{po.reference} receive"
                    },
-                   actor: actor
+                   authorize?: false
                  )
                end)
 

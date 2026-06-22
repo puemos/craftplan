@@ -155,6 +155,13 @@ defmodule Craftplan.Inventory.LotUnitCostTest do
         |> Ash.read!(actor: staff())
 
       assert Decimal.equal?(lot.unit_cost, Decimal.new("0.99"))
+
+      # Stock must actually be moved — earlier regression silently skipped this
+      # when actor wasn't threaded through the after_action callback.
+      material =
+        Inventory.get_material_by_id!(mat.id, load: :current_stock, actor: staff())
+
+      assert Decimal.equal?(material.current_stock, Decimal.new("50"))
     end
   end
 end
