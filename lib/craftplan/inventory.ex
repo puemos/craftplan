@@ -23,6 +23,8 @@ defmodule Craftplan.Inventory do
       define :list_materials, action: :list
       define :list_materials_with_keyset, action: :keyset
       define :update_nutritional_facts, action: :update_nutritional_facts
+      define :archive_material, action: :archive
+      define :unarchive_material, action: :unarchive
       define :destroy_material, action: :destroy
     end
 
