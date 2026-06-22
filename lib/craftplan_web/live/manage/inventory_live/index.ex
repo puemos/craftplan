@@ -633,10 +633,16 @@ defmodule CraftplanWeb.InventoryLive.Index do
          |> put_flash(:info, "Material deleted successfully")
          |> stream_delete(:materials, %{id: id})}
 
-      {:error, _error} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete material.")}
+      {:error, error} ->
+        {:noreply, put_flash(socket, :error, destroy_error_message(error))}
     end
   end
+
+  defp destroy_error_message(%Ash.Error.Invalid{errors: [%{message: message} | _]})
+       when is_binary(message),
+       do: message
+
+  defp destroy_error_message(_), do: "Failed to delete material."
 
   @impl true
   def handle_info({:saved, material}, socket) do

@@ -44,7 +44,6 @@ defmodule Craftplan.Inventory.Material do
   actions do
     defaults [
       :read,
-      :destroy,
       create: [
         :name,
         :sku,
@@ -55,6 +54,12 @@ defmodule Craftplan.Inventory.Material do
         :maximum_stock
       ]
     ]
+
+    destroy :destroy do
+      primary? true
+      require_atomic? false
+      change Craftplan.Inventory.Changes.PreventDestroyWithHistory
+    end
 
     update :update do
       primary? true
