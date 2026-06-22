@@ -11,17 +11,37 @@ IGF (International Gourmet Foods, Woodbridge VA) is Bread Par Avion's main ingre
 
 ## Inputs
 
-- `pdf_path` — absolute path to the IGF invoice PDF
-- Implicit: a working Craftplan deployment at the URL named in `CRAFTPLAN_API_URL` env (default `https://plan.breadparavion.com`), reachable with `CRAFTPLAN_API_KEY` env (a `cpk_…` bearer token)
+The skill runs in one of two modes:
+
+- **Single-invoice mode:** `pdf_path` is an absolute path to one IGF invoice PDF.
+- **Backfill mode:** `pdf_path` is an absolute path to a *directory* of IGF invoice PDFs. The skill discovers them, sorts chronologically by invoice date (parsed from the PDF, not the filename), and processes each one in order.
+
+Both modes need: a working Craftplan deployment at `CRAFTPLAN_API_URL` (default `https://plan.breadparavion.com`), reachable with `CRAFTPLAN_API_KEY` (a `cpk_…` bearer token).
 
 ## What gets created
 
 For each invoice:
-1. One `PurchaseOrder` (supplier = IGF, `ordered_at` = invoice date)
-2. One `PurchaseOrderItem` per invoice line (with `material_id`, `quantity` in Craftplan units, `unit_price` in Craftplan units)
-3. After confirmation, the PO is **received** — which materializes one `Lot` per line (with `unit_cost`) plus a positive `Movement` for stock
+1. One `PurchaseOrder` with `reference: "IGF-<invoice_no>-<YYYY-MM-DD>"`, supplier = IGF, `ordered_at` = invoice date.
+2. One `PurchaseOrderItem` per invoice line (with `material_id`, `quantity` in Craftplan units, `unit_price` in Craftplan units).
+3. After confirmation, the PO is **received** — which materializes one `Lot` per line (with `unit_cost`) plus a positive `Movement` for stock. The receive step also updates each unique material's `Material.price` from its `unit_cost` ("last receive wins") and stamps `Material.price_updated_at`.
 
-The lot code convention is `IGF-<invoice_no>-L<line_no>` (e.g. `IGF-7367700-L01`).
+The lot code convention is `IGF-<invoice_no>-L<line_no>` (e.g. `IGF-7367700-L01`). The PO reference convention is `IGF-<invoice_no>-<YYYY-MM-DD>` (e.g. `IGF-7367700-2026-06-16`).
+
+## Backfill mode
+
+When the `pdf_path` argument names a directory rather than a single PDF:
+
+1. **Discover** — walk the directory for `*.pdf` files. Don't recurse unless the user says to.
+2. **Sort** — for each PDF, read just enough to extract the invoice date. Sort chronologically (oldest first). If you can't extract the date for a PDF, log it and skip — never guess.
+3. **Pre-run summary** — show the user the discovered count, date range (earliest → latest), and any skipped files. Wait for confirmation before processing.
+4. **Process in chronological order** — for each PDF, run the single-invoice procedure (steps 1-5 below). Use `skipBomRefresh: true` on every invoice except the last.
+5. **One final BOM rollup refresh** — after the last invoice processes (which already triggers a refresh), no extra work needed.
+6. **Recovery** — if any single invoice fails the math gate, the resolve step, or any mutation:
+   - Log the file path + error to the user.
+   - **Continue with the next invoice.** Don't abort the whole run on one bad invoice — a single corrupted PDF shouldn't waste hours of work.
+   - At the end, summarize: N succeeded, M skipped (already imported), K failed (with paths and reasons).
+
+The idempotency check (step 5a) is what makes "continue on failure" safe — re-running the backfill after fixing the bad invoice will skip everything that already succeeded.
 
 ## Procedure
 
@@ -91,11 +111,31 @@ Wait for explicit user confirmation. "Yes" / "looks right" / "go" all count. Any
 
 In order:
 
-1. `createPurchaseOrder` — `supplier_id` = IGF UUID, `ordered_at` = invoice date (UTC), `status: "ordered"`.
-2. `createPurchaseOrderItem` × N — one per line, with `material_id`, Craftplan `quantity`, Craftplan `unit_price`.
-3. Update the PO via the `receive` action with a `lot_receipts` array — one entry per item: `{material_id, lot_code: "IGF-<invoice_no>-L<NN>", quantity, expiry_date?, unit_cost}`. The receive action will create Lots + Movements and the `unit_cost` falls back to `unit_price` on the line if not explicitly set (so explicit is optional but recommended for clarity).
+1. `createPurchaseOrder` — `supplierId` = IGF UUID, `orderedAt` = invoice date (UTC), `status: "ordered"`, **`reference: "IGF-<invoice_no>-<YYYY-MM-DD>"`** (e.g. `IGF-7367700-2026-06-16`).
+2. `createPurchaseOrderItem` × N — one per line, with `materialId`, Craftplan `quantity`, Craftplan `unitPrice`.
+3. Update the PO via the `receivePurchaseOrder` mutation with a `lotReceipts` array — each entry is a `JsonString` of `{material_id, lot_code: "IGF-<invoice_no>-L<NN>", quantity, expiry_date?, unit_cost?}`. The receive action creates Lots + Movements, updates `Material.price` from each lot's `unit_cost`, and refreshes BOM rollups. `unit_cost` falls back to the PO item's `unit_price` if omitted.
+
+**In backfill mode**, pass `skipBomRefresh: true` to `receivePurchaseOrder` for every invoice except the last in the chronological run. The final invoice runs without that flag, triggering one BOM rollup refresh that picks up the latest prices. This avoids ~N rollup refreshes during a multi-year backfill.
 
 If any mutation fails, show the user the error and stop. Do not retry automatically — the user should decide whether to fix-and-retry or abandon the PO.
+
+### 5a. Idempotency — before creating, check for an existing PO
+
+Query first:
+
+```graphql
+query($ref: String!) {
+  listPurchaseOrders(filter: { reference: { eq: $ref } }) {
+    results { id reference status receivedAt }
+  }
+}
+```
+
+If a PO with this reference already exists:
+- If `status == received`, **skip** this invoice (already imported).
+- Otherwise, show the user and ask whether to update the existing PO or stop.
+
+This makes the backfill safe to re-run after partial failures — re-running picks up where it left off without creating duplicates.
 
 ### 6. Append to the price history log
 
@@ -109,7 +149,18 @@ This is the disaster-recovery / cross-check / re-import-friendly archive. If a C
 
 ### 7. Report back to the user
 
-One sentence summarizing what was created, with the PO reference and the URL of the PO in the deployed UI (`<base>/manage/inventory/purchase-orders/<reference>`).
+One sentence summarizing what was created, with the PO reference (`IGF-<invoice_no>-<YYYY-MM-DD>`) and the URL of the PO in the deployed UI (`<base>/manage/purchasing/<reference>`).
+
+In **backfill mode**, the per-invoice report is one line per PO; print a totals summary at the end:
+
+```
+Backfill complete:
+  succeeded: 47 invoices (2022-08-14 → 2026-06-16)
+  skipped:    3 invoices (already imported)
+  failed:     0 invoices
+  Materials updated: 18
+  Lots created: 564
+```
 
 ## Mapping table
 

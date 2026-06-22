@@ -52,7 +52,7 @@ defmodule Craftplan.Inventory.PurchaseOrder do
 
     create :create do
       primary? true
-      accept [:supplier_id, :status, :ordered_at]
+      accept [:supplier_id, :status, :ordered_at, :reference]
       change set_attribute(:status, :draft)
     end
 
@@ -204,7 +204,6 @@ defmodule Craftplan.Inventory.PurchaseOrder do
 
     attribute :reference, :string do
       public? true
-      writable? false
       allow_nil? false
       generated? true
 
@@ -217,7 +216,11 @@ defmodule Craftplan.Inventory.PurchaseOrder do
         "PO_#{year}_#{month}_#{day}_#{rand}"
       end
 
-      constraints match: ~r/^PO_\d{4}_\d{2}_\d{2}_[A-Z]{6}$/,
+      # Permissive constraint so callers (e.g. invoice importers) can pass a
+      # vendor-specific reference like IGF-7367700-2026-06-16 instead of the
+      # auto-generated PO_YYYY_MM_DD_XXXXXX. Identity on :reference still
+      # enforces uniqueness.
+      constraints match: ~r/^[A-Za-z0-9_\-]{3,64}$/,
                   allow_empty?: false
     end
 
