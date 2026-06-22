@@ -172,6 +172,14 @@ defmodule CraftplanWeb.InventoryLive.Show do
             <:col :let={entry} label="Reason">
               {render_reason(entry.reason)}
             </:col>
+            <:action :let={entry}>
+              <.link
+                patch={~p"/manage/inventory/#{@material.sku}/adjust?reverses=#{entry.id}"}
+                class="text-xs text-stone-500 hover:text-stone-900"
+              >
+                Reverse
+              </.link>
+            </:action>
           </.table>
         </div>
       </.tabs_content>
@@ -197,7 +205,11 @@ defmodule CraftplanWeb.InventoryLive.Show do
     </.modal>
     <.modal
       :if={@live_action == :adjust}
-      title={"Adjust Stock for #{@material.name}"}
+      title={
+        if @reverses_movement,
+          do: "Reverse a stock movement",
+          else: "Adjust Stock for #{@material.name}"
+      }
       id="material-movement-modal"
       show
       on_cancel={JS.patch(~p"/manage/inventory/#{@material.sku}")}
@@ -208,6 +220,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
         material={@material}
         current_user={@current_user}
         settings={@settings}
+        reverses={@reverses_movement}
         patch={~p"/manage/inventory/#{@material.sku}/stock"}
       />
     </.modal>
@@ -229,12 +242,21 @@ defmodule CraftplanWeb.InventoryLive.Show do
   end
 
   @impl true
-  def handle_params(%{"sku" => sku}, _, socket) do
+  def handle_params(%{"sku" => sku} = params, _, socket) do
     material =
       Inventory.get_material_by_sku!(sku,
         actor: socket.assigns[:current_user],
         load: material_load_opts()
       )
+
+    reverses_movement =
+      case params["reverses"] do
+        nil ->
+          nil
+
+        id ->
+          Inventory.get_movement_by_id!(id, actor: socket.assigns[:current_user])
+      end
 
     open_po_items =
       Inventory.list_open_po_items_for_material!(
@@ -273,6 +295,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
       |> assign(:material, material)
       |> assign(:open_po_items, open_po_items)
       |> assign(:tabs_links, tabs_links)
+      |> assign(:reverses_movement, reverses_movement)
 
     {:noreply, Navigation.assign(socket, :inventory, material_trail(material, live_action))}
   end
