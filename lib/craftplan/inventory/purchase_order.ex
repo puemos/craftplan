@@ -73,11 +73,24 @@ defmodule Craftplan.Inventory.PurchaseOrder do
         """
       end
 
+      argument :skip_bom_refresh, :boolean do
+        allow_nil? true
+        default false
+
+        description """
+        When true, skip the BOM cost-rollup refresh after this receive.
+        Intended for chronological backfill scripts that import many POs in
+        sequence and want to refresh BOM rollups once at the end instead of
+        once per receive. Single-receive callers should leave this at false.
+        """
+      end
+
       change set_attribute(:status, :received)
       change set_attribute(:received_at, &DateTime.utc_now/0)
 
       change after_action(fn changeset, po, _ctx ->
                receipts = Ash.Changeset.get_argument(changeset, :lot_receipts) || []
+               skip_bom_refresh = Ash.Changeset.get_argument(changeset, :skip_bom_refresh) == true
 
                # Direct read of PO items — at this point we're inside an after_action
                # on the PO update; loading the items relationship via Ash.load came
@@ -126,6 +139,45 @@ defmodule Craftplan.Inventory.PurchaseOrder do
                    authorize?: false
                  )
                end)
+
+               # Update each unique material's price from the most-recent lot's
+               # unit_cost ("last receive wins"). Bypass the rollup refresh on
+               # each Material.update so it doesn't fire N times; do one bulk
+               # refresh below for the unique materials affected.
+               unique_material_costs =
+                 receipts
+                 |> Enum.map(fn r ->
+                   material_id = Map.get(r, :material_id) || Map.get(r, "material_id")
+
+                   unit_cost =
+                     Map.get(r, :unit_cost) || Map.get(r, "unit_cost") ||
+                       Map.get(unit_price_by_material, material_id)
+
+                   {material_id, unit_cost}
+                 end)
+                 |> Enum.filter(fn {_id, cost} -> not is_nil(cost) end)
+                 |> Map.new()
+
+               Enum.each(unique_material_costs, fn {material_id, unit_cost} ->
+                 material =
+                   Craftplan.Inventory.Material
+                   |> Ash.get!(material_id, authorize?: false)
+
+                 material
+                 |> Ash.Changeset.for_update(:update, %{price: unit_cost})
+                 |> Ash.Changeset.set_context(%{bypass_bom_refresh?: true})
+                 |> Ash.update!(authorize?: false)
+               end)
+
+               unless skip_bom_refresh do
+                 unique_material_costs
+                 |> Map.keys()
+                 |> Enum.each(fn material_id ->
+                   Craftplan.Inventory.Changes.RefreshAffectedBomRollups.refresh_for_material!(
+                     material_id
+                   )
+                 end)
+               end
 
                {:ok, po}
              end)

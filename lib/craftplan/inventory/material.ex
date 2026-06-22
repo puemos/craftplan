@@ -70,6 +70,7 @@ defmodule Craftplan.Inventory.Material do
         :maximum_stock
       ]
 
+      change Craftplan.Inventory.Changes.StampPriceUpdatedAt
       change Craftplan.Inventory.Changes.RefreshAffectedBomRollups
     end
 
@@ -168,6 +169,12 @@ defmodule Craftplan.Inventory.Material do
     attribute :maximum_stock, :decimal do
       public? true
       constraints min: 0
+    end
+
+    attribute :price_updated_at, :utc_datetime do
+      public? true
+      allow_nil? true
+      description "When Material.price was last set. Auto-stamped when :price is in the changeset."
     end
 
     timestamps()

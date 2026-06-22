@@ -162,6 +162,56 @@ defmodule Craftplan.Inventory.LotUnitCostTest do
         Inventory.get_material_by_id!(mat.id, load: :current_stock, actor: staff())
 
       assert Decimal.equal?(material.current_stock, Decimal.new("50"))
+
+      # Material.price is updated from the received lot's unit_cost (last-wins),
+      # and price_updated_at gets stamped automatically.
+      assert Decimal.equal?(material.price, Decimal.new("0.99"))
+      assert %DateTime{} = material.price_updated_at
+    end
+
+    test "skip_bom_refresh argument suppresses the BOM rollup refresh" do
+      mat = create_material("M-PO-3")
+      supplier = create_supplier("SPO-3")
+
+      {:ok, po} =
+        Inventory.PurchaseOrder
+        |> Ash.Changeset.for_create(:create, %{
+          supplier_id: supplier.id,
+          status: :ordered,
+          ordered_at: DateTime.utc_now()
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        Inventory.PurchaseOrderItem
+        |> Ash.Changeset.for_create(:create, %{
+          purchase_order_id: po.id,
+          material_id: mat.id,
+          quantity: Decimal.new("50"),
+          unit_price: Decimal.new("0.42")
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        po
+        |> Ash.Changeset.for_update(:receive, %{
+          lot_receipts: [
+            %{
+              material_id: mat.id,
+              lot_code: "PO-3-LINE-1",
+              quantity: Decimal.new("50")
+            }
+          ],
+          skip_bom_refresh: true
+        })
+        |> Ash.update(actor: staff())
+
+      # Lot + movement + Material.price still happen — the only thing skipped is
+      # the BOM rollup refresh (which has no observable effect on a material
+      # with no BOM components, so the assertion is just that the receive
+      # completed without error).
+      material = Inventory.get_material_by_id!(mat.id, actor: staff())
+      assert Decimal.equal?(material.price, Decimal.new("0.42"))
     end
   end
 end
