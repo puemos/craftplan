@@ -1,9 +1,9 @@
 defmodule Craftplan.Types.Unit do
   @moduledoc """
   Represents measurement units with conversion and formatting capabilities.
-  Supports gram, milliliter, piece, kcal, milligram, and percent units with appropriate abbreviations.
+  Supports gram, milliliter, piece, kcal, kilojoule, milligram, and percent units with appropriate abbreviations.
   """
-  use Ash.Type.Enum, values: [:gram, :milliliter, :piece, :kcal, :milligram, :percent]
+  use Ash.Type.Enum, values: [:gram, :milliliter, :piece, :kcal, :kilojoule, :milligram, :percent]
 
   @unit_abbreviations %{
     kilogram: "kg",
@@ -12,6 +12,7 @@ defmodule Craftplan.Types.Unit do
     milliliter: "ml",
     piece: "pc",
     kcal: "kcal",
+    kilojoule: "kJ",
     milligram: "mg",
     percent: "%"
   }
@@ -21,6 +22,7 @@ defmodule Craftplan.Types.Unit do
     milliliter: "milliliter",
     piece: "piece",
     kcal: "kcal",
+    kilojoule: "kJ",
     milligram: "mg",
     percent: "%"
   }
@@ -30,6 +32,7 @@ defmodule Craftplan.Types.Unit do
     milliliter: "milliliters",
     piece: "pieces",
     kcal: "kcal",
+    kilojoule: "kJ",
     milligram: "mg",
     percent: "%"
   }
@@ -109,6 +112,11 @@ defmodule Craftplan.Types.Unit do
   def abbreviation(:kcal, value) when is_integer(value), do: "#{value} #{@unit_abbreviations.kcal}"
 
   def abbreviation(:kcal, value), do: "#{format_number(value)} #{@unit_abbreviations.kcal}"
+
+  # Kilojoules - no conversion needed, always displays as kJ
+  def abbreviation(:kilojoule, value) when is_integer(value), do: "#{value} #{@unit_abbreviations.kilojoule}"
+
+  def abbreviation(:kilojoule, value), do: "#{format_number(value)} #{@unit_abbreviations.kilojoule}"
 
   # Milligram - no automatic conversion to avoid confusion with gram conversions
   def abbreviation(:milligram, value) when is_integer(value), do: "#{value} #{@unit_abbreviations.milligram}"

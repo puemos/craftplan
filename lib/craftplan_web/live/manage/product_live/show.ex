@@ -99,6 +99,16 @@ defmodule CraftplanWeb.ProductLive.Show do
           >
             {@product.max_daily_quantity}
           </:item>
+
+          <:item
+            :if={@product.nutrition_output_quantity}
+            title="Nutrition output"
+          >
+            {format_amount(
+              @product.nutrition_output_unit || :gram,
+              @product.nutrition_output_quantity
+            )}
+          </:item>
         </.list>
       </.tabs_content>
 
@@ -119,14 +129,27 @@ defmodule CraftplanWeb.ProductLive.Show do
 
       <.tabs_content :if={@live_action == :nutrition}>
         <div>
-          <h3 class="my-4 text-lg font-medium">Nutritional Facts</h3>
-          <p class="mb-4 text-sm text-stone-500">
-            The nutritional information is automatically calculated from your recipe components.
+          <h3 class="my-4 text-lg font-medium">
+            {nutrition_heading(@product.nutritional_facts)}
+          </h3>
+          <p
+            :if={
+              @product.nutritional_facts != [] && !nutrition_declaration?(@product.nutritional_facts)
+            }
+            class="mb-4 text-sm text-stone-500"
+          >
+            Finished output is not set, so amounts are shown for one product unit.
           </p>
         </div>
         <.table id="nutritional-facts" rows={@product.nutritional_facts}>
-          <:col :let={fact} label="Nutrient">{fact.name}</:col>
-          <:col :let={fact} label="Amount">{format_amount(fact.unit, fact.amount)}</:col>
+          <:col :let={fact} label="Nutrient">
+            <span class={if Map.get(fact, :parent_key), do: "pl-4", else: ""}>
+              {nutrient_label(fact)}
+            </span>
+          </:col>
+          <:col :let={fact} label={nutrition_amount_label(@product.nutritional_facts)}>
+            {format_amount(fact.unit, fact.amount)}
+          </:col>
         </.table>
       </.tabs_content>
 
@@ -368,6 +391,50 @@ defmodule CraftplanWeb.ProductLive.Show do
   defp list_available_products do
     Catalog.list_products!(load: [:bom_unit_cost])
   end
+
+  defp nutrition_heading(facts) do
+    if nutrition_declaration?(facts), do: "Nutrition Declaration", else: "Nutritional Facts"
+  end
+
+  defp nutrition_amount_label(facts) do
+    if nutrition_declaration?(facts) do
+      "Per #{nutrition_basis_label(facts)}"
+    else
+      "Amount"
+    end
+  end
+
+  defp nutrition_basis_label(facts) do
+    facts
+    |> Enum.find(&Map.get(&1, :declaration?, false))
+    |> case do
+      %{per_quantity: quantity, per_unit: unit} ->
+        "#{format_basis_quantity(quantity)} #{basis_unit_abbreviation(unit)}"
+
+      _ ->
+        "100 g"
+    end
+  end
+
+  defp nutrition_declaration?(facts), do: Enum.any?(facts, &Map.get(&1, :declaration?, false))
+
+  defp nutrient_label(%{parent_key: parent_key, name: name}) when not is_nil(parent_key) do
+    "of which #{String.downcase(name)}"
+  end
+
+  defp nutrient_label(%{name: name}), do: name
+
+  defp basis_unit_abbreviation(:milliliter), do: "ml"
+  defp basis_unit_abbreviation("milliliter"), do: "ml"
+  defp basis_unit_abbreviation(_unit), do: "g"
+
+  defp format_basis_quantity(%Decimal{} = quantity) do
+    quantity
+    |> Decimal.normalize()
+    |> Decimal.to_string(:normal)
+  end
+
+  defp format_basis_quantity(quantity), do: to_string(quantity)
 
   # Pricing helper
   defp suggested_price(:retail, unit_cost, settings) do
