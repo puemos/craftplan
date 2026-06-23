@@ -16,7 +16,7 @@ defmodule Craftplan.Inventory.MaterialNutritionalFact do
 
     create :create do
       primary? true
-      accept [:nutritional_fact_id, :material_id, :amount, :unit]
+      accept [:nutritional_fact_id, :material_id, :amount, :unit, :basis_quantity, :basis_unit]
     end
   end
 
@@ -35,11 +35,24 @@ defmodule Craftplan.Inventory.MaterialNutritionalFact do
     attribute :amount, :decimal do
       public? true
       allow_nil? false
+      constraints min: 0
     end
 
     attribute :unit, :unit do
       public? true
       allow_nil? false
+    end
+
+    attribute :basis_quantity, :decimal do
+      public? true
+      allow_nil? false
+      default Decimal.new(100)
+    end
+
+    attribute :basis_unit, :unit do
+      public? true
+      allow_nil? false
+      default :gram
     end
   end
 

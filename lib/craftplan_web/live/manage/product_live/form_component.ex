@@ -51,6 +51,22 @@ defmodule CraftplanWeb.ProductLive.FormComponent do
           label="Max units per day (0 = unlimited)"
         />
 
+        <div class="grid gap-4 sm:grid-cols-2">
+          <.input
+            field={@form[:nutrition_output_quantity]}
+            type="number"
+            min="0"
+            step="0.01"
+            label="Finished output"
+          />
+          <.input
+            field={@form[:nutrition_output_unit]}
+            type="select"
+            label="Output unit"
+            options={[{"Gram (g)", :gram}, {"Milliliter (ml)", :milliliter}]}
+          />
+        </div>
+
         <:actions>
           <.button variant={:primary} phx-disable-with="Saving...">Save Product</.button>
         </:actions>

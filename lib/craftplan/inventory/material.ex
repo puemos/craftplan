@@ -84,6 +84,7 @@ defmodule Craftplan.Inventory.Material do
 
       argument :material_nutritional_facts, {:array, :map}
 
+      change Craftplan.Inventory.Changes.ValidateMaterialNutrition
       change manage_relationship(:material_nutritional_facts, type: :direct_control)
     end
 

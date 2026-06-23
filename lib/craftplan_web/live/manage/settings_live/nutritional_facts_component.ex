@@ -51,9 +51,20 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
                 rows={@visible_facts}
                 wrapper_class="mt-0"
               >
-                <:col :let={fact} label="Name">{fact.name}</:col>
+                <:col :let={fact} label="Name">
+                  <span class={if fact.parent_key, do: "pl-4", else: ""}>
+                    {settings_fact_name(fact)}
+                  </span>
+                </:col>
+                <:col :let={fact} label="Unit">{unit_label(fact.default_unit)}</:col>
+                <:col :let={fact} label="Type">
+                  <.badge :if={fact.eu_required} text="EU required" />
+                  <.badge :if={!fact.eu_required && fact.system} text="System" />
+                  <span :if={!fact.system} class="text-sm text-stone-500">Custom</span>
+                </:col>
                 <:action :let={fact}>
                   <.link
+                    :if={!fact.system}
                     phx-click={JS.push("delete", value: %{id: fact.id}, target: @myself)}
                     data-confirm="Are you sure you want to delete this nutritional fact? This action cannot be undone."
                   >
@@ -61,6 +72,7 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
                       Delete
                     </.button>
                   </.link>
+                  <span :if={fact.system} class="text-sm text-stone-400">Locked</span>
                 </:action>
                 <:empty>
                   <div class="py-6 text-center text-sm text-stone-500">
@@ -230,4 +242,26 @@ defmodule CraftplanWeb.SettingsLive.NutritionalFactsComponent do
       |> String.contains?(downcased)
     end)
   end
+
+  defp settings_fact_name(%{parent_key: parent_key, name: name}) when not is_nil(parent_key) do
+    "of which #{String.downcase(name)}"
+  end
+
+  defp settings_fact_name(%{name: name}), do: name
+
+  defp unit_label(:kilojoule), do: "kJ"
+  defp unit_label("kilojoule"), do: "kJ"
+  defp unit_label(:kcal), do: "kcal"
+  defp unit_label("kcal"), do: "kcal"
+  defp unit_label(:gram), do: "g"
+  defp unit_label("gram"), do: "g"
+  defp unit_label(:milligram), do: "mg"
+  defp unit_label("milligram"), do: "mg"
+  defp unit_label(:milliliter), do: "ml"
+  defp unit_label("milliliter"), do: "ml"
+  defp unit_label(:percent), do: "%"
+  defp unit_label("percent"), do: "%"
+  defp unit_label(:piece), do: "pc"
+  defp unit_label("piece"), do: "pc"
+  defp unit_label(unit), do: to_string(unit)
 end

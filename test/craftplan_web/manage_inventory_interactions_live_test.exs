@@ -40,11 +40,11 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     params = %{"movement" => %{"material_id" => m.id, "quantity" => "5", "reason" => "test"}}
 
     view
-    |> element("#movement-movment-form")
+    |> element("#movement-form")
     |> render_submit(params)
 
     assert_patch(view, ~p"/manage/inventory/#{m.sku}/stock")
-    assert render(view) =~ "Material created successfully"
+    assert render(view) =~ "Stock adjustment recorded"
   end
 
   @tag role: :staff
@@ -53,17 +53,17 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/adjust")
 
     view
-    |> element("button[phx-click=toggle_adjustment_type][phx-value-type=add]")
+    |> element("button[phx-click=set_mode][phx-value-mode=add]")
     |> render_click()
 
     params = %{"movement" => %{"material_id" => m.id, "quantity" => "2", "reason" => "add"}}
 
     view
-    |> element("#movement-movment-form")
+    |> element("#movement-form")
     |> render_submit(params)
 
     assert_patch(view, ~p"/manage/inventory/#{m.sku}/stock")
-    assert render(view) =~ "Material created successfully"
+    assert render(view) =~ "Stock adjustment recorded"
   end
 
   @tag role: :staff
@@ -72,17 +72,17 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/adjust")
 
     view
-    |> element("button[phx-click=toggle_adjustment_type][phx-value-type=subtract]")
+    |> element("button[phx-click=set_mode][phx-value-mode=subtract]")
     |> render_click()
 
     params = %{"movement" => %{"material_id" => m.id, "quantity" => "1", "reason" => "sub"}}
 
     view
-    |> element("#movement-movment-form")
+    |> element("#movement-form")
     |> render_submit(params)
 
     assert_patch(view, ~p"/manage/inventory/#{m.sku}/stock")
-    assert render(view) =~ "Material created successfully"
+    assert render(view) =~ "Stock adjustment recorded"
   end
 
   @tag role: :staff
@@ -107,7 +107,7 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
   @tag role: :staff
   test "assign nutritional facts to material", %{conn: conn} do
     m = create_material!()
-    _nf = create_nf!()
+    nf = create_nf!()
     {:ok, view, _} = live(conn, ~p"/manage/inventory/#{m.sku}/nutritional_facts")
 
     # Open modal and click first available fact
@@ -117,8 +117,8 @@ defmodule CraftplanWeb.ManageInventoryInteractionsLiveTest do
 
     # Click any button inside the selection list
     view
-    |> element("button[phx-click=add_nutritional_fact]")
-    |> render_click(%{"fact-id" => "ignored"})
+    |> element("button[phx-click=add_nutritional_fact][phx-value-fact-id='#{nf.id}']")
+    |> render_click()
 
     view
     |> element("#material-nutritional-facts-form")

@@ -49,7 +49,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
             <div class="flex-inline items-center space-x-1">
               <.badge
                 :for={fact <- @material.material_nutritional_facts}
-                text={"#{fact.nutritional_fact.name}: #{fact.amount} #{fact.unit}"}
+                text={"#{fact.nutritional_fact.name}: #{fact.amount} #{fact.unit} per #{fact.basis_quantity || 100} #{fact.basis_unit || @material.unit}"}
               />
               <span :if={Enum.empty?(@material.material_nutritional_facts)}>None</span>
             </div>

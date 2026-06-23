@@ -27,11 +27,11 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
           <div id="nutritional-facts-list">
             <div
               id="nutritional-facts"
-              class="mt-2 grid w-full grid-cols-4 gap-x-4 text-sm leading-6 text-stone-700"
+              class="mt-2 grid w-full grid-cols-5 gap-x-4 text-sm leading-6 text-stone-700"
             >
               <div
                 role="row"
-                class="col-span-4 grid grid-cols-4 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
+                class="col-span-5 grid grid-cols-5 border-b border-stone-300 text-left text-sm leading-6 text-stone-500"
               >
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 font-normal last:border-r-0 ">
                   Fact
@@ -43,18 +43,22 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
                   Unit
                 </div>
                 <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
+                  Per
+                </div>
+                <div class="border-r border-stone-200 p-0 pr-6 pb-4 pl-4 font-normal last:border-r-0">
                   <span class="opacity-0">Actions</span>
                 </div>
               </div>
 
-              <div role="row" class="col-span-4 hidden py-4 text-stone-400 last:block">
+              <div role="row" class="col-span-5 hidden py-4 text-stone-400 last:block">
                 <div>
                   No nutritional facts
                 </div>
               </div>
 
               <.inputs_for :let={fact_form} field={@form[:material_nutritional_facts]}>
-                <div role="row" class="group col-span-4 grid grid-cols-4 hover:bg-stone-200/40">
+                <% fact = fact_for_form(@nutritional_facts_map, fact_form) %>
+                <div role="row" class="group col-span-5 grid grid-cols-5 hover:bg-stone-200/40">
                   <div class="relative border-r border-b border-stone-200 p-0 last:border-r-0 ">
                     <div class="block py-4 pr-6">
                       <span class="relative -mt-2">
@@ -88,17 +92,43 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
                   <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                     <div class="block py-4 pr-6">
                       <span class="relative -mt-2">
+                        <%= if fixed_unit_fact?(fact) do %>
+                          <input
+                            type="hidden"
+                            name={fact_form[:unit].name}
+                            value={fact.default_unit}
+                          />
+                          <span class="block py-2 text-stone-700">
+                            {unit_label(fact.default_unit)}
+                          </span>
+                        <% else %>
+                          <.input
+                            field={fact_form[:unit]}
+                            type="select"
+                            options={nutrition_unit_options()}
+                            flat={true}
+                          />
+                        <% end %>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
+                    <div class="block py-4 pr-6">
+                      <span class="relative -mt-2 grid grid-cols-2 gap-2">
+                        <div class="border-b border-dashed border-stone-300">
+                          <.input
+                            field={fact_form[:basis_quantity]}
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            flat={true}
+                          />
+                        </div>
                         <.input
-                          field={fact_form[:unit]}
+                          field={fact_form[:basis_unit]}
                           type="select"
-                          options={[
-                            {"Kilocalories (kcal)", :kcal},
-                            {"Gram (g)", :gram},
-                            {"Milligram (mg)", :milligram},
-                            {"Milliliter (ml)", :milliliter},
-                            {"Percent (%)", :percent},
-                            {"Piece", :piece}
-                          ]}
+                          options={basis_unit_options()}
                           flat={true}
                         />
                       </span>
@@ -123,7 +153,7 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
                 </div>
               </.inputs_for>
 
-              <div role="row" class="col-span-4 py-4">
+              <div role="row" class="col-span-5 py-4">
                 <button
                   type="button"
                   phx-click="show_add_modal"
@@ -199,15 +229,20 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
           "nutritional_fact_id" => fact.nutritional_fact_id,
           "material_id" => fact.material_id,
           "amount" => fact.amount,
-          "unit" => fact.unit
+          "unit" => fact.unit,
+          "basis_quantity" => fact.basis_quantity || Decimal.new(100),
+          "basis_unit" => fact.basis_unit || default_basis_unit(material.unit)
         }
       end)
+
+    nutritional_facts_map = Map.new(assigns.nutritional_facts, &{&1.id, &1})
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:form, form)
      |> assign(:existing_facts, existing_facts)
+     |> assign(:nutritional_facts_map, nutritional_facts_map)
      |> assign(:show_modal, false)}
   end
 
@@ -257,13 +292,17 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
           socket.assigns.existing_facts || []
       end
 
+    fact = Map.get(socket.assigns.nutritional_facts_map, fact_id)
+    default_unit = (fact && fact.default_unit) || :gram
+
     # Create the new fact to add
     new_fact = %{
       "nutritional_fact_id" => fact_id,
       "material_id" => socket.assigns.material.id,
       "amount" => "0",
-      # Default unit
-      "unit" => "gram"
+      "unit" => Atom.to_string(default_unit),
+      "basis_quantity" => "100",
+      "basis_unit" => Atom.to_string(default_basis_unit(socket.assigns.material.unit))
     }
 
     # Combine existing facts with the new fact
@@ -332,11 +371,13 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
     |> to_form()
   end
 
-  # Returns all nutritional fact options
   defp nutritional_fact_options(facts) do
     facts
     |> Enum.map(fn fact -> {fact.name, fact.id} end)
-    |> Enum.sort_by(fn {name, _id} -> name end)
+    |> Enum.sort_by(fn {name, id} ->
+      fact = Enum.find(facts, &(&1.id == id))
+      {fact.sort_order || 1000, name}
+    end)
   end
 
   # Returns only nutritional facts that haven't been added yet
@@ -371,6 +412,53 @@ defmodule CraftplanWeb.InventoryLive.FormComponentNutritionalFacts do
     # Return options for available facts
     available_facts
     |> Enum.map(fn fact -> {fact.name, fact.id} end)
-    |> Enum.sort_by(fn {name, _id} -> name end)
+    |> Enum.sort_by(fn {name, id} ->
+      fact = Enum.find(available_facts, &(&1.id == id))
+      {fact.sort_order || 1000, name}
+    end)
   end
+
+  defp fact_for_form(facts_map, fact_form) do
+    Map.get(facts_map, fact_form[:nutritional_fact_id].value)
+  end
+
+  defp fixed_unit_fact?(%{system: true}), do: true
+  defp fixed_unit_fact?(_fact), do: false
+
+  defp nutrition_unit_options do
+    [
+      {"Kilojoules (kJ)", :kilojoule},
+      {"Kilocalories (kcal)", :kcal},
+      {"Gram (g)", :gram},
+      {"Milligram (mg)", :milligram},
+      {"Milliliter (ml)", :milliliter},
+      {"Percent (%)", :percent},
+      {"Piece", :piece}
+    ]
+  end
+
+  defp basis_unit_options do
+    [
+      {"Gram (g)", :gram},
+      {"Milliliter (ml)", :milliliter},
+      {"Piece", :piece}
+    ]
+  end
+
+  defp unit_label(unit) do
+    nutrition_unit_options()
+    |> Enum.find(fn {_label, value} ->
+      value == unit || Atom.to_string(value) == to_string(unit)
+    end)
+    |> case do
+      {label, _value} -> label
+      _ -> to_string(unit)
+    end
+  end
+
+  defp default_basis_unit(:milliliter), do: :milliliter
+  defp default_basis_unit("milliliter"), do: :milliliter
+  defp default_basis_unit(:piece), do: :piece
+  defp default_basis_unit("piece"), do: :piece
+  defp default_basis_unit(_unit), do: :gram
 end

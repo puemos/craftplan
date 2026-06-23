@@ -40,6 +40,24 @@ defmodule CraftplanWeb.ProductLive.Label do
         </div>
       </div>
 
+      <div :if={nutrition_declaration?(@nutrition_facts)} class="mb-4">
+        <div class="mb-1 text-sm font-medium text-stone-700">
+          Nutrition declaration per {nutrition_basis_label(@nutrition_facts)}
+        </div>
+        <table class="w-full border-collapse text-sm">
+          <tbody>
+            <tr :for={fact <- @nutrition_facts} class="border-b border-stone-200">
+              <td class="py-1 pr-4">
+                <span class={if Map.get(fact, :parent_key), do: "pl-4", else: ""}>
+                  {nutrient_label(fact)}
+                </span>
+              </td>
+              <td class="py-1 text-right">{format_amount(fact.unit, fact.amount)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="mt-6 flex justify-end print:hidden">
         <.button variant={:primary} onclick="window.print()">Print</.button>
       </div>
@@ -56,6 +74,7 @@ defmodule CraftplanWeb.ProductLive.Label do
           :name,
           :sku,
           :allergens,
+          :nutritional_facts,
           active_bom: [components: [:component_type, material: [:name]]]
         ],
         actor: socket.assigns[:current_user]
@@ -101,6 +120,7 @@ defmodule CraftplanWeb.ProductLive.Label do
      socket
      |> assign(:product, product)
      |> assign(:ingredients, ingredients)
+     |> assign(:nutrition_facts, product.nutritional_facts || [])
      |> assign(
        :allergens,
        (product.allergens != [] && product.allergens) ||
@@ -119,4 +139,36 @@ defmodule CraftplanWeb.ProductLive.Label do
   end
 
   # no recipe fallback
+
+  defp nutrition_declaration?(facts), do: Enum.any?(facts, &Map.get(&1, :declaration?, false))
+
+  defp nutrition_basis_label(facts) do
+    facts
+    |> Enum.find(&Map.get(&1, :declaration?, false))
+    |> case do
+      %{per_quantity: quantity, per_unit: unit} ->
+        "#{format_basis_quantity(quantity)} #{basis_unit_abbreviation(unit)}"
+
+      _ ->
+        "100 g"
+    end
+  end
+
+  defp nutrient_label(%{parent_key: parent_key, name: name}) when not is_nil(parent_key) do
+    "of which #{String.downcase(name)}"
+  end
+
+  defp nutrient_label(%{name: name}), do: name
+
+  defp basis_unit_abbreviation(:milliliter), do: "ml"
+  defp basis_unit_abbreviation("milliliter"), do: "ml"
+  defp basis_unit_abbreviation(_unit), do: "g"
+
+  defp format_basis_quantity(%Decimal{} = quantity) do
+    quantity
+    |> Decimal.normalize()
+    |> Decimal.to_string(:normal)
+  end
+
+  defp format_basis_quantity(quantity), do: to_string(quantity)
 end

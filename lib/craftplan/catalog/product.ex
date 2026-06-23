@@ -54,7 +54,9 @@ defmodule Craftplan.Catalog.Product do
         :photos,
         :featured_photo,
         :selling_availability,
-        :max_daily_quantity
+        :max_daily_quantity,
+        :nutrition_output_quantity,
+        :nutrition_output_unit
       ],
       update: [
         :name,
@@ -64,7 +66,9 @@ defmodule Craftplan.Catalog.Product do
         :photos,
         :featured_photo,
         :selling_availability,
-        :max_daily_quantity
+        :max_daily_quantity,
+        :nutrition_output_quantity,
+        :nutrition_output_unit
       ]
     ]
 
@@ -168,6 +172,17 @@ defmodule Craftplan.Catalog.Product do
       default 0
       constraints min: 0
       description "Optional per-product capacity per day (0 = unlimited)"
+    end
+
+    attribute :nutrition_output_quantity, :decimal do
+      public? true
+      constraints min: 0
+      description "Finished product quantity used to express nutrition per 100g or 100ml."
+    end
+
+    attribute :nutrition_output_unit, :unit do
+      public? true
+      description "Finished product unit used to express nutrition per 100g or 100ml."
     end
 
     timestamps()

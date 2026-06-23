@@ -4,6 +4,7 @@ alias Craftplan.Accounts
 alias Craftplan.Catalog
 alias Craftplan.CRM
 alias Craftplan.Inventory
+alias Craftplan.Inventory.Nutrition
 alias Craftplan.Orders
 alias Craftplan.Repo
 alias Craftplan.Settings
@@ -46,32 +47,52 @@ end
 
 # Add a function to seed nutritional facts
 seed_nutritional_facts = fn ->
-  seed_single_nutritional_fact = fn name ->
+  seed_single_nutritional_fact = fn attrs, identity ->
     [nutritional_fact] =
       Ash.Seed.seed!(
         Inventory.NutritionalFact,
-        [%{name: name}],
-        identity: :name
+        [attrs],
+        identity: identity
       )
 
     nutritional_fact
   end
 
+  standard_facts =
+    Map.new(Nutrition.standard_facts(), fn attrs ->
+      {attrs.key, seed_single_nutritional_fact.(attrs, :key)}
+    end)
+
+  seed_custom_fact = fn name ->
+    seed_single_nutritional_fact.(
+      %{
+        name: name,
+        key: Nutrition.custom_key(name),
+        default_unit: :gram,
+        sort_order: 1000,
+        eu_required: false,
+        system: false
+      },
+      :key
+    )
+  end
+
   %{
-    calories: seed_single_nutritional_fact.("Calories"),
-    fat: seed_single_nutritional_fact.("Fat"),
-    saturated_fat: seed_single_nutritional_fact.("Saturated Fat"),
-    carbohydrates: seed_single_nutritional_fact.("Carbohydrates"),
-    sugar: seed_single_nutritional_fact.("Sugar"),
-    fiber: seed_single_nutritional_fact.("Fiber"),
-    protein: seed_single_nutritional_fact.("Protein"),
-    salt: seed_single_nutritional_fact.("Salt"),
-    sodium: seed_single_nutritional_fact.("Sodium"),
-    calcium: seed_single_nutritional_fact.("Calcium"),
-    iron: seed_single_nutritional_fact.("Iron"),
-    vitamin_a: seed_single_nutritional_fact.("Vitamin A"),
-    vitamin_c: seed_single_nutritional_fact.("Vitamin C"),
-    vitamin_d: seed_single_nutritional_fact.("Vitamin D")
+    energy_kj: standard_facts["energy_kj"],
+    calories: standard_facts["energy_kcal"],
+    fat: standard_facts["fat"],
+    saturated_fat: standard_facts["saturates"],
+    carbohydrates: standard_facts["carbohydrate"],
+    sugar: standard_facts["sugars"],
+    protein: standard_facts["protein"],
+    salt: standard_facts["salt"],
+    fiber: seed_custom_fact.("Fibre"),
+    sodium: seed_custom_fact.("Sodium"),
+    calcium: seed_custom_fact.("Calcium"),
+    iron: seed_custom_fact.("Iron"),
+    vitamin_a: seed_custom_fact.("Vitamin A"),
+    vitamin_c: seed_custom_fact.("Vitamin C"),
+    vitamin_d: seed_custom_fact.("Vitamin D")
   }
 end
 
@@ -152,11 +173,20 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
 
   # Add a function to link materials to nutritional facts with amounts and units
   link_material_nutritional_fact = fn material, nutritional_fact, amount, unit ->
+    basis_unit =
+      case material.unit do
+        :milliliter -> :milliliter
+        :piece -> :piece
+        _ -> :gram
+      end
+
     Ash.Seed.seed!(Inventory.MaterialNutritionalFact, %{
       material_id: material.id,
       nutritional_fact_id: nutritional_fact.id,
       amount: Decimal.new(amount),
-      unit: unit
+      unit: unit,
+      basis_quantity: Decimal.new(100),
+      basis_unit: basis_unit
     })
   end
 
