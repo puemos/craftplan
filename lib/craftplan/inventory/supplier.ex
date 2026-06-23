@@ -74,24 +74,29 @@ defmodule Craftplan.Inventory.Supplier do
     uuid_primary_key :id
 
     attribute :name, :string do
+      public? true
       allow_nil? false
       constraints min_length: 1, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
     end
 
     attribute :contact_name, :string do
+      public? true
       allow_nil? true
       constraints match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
     end
 
     attribute :contact_email, :string do
+      public? true
       allow_nil? true
     end
 
     attribute :contact_phone, :string do
+      public? true
       allow_nil? true
     end
 
     attribute :notes, :string do
+      public? true
       allow_nil? true
       constraints max_length: 2000
     end
