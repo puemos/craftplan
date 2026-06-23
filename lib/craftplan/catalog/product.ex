@@ -124,7 +124,7 @@ defmodule Craftplan.Catalog.Product do
 
       constraints min_length: 2,
                   max_length: 100,
-                  match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」()''\x{2019}\x{2013}]+$/u
+                  match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」()''&\x{2019}\x{2013}\x{2026}]+$/u
     end
 
     attribute :status, Craftplan.Catalog.Product.Types.Status do

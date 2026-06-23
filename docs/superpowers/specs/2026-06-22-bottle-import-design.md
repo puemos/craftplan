@@ -196,7 +196,12 @@ E2E run procedure:
 
 ## 11. Out of scope but worth follow-ups
 
-> **Note (added during implementation):** `Product.name` regex was relaxed to also allow ASCII `(`, `)`, `'`, `'` (U+2019 curly apostrophe), and `–` (U+2013 en-dash) to accommodate real Bottle product names such as `"Combo Box (2 of each)"`, `"Galentine's Day Cookie Box (BFF)"`, and `"Cinnamon Raisin Swirl Bread – Tuesdays"`. `Customer.first_name` / `Customer.last_name` were not changed — the `-` mononym placeholder already passes the existing regex.
+> **Notes (added during E2E):**
+>
+> 1. `Product.name` regex was relaxed to also allow ASCII `(`, `)`, `'`, `'` (U+2019 curly apostrophe), `–` (U+2013 en-dash), `&` (ampersand), and `…` (U+2026 ellipsis) to accommodate real Bottle product names such as `"Combo Box (2 of each)"`, `"Galentine's Day Cookie Box (BFF)"`, `"Cinnamon Raisin Swirl Bread – Tuesdays"`, `"Fresh Currant & Chocolate Scones (4)"`, and `"Galentine's Day Cookie Box (I love you more than…)"`.
+> 2. `Customer.first_name` / `Customer.last_name` regex was relaxed to allow `'`, `,`, and `'` (U+2019) — real customer names include suffixes like `"Michael Letschin, MBA"` and apostrophes like `"O'Brien"` / `"O'Brien"`.
+> 3. `Upserts.parse_utc_datetime/1` was made tolerant of `nil` and empty strings — 5 Bottle rows had a missing `Transaction Date`, and `Order.paid_at` is nullable.
+> 4. `Upserts.upsert_customer/2` clears `email` for the second-and-later customer that would collide with `Customer`'s email-unique identity. Households commonly share an email under distinct phones (e.g., Page Buchanan and Dianne Schindler both used `Pagepsb@gmail.com`); the importer keeps the email on the first phone seen and blanks it on the rest. Phone remains the identity key for upsert.
 
 - **Add a unique index on `Order.invoice_number`** — currently nullable+un-indexed; the importer's pre-write check is a soft guard. A migration adding a partial unique index (`WHERE invoice_number IS NOT NULL`) would harden idempotency.
 - **Kit modeling** — five SKUs are opaque today. Future change: `Product.kit_items` relationship that decomposes at fulfillment / inventory time.

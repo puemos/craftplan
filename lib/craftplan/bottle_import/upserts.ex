@@ -14,12 +14,13 @@ defmodule Craftplan.BottleImport.Upserts do
   def upsert_customer(row, actor) do
     with {:ok, phone} <- PhoneNormalizer.normalize(row["Phone"]) do
       names = NameParser.parse(row["Customer Name"])
+      email = blank_to_nil(row["Email"]) |> resolve_email_conflict(phone, actor)
 
       attrs = %{
         type: :individual,
         first_name: names.first_name,
         last_name: names.last_name,
-        email: blank_to_nil(row["Email"]),
+        email: email,
         phone: phone,
         shipping_address: build_address(row)
       }
@@ -35,6 +36,21 @@ defmodule Craftplan.BottleImport.Upserts do
           |> Ash.Changeset.for_update(:update, Map.drop(attrs, [:type]))
           |> Ash.update(actor: actor)
       end
+    end
+  end
+
+  # If `email` is already taken by a customer with a different phone (households
+  # share an email), return nil so we don't collide with the email identity.
+  defp resolve_email_conflict(nil, _phone, _actor), do: nil
+
+  defp resolve_email_conflict(email, phone, actor) do
+    Customer
+    |> Ash.Query.filter(email == ^email)
+    |> Ash.read_one(actor: actor)
+    |> case do
+      {:ok, %Customer{phone: ^phone}} -> email
+      {:ok, %Customer{}} -> nil
+      _ -> email
     end
   end
 
@@ -205,6 +221,7 @@ defmodule Craftplan.BottleImport.Upserts do
   defp parse_date(%DateTime{} = dt), do: DateTime.to_date(dt)
   defp parse_date(s) when is_binary(s), do: Date.from_iso8601!(s)
 
+  defp parse_utc_datetime(nil), do: nil
   defp parse_utc_datetime(%DateTime{} = dt), do: DateTime.shift_zone!(dt, "Etc/UTC")
 
   defp parse_utc_datetime(%NaiveDateTime{} = ndt) do
@@ -213,7 +230,15 @@ defmodule Craftplan.BottleImport.Upserts do
   end
 
   defp parse_utc_datetime(s) when is_binary(s) do
-    {:ok, ndt} = NaiveDateTime.from_iso8601(s)
-    parse_utc_datetime(ndt)
+    case String.trim(s) do
+      "" ->
+        nil
+
+      trimmed ->
+        case NaiveDateTime.from_iso8601(trimmed) do
+          {:ok, ndt} -> parse_utc_datetime(ndt)
+          {:error, _} -> nil
+        end
+    end
   end
 end

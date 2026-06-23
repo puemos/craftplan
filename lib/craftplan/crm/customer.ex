@@ -135,13 +135,13 @@ defmodule Craftplan.CRM.Customer do
     attribute :first_name, :string do
       allow_nil? false
       public? true
-      constraints min_length: 1, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
+      constraints min_length: 1, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」',\x{2019}]+$/u
     end
 
     attribute :last_name, :string do
       allow_nil? false
       public? true
-      constraints min_length: 1, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
+      constraints min_length: 1, match: ~r/^[\p{L}\p{N}\w\s\-\.・（）「」',\x{2019}]+$/u
     end
 
     attribute :email, :string do
