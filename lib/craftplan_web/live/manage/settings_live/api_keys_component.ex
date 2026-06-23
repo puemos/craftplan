@@ -5,7 +5,7 @@ defmodule CraftplanWeb.SettingsLive.ApiKeysComponent do
   alias Craftplan.Accounts
   alias Craftplan.Accounts.ApiKey
 
-  @all_resources ~w(products boms bom_components orders order_items production_batches materials lots movements suppliers purchase_orders customers settings)
+  @all_resources ~w(products boms bom_components orders order_items production_batches materials lots movements suppliers purchase_orders purchase_order_items customers settings)
 
   @impl true
   def render(assigns) do
