@@ -34,8 +34,8 @@ defmodule CraftplanWeb.PurchasingLive.Show do
           </:item>
           <:item title="Supplier">{@po.supplier.name}</:item>
           <:item title="Status">{@po.status}</:item>
-          <:item title="Ordered At">{format_time(@po.ordered_at, @time_zone)}</:item>
-          <:item title="Received At">{format_time(@po.received_at, @time_zone)}</:item>
+          <:item title="Ordered At">{format_date(@po.ordered_at, @time_zone)}</:item>
+          <:item title="Received At">{format_date(@po.received_at, @time_zone)}</:item>
         </.list>
       </.tabs_content>
       <.tabs_content :if={@live_action not in [:show]}>
