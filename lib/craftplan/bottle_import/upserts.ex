@@ -17,8 +17,8 @@ defmodule Craftplan.BottleImport.Upserts do
 
       attrs = %{
         type: :individual,
-        first_name: sanitize_name(names.first_name),
-        last_name: sanitize_name(names.last_name),
+        first_name: names.first_name,
+        last_name: names.last_name,
         email: blank_to_nil(row["Email"]),
         phone: phone,
         shipping_address: build_address(row)
@@ -167,7 +167,7 @@ defmodule Craftplan.BottleImport.Upserts do
 
     Product
     |> Ash.Changeset.for_create(:create, %{
-      name: sanitize_product_name(name),
+      name: name,
       sku: sku,
       price: price,
       status: :active,
@@ -190,20 +190,6 @@ defmodule Craftplan.BottleImport.Upserts do
       zip: blank_to_nil(row["Zip"]),
       country: "US"
     }
-  end
-
-  # NameParser uses "?" for mononym placeholders, which fails the Customer name
-  # regex constraint. Map it to "-" (a valid single-char placeholder).
-  @name_regex ~r/^[\p{L}\p{N}\w\s\-\.・（）「」]+$/u
-  defp sanitize_name(name) when is_binary(name) do
-    if Regex.match?(@name_regex, name), do: name, else: "-"
-  end
-
-  # Strip ASCII characters that the Product name regex does not allow (e.g. parentheses).
-  @product_name_invalid ~r/[^\p{L}\p{N}\w\s\-\.・（）「」]/u
-  defp sanitize_product_name(name) when is_binary(name) do
-    cleaned = Regex.replace(@product_name_invalid, name, "")
-    if String.trim(cleaned) == "", do: "Unknown", else: String.trim(cleaned)
   end
 
   defp blank_to_nil(nil), do: nil

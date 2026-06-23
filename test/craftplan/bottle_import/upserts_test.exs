@@ -46,15 +46,14 @@ defmodule Craftplan.BottleImport.UpsertsTest do
       assert second.shipping_address.zip == "20003"
     end
 
-    test "handles mononyms via NameParser (first_name sanitized to -)" do
+    test "handles mononyms via NameParser (first_name = -)" do
       {:ok, c} =
         Upserts.upsert_customer(
           customer_row(%{"Customer Name" => "Spackey", "Phone" => "(216) 798-1313"}),
           actor()
         )
 
-      # NameParser returns "?" for mononym first_name; the Customer schema's name regex
-      # does not allow "?", so Upserts sanitizes it to "-".
+      # NameParser returns "-" for mononym first_name, which is also what Customer stores.
       assert c.first_name == "-"
       assert c.last_name == "Spackey"
     end
@@ -95,7 +94,7 @@ defmodule Craftplan.BottleImport.UpsertsTest do
       assert created.status == :active
     end
 
-    test "creates kit products with selling_availability: :off" do
+    test "creates kit products with selling_availability: :off and preserves name verbatim" do
       {:ok, created} =
         Upserts.resolve_product(
           "PID-96931",
@@ -106,6 +105,7 @@ defmodule Craftplan.BottleImport.UpsertsTest do
         )
 
       assert created.selling_availability == :off
+      assert created.name == "Combo Box (2 of each)"
     end
 
     test "errors when PID is unknown to both DB and price_map" do
