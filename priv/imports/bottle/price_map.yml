@@ -1,0 +1,6 @@
+# PID → retail price (USD, decimal).
+# Bootstrap fallback only — consulted when a "BOTTLE-<PID>" SKU isn't found in Craftplan.
+# After the initial bootstrap, this file is mostly empty. New SKUs sold via Bottle
+# should be created in Craftplan first.
+
+prices: {}
