@@ -19,6 +19,10 @@ defmodule Craftplan.Inventory.SupplierNameValidationTest do
       assert {:ok, _} = create_supplier("ACME Supplies")
     end
 
+    test "accepts ampersand in business name" do
+      assert {:ok, _} = create_supplier("Miller & Co.")
+    end
+
     test "accepts Japanese name" do
       assert {:ok, _} = create_supplier("東京食材株式会社")
     end

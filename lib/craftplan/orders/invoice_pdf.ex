@@ -73,7 +73,6 @@ defmodule Craftplan.Orders.InvoicePdf do
   defp format_decimal(_), do: "0"
 
   defp format_date(%Date{} = d), do: Calendar.strftime(d, "%b %d, %Y")
-  defp format_date(_), do: ""
 
   defp format_datetime(nil), do: ""
   defp format_datetime(%DateTime{} = dt), do: dt |> DateTime.to_date() |> format_date()

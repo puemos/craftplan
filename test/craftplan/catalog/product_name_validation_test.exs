@@ -25,6 +25,10 @@ defmodule Craftplan.Catalog.ProductNameValidationTest do
       assert {:ok, _} = create_product("Product-Name.v2")
     end
 
+    test "accepts ampersand" do
+      assert {:ok, _} = create_product("Salt & Pepper Mix")
+    end
+
     test "accepts Japanese katakana" do
       assert {:ok, _} = create_product("チョコレートケーキ")
     end

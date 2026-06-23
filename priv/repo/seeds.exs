@@ -105,6 +105,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
   Repo.delete_all(Orders.OrderItemLot)
   Repo.delete_all(Orders.OrderItem)
   Repo.delete_all(Orders.Order)
+  Repo.delete_all(Orders.ProductionBatch)
   # Legacy Recipe resources removed; no cleanup required
   # Clear BOMs and related rollups/components before products to avoid FKs
   Repo.delete_all(Catalog.BOMRollup)
@@ -123,7 +124,6 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
   Repo.delete_all(Inventory.PurchaseOrderItem)
   Repo.delete_all(Inventory.PurchaseOrder)
   Repo.delete_all(Inventory.Supplier)
-  Repo.delete_all(Orders.ProductionBatch)
   Repo.delete_all(Inventory.Material)
   Repo.delete_all(Inventory.Allergen)
   Repo.delete_all(CRM.Customer)

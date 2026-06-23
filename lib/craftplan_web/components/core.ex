@@ -654,24 +654,8 @@ defmodule CraftplanWeb.Components.Core do
   attr :class, :string, default: nil, doc: "Additional CSS classes"
 
   def badge(assigns) do
-    key =
-      if Map.has_key?(assigns, :value) and assigns.value != :default do
-        value = assigns.value
-
-        cond do
-          is_atom(value) -> value
-          is_binary(value) -> String.to_atom(value)
-          true -> :default
-        end
-      else
-        cond do
-          is_atom(assigns.text) -> assigns.text
-          is_binary(assigns.text) -> String.to_atom(assigns.text)
-          true -> :default
-        end
-      end
-
-    color_class = Keyword.get(assigns.colors, key, "bg-stone-100 text-stone-700 border-stone-300")
+    color_value = if assigns.value == :default, do: assigns.text, else: assigns.value
+    color_class = badge_color_class(assigns.colors, color_value)
     assigns = assign(assigns, :color_class, color_class)
 
     ~H"""
@@ -684,6 +668,16 @@ defmodule CraftplanWeb.Components.Core do
     </span>
     """
   end
+
+  defp badge_color_class(colors, value) do
+    Enum.find_value(colors, "bg-stone-100 text-stone-700 border-stone-300", fn {key, class} ->
+      if badge_color_match?(key, value), do: class
+    end)
+  end
+
+  defp badge_color_match?(key, value) when is_binary(key), do: key == to_string(value)
+  defp badge_color_match?(key, value) when is_binary(value), do: to_string(key) == value
+  defp badge_color_match?(key, value), do: key == value
 
   @doc """
   Renders a back navigation link.

@@ -542,8 +542,6 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
     Enum.min_by(@horizon_options, fn opt -> abs(opt - value) end)
   end
 
-  defp snap_to_horizon(_), do: 14
-
   defp normalize_risk_filters(nil), do: @default_risk_filters
 
   defp normalize_risk_filters(filters) when is_list(filters) do

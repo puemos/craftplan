@@ -101,10 +101,10 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
         authorize?: authorize?
       )
 
-    do_flatten(bom, quantity, MapSet.new(), opts)
+    do_flatten(bom, quantity, [], opts)
   end
 
-  @spec do_flatten(BOM.t(), D.t(), MapSet.t(Catalog.product_id()), keyword()) :: %{any() => D.t()}
+  @spec do_flatten(BOM.t(), D.t(), [Catalog.product_id()], keyword()) :: %{any() => D.t()}
   defp do_flatten(%BOM{} = bom, quantity, path, opts) do
     components =
       case Map.get(bom, :components) do
@@ -123,7 +123,7 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
         :product ->
           case component.product do
             %{id: product_id} ->
-              if MapSet.member?(path, product_id) do
+              if product_id in path do
                 acc
               else
                 nested_bom =
@@ -139,7 +139,7 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
                   comp_qty = D.mult(quantity, component.quantity || D.new(0))
 
                   nested_map =
-                    do_flatten(nested_bom, comp_qty, MapSet.put(path, product_id), opts)
+                    do_flatten(nested_bom, comp_qty, [product_id | path], opts)
 
                   merge_decimal_maps(acc, nested_map)
                 else

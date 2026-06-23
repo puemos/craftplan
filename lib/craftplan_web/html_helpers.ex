@@ -276,10 +276,8 @@ defmodule CraftplanWeb.HtmlHelpers do
   end
 
   def format_currency(currency, amount, opts) when is_binary(amount) do
-    case Decimal.new(amount) do
-      %Decimal{} = decimal -> format_currency(currency, decimal, opts)
-      _ -> format_currency(currency, Decimal.new(0), opts)
-    end
+    decimal = Decimal.new(amount)
+    format_currency(currency, decimal, opts)
   rescue
     _ -> format_currency(currency, Decimal.new(0), opts)
   end

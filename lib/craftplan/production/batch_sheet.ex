@@ -69,7 +69,7 @@ defmodule Craftplan.Production.BatchSheet do
   defp build_bom_components(nil, _totals), do: []
 
   defp build_bom_components(bom, totals) do
-    planned_qty = (totals && totals.quantity) || D.new(0)
+    planned_qty = totals.quantity
 
     bom.components
     |> Enum.filter(&(&1.component_type == :material))
@@ -114,18 +114,6 @@ defmodule Craftplan.Production.BatchSheet do
         "supplier" => (lot.supplier && lot.supplier.name) || "—"
       }
     end)
-  end
-
-  defp build_costs(nil, _currency) do
-    blank = "—"
-
-    %{
-      "material_cost" => blank,
-      "labor_cost" => blank,
-      "overhead_cost" => blank,
-      "total_cost" => blank,
-      "unit_cost" => blank
-    }
   end
 
   defp build_costs(totals, currency) do

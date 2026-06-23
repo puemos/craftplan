@@ -168,8 +168,6 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
     end
   end
 
-  defp fetch_active_bom(nil, _actor), do: nil
-
   defp fetch_active_bom(product, actor) do
     BOM
     |> Query.for_read(:get_active, %{product_id: product.id})
@@ -180,7 +178,7 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
     end
   end
 
-  defp resolve_bom(changeset, product) do
+  defp resolve_bom(changeset, %Product{} = product) do
     actor = actor_from(changeset)
 
     with id when not is_nil(id) <- Changeset.get_attribute(changeset, :bom_id),
@@ -188,15 +186,9 @@ defmodule Craftplan.Orders.Changes.AssignBatchCodeAndCost do
       bom
     else
       _ ->
-        case product do
-          nil ->
-            fetch_active_bom(product, actor)
-
-          %Product{} ->
-            case Map.get(product, :active_bom) do
-              %BOM{} = bom -> bom
-              _ -> fetch_active_bom(product, actor)
-            end
+        case Map.get(product, :active_bom) do
+          %BOM{} = bom -> bom
+          _ -> fetch_active_bom(product, actor)
         end
     end
   end

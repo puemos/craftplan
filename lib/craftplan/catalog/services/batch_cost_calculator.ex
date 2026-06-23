@@ -18,12 +18,12 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
         }
   def calculate(%BOM{} = bom, quantity, opts \\ []) do
     settings = fetch_settings(opts)
-    path = MapSet.new()
+    path = []
 
     do_calculate(bom, DecimalHelpers.to_decimal(quantity), opts, settings, path)
   end
 
-  @spec do_calculate(BOM.t(), D.t(), keyword(), map(), MapSet.t()) :: %{
+  @spec do_calculate(BOM.t(), D.t(), keyword(), map(), list()) :: %{
           material_cost: D.t(),
           labor_cost: D.t(),
           overhead_cost: D.t(),
@@ -76,7 +76,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     }
   end
 
-  @spec component_cost(BOMComponent.t(), D.t(), keyword(), map(), MapSet.t()) :: D.t()
+  @spec component_cost(BOMComponent.t(), D.t(), keyword(), map(), list()) :: D.t()
   defp component_cost(%BOMComponent{component_type: :material} = component, quantity, _opts, _settings, _path) do
     multiplier = waste_multiplier(component)
 
@@ -104,7 +104,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     with {:ok, product} <- get_product_from_component(component),
          :ok <- check_for_circular_dependency(product.id, path),
          {:ok, bom} <- get_active_bom_for_product(product.id, actor, authorize?) do
-      nested_cost = calculate_nested_cost(bom, opts, settings, MapSet.put(path, product.id))
+      nested_cost = calculate_nested_cost(bom, opts, settings, [product.id | path])
       D.mult(total_quantity, nested_cost)
     else
       _error ->
@@ -122,9 +122,9 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     end
   end
 
-  @spec check_for_circular_dependency(any(), MapSet.t()) :: :ok | {:error, :circular_dependency}
+  @spec check_for_circular_dependency(any(), list()) :: :ok | {:error, :circular_dependency}
   defp check_for_circular_dependency(product_id, path) do
-    if MapSet.member?(path, product_id) do
+    if product_id in path do
       {:error, :circular_dependency}
     else
       :ok
@@ -141,7 +141,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     end
   end
 
-  @spec calculate_nested_cost(BOM.t(), keyword(), map(), MapSet.t()) :: D.t()
+  @spec calculate_nested_cost(BOM.t(), keyword(), map(), list()) :: D.t()
   defp calculate_nested_cost(bom, opts, settings, path) do
     nested =
       do_calculate(
@@ -217,7 +217,7 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
     %{labor_hourly_rate: D.new(0), labor_overhead_percent: D.new(0)}
   end
 
-  @spec maybe_track_product(MapSet.t(), any()) :: MapSet.t()
+  @spec maybe_track_product(list(), any()) :: list()
   defp maybe_track_product(path, nil), do: path
-  defp maybe_track_product(path, product_id), do: MapSet.put(path, product_id)
+  defp maybe_track_product(path, product_id), do: [product_id | path]
 end

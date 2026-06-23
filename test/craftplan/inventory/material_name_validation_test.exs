@@ -23,6 +23,10 @@ defmodule Craftplan.Inventory.MaterialNameValidationTest do
       assert {:ok, _} = create_material("Flour")
     end
 
+    test "accepts ampersand" do
+      assert {:ok, _} = create_material("Salt & Pepper")
+    end
+
     test "accepts Japanese kanji" do
       assert {:ok, _} = create_material("小麦粉")
     end
