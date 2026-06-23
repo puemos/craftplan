@@ -98,8 +98,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                   <span class="opacity-0">Actions</span>
                 </div>
               </div>
-              
-    <!-- Empty State -->
+
+              <!-- Empty State -->
               <div role="row" class="hidden py-4 text-stone-400 last:block">
                 <div>
                   No materials in recipe
@@ -157,8 +157,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                               </span>
                             </span>
                           <% end %>
-                          
-    <!-- Shared Hidden Inputs -->
+
+                          <!-- Shared Hidden Inputs -->
                           <.input
                             field={components_form[:material_id]}
                             value={components_form[:material_id].value}
@@ -175,8 +175,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                             type="hidden"
                           />
                         </span>
-                        
-    <!-- Mobile Remove Button -->
+
+                        <!-- Mobile Remove Button -->
                         <%= if latest_version(@boms) == @bom.version do %>
                           <label class="-mt-1 -mr-2 cursor-pointer p-1 text-stone-400 hover:text-stone-700 md:hidden">
                             <input
@@ -192,8 +192,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       </div>
                     </div>
                   </div>
-                  
-    <!-- Quantity Column (Col 2) -->
+
+                  <!-- Quantity Column (Col 2) -->
                   <div class="relative mt-1.5 border-stone-200 p-0 last:border-r-0 md:mt-0 md:border-r md:pl-4">
                     <label class="mb-0.5 block text-xs text-stone-500 md:hidden">Quantity</label>
                     <div class="block md:py-4 md:pr-6">
@@ -213,8 +213,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       </span>
                     </div>
                   </div>
-                  
-    <!-- Cost Column (Col 3) -->
+
+                  <!-- Cost Column (Col 3) -->
                   <div class="relative hidden border-stone-200 p-0 last:border-r-0 md:block md:border-r md:pl-4">
                     <div class="md:block md:py-4 md:pr-6">
                       <span class="text-sm text-stone-900">
@@ -228,8 +228,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       </span>
                     </div>
                   </div>
-                  
-    <!-- 4. Action Column (Desktop: Col 4, Mobile: Hidden) -->
+
+                  <!-- 4. Action Column (Desktop: Col 4, Mobile: Hidden) -->
                   <div class="relative hidden border-stone-200 p-0 pl-4 last:border-r-0 md:block md:border-r">
                     <div class="block py-4 pr-6">
                       <%= if latest_version(@boms) != @bom.version do %>
@@ -357,8 +357,7 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                     role="row"
                     class="group relative border-b border-stone-200 py-3 last:border-b-0 hover:bg-stone-200/40 md:grid md:grid-cols-6 md:border-none md:p-0"
                   >
-                    
-    <!-- 1. Name/Step (Desktop: Col 1, Mobile: Row 1) -->
+                    <!-- 1. Name/Step (Desktop: Col 1, Mobile: Row 1) -->
                     <div class="relative border-stone-200 p-0 last:border-r-0 md:h-full md:border-r md:pr-6">
                       <div class="block md:py-4">
                         <div class="md:border-b md:border-dashed md:border-stone-300">
@@ -378,8 +377,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         />
                       </div>
                     </div>
-                    
-    <!-- Mobile/Desktop: Compact grid for numeric fields -->
+
+                    <!-- Mobile/Desktop: Compact grid for numeric fields -->
                     <div class="mt-2 grid grid-cols-2 gap-x-2 gap-y-2 md:contents">
                       <!-- 2. Minutes -->
                       <div class="md:relative md:border-r md:border-stone-200 md:p-0 md:pl-4 md:last:border-r-0">
@@ -399,8 +398,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                           </div>
                         </div>
                       </div>
-                      
-    <!-- 3. Units Per Run -->
+
+                      <!-- 3. Units Per Run -->
                       <div class="md:relative md:border-r md:border-stone-200 md:p-0 md:pl-4 md:last:border-r-0">
                         <label class="mb-0.5 block text-xs text-stone-500 md:hidden">Units/Run</label>
                         <div class="block md:py-4 md:pr-6">
@@ -418,8 +417,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                           </div>
                         </div>
                       </div>
-                      
-    <!-- 4. Rate Override -->
+
+                      <!-- 4. Rate Override -->
                       <div class="md:relative md:border-r md:border-stone-200 md:p-0 md:pl-4 md:last:border-r-0">
                         <label class="mb-0.5 block text-xs text-stone-500 md:hidden">
                           Rate Override
@@ -439,8 +438,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                           </div>
                         </div>
                       </div>
-                      
-    <!-- 5. Cost -->
+
+                      <!-- 5. Cost -->
                       <div class="md:relative md:border-r md:border-stone-200 md:p-0 md:pl-4 md:last:border-r-0">
                         <label class="mb-0.5 block text-xs text-stone-500 md:hidden">Cost</label>
                         <div class="block text-sm text-stone-800 md:py-4 md:pr-6">
@@ -453,8 +452,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         </div>
                       </div>
                     </div>
-                    
-    <!-- Mobile Remove Button (positioned at top-right of card) -->
+
+                    <!-- Mobile Remove Button (positioned at top-right of card) -->
                     <%= if latest_version(@boms) == @bom.version do %>
                       <label class="absolute top-3 right-2 cursor-pointer text-stone-400 hover:text-stone-700 md:hidden">
                         <input
@@ -467,8 +466,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         <.icon name="hero-x-mark" class="h-5 w-5" />
                       </label>
                     <% end %>
-                    
-    <!-- 6. Remove (Desktop: Col 6) -->
+
+                    <!-- 6. Remove (Desktop: Col 6) -->
                     <div class="hidden border-stone-200 p-0 last:border-r-0 md:block md:border-r md:pl-4">
                       <div class="block md:py-4 md:pr-6">
                         <%= if latest_version(@boms) != @bom.version do %>
@@ -530,8 +529,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
             variant={:primary}
             type="submit"
             disabled={
-              (@bom && @bom.status == :archived) ||
-                (@bom && @bom.id && not @form.source.changed?) ||
+              @bom.status == :archived ||
+                (@bom.id && not @form.source.changed?) ||
                 not @form.source.valid?
             }
             phx-disable-with="Saving..."

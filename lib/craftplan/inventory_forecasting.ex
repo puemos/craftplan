@@ -382,8 +382,6 @@ defmodule Craftplan.InventoryForecasting do
     end
   end
 
-  defp latest_bom(nil, _actor), do: nil
-
   defp latest_bom(product_id, actor) do
     %{product_id: product_id}
     |> Craftplan.Catalog.list_boms_for_product!(actor: actor)

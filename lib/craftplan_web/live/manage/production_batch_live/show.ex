@@ -464,8 +464,6 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
     end)
   end
 
-  defp insufficient_stock_error?(_), do: false
-
   defp format_stock_error(%Invalid{errors: errors}) do
     case Enum.find(errors, &match?(%{field: :lot_plan}, &1)) do
       %{message: msg, vars: vars} when is_map(vars) ->

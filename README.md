@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-blue.svg" alt="License: AGPLv3"></a>
-  <img src="https://img.shields.io/badge/elixir-%7E%3E%201.15-purple.svg" alt="Elixir ~> 1.15">
+  <img src="https://img.shields.io/badge/elixir-%7E%3E%201.20-purple.svg" alt="Elixir ~> 1.20">
   <img src="https://img.shields.io/badge/phoenix-%7E%3E%201.8-orange.svg" alt="Phoenix ~> 1.8">
 </p>
 
@@ -126,7 +126,7 @@ See the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hostin
 
 ## Development Setup
 
-> For contributors who want to work on the codebase. **Prerequisites:** Docker, Elixir ~> 1.15, Erlang/OTP 27
+> For contributors who want to work on the codebase. **Prerequisites:** Docker, Elixir ~> 1.20, Erlang/OTP 28
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d   # Start PostgreSQL + MinIO + Mailpit

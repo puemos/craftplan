@@ -14,7 +14,7 @@ defmodule Craftplan.DecimalHelpers do
   - `float` (will be rounded to 4 decimal places)
   - `binary` (string representation of a number, returns 0 if invalid)
   - `nil` (will return `Decimal.new(0)`)
-  - any other value that `Decimal.cast/1` can handle.
+  - unsupported values return `Decimal.new(0)`
   """
   def to_decimal(%D{} = d), do: d
   def to_decimal(i) when is_integer(i), do: D.new(i)
@@ -28,10 +28,5 @@ defmodule Craftplan.DecimalHelpers do
 
   def to_decimal(nil), do: D.new(0)
 
-  def to_decimal(other) do
-    case D.cast(other) do
-      {:ok, d} -> d
-      :error -> D.new(0)
-    end
-  end
+  def to_decimal(_other), do: D.new(0)
 end

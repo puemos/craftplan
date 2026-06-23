@@ -33,10 +33,7 @@ defmodule CraftplanWeb.Plugs.ApiKeyAuth do
       # Store scopes in process dictionary for ApiScopeCheck policy
       Process.put(:api_key_scopes, api_key.scopes)
 
-      # Touch last_used_at asynchronously
-      Task.start(fn ->
-        Accounts.touch_api_key_last_used(api_key, authorize?: false)
-      end)
+      Accounts.touch_api_key_last_used(api_key, authorize?: false)
 
       conn
       |> assign(:current_user, user)

@@ -10,8 +10,8 @@ description: Set up a local development environment for contributing to Craftpla
 
 Before setting up Craftplan, make sure you have the following installed:
 
-- **Elixir** 1.18 or later
-- **Erlang/OTP** 25 or later
+- **Elixir** 1.20 or later
+- **Erlang/OTP** 28 or later
 - **PostgreSQL** 16 or later
 - **Node.js** 18 or later (for asset building)
 - **Docker** and **Docker Compose** (recommended for running PostgreSQL and MinIO)
