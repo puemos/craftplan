@@ -82,7 +82,7 @@ Splitting extract from ingest:
 
 | Bottle source | Craftplan target | Note |
 |---|---|---|
-| `Customer Name` (single token) | `Customer.first_name = "?"`, `Customer.last_name = <name>` | Mononym handling. `is_mononym=true` flag in customers.csv. |
+| `Customer Name` (single token) | `Customer.first_name = "-"`, `Customer.last_name = <name>` | Mononym handling. `is_mononym=true` flag in customers.csv. |
 | `Customer Name` (≥2 tokens) | `Customer.first_name = <token[0]>`, `Customer.last_name = join(tokens[1..])` | |
 | `Phone` (digits-only, ≥10) | `Customer.phone` — **identity key for upsert** | All rows have a valid phone in this dataset. |
 | `Email` | `Customer.email` | Optional. |
@@ -172,7 +172,7 @@ Fixture: tiny synthetic CSV set (≈10 customers, 5 products, 20 orders, 40 item
 
 - First run inserts the expected counts.
 - Second run against the same CSVs is a no-op (idempotency).
-- Order with mononym customer creates `Customer` with `first_name == "?"`.
+- Order with mononym customer creates `Customer` with `first_name == "-"`.
 - Order with `Maketto Pickup` lands as `delivery_method: :pickup`.
 - Order with `Delivery` lands as `delivery_method: :delivery`.
 - Unknown-PID gate aborts with no partial writes (verified by row counts).
@@ -195,6 +195,8 @@ E2E run procedure:
 5. Re-run the import → preview gate reports 0 inserts / 4,305 skips → confirm idempotency.
 
 ## 11. Out of scope but worth follow-ups
+
+> **Note (added during implementation):** `Product.name` regex was relaxed to also allow ASCII `(`, `)`, `'`, `'` (U+2019 curly apostrophe), and `–` (U+2013 en-dash) to accommodate real Bottle product names such as `"Combo Box (2 of each)"`, `"Galentine's Day Cookie Box (BFF)"`, and `"Cinnamon Raisin Swirl Bread – Tuesdays"`. `Customer.first_name` / `Customer.last_name` were not changed — the `-` mononym placeholder already passes the existing regex.
 
 - **Add a unique index on `Order.invoice_number`** — currently nullable+un-indexed; the importer's pre-write check is a soft guard. A migration adding a partial unique index (`WHERE invoice_number IS NOT NULL`) would harden idempotency.
 - **Kit modeling** — five SKUs are opaque today. Future change: `Product.kit_items` relationship that decomposes at fulfillment / inventory time.

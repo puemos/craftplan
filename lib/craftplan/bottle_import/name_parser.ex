@@ -1,7 +1,7 @@
 defmodule Craftplan.BottleImport.NameParser do
   @moduledoc false
 
-  @placeholder "?"
+  @placeholder "-"
 
   @spec parse(String.t() | nil) :: %{
           first_name: String.t(),

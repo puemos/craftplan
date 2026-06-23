@@ -12,7 +12,7 @@
 
 - All Bottle dates and times are **US/Eastern**. Every Craftplan `utc_datetime` is the UTC conversion.
 - Customer upsert key: `phone` (normalized to digits, ≥10). Product upsert key: `sku = "BOTTLE-<PID>"`. Order idempotency key: `invoice_number = "BOTTLE-<bottle_id>"`.
-- Mononym customers (1-token names): `first_name = "?"`, `last_name = <name>`. `Customer.first_name` has `min_length: 1` so empty is rejected.
+- Mononym customers (1-token names): `first_name = "-"`, `last_name = <name>`. `Customer.first_name` has `min_length: 1` so empty is rejected.
 - Gift card PIDs (`PID-93974`, `PID-93978`, `PID-93979`, `PID-93980`) are filtered out at extract time.
 - Kit-category products (`Combo Box (2 of each)`, 4 Galentine's variants) import with `selling_availability: :off`; kit explosion is deferred.
 - All Bottle rows in this dataset are `Payment Status == "Paid"` → `Order.payment_status = :paid`, `Order.payment_method = :card`, `Order.status = :complete`.
@@ -290,24 +290,24 @@ defmodule Craftplan.BottleImport.NameParserTest do
                %{first_name: "Mary", last_name: "Anne Smith", is_mononym: false}
     end
 
-    test "treats single-token name as mononym (first_name = ?)" do
+    test "treats single-token name as mononym (first_name = -)" do
       assert NameParser.parse("Spackey") ==
-               %{first_name: "?", last_name: "Spackey", is_mononym: true}
+               %{first_name: "-", last_name: "Spackey", is_mononym: true}
     end
 
     test "trims surrounding whitespace" do
       assert NameParser.parse("  Spackey  ") ==
-               %{first_name: "?", last_name: "Spackey", is_mononym: true}
+               %{first_name: "-", last_name: "Spackey", is_mononym: true}
     end
 
     test "treats nil as mononym placeholder" do
       assert NameParser.parse(nil) ==
-               %{first_name: "?", last_name: "?", is_mononym: true}
+               %{first_name: "-", last_name: "-", is_mononym: true}
     end
 
     test "treats empty string as mononym placeholder" do
       assert NameParser.parse("") ==
-               %{first_name: "?", last_name: "?", is_mononym: true}
+               %{first_name: "-", last_name: "-", is_mononym: true}
     end
   end
 end
@@ -329,7 +329,7 @@ Expected: compilation error or `(UndefinedFunctionError)` — module doesn't exi
 defmodule Craftplan.BottleImport.NameParser do
   @moduledoc false
 
-  @placeholder "?"
+  @placeholder "-"
 
   @spec parse(String.t() | nil) :: %{
           first_name: String.t(),
@@ -648,14 +648,14 @@ defmodule Craftplan.BottleImport.UpsertsTest do
       assert second.shipping_address.zip == "20003"
     end
 
-    test "handles mononyms via NameParser (first_name = ?)" do
+    test "handles mononyms via NameParser (first_name = -)" do
       {:ok, c} =
         Upserts.upsert_customer(
           customer_row(%{"Customer Name" => "Spackey", "Phone" => "(216) 798-1313"}),
           actor()
         )
 
-      assert c.first_name == "?"
+      assert c.first_name == "-"
       assert c.last_name == "Spackey"
     end
   end
@@ -1188,7 +1188,7 @@ defmodule Craftplan.BottleImportTest do
       assert result.failed_orders == 0
     end
 
-    test "mononym customer lands as first_name = ?" do
+    test "mononym customer lands as first_name = -" do
       ImportTask.run_args([@fixtures, "--yes", "--price-map", @price_map])
 
       {:ok, c} =
@@ -1196,7 +1196,7 @@ defmodule Craftplan.BottleImportTest do
         |> Ash.Query.for_read(:get_by_email, %{email: "spackey@example.com"})
         |> Ash.read_one(actor: actor())
 
-      assert c.first_name == "?"
+      assert c.first_name == "-"
       assert c.last_name == "Spackey"
     end
 
@@ -1610,7 +1610,7 @@ After the bootstrap, the file should mostly empty out — new SKUs should be cre
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `unknown_pids` is non-empty | Bottle has a SKU not in Craftplan and not in `price_map.yml` | Create in Craftplan or add to yaml; re-run |
-| Test failure: `Customer.first_name min_length` | A mononym row reached the DB with empty first_name | Verify `NameParser` returned `"?"`; bug in upsert |
+| Test failure: `Customer.first_name min_length` | A mononym row reached the DB with empty first_name | Verify `NameParser` returned `"-"`; bug in upsert |
 | `tz_world` errors on SlotTimeParser | `Tzdata` data not loaded | Run `mix deps.compile tz --force` |
 ```
 

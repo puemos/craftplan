@@ -14,24 +14,24 @@ defmodule Craftplan.BottleImport.NameParserTest do
                %{first_name: "Mary", last_name: "Anne Smith", is_mononym: false}
     end
 
-    test "treats single-token name as mononym (first_name = ?)" do
+    test "treats single-token name as mononym (first_name = -)" do
       assert NameParser.parse("Spackey") ==
-               %{first_name: "?", last_name: "Spackey", is_mononym: true}
+               %{first_name: "-", last_name: "Spackey", is_mononym: true}
     end
 
     test "trims surrounding whitespace" do
       assert NameParser.parse("  Spackey  ") ==
-               %{first_name: "?", last_name: "Spackey", is_mononym: true}
+               %{first_name: "-", last_name: "Spackey", is_mononym: true}
     end
 
     test "treats nil as mononym placeholder" do
       assert NameParser.parse(nil) ==
-               %{first_name: "?", last_name: "?", is_mononym: true}
+               %{first_name: "-", last_name: "-", is_mononym: true}
     end
 
     test "treats empty string as mononym placeholder" do
       assert NameParser.parse("") ==
-               %{first_name: "?", last_name: "?", is_mononym: true}
+               %{first_name: "-", last_name: "-", is_mononym: true}
     end
   end
 end
