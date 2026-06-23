@@ -1,0 +1,6 @@
+Bottle ID,Transaction Date,Customer Name,Phone,Email,Fulfillment Method,Fulfillment Slot Day,Fulfillment Slot Time,Address1,Address2,City,State,Zip
+1001,2025-12-20 17:00:22,Edward Yardley,(202) 590-8525,edward@example.com,Delivery,2026-01-13,1/13 05:00AM - 1/13 12:00PM,508 7th St NE,,Washington,DC,20002
+1002,2025-12-21 18:00:00,Mary Anne Smith,(202) 555-0100,mary@example.com,Delivery,2026-01-13,1/13 05:00AM - 1/13 12:00PM,1 K St NW,,Washington,DC,20001
+1003,2025-12-22 19:00:00,Spackey,(216) 798-1313,spackey@example.com,Maketto Pickup,2026-01-09,1/9 05:00AM - 1/9 12:00PM,1300 34th St SE,,Washington,DC,20019
+1004,2025-12-23 20:00:00,Collins Grove,(843) 860-5056,collins@example.com,Delivery,2026-01-09,1/9 05:00AM - 1/9 12:00PM,27 15th St SE,,Washington,DC,20003
+1005,2025-12-23 21:00:00,Mykaila DeLesDernier,(276) 970-2271,mykaila@example.com,Delivery,2026-01-06,1/6 05:00AM - 1/6 12:00PM,416 10th St NE,,Washington,DC,20002

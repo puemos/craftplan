@@ -1,0 +1,6 @@
+Customer Name,Email,Phone,Address1,Address2,City,State,Zip,Number Of Times Customer Has Ordered,first_name,last_name,is_mononym
+Edward Yardley,edward@example.com,(202) 590-8525,508 7th St NE,,Washington,DC,20002,5,Edward,Yardley,False
+Mary Anne Smith,mary@example.com,(202) 555-0100,1 K St NW,,Washington,DC,20001,3,Mary,Anne Smith,False
+Spackey,spackey@example.com,(216) 798-1313,1300 34th St SE,,Washington,DC,20019,2,?,Spackey,True
+Collins Grove,collins@example.com,(843) 860-5056,27 15th St SE,,Washington,DC,20003,1,Collins,Grove,False
+Mykaila DeLesDernier,mykaila@example.com,(276) 970-2271,416 10th St NE,,Washington,DC,20002,4,Mykaila,DeLesDernier,False
