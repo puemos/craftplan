@@ -36,9 +36,7 @@ defmodule CraftplanWeb.Plugs.CalendarApiKeyAuth do
          {:ok, user} <- Ash.get(Craftplan.Accounts.User, api_key.user_id, authorize?: false) do
       Process.put(:api_key_scopes, api_key.scopes)
 
-      Task.start(fn ->
-        Accounts.touch_api_key_last_used(api_key, authorize?: false)
-      end)
+      Accounts.touch_api_key_last_used(api_key, authorize?: false)
 
       conn
       |> assign(:current_user, user)

@@ -406,15 +406,15 @@ defmodule CraftplanWeb.Components.Core do
               type="button"
               phx-click={@goto_event}
               phx-value-step={step}
-              class={[
-                "text-sm underline-offset-2 hover:underline",
-                (current? && "font-medium text-stone-900") || "text-stone-700"
-              ]}
+              class={["text-sm underline-offset-2 hover:underline", "text-stone-700"]}
             >
               {step}
             </button>
           <% else %>
-            <div class={["text-sm", (current? && "font-medium text-stone-900") || "text-stone-600"]}>
+            <div class={[
+              "text-sm",
+              if(current?, do: "font-medium text-stone-900", else: "text-stone-600")
+            ]}>
               {step}
             </div>
           <% end %>

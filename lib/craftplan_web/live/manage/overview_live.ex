@@ -10,8 +10,6 @@ defmodule CraftplanWeb.OverviewLive do
   alias CraftplanWeb.Components.Page
   alias CraftplanWeb.Navigation
 
-  require Ash.Query
-
   @impl true
   def render(assigns) do
     assigns =

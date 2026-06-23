@@ -10,7 +10,6 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
   alias Decimal, as: D
 
   require Ash.Query
-  require Catalog
 
   @spec refresh!(BOM.t(), keyword) :: :ok
   def refresh!(%BOM{} = bom, opts \\ []) do

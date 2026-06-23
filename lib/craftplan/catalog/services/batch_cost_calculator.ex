@@ -8,8 +8,6 @@ defmodule Craftplan.Catalog.Services.BatchCostCalculator do
   alias Craftplan.Settings
   alias Decimal, as: D
 
-  require Catalog
-
   @spec calculate(BOM.t(), number | D.t(), keyword) :: %{
           material_cost: D.t(),
           labor_cost: D.t(),

@@ -2,7 +2,7 @@
 
 ## Project Snapshot
 - Craftplan is a self-hosted inventory & manufacturing software for micro-business, covering catalog, inventory, orders, CRM, and planner flows.
-- Core stack: Elixir 1.18+, Ash Framework for domain modeling, AshPostgres for persistence, Phoenix LiveView + TailwindCSS for UI.
+- Core stack: Elixir 1.20+, Ash Framework for domain modeling, AshPostgres for persistence, Phoenix LiveView + TailwindCSS for UI.
 - Product principles: keep the operate → make → stock loop simple, favor printable artifacts (planner, labels, invoices), and ship durable primitives over heavy configuration.
 
 ## Repo Layout Highlights
