@@ -18,7 +18,6 @@ import pandas as pd
 
 GIFT_CARD_PIDS = {"PID-93974", "PID-93978", "PID-93979", "PID-93980"}
 PID_RE = re.compile(r"^(.*) \(PID-([\d-]+)\)$")
-SHEET = "Orders for 2026-06-22"  # ⚠️ sheet name varies by export date; resolved below
 
 
 def find_orders_sheet(xl: pd.ExcelFile) -> str:
@@ -67,9 +66,11 @@ def main() -> int:
     sheet = find_orders_sheet(xl)
     df = pd.read_excel(xl, sheet_name=sheet, header=0)
 
+    date_from = pd.Timestamp(args.date_from)
+    date_to = pd.Timestamp(args.date_to)
     df = df[
-        (df["Fulfillment Slot Day"] >= args.date_from)
-        & (df["Fulfillment Slot Day"] <= args.date_to)
+        (df["Fulfillment Slot Day"] >= date_from)
+        & (df["Fulfillment Slot Day"] <= date_to)
     ].copy()
     if df.empty:
         print(f"No rows in window {args.date_from}..{args.date_to}", file=sys.stderr)
@@ -92,8 +93,6 @@ def main() -> int:
         ["category", "total_qty"], ascending=[True, False]
     ).to_csv(out / "products.csv", index=False)
 
-    kept_cols = {f"{p['name']} (PID-{p['pid'].removeprefix('PID-')})" for p in products}
-    # rebuild kept_cols from the real column list to match exactly
     kept_cols = {
         c for c in prod_cols
         if PID_RE.match(c) and f"PID-{PID_RE.match(c).group(2)}" not in GIFT_CARD_PIDS
