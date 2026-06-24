@@ -47,6 +47,7 @@ defmodule CraftplanWeb.OrderLive.Index do
       |> assign_new(:nav_sub_links, fn -> [] end)
       |> assign_new(:breadcrumbs, fn -> [] end)
       |> assign_new(:calendar_event_duration, fn -> @calendar_event_duration end)
+      |> assign_new(:page_size, fn -> @page_size end)
 
     ~H"""
     <Page.page>
@@ -188,6 +189,25 @@ defmodule CraftplanWeb.OrderLive.Index do
               <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
             </:col>
           </.table>
+          <div class="mt-4 flex items-center justify-between text-sm text-stone-600">
+            <span>{page_label(@page_offset, @page_size, @page_count)}</span>
+            <div class="flex items-center gap-2">
+              <.button
+                variant={:outline}
+                phx-click="prev_page"
+                disabled={@page_offset == 0}
+              >
+                Previous
+              </.button>
+              <.button
+                variant={:outline}
+                phx-click="next_page"
+                disabled={!@page_more}
+              >
+                Next
+              </.button>
+            </div>
+          </div>
         </Page.surface>
 
         <Page.surface
@@ -419,14 +439,30 @@ defmodule CraftplanWeb.OrderLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    socket = assign(socket, :filters, default_filters())
+    filters = default_filters()
+    filter_opts = parse_filters(filters)
 
-    filter_opts = parse_filters(default_filters())
+    socket =
+      socket
+      |> assign(:filters, filters)
+      |> assign(:products, Catalog.list_products!(actor: socket.assigns[:current_user]))
+      |> assign(
+        :customers,
+        CRM.list_customers!(actor: socket.assigns[:current_user], load: [:full_name])
+      )
+      |> assign(:days_range, calculate_days_range())
+      |> assign(:current_week_start, nil)
+      |> assign(:orders, [])
+      |> assign(:view_mode, "table")
+      |> assign(:calendar_events, [])
+      |> assign(:selected_order, nil)
+      |> assign(:page_offset, 0)
+      |> assign(:page_count, 0)
+      |> assign(:page_more, false)
+      |> stream(:orders, [])
+      |> load_table_page(filter_opts, 0)
 
-    {:ok,
-     socket
-     |> load_initial_data(filter_opts)
-     |> assign_initial_view_state()}
+    {:ok, socket}
   end
 
   @impl true
@@ -444,8 +480,7 @@ defmodule CraftplanWeb.OrderLive.Index do
       if socket.assigns.view_mode == view_mode do
         socket
       else
-        streamed_orders = load_streamed_orders(socket, filter_opts)
-        stream(socket, :orders, streamed_orders, reset: true)
+        load_table_page(socket, filter_opts, 0)
       end
 
     # Create calendar events from orders
@@ -469,22 +504,20 @@ defmodule CraftplanWeb.OrderLive.Index do
   @impl true
   def handle_event("reset_filters", _params, socket) do
     # Reset to default filters
-    socket = assign(socket, :filters, default_filters())
-    filter_opts = parse_filters(default_filters())
+    new_filters = default_filters()
+    socket = assign(socket, :filters, new_filters)
+    filter_opts = parse_filters(new_filters)
 
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
-    streamed_orders = load_streamed_orders(socket, filter_opts)
 
     calendar_events =
       create_calendar_events(orders_for_calendar, @calendar_event_duration)
 
-    socket =
-      socket
-      |> assign(:orders, orders_for_calendar)
-      |> assign(:calendar_events, calendar_events)
-      |> stream(:orders, streamed_orders, reset: true)
-
-    {:noreply, socket}
+    {:noreply,
+     socket
+     |> assign(:orders, orders_for_calendar)
+     |> assign(:calendar_events, calendar_events)
+     |> load_table_page(filter_opts, 0)}
   end
 
   @impl true
@@ -553,17 +586,28 @@ defmodule CraftplanWeb.OrderLive.Index do
     filter_opts = parse_filters(new_filters)
 
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
-    streamed_orders = load_streamed_orders(socket, filter_opts)
-
-    calendar_events =
-      create_calendar_events(orders_for_calendar, @calendar_event_duration)
+    calendar_events = create_calendar_events(orders_for_calendar, @calendar_event_duration)
 
     {:noreply,
      socket
      |> assign(:filters, new_filters)
      |> assign(:orders, orders_for_calendar)
      |> assign(:calendar_events, calendar_events)
-     |> stream(:orders, streamed_orders, reset: true)}
+     |> load_table_page(filter_opts, 0)}
+  end
+
+  @impl true
+  def handle_event("next_page", _params, socket) do
+    filter_opts = parse_filters(socket.assigns.filters)
+    offset = socket.assigns.page_offset + @page_size
+    {:noreply, load_table_page(socket, filter_opts, offset)}
+  end
+
+  @impl true
+  def handle_event("prev_page", _params, socket) do
+    filter_opts = parse_filters(socket.assigns.filters)
+    offset = max(0, socket.assigns.page_offset - @page_size)
+    {:noreply, load_table_page(socket, filter_opts, offset)}
   end
 
   @impl true
@@ -602,7 +646,6 @@ defmodule CraftplanWeb.OrderLive.Index do
     filter_opts = parse_filters(new_filters)
 
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
-    streamed_orders = load_streamed_orders(socket, filter_opts)
 
     calendar_events =
       create_calendar_events(orders_for_calendar, @calendar_event_duration)
@@ -612,7 +655,7 @@ defmodule CraftplanWeb.OrderLive.Index do
      |> assign(:filters, new_filters)
      |> assign(:orders, orders_for_calendar)
      |> assign(:calendar_events, calendar_events)
-     |> stream(:orders, streamed_orders, reset: true)
+     |> load_table_page(filter_opts, 0)
      |> push_event("update-calendar", %{events: calendar_events})}
   end
 
@@ -633,42 +676,32 @@ defmodule CraftplanWeb.OrderLive.Index do
 
   # Private helper functions
 
-  defp load_initial_data(socket, filter_opts) do
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
-    streamed_orders = load_streamed_orders(socket, filter_opts)
-    products = Catalog.list_products!(actor: socket.assigns[:current_user])
-    customers = CRM.list_customers!(actor: socket.assigns[:current_user], load: [:full_name])
-    days_range = calculate_days_range()
+  defp load_table_page(socket, filter_opts, offset) do
+    page =
+      Orders.list_orders!(
+        filter_opts,
+        actor: socket.assigns[:current_user],
+        page: [limit: @page_size, offset: offset, count: true],
+        load: [:items, :total_cost, customer: [:full_name], items: [product: [:name]]]
+      )
 
     socket
-    |> assign(:products, products)
-    |> assign(:customers, customers)
-    |> assign(:orders, orders_for_calendar)
-    |> assign(:days_range, days_range)
-    |> assign(:current_week_start, nil)
-    |> stream(:orders, streamed_orders)
+    |> assign(:page_offset, page.offset)
+    |> assign(:page_count, page.count)
+    |> assign(:page_more, page.more?)
+    |> stream(:orders, page.results, reset: true)
   end
 
-  defp assign_initial_view_state(socket) do
-    socket
-    |> assign(:view_mode, "table")
-    |> assign(:calendar_events, [])
-    |> assign(:selected_order, nil)
+  defp page_label(_offset, _page_size, 0), do: "No orders"
+
+  defp page_label(offset, page_size, count) do
+    "Showing #{offset + 1}-#{min(offset + page_size, count)} of #{count}"
   end
 
   defp load_orders_for_calendar(socket, filter_opts) do
     Orders.list_orders!(
       filter_opts,
       actor: socket.assigns[:current_user],
-      load: [:items, :total_cost, customer: [:full_name], items: [product: [:name]]]
-    )
-  end
-
-  defp load_streamed_orders(socket, filter_opts) do
-    Orders.list_orders!(
-      filter_opts,
-      actor: socket.assigns[:current_user],
-      stream?: true,
       load: [:items, :total_cost, customer: [:full_name], items: [product: [:name]]]
     )
   end
