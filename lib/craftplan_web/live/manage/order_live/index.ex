@@ -21,16 +21,24 @@ defmodule CraftplanWeb.OrderLive.Index do
           customer_name: String.t() | nil
         }
 
-  @default_filters %{
-    "status" => [],
-    "payment_status" => [],
-    "delivery_date_start" => "",
-    "delivery_date_end" => "",
-    "customer_name" => ""
-  }
-
   # Calendar event duration in seconds
   @calendar_event_duration 3600
+
+  @page_size 100
+  @window_past_days 7
+  @window_future_days 90
+
+  defp default_filters do
+    today = Date.utc_today()
+
+    %{
+      "status" => [],
+      "payment_status" => [],
+      "delivery_date_start" => Date.to_iso8601(Date.add(today, -@window_past_days)),
+      "delivery_date_end" => Date.to_iso8601(Date.add(today, @window_future_days)),
+      "customer_name" => ""
+    }
+  end
 
   @impl true
   def render(assigns) do
@@ -411,9 +419,9 @@ defmodule CraftplanWeb.OrderLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    socket = assign(socket, :filters, @default_filters)
+    socket = assign(socket, :filters, default_filters())
 
-    filter_opts = parse_filters(@default_filters)
+    filter_opts = parse_filters(default_filters())
 
     {:ok,
      socket
@@ -461,8 +469,8 @@ defmodule CraftplanWeb.OrderLive.Index do
   @impl true
   def handle_event("reset_filters", _params, socket) do
     # Reset to default filters
-    socket = assign(socket, :filters, @default_filters)
-    filter_opts = parse_filters(@default_filters)
+    socket = assign(socket, :filters, default_filters())
+    filter_opts = parse_filters(default_filters())
 
     orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
     streamed_orders = load_streamed_orders(socket, filter_opts)
