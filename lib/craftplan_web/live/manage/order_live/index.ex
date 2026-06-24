@@ -622,9 +622,11 @@ defmodule CraftplanWeb.OrderLive.Index do
       |> assign(:filters, new_filters)
       |> load_view_data(socket.assigns.view_mode, filter_opts)
 
-    calendar_events = socket.assigns.calendar_events
-
-    {:noreply, push_event(socket, "update-calendar", %{events: calendar_events})}
+    if socket.assigns.view_mode == "calendar" do
+      {:noreply, push_event(socket, "update-calendar", %{events: socket.assigns.calendar_events})}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true

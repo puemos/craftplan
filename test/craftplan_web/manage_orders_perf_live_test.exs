@@ -48,7 +48,6 @@ defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
   end
 
   describe "calendar window scoping" do
-    @tag role: :staff
     test "calendar_window/1 bounds the first..last day of the range in UTC" do
       range = [
         ~D[2026-06-22],
