@@ -272,7 +272,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       |> assign_forecast_defaults(session, settings)
       |> assign_advanced_defaults(settings)
 
-    {:ok, load_metrics(socket)}
+    {:ok, maybe_start_metrics(socket)}
   end
 
   defp assign_advanced_defaults(socket, settings) do
@@ -409,6 +409,55 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   defp maybe_update_min_samples(socket, _), do: socket
 
   ## Metrics loading
+
+  defp maybe_start_metrics(socket) do
+    if connected?(socket), do: start_metrics_load(socket), else: socket
+  end
+
+  defp start_metrics_load(%{assigns: %{horizon_days: horizon}} = socket) when horizon <= 0 do
+    socket
+  end
+
+  defp start_metrics_load(socket) do
+    days_range = build_days_range(socket.assigns.today, socket.assigns.horizon_days)
+    actor = socket.assigns[:current_user]
+
+    opts = [
+      service_level: socket.assigns.service_level,
+      lookback_days: socket.assigns.lookback_days,
+      actual_weight: socket.assigns.actual_weight,
+      planned_weight: socket.assigns.planned_weight,
+      min_samples: socket.assigns.min_samples
+    ]
+
+    socket
+    |> assign(:metrics_loaded?, false)
+    |> assign(:forecast_error, nil)
+    |> assign(:days_range, days_range)
+    |> cancel_async(:forecast_metrics)
+    |> start_async(:forecast_metrics, fn ->
+      InventoryForecasting.owner_grid_rows(days_range, opts, actor)
+    end)
+  end
+
+  @impl true
+  def handle_async(:forecast_metrics, {:ok, rows}, socket) do
+    {:noreply,
+     socket
+     |> assign(:forecast_rows, rows)
+     |> assign(:metrics_loaded?, true)
+     |> assign(:forecast_error, nil)}
+  end
+
+  def handle_async(:forecast_metrics, {:exit, reason}, socket) do
+    Logger.error("Unable to load owner forecast metrics: #{inspect(reason)}")
+
+    {:noreply,
+     socket
+     |> assign(:forecast_rows, [])
+     |> assign(:metrics_loaded?, false)
+     |> assign(:forecast_error, "Unable to load forecast metrics right now.")}
+  end
 
   defp refresh_metrics(socket, assigns) do
     socket
