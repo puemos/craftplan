@@ -1,5 +1,9 @@
 defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
-  use CraftplanWeb.ConnCase, async: true
+  # async: false — the pagination test seeds 100+ orders in one test, holding its
+  # sandbox connection long enough to exceed the 15s checkout timeout when run
+  # concurrently with the other order suites. Running this module serially avoids
+  # starving the connection pool.
+  use CraftplanWeb.ConnCase, async: false
 
   import Phoenix.LiveViewTest
 
