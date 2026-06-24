@@ -468,34 +468,14 @@ defmodule CraftplanWeb.OrderLive.Index do
   @impl true
   def handle_params(params, _url, socket) do
     view_mode = Map.get(params, "view", "table")
-
-    # Reload orders to ensure consistency between views
     filter_opts = parse_filters(socket.assigns.filters)
-
-    # Get orders for both views with the current filters
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
-
-    # Only update the stream if the view mode changed to ensure consistency
-    socket =
-      if socket.assigns.view_mode == view_mode do
-        socket
-      else
-        load_table_page(socket, filter_opts, 0)
-      end
-
-    # Create calendar events from orders
-    calendar_events =
-      create_calendar_events(orders_for_calendar, @calendar_event_duration)
-
-    # Calculate days range for calendar
     days_range = calculate_days_range(socket.assigns[:current_week_start])
 
     socket =
       socket
       |> assign(:view_mode, view_mode)
-      |> assign(:orders, orders_for_calendar)
-      |> assign(:calendar_events, calendar_events)
       |> assign(:days_range, days_range)
+      |> load_view_data(view_mode, filter_opts)
       |> apply_action(socket.assigns.live_action, params)
 
     {:noreply, Navigation.assign(socket, :orders, order_trail(socket.assigns))}
@@ -503,68 +483,66 @@ defmodule CraftplanWeb.OrderLive.Index do
 
   @impl true
   def handle_event("reset_filters", _params, socket) do
-    # Reset to default filters
     new_filters = default_filters()
-    socket = assign(socket, :filters, new_filters)
     filter_opts = parse_filters(new_filters)
-
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
-
-    calendar_events =
-      create_calendar_events(orders_for_calendar, @calendar_event_duration)
 
     {:noreply,
      socket
-     |> assign(:orders, orders_for_calendar)
-     |> assign(:calendar_events, calendar_events)
-     |> load_table_page(filter_opts, 0)}
+     |> assign(:filters, new_filters)
+     |> load_view_data(socket.assigns.view_mode, filter_opts)}
   end
 
   @impl true
   def handle_event("prev_week", _params, socket) do
-    # Move the date range backward by 7 days
     new_start = Date.add(List.first(socket.assigns.days_range), -7)
     days_range = date_range(new_start)
-
     filter_opts = parse_filters(socket.assigns.filters)
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts, days_range)
 
     {:noreply,
      socket
      |> assign(:current_week_start, new_start)
      |> assign(:days_range, days_range)
-     |> assign(:orders, orders_for_calendar)}
+     |> assign(:orders, orders_for_calendar)
+     |> assign(
+       :calendar_events,
+       create_calendar_events(orders_for_calendar, @calendar_event_duration)
+     )}
   end
 
   @impl true
   def handle_event("next_week", _params, socket) do
-    # Move the date range forward by 7 days
     new_start = Date.add(List.first(socket.assigns.days_range), 7)
     days_range = date_range(new_start)
-
     filter_opts = parse_filters(socket.assigns.filters)
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts, days_range)
 
     {:noreply,
      socket
      |> assign(:current_week_start, new_start)
      |> assign(:days_range, days_range)
-     |> assign(:orders, orders_for_calendar)}
+     |> assign(:orders, orders_for_calendar)
+     |> assign(
+       :calendar_events,
+       create_calendar_events(orders_for_calendar, @calendar_event_duration)
+     )}
   end
 
   @impl true
   def handle_event("today", _params, socket) do
-    # Reset to current day and forward
     days_range = calculate_days_range()
-
     filter_opts = parse_filters(socket.assigns.filters)
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    orders_for_calendar = load_orders_for_calendar(socket, filter_opts, days_range)
 
     {:noreply,
      socket
      |> assign(:current_week_start, nil)
      |> assign(:days_range, days_range)
-     |> assign(:orders, orders_for_calendar)}
+     |> assign(:orders, orders_for_calendar)
+     |> assign(
+       :calendar_events,
+       create_calendar_events(orders_for_calendar, @calendar_event_duration)
+     )}
   end
 
   @impl true
@@ -585,15 +563,10 @@ defmodule CraftplanWeb.OrderLive.Index do
     new_filters = Map.merge(socket.assigns.filters, raw_filters)
     filter_opts = parse_filters(new_filters)
 
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
-    calendar_events = create_calendar_events(orders_for_calendar, @calendar_event_duration)
-
     {:noreply,
      socket
      |> assign(:filters, new_filters)
-     |> assign(:orders, orders_for_calendar)
-     |> assign(:calendar_events, calendar_events)
-     |> load_table_page(filter_opts, 0)}
+     |> load_view_data(socket.assigns.view_mode, filter_opts)}
   end
 
   @impl true
@@ -637,7 +610,6 @@ defmodule CraftplanWeb.OrderLive.Index do
         %{"start_date" => start_date, "end_date" => end_date, "view_type" => _view_type},
         socket
       ) do
-    # Update filters with new date ranges
     new_filters =
       socket.assigns.filters
       |> Map.put("delivery_date_start", start_date)
@@ -645,33 +617,20 @@ defmodule CraftplanWeb.OrderLive.Index do
 
     filter_opts = parse_filters(new_filters)
 
-    orders_for_calendar = load_orders_for_calendar(socket, filter_opts)
+    socket =
+      socket
+      |> assign(:filters, new_filters)
+      |> load_view_data(socket.assigns.view_mode, filter_opts)
 
-    calendar_events =
-      create_calendar_events(orders_for_calendar, @calendar_event_duration)
+    calendar_events = socket.assigns.calendar_events
 
-    {:noreply,
-     socket
-     |> assign(:filters, new_filters)
-     |> assign(:orders, orders_for_calendar)
-     |> assign(:calendar_events, calendar_events)
-     |> load_table_page(filter_opts, 0)
-     |> push_event("update-calendar", %{events: calendar_events})}
+    {:noreply, push_event(socket, "update-calendar", %{events: calendar_events})}
   end
 
   @impl true
-  def handle_info({CraftplanWeb.OrderLive.FormComponent, {:saved, order}}, socket) do
-    order =
-      Ash.load!(order, [:items, :total_cost, customer: [:full_name]], actor: socket.assigns[:current_user])
-
-    orders = [order | socket.assigns.orders || []]
-    calendar_events = create_calendar_events(orders, @calendar_event_duration)
-
-    {:noreply,
-     socket
-     |> stream_insert(:orders, order)
-     |> assign(:orders, orders)
-     |> assign(:calendar_events, calendar_events)}
+  def handle_info({CraftplanWeb.OrderLive.FormComponent, {:saved, _order}}, socket) do
+    filter_opts = parse_filters(socket.assigns.filters)
+    {:noreply, load_view_data(socket, socket.assigns.view_mode, filter_opts)}
   end
 
   # Private helper functions
@@ -698,12 +657,38 @@ defmodule CraftplanWeb.OrderLive.Index do
     "Showing #{offset + 1}-#{min(offset + page_size, count)} of #{count}"
   end
 
-  defp load_orders_for_calendar(socket, filter_opts) do
+  def calendar_window(days_range) do
+    week_start = List.first(days_range)
+    week_end = List.last(days_range)
+
+    {DateTime.new!(week_start, ~T[00:00:00], "Etc/UTC"), DateTime.new!(week_end, ~T[23:59:59], "Etc/UTC")}
+  end
+
+  defp load_orders_for_calendar(socket, filter_opts, days_range) do
+    {start_dt, end_dt} = calendar_window(days_range)
+
+    cal_opts =
+      filter_opts
+      |> Map.put(:delivery_date_start, start_dt)
+      |> Map.put(:delivery_date_end, end_dt)
+
     Orders.list_orders!(
-      filter_opts,
+      cal_opts,
       actor: socket.assigns[:current_user],
       load: [:items, :total_cost, customer: [:full_name], items: [product: [:name]]]
     )
+  end
+
+  defp load_view_data(socket, "calendar", filter_opts) do
+    orders = load_orders_for_calendar(socket, filter_opts, socket.assigns.days_range)
+
+    socket
+    |> assign(:orders, orders)
+    |> assign(:calendar_events, create_calendar_events(orders, @calendar_event_duration))
+  end
+
+  defp load_view_data(socket, _table, filter_opts) do
+    load_table_page(socket, filter_opts, 0)
   end
 
   defp apply_action(socket, :new, _params) do
