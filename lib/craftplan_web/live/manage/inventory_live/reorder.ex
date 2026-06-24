@@ -349,7 +349,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       |> maybe_update_planned_weight(params)
       |> maybe_update_min_samples(params)
 
-    {:noreply, load_metrics(socket)}
+    {:noreply, start_metrics_load(socket)}
   end
 
   @impl true
@@ -369,7 +369,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       )
       |> assign(:min_samples, Map.get(settings, :forecast_min_samples) || 10)
 
-    {:noreply, load_metrics(socket)}
+    {:noreply, start_metrics_load(socket)}
   end
 
   defp maybe_update_lookback_days(socket, %{"lookback_days" => value}) do
@@ -462,45 +462,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
   defp refresh_metrics(socket, assigns) do
     socket
     |> assign(assigns)
-    |> load_metrics()
-  end
-
-  defp load_metrics(%{assigns: %{horizon_days: horizon}} = socket) when horizon <= 0 do
-    socket
-  end
-
-  defp load_metrics(socket) do
-    days_range = build_days_range(socket.assigns.today, socket.assigns.horizon_days)
-    actor = socket.assigns[:current_user]
-
-    socket = assign(socket, :metrics_loaded?, false)
-
-    opts = [
-      service_level: socket.assigns.service_level,
-      lookback_days: socket.assigns.lookback_days,
-      actual_weight: socket.assigns.actual_weight,
-      planned_weight: socket.assigns.planned_weight,
-      min_samples: socket.assigns.min_samples
-    ]
-
-    rows = InventoryForecasting.owner_grid_rows(days_range, opts, actor)
-
-    socket
-    |> assign(:forecast_rows, rows)
-    |> assign(:metrics_loaded?, true)
-    |> assign(:forecast_error, nil)
-    |> assign(:days_range, days_range)
-  rescue
-    exception ->
-      Logger.error("Unable to load owner forecast metrics: #{Exception.message(exception)}",
-        exception: exception,
-        stacktrace: __STACKTRACE__
-      )
-
-      socket
-      |> assign(:forecast_rows, [])
-      |> assign(:metrics_loaded?, false)
-      |> assign(:forecast_error, "Unable to load forecast metrics right now.")
+    |> start_metrics_load()
   end
 
   defp build_days_range(start_date, days) when days > 0 do
