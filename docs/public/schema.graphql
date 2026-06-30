@@ -31,6 +31,8 @@ input BomComponentFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input BomComponentFilterInput {
@@ -65,6 +67,8 @@ input BomFilterStatus {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input BomFilterNotes {
@@ -76,6 +80,11 @@ input BomFilterNotes {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -89,6 +98,11 @@ input BomFilterName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -102,6 +116,8 @@ input BomFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input BomFilterInput {
@@ -164,6 +180,12 @@ input UpdateProductInput {
 
   "Optional per-product capacity per day (0 = unlimited)"
   maxDailyQuantity: Int
+
+  "Finished product quantity used to express nutrition per 100g or 100ml."
+  nutritionOutputQuantity: Decimal
+
+  "Finished product unit used to express nutrition per 100g or 100ml."
+  nutritionOutputUnit: String
 }
 
 "The result of the :create_product mutation"
@@ -195,6 +217,12 @@ input CreateProductInput {
 
   "Optional per-product capacity per day (0 = unlimited)"
   maxDailyQuantity: Int
+
+  "Finished product quantity used to express nutrition per 100g or 100ml."
+  nutritionOutputQuantity: Decimal
+
+  "Finished product unit used to express nutrition per 100g or 100ml."
+  nutritionOutputUnit: String
 }
 
 enum ProductSortField {
@@ -205,6 +233,8 @@ enum ProductSortField {
   FEATURED_PHOTO
   SELLING_AVAILABILITY
   MAX_DAILY_QUANTITY
+  NUTRITION_OUTPUT_QUANTITY
+  NUTRITION_OUTPUT_UNIT
 }
 
 "A keyset page of :product"
@@ -222,6 +252,32 @@ type KeysetPageOfProduct {
   endKeyset: String
 }
 
+input ProductFilterNutritionOutputUnit {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ProductFilterNutritionOutputQuantity {
+  isNil: Boolean
+  eq: Decimal
+  notEq: Decimal
+  in: [Decimal]
+  lessThan: Decimal
+  greaterThan: Decimal
+  lessThanOrEqual: Decimal
+  greaterThanOrEqual: Decimal
+  isDistinctFrom: Decimal
+  isNotDistinctFrom: Decimal
+}
+
 input ProductFilterMaxDailyQuantity {
   isNil: Boolean
   eq: Int
@@ -231,6 +287,8 @@ input ProductFilterMaxDailyQuantity {
   greaterThan: Int
   lessThanOrEqual: Int
   greaterThanOrEqual: Int
+  isDistinctFrom: Int
+  isNotDistinctFrom: Int
 }
 
 input ProductFilterSellingAvailability {
@@ -242,6 +300,8 @@ input ProductFilterSellingAvailability {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ProductFilterFeaturedPhoto {
@@ -253,6 +313,11 @@ input ProductFilterFeaturedPhoto {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -266,6 +331,8 @@ input ProductFilterPrice {
   greaterThan: Decimal
   lessThanOrEqual: Decimal
   greaterThanOrEqual: Decimal
+  isDistinctFrom: Decimal
+  isNotDistinctFrom: Decimal
 }
 
 input ProductFilterStatus {
@@ -277,6 +344,8 @@ input ProductFilterStatus {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ProductFilterName {
@@ -288,6 +357,11 @@ input ProductFilterName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -301,6 +375,8 @@ input ProductFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input ProductFilterInput {
@@ -326,6 +402,12 @@ input ProductFilterInput {
 
   "Optional per-product capacity per day (0 = unlimited)"
   maxDailyQuantity: ProductFilterMaxDailyQuantity
+
+  "Finished product quantity used to express nutrition per 100g or 100ml."
+  nutritionOutputQuantity: ProductFilterNutritionOutputQuantity
+
+  "Finished product unit used to express nutrition per 100g or 100ml."
+  nutritionOutputUnit: ProductFilterNutritionOutputUnit
 }
 
 input ProductSortInput {
@@ -353,6 +435,12 @@ type Product {
 
   "Optional per-product capacity per day (0 = unlimited)"
   maxDailyQuantity: Int!
+
+  "Finished product quantity used to express nutrition per 100g or 100ml."
+  nutritionOutputQuantity: Decimal
+
+  "Finished product unit used to express nutrition per 100g or 100ml."
+  nutritionOutputUnit: String
 }
 
 enum SortOrder {
@@ -380,16 +468,16 @@ type MutationError {
 
   "The field or fields that produced the error"
   fields: [String!]
+
+  "The path to the field that produced the error"
+  path: [String!]
 }
 
 input OrderCreateItemsInput {
+  "Timestamp indicating materials were consumed for this item"
+  consumedAt: DateTime
+
   id: ID
-
-  status: String
-
-  quantity: Decimal
-
-  productId: ID
 
   "Labor cost allocated to this order item during batch completion"
   laborCost: Decimal
@@ -400,23 +488,23 @@ input OrderCreateItemsInput {
   "Overhead cost allocated to this order item during batch completion"
   overheadCost: Decimal
 
+  productId: ID
+
+  quantity: Decimal
+
+  status: String
+
   "Per-unit production cost captured at batch completion"
   unitCost: Decimal
 
   unitPrice: Decimal
-
-  "Timestamp indicating materials were consumed for this item"
-  consumedAt: DateTime
 }
 
 input OrderUpdateItemsInput {
+  "Timestamp indicating materials were consumed for this item"
+  consumedAt: DateTime
+
   id: ID
-
-  status: String
-
-  quantity: Decimal
-
-  productId: ID
 
   "Labor cost allocated to this order item during batch completion"
   laborCost: Decimal
@@ -427,13 +515,16 @@ input OrderUpdateItemsInput {
   "Overhead cost allocated to this order item during batch completion"
   overheadCost: Decimal
 
+  productId: ID
+
+  quantity: Decimal
+
+  status: String
+
   "Per-unit production cost captured at batch completion"
   unitCost: Decimal
 
   unitPrice: Decimal
-
-  "Timestamp indicating materials were consumed for this item"
-  consumedAt: DateTime
 }
 
 enum ProductionBatchSortField {
@@ -464,6 +555,8 @@ input ProductionBatchFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input ProductionBatchFilterInput {
@@ -556,6 +649,8 @@ input OrderItemFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input OrderItemFilterInput {
@@ -651,6 +746,8 @@ input OrderFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input OrderFilterInput {
@@ -713,6 +810,8 @@ input PurchaseOrderFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input PurchaseOrderFilterInput {
@@ -767,6 +866,101 @@ input CreateSupplierInput {
 
 enum SupplierSortField {
   ID
+  NAME
+  CONTACT_NAME
+  CONTACT_EMAIL
+  CONTACT_PHONE
+  NOTES
+}
+
+input SupplierFilterNotes {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
+  like: String
+  ilike: String
+}
+
+input SupplierFilterContactPhone {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
+  like: String
+  ilike: String
+}
+
+input SupplierFilterContactEmail {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
+  like: String
+  ilike: String
+}
+
+input SupplierFilterContactName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
+  like: String
+  ilike: String
+}
+
+input SupplierFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
+  like: String
+  ilike: String
 }
 
 input SupplierFilterId {
@@ -778,6 +972,8 @@ input SupplierFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input SupplierFilterInput {
@@ -785,6 +981,11 @@ input SupplierFilterInput {
   or: [SupplierFilterInput!]
   not: [SupplierFilterInput!]
   id: SupplierFilterId
+  name: SupplierFilterName
+  contactName: SupplierFilterContactName
+  contactEmail: SupplierFilterContactEmail
+  contactPhone: SupplierFilterContactPhone
+  notes: SupplierFilterNotes
 }
 
 input SupplierSortInput {
@@ -794,6 +995,11 @@ input SupplierSortInput {
 
 type Supplier {
   id: ID!
+  name: String!
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  notes: String
 }
 
 enum MovementSortField {
@@ -824,6 +1030,8 @@ input MovementFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input MovementFilterInput {
@@ -912,6 +1120,8 @@ input MaterialFilterMaximumStock {
   greaterThan: Decimal
   lessThanOrEqual: Decimal
   greaterThanOrEqual: Decimal
+  isDistinctFrom: Decimal
+  isNotDistinctFrom: Decimal
 }
 
 input MaterialFilterMinimumStock {
@@ -923,6 +1133,8 @@ input MaterialFilterMinimumStock {
   greaterThan: Decimal
   lessThanOrEqual: Decimal
   greaterThanOrEqual: Decimal
+  isDistinctFrom: Decimal
+  isNotDistinctFrom: Decimal
 }
 
 input MaterialFilterPrice {
@@ -934,6 +1146,8 @@ input MaterialFilterPrice {
   greaterThan: Decimal
   lessThanOrEqual: Decimal
   greaterThanOrEqual: Decimal
+  isDistinctFrom: Decimal
+  isNotDistinctFrom: Decimal
 }
 
 input MaterialFilterUnit {
@@ -945,6 +1159,8 @@ input MaterialFilterUnit {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input MaterialFilterSku {
@@ -956,6 +1172,11 @@ input MaterialFilterSku {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -969,6 +1190,11 @@ input MaterialFilterName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -982,6 +1208,8 @@ input MaterialFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input MaterialFilterInput {
@@ -1040,6 +1268,8 @@ input LotFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input LotFilterInput {
@@ -1138,6 +1368,11 @@ input CustomerFilterPhone {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -1151,6 +1386,11 @@ input CustomerFilterEmail {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -1164,6 +1404,11 @@ input CustomerFilterLastName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -1177,6 +1422,11 @@ input CustomerFilterFirstName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  stringEndsWith: String
+  stringStartsWith: String
   like: String
   ilike: String
 }
@@ -1190,6 +1440,8 @@ input CustomerFilterType {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input CustomerFilterId {
@@ -1201,6 +1453,8 @@ input CustomerFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: ID
+  isNotDistinctFrom: ID
 }
 
 input CustomerFilterInput {
