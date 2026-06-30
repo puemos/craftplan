@@ -26,8 +26,12 @@ defmodule CraftplanWeb.CustomerLive.Show do
               <:item title="Name">{@customer.full_name}</:item>
               <:item title="Email">{@customer.email}</:item>
               <:item title="Phone">{@customer.phone}</:item>
-              <:item title="Billing Address">{@customer.billing_address.full_address}</:item>
-              <:item title="Shipping Address">{@customer.shipping_address.full_address}</:item>
+              <:item title="Billing Address">
+                {@customer.billing_address && @customer.billing_address.full_address}
+              </:item>
+              <:item title="Shipping Address">
+                {@customer.shipping_address && @customer.shipping_address.full_address}
+              </:item>
             </.list>
           </div>
         </div>
