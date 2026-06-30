@@ -272,7 +272,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       |> assign_forecast_defaults(session, settings)
       |> assign_advanced_defaults(settings)
 
-    {:ok, load_metrics(socket)}
+    {:ok, maybe_start_metrics(socket)}
   end
 
   defp assign_advanced_defaults(socket, settings) do
@@ -349,7 +349,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       |> maybe_update_planned_weight(params)
       |> maybe_update_min_samples(params)
 
-    {:noreply, load_metrics(socket)}
+    {:noreply, start_metrics_load(socket)}
   end
 
   @impl true
@@ -369,7 +369,7 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       )
       |> assign(:min_samples, Map.get(settings, :forecast_min_samples) || 10)
 
-    {:noreply, load_metrics(socket)}
+    {:noreply, start_metrics_load(socket)}
   end
 
   defp maybe_update_lookback_days(socket, %{"lookback_days" => value}) do
@@ -410,21 +410,17 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
 
   ## Metrics loading
 
-  defp refresh_metrics(socket, assigns) do
-    socket
-    |> assign(assigns)
-    |> load_metrics()
+  defp maybe_start_metrics(socket) do
+    if connected?(socket), do: start_metrics_load(socket), else: socket
   end
 
-  defp load_metrics(%{assigns: %{horizon_days: horizon}} = socket) when horizon <= 0 do
+  defp start_metrics_load(%{assigns: %{horizon_days: horizon}} = socket) when horizon <= 0 do
     socket
   end
 
-  defp load_metrics(socket) do
+  defp start_metrics_load(socket) do
     days_range = build_days_range(socket.assigns.today, socket.assigns.horizon_days)
     actor = socket.assigns[:current_user]
-
-    socket = assign(socket, :metrics_loaded?, false)
 
     opts = [
       service_level: socket.assigns.service_level,
@@ -434,24 +430,39 @@ defmodule CraftplanWeb.InventoryLive.ReorderPlanner do
       min_samples: socket.assigns.min_samples
     ]
 
-    rows = InventoryForecasting.owner_grid_rows(days_range, opts, actor)
-
     socket
-    |> assign(:forecast_rows, rows)
-    |> assign(:metrics_loaded?, true)
+    |> assign(:metrics_loaded?, false)
     |> assign(:forecast_error, nil)
     |> assign(:days_range, days_range)
-  rescue
-    exception ->
-      Logger.error("Unable to load owner forecast metrics: #{Exception.message(exception)}",
-        exception: exception,
-        stacktrace: __STACKTRACE__
-      )
+    |> cancel_async(:forecast_metrics)
+    |> start_async(:forecast_metrics, fn ->
+      InventoryForecasting.owner_grid_rows(days_range, opts, actor)
+    end)
+  end
 
-      socket
-      |> assign(:forecast_rows, [])
-      |> assign(:metrics_loaded?, false)
-      |> assign(:forecast_error, "Unable to load forecast metrics right now.")
+  @impl true
+  def handle_async(:forecast_metrics, {:ok, rows}, socket) do
+    {:noreply,
+     socket
+     |> assign(:forecast_rows, rows)
+     |> assign(:metrics_loaded?, true)
+     |> assign(:forecast_error, nil)}
+  end
+
+  def handle_async(:forecast_metrics, {:exit, reason}, socket) do
+    Logger.error("Unable to load owner forecast metrics: #{inspect(reason)}")
+
+    {:noreply,
+     socket
+     |> assign(:forecast_rows, [])
+     |> assign(:metrics_loaded?, false)
+     |> assign(:forecast_error, "Unable to load forecast metrics right now.")}
+  end
+
+  defp refresh_metrics(socket, assigns) do
+    socket
+    |> assign(assigns)
+    |> start_metrics_load()
   end
 
   defp build_days_range(start_date, days) when days > 0 do
