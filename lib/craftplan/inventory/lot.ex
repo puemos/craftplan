@@ -41,8 +41,8 @@ defmodule Craftplan.Inventory.Lot do
     defaults [
       :read,
       :destroy,
-      create: [:lot_code, :expiry_date, :received_at, :material_id, :supplier_id],
-      update: [:lot_code, :expiry_date, :received_at, :supplier_id]
+      create: [:lot_code, :expiry_date, :received_at, :material_id, :supplier_id, :unit_cost],
+      update: [:lot_code, :expiry_date, :received_at, :supplier_id, :unit_cost]
     ]
 
     read :available_for_material do
@@ -80,6 +80,11 @@ defmodule Craftplan.Inventory.Lot do
 
     attribute :received_at, :utc_datetime do
       allow_nil? true
+    end
+
+    attribute :unit_cost, :decimal do
+      allow_nil? true
+      description "Cost per unit (in Material.unit) at time of receipt. Frozen on this lot."
     end
 
     timestamps()

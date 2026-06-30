@@ -7,6 +7,8 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
+  require Ash.Query
+
   alias Craftplan.Inventory.PurchaseOrder.Types.Status
 
   json_api do
@@ -63,7 +65,11 @@ defmodule Craftplan.Inventory.PurchaseOrder do
       argument :lot_receipts, {:array, :map} do
         allow_nil? true
         default []
-        description "List of %{material_id, lot_code, quantity, expiry_date?} to receive"
+
+        description """
+        List of %{material_id, lot_code, quantity, expiry_date?, unit_cost?} to receive.
+        If unit_cost is omitted, it falls back to the matching PurchaseOrderItem.unit_price.
+        """
       end
 
       change set_attribute(:status, :received)
@@ -73,11 +79,28 @@ defmodule Craftplan.Inventory.PurchaseOrder do
                actor = changeset.context[:actor]
                receipts = Ash.Changeset.get_argument(changeset, :lot_receipts) || []
 
+               # Direct read of PO items — at this point we're inside an after_action
+               # on the PO update; loading the items relationship via Ash.load came
+               # back empty even when items exist in the DB. Direct query is reliable.
+               items =
+                 Craftplan.Inventory.PurchaseOrderItem
+                 |> Ash.Query.filter(purchase_order_id == ^po.id)
+                 |> Ash.read!(authorize?: false)
+
+               unit_price_by_material =
+                 Map.new(items, fn item ->
+                   {item.material_id, item.unit_price}
+                 end)
+
                Enum.each(receipts, fn r ->
                  material_id = Map.get(r, :material_id) || Map.get(r, "material_id")
                  lot_code = Map.get(r, :lot_code) || Map.get(r, "lot_code")
                  expiry = Map.get(r, :expiry_date) || Map.get(r, "expiry_date")
                  qty = Map.get(r, :quantity) || Map.get(r, "quantity")
+
+                 unit_cost =
+                   Map.get(r, :unit_cost) || Map.get(r, "unit_cost") ||
+                     Map.get(unit_price_by_material, material_id)
 
                  # Create/find lot
                  lot =
@@ -86,7 +109,8 @@ defmodule Craftplan.Inventory.PurchaseOrder do
                      material_id: material_id,
                      supplier_id: po.supplier_id,
                      received_at: DateTime.utc_now(),
-                     expiry_date: expiry
+                     expiry_date: expiry,
+                     unit_cost: unit_cost
                    })
 
                  # Create movement with lot
