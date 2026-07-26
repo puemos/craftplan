@@ -2,3 +2,88 @@
 erlang = "28.1"
 elixir = "1.20.2-otp-28"
 node = "20"
+
+[tasks."services:up"]
+description = "Start local PostgreSQL, MinIO, and Mailpit services"
+run = "docker compose -f docker-compose.dev.yml up -d"
+
+[tasks."services:down"]
+description = "Stop local development services"
+run = "docker compose -f docker-compose.dev.yml down"
+
+[tasks."services:logs"]
+description = "Follow local development service logs"
+run = "docker compose -f docker-compose.dev.yml logs -f"
+
+[tasks.deps]
+description = "Fetch Elixir dependencies"
+run = "mix deps.get"
+
+[tasks.setup]
+description = "Set up dependencies, database, assets, and seed data"
+run = "mix setup"
+
+[tasks.dev]
+description = "Start the Phoenix development server"
+run = "mix phx.server"
+
+[tasks."db:setup"]
+description = "Create and migrate the local database"
+run = "mix ash.setup"
+
+[tasks."db:reset"]
+description = "Reset local database extensions and migrations"
+confirm = "This drops and recreates the local database. Continue?"
+run = "mix ash.reset"
+
+[tasks.format]
+description = "Format Elixir and HEEx source files"
+run = "mix format"
+
+[tasks."format:check"]
+description = "Check Elixir and HEEx formatting"
+run = "mix format --check-formatted"
+
+[tasks.compile]
+description = "Compile the application"
+run = "mix compile"
+
+[tasks."compile:test"]
+description = "Compile the application in the test environment"
+run = "MIX_ENV=test mix compile"
+
+[tasks."assets:setup"]
+description = "Install Tailwind and esbuild"
+run = "mix assets.setup"
+
+[tasks."assets:build"]
+description = "Build development assets"
+run = "mix assets.build"
+
+[tasks."assets:deploy"]
+description = "Build and digest production assets"
+run = "mix assets.deploy"
+
+[tasks.test]
+description = "Run the test suite"
+run = "mix test"
+
+[tasks."test:failed"]
+description = "Re-run tests that failed in the previous test run"
+run = "mix test --failed"
+
+[tasks.dialyzer]
+description = "Run static type analysis"
+run = "mix dialyzer"
+
+[tasks.ci]
+description = "Run the full application CI suite"
+run = """
+mix deps.get
+mix format --check-formatted
+mix compile
+MIX_ENV=test mix compile
+mix assets.setup
+mix assets.build
+mix test
+"""

@@ -126,12 +126,13 @@ See the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hostin
 
 ## Development Setup
 
-> For contributors who want to work on the codebase. **Prerequisites:** Docker, Elixir ~> 1.20, Erlang/OTP 28
+> For contributors who want to work on the codebase. **Prerequisites:** Docker and [mise](https://mise.jdx.dev/)
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d   # Start PostgreSQL + MinIO + Mailpit
-mix setup               # Install deps, migrate, build assets, seed
-mix phx.server          # Start at localhost:4000
+mise install            # Install Elixir, Erlang/OTP, and Node.js versions from mise.toml
+mise run services:up    # Start PostgreSQL + MinIO + Mailpit
+mise run setup          # Install deps, migrate, build assets, seed
+mise run dev            # Start at localhost:4000
 ```
 
 See the [development setup guide](https://puemos.github.io/craftplan/docs/getting-started/) for detailed instructions.
@@ -153,8 +154,10 @@ See the [development setup guide](https://puemos.github.io/craftplan/docs/gettin
 Contributions are welcome. For major changes, please [open an issue](https://github.com/puemos/craftplan/issues) first to discuss your proposal.
 
 ```bash
-mix test       # Run the test suite
-mix format     # Format code (Styler, Spark, Tailwind, HEEx)
+mise run test          # Run the test suite
+mise run format        # Format code (Styler, Spark, Tailwind, HEEx)
+mise run format:check  # Check formatting without modifying files
+mise run ci            # Run the full CI suite locally (requires services:up)
 ```
 
 Commits follow the convention: `type(scope): description` (e.g., `feat(batching):`, `fix(orders):`, `ui(production):`).

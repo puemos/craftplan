@@ -10,21 +10,18 @@ description: Set up a local development environment for contributing to Craftpla
 
 Before setting up Craftplan, make sure you have the following installed:
 
-- **Elixir** 1.20 or later
-- **Erlang/OTP** 28 or later
-- **PostgreSQL** 16 or later
-- **Node.js** 18 or later (for asset building)
-- **Docker** and **Docker Compose** (recommended for running PostgreSQL and MinIO)
+- **[mise](https://mise.jdx.dev/)** to install the pinned Elixir, Erlang/OTP, and Node.js versions
+- **Docker** and **Docker Compose** for PostgreSQL, MinIO, and Mailpit
 
 ## Starting Dependencies
 
-The easiest way to run PostgreSQL and MinIO (S3-compatible object storage) is with Docker Compose:
+Start PostgreSQL, MinIO (S3-compatible object storage), and Mailpit with the project task:
 
 ```bash
-docker-compose up -d
+mise run services:up
 ```
 
-This starts PostgreSQL 16 on the default port and MinIO for file storage.
+Run `mise run services:down` to stop them, or `mise run services:logs` to follow their logs.
 
 ## Installation
 
@@ -35,10 +32,11 @@ This starts PostgreSQL 16 on the default port and MinIO for file storage.
    cd craftplan
    ```
 
-2. Run the full setup (installs deps, runs migrations, builds assets, seeds data):
+2. Install the pinned toolchain and run the full setup (installs deps, runs migrations, builds assets, seeds data):
 
    ```bash
-   mix setup
+   mise install
+   mise run setup
    ```
 
    This single command handles `mix deps.get`, `mix ash.setup`, asset installation, and database seeding.
@@ -46,7 +44,7 @@ This starts PostgreSQL 16 on the default port and MinIO for file storage.
 3. Start the Phoenix development server:
 
    ```bash
-   mix phx.server
+   mise run dev
    ```
 
 4. Open [localhost:4000](http://localhost:4000) in your browser.
@@ -55,15 +53,17 @@ This starts PostgreSQL 16 on the default port and MinIO for file storage.
 
 | Command | Purpose |
 |---------|---------|
-| `mix setup` | Full setup: deps, migrations, assets, seeds |
-| `mix phx.server` | Start the dev server |
-| `mix test` | Run the test suite |
+| `mise run setup` | Full setup: deps, migrations, assets, seeds |
+| `mise run dev` | Start the dev server |
+| `mise run test` | Run the test suite |
 | `mix test path/to/test.exs` | Run a single test file |
 | `mix test path/to/test.exs:42` | Run a specific test at a line |
-| `mix format` | Format all code (Elixir, Tailwind, HEEx) |
-| `mix dialyzer` | Static type analysis |
-| `mix ash.setup` | Run migrations and Ash introspection |
-| `mix ash.reset` | Drop, create, migrate, and seed the database |
+| `mise run format` | Format all code (Elixir, Tailwind, HEEx) |
+| `mise run format:check` | Check formatting without modifying files |
+| `mise run dialyzer` | Static type analysis |
+| `mise run db:setup` | Run migrations and Ash introspection |
+| `mise run db:reset` | Reset database extensions and migrations |
+| `mise run ci` | Run the full CI suite locally |
 
 ## What's Next
 
