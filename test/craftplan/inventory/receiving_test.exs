@@ -4,6 +4,8 @@ defmodule Craftplan.Inventory.ReceivingTest do
   alias Craftplan.Inventory
   alias Craftplan.Inventory.Receiving
 
+  require Ash.Query
+
   defp mk_material(name, sku, unit, price) do
     actor = Craftplan.DataCase.staff_actor()
 
@@ -65,6 +67,15 @@ defmodule Craftplan.Inventory.ReceivingTest do
       Ash.load!(Inventory.get_material_by_id!(mat.id, actor: actor), :current_stock, actor: actor)
 
     assert mat.current_stock == Decimal.new(150)
+
+    [lot] =
+      Inventory.Lot
+      |> Ash.Query.filter(material_id == ^mat.id and supplier_id == ^supplier.id)
+      |> Ash.Query.load(:current_stock)
+      |> Ash.read!(actor: actor)
+
+    assert Decimal.equal?(lot.unit_cost, Decimal.new("1.00"))
+    assert Decimal.equal?(lot.current_stock, Decimal.new(50))
 
     # Idempotent second receive
     {:ok, :already_received} = Receiving.receive_po(po.id, actor: actor)
