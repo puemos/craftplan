@@ -1,9 +1,9 @@
 defmodule Craftplan.Inventory.LotUnitCostTest do
   use Craftplan.DataCase, async: true
 
-  require Ash.Query
-
   alias Craftplan.Inventory
+
+  require Ash.Query
 
   defp staff, do: Craftplan.DataCase.staff_actor()
 
@@ -155,6 +155,108 @@ defmodule Craftplan.Inventory.LotUnitCostTest do
         |> Ash.read!(actor: staff())
 
       assert Decimal.equal?(lot.unit_cost, Decimal.new("0.99"))
+    end
+
+    test "uses purchase_order_item_id when material appears on multiple PO lines" do
+      mat = create_material("M-PO-3")
+      supplier = create_supplier("SPO-3")
+
+      {:ok, po} =
+        Inventory.PurchaseOrder
+        |> Ash.Changeset.for_create(:create, %{
+          supplier_id: supplier.id,
+          status: :ordered,
+          ordered_at: DateTime.utc_now()
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, _first_item} =
+        Inventory.PurchaseOrderItem
+        |> Ash.Changeset.for_create(:create, %{
+          purchase_order_id: po.id,
+          material_id: mat.id,
+          quantity: Decimal.new("50"),
+          unit_price: Decimal.new("0.99")
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, second_item} =
+        Inventory.PurchaseOrderItem
+        |> Ash.Changeset.for_create(:create, %{
+          purchase_order_id: po.id,
+          material_id: mat.id,
+          quantity: Decimal.new("25"),
+          unit_price: Decimal.new("0.62")
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        po
+        |> Ash.Changeset.for_update(:receive, %{
+          lot_receipts: [
+            %{
+              purchase_order_item_id: second_item.id,
+              material_id: mat.id,
+              lot_code: "PO-3-LINE-2",
+              quantity: Decimal.new("25")
+            }
+          ]
+        })
+        |> Ash.update(actor: staff())
+
+      [lot] =
+        Inventory.Lot
+        |> Ash.Query.filter(lot_code == "PO-3-LINE-2")
+        |> Ash.read!(actor: staff())
+
+      assert Decimal.equal?(lot.unit_cost, Decimal.new("0.62"))
+    end
+
+    test "rejects material-only fallback when duplicate material lines have different prices" do
+      mat = create_material("M-PO-4")
+      supplier = create_supplier("SPO-4")
+
+      {:ok, po} =
+        Inventory.PurchaseOrder
+        |> Ash.Changeset.for_create(:create, %{
+          supplier_id: supplier.id,
+          status: :ordered,
+          ordered_at: DateTime.utc_now()
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        Inventory.PurchaseOrderItem
+        |> Ash.Changeset.for_create(:create, %{
+          purchase_order_id: po.id,
+          material_id: mat.id,
+          quantity: Decimal.new("50"),
+          unit_price: Decimal.new("0.99")
+        })
+        |> Ash.create(actor: staff())
+
+      {:ok, _} =
+        Inventory.PurchaseOrderItem
+        |> Ash.Changeset.for_create(:create, %{
+          purchase_order_id: po.id,
+          material_id: mat.id,
+          quantity: Decimal.new("25"),
+          unit_price: Decimal.new("0.62")
+        })
+        |> Ash.create(actor: staff())
+
+      assert {:error, _} =
+               po
+               |> Ash.Changeset.for_update(:receive, %{
+                 lot_receipts: [
+                   %{
+                     material_id: mat.id,
+                     lot_code: "PO-4-LINE-UNKNOWN",
+                     quantity: Decimal.new("25")
+                   }
+                 ]
+               })
+               |> Ash.update(actor: staff())
     end
   end
 end

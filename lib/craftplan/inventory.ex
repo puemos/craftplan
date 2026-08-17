@@ -44,6 +44,7 @@ defmodule Craftplan.Inventory do
       define :list_purchase_orders, action: :list
       define :create_purchase_order, action: :create
       define :update_purchase_order, action: :update
+      define :receive_purchase_order, action: :receive
     end
 
     resource Craftplan.Inventory.PurchaseOrderItem do

@@ -20,7 +20,7 @@ defmodule Craftplan.Inventory.Receiving do
           :reference,
           :status,
           :received_at,
-          items: [:quantity, :material_id]
+          items: [:quantity, :unit_price, :material_id]
         ],
         actor: actor
       )
@@ -28,19 +28,20 @@ defmodule Craftplan.Inventory.Receiving do
     if po.received_at do
       {:ok, :already_received}
     else
-      Enum.each(po.items, fn item ->
-        _ =
-          Inventory.adjust_stock(
-            %{
-              material_id: item.material_id,
-              quantity: item.quantity,
-              reason: "Purchase order #{po.reference} received"
-            },
-            actor: actor
-          )
-      end)
-
-      Inventory.update_purchase_order(po, %{status: :received, received_at: DateTime.utc_now()}, actor: actor)
+      Inventory.receive_purchase_order(po, %{lot_receipts: lot_receipts(po)}, actor: actor)
     end
+  end
+
+  defp lot_receipts(po) do
+    po.items
+    |> Enum.with_index(1)
+    |> Enum.map(fn {item, line_number} ->
+      %{
+        purchase_order_item_id: item.id,
+        material_id: item.material_id,
+        lot_code: "#{po.reference}-L#{line_number}",
+        quantity: item.quantity
+      }
+    end)
   end
 end
