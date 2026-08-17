@@ -2,7 +2,7 @@ defmodule CraftplanWeb.Plugs.ApiKeyAuth do
   @moduledoc """
   Plug that authenticates requests using API keys (`cpk_` prefixed Bearer tokens).
 
-  Skips if a current_user is already assigned (e.g. from JWT auth).
+  Uses an already assigned current_user as the Ash actor (e.g. from JWT auth).
   On success, assigns `current_user` and `current_api_key` and stores
   scopes in process dictionary for policy checks.
   """
@@ -17,10 +17,11 @@ defmodule CraftplanWeb.Plugs.ApiKeyAuth do
 
   @impl true
   def call(conn, _opts) do
-    if conn.assigns[:current_user] do
-      conn
-    else
-      authenticate_api_key(conn)
+    Process.delete(:api_key_scopes)
+
+    case conn.assigns[:current_user] do
+      nil -> authenticate_api_key(conn)
+      user -> Ash.PlugHelpers.set_actor(conn, user)
     end
   end
 

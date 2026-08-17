@@ -2,6 +2,8 @@ defmodule CraftplanWeb.Api.JsonApiTest do
   use CraftplanWeb.ConnCase, async: true
 
   alias Craftplan.Accounts
+  alias Craftplan.Settings
+  alias Craftplan.Test.AuthHelpers
   alias Craftplan.Test.Factory
 
   defp create_api_key!(scopes) do
@@ -17,6 +19,28 @@ defmodule CraftplanWeb.Api.JsonApiTest do
     conn
     |> put_req_header("authorization", "Bearer #{raw_key}")
     |> put_req_header("content-type", "application/vnd.api+json")
+  end
+
+  defp user_conn(conn, user) do
+    token = user.__metadata__.token
+
+    conn
+    |> put_req_header("authorization", "Bearer #{token}")
+    |> put_req_header("content-type", "application/vnd.api+json")
+  end
+
+  defp settings_with_credentials!(admin) do
+    settings = Settings.init!()
+
+    Settings.set!(
+      settings,
+      %{
+        smtp_password: "smtp-secret",
+        email_api_key: "provider-key",
+        email_api_secret: "provider-secret"
+      },
+      actor: admin
+    )
   end
 
   describe "GET /api/json/products" do
@@ -85,6 +109,46 @@ defmodule CraftplanWeb.Api.JsonApiTest do
 
       assert resp["data"]["id"] == product.id
       assert resp["data"]["attributes"]["name"] == "Single Widget"
+    end
+  end
+
+  describe "GET /api/json/settings/:id" do
+    test "does not return settings to an unauthenticated caller", %{conn: conn} do
+      admin = AuthHelpers.register_user!(role: :admin)
+      settings = settings_with_credentials!(admin)
+
+      response = get(conn, "/api/json/settings/#{settings.id}")
+
+      assert response.status == 404
+    end
+
+    test "does not return settings to a customer", %{conn: conn} do
+      admin = AuthHelpers.register_user!(role: :admin)
+      customer = AuthHelpers.register_user!(role: :customer)
+      settings = settings_with_credentials!(admin)
+
+      response =
+        conn
+        |> user_conn(customer)
+        |> get("/api/json/settings/#{settings.id}")
+
+      assert response.status == 404
+    end
+
+    test "omits credentials from an authorized response", %{conn: conn} do
+      admin = AuthHelpers.register_user!(role: :admin)
+      settings = settings_with_credentials!(admin)
+
+      attributes =
+        conn
+        |> user_conn(admin)
+        |> get("/api/json/settings/#{settings.id}")
+        |> json_response(200)
+        |> get_in(["data", "attributes"])
+
+      refute Map.has_key?(attributes, "smtp_password")
+      refute Map.has_key?(attributes, "email_api_key")
+      refute Map.has_key?(attributes, "email_api_secret")
     end
   end
 

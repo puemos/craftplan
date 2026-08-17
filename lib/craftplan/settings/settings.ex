@@ -14,7 +14,7 @@ defmodule Craftplan.Settings.Settings do
 
     routes do
       base("/settings")
-      get(:get)
+      get(:api_get)
       patch(:update)
     end
   end
@@ -27,13 +27,26 @@ defmodule Craftplan.Settings.Settings do
   actions do
     default_accept :*
 
-    defaults [:read, :update]
+    read :read do
+      primary? true
+      public? false
+    end
+
+    update :update do
+      primary? true
+      accept [:*, :email_api_key, :email_api_secret, :smtp_password]
+    end
 
     create :init do
       accept []
     end
 
     read :get do
+      get? true
+      public? false
+    end
+
+    read :api_get do
       get? true
     end
   end
@@ -44,9 +57,14 @@ defmodule Craftplan.Settings.Settings do
       authorize_if {Craftplan.Accounts.Checks.ApiScopeCheck, []}
     end
 
-    # Allow read of settings for everyone (used across site)
-    policy action_type(:read) do
+    # Internal reads are used throughout the application and are never exposed by API extensions.
+    bypass private_action?() do
       authorize_if always()
+    end
+
+    # The JSON:API settings endpoint is limited to trusted operational roles.
+    policy action(:api_get) do
+      authorize_if expr(^actor(:role) in [:admin, :staff])
     end
 
     # Allow init (bootstrap) without auth
@@ -183,12 +201,12 @@ defmodule Craftplan.Settings.Settings do
     end
 
     attribute :email_api_key, EncryptedBinary do
-      public? true
+      public? false
       sensitive? true
     end
 
     attribute :email_api_secret, EncryptedBinary do
-      public? true
+      public? false
       sensitive? true
     end
 
@@ -216,7 +234,7 @@ defmodule Craftplan.Settings.Settings do
     end
 
     attribute :smtp_password, :string do
-      public? true
+      public? false
       sensitive? true
     end
 

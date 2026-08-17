@@ -14,13 +14,16 @@ defmodule CraftplanWeb.Plugs.ApiKeyAuthTest do
   end
 
   describe "call/2" do
-    test "skips when current_user already assigned", %{conn: conn} do
+    test "sets an already assigned current_user as the Ash actor", %{conn: conn} do
       admin = Craftplan.DataCase.admin_actor()
       conn = Plug.Conn.assign(conn, :current_user, admin)
+      Process.put(:api_key_scopes, %{"stale" => ["read"]})
 
       result = ApiKeyAuth.call(conn, [])
 
       assert result.assigns[:current_user] == admin
+      assert Ash.PlugHelpers.get_actor(result) == admin
+      refute Process.get(:api_key_scopes)
       refute Map.has_key?(result.assigns, :current_api_key)
     end
 
@@ -34,6 +37,7 @@ defmodule CraftplanWeb.Plugs.ApiKeyAuthTest do
 
       assert result.assigns[:current_user].id == admin.id
       assert result.assigns[:current_api_key].id == api_key.id
+      assert Ash.PlugHelpers.get_actor(result).id == admin.id
     end
 
     test "ignores non-cpk_ bearer tokens", %{conn: conn} do
