@@ -570,6 +570,10 @@ defmodule CraftplanWeb.OrderLive.Index do
   end
 
   @impl true
+  def handle_event("next_page", _params, %{assigns: %{page_more: false}} = socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("next_page", _params, socket) do
     filter_opts = parse_filters(socket.assigns.filters)
     offset = socket.assigns.page_offset + @page_size
@@ -667,18 +671,45 @@ defmodule CraftplanWeb.OrderLive.Index do
   end
 
   defp load_orders_for_calendar(socket, filter_opts, days_range) do
-    {start_dt, end_dt} = calendar_window(days_range)
-
-    cal_opts =
-      filter_opts
-      |> Map.put(:delivery_date_start, start_dt)
-      |> Map.put(:delivery_date_end, end_dt)
+    cal_opts = scope_filters_to_calendar_window(filter_opts, days_range)
 
     Orders.list_orders!(
       cal_opts,
       actor: socket.assigns[:current_user],
       load: [:items, :total_cost, customer: [:full_name], items: [product: [:name]]]
     )
+  end
+
+  defp scope_filters_to_calendar_window(filter_opts, days_range) do
+    {window_start, window_end} = calendar_window(days_range)
+
+    filter_opts
+    |> Map.put(
+      :delivery_date_start,
+      latest_datetime(filter_opts.delivery_date_start, window_start)
+    )
+    |> Map.put(
+      :delivery_date_end,
+      earliest_datetime(filter_opts.delivery_date_end, window_end)
+    )
+  end
+
+  defp latest_datetime(nil, datetime), do: datetime
+
+  defp latest_datetime(left, right) do
+    case DateTime.compare(left, right) do
+      :gt -> left
+      _ -> right
+    end
+  end
+
+  defp earliest_datetime(nil, datetime), do: datetime
+
+  defp earliest_datetime(left, right) do
+    case DateTime.compare(left, right) do
+      :lt -> left
+      _ -> right
+    end
   end
 
   defp load_view_data(socket, "calendar", filter_opts) do

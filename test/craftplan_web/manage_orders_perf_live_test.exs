@@ -45,6 +45,10 @@ defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
       next = view |> element("button[phx-click=next_page]") |> render_click()
       assert next =~ "Showing 101-120 of 120"
       assert has_element?(view, "button[phx-click=prev_page]:not([disabled])")
+      assert has_element?(view, "button[phx-click=next_page][disabled]")
+
+      render_click(view, "next_page", %{})
+      assert has_element?(view, "span", "Showing 101-120 of 120")
 
       prev = view |> element("button[phx-click=prev_page]") |> render_click()
       assert prev =~ "Showing 1-100 of 120"
@@ -86,6 +90,41 @@ defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
       flipped = view |> element("button[phx-click=next_week]") |> render_click()
       assert flipped =~ "NextWeekCust"
       refute flipped =~ "ThisWeekCust"
+    end
+
+    @tag role: :staff
+    test "calendar intersects the visible week with the delivery-date filters", %{conn: conn} do
+      week_start = Date.add(Date.utc_today(), -(Date.day_of_week(Date.utc_today()) - 1))
+      early_date = Date.add(week_start, 1)
+      late_date = Date.add(week_start, 3)
+
+      _early = order_at(DateTime.new!(early_date, ~T[10:00:00], "Etc/UTC"), "BeforeFilter")
+      _late = order_at(DateTime.new!(late_date, ~T[10:00:00], "Etc/UTC"), "AfterFilter")
+
+      {:ok, view, _html} = live(conn, ~p"/manage/orders?view=calendar")
+      assert has_element?(view, "div[title='BeforeFilter Perf']")
+      assert has_element?(view, "div[title='AfterFilter Perf']")
+
+      view
+      |> element("#filters-form")
+      |> render_change(%{
+        "filters" => %{"delivery_date_start" => Date.to_iso8601(late_date)}
+      })
+
+      refute has_element?(view, "div[title='BeforeFilter Perf']")
+      assert has_element?(view, "div[title='AfterFilter Perf']")
+
+      view
+      |> element("#filters-form")
+      |> render_change(%{
+        "filters" => %{
+          "delivery_date_start" => "",
+          "delivery_date_end" => Date.to_iso8601(early_date)
+        }
+      })
+
+      assert has_element?(view, "div[title='BeforeFilter Perf']")
+      refute has_element?(view, "div[title='AfterFilter Perf']")
     end
   end
 
