@@ -50,16 +50,21 @@ defmodule Craftplan.Mailer do
   defp provider_config(%{email_provider: :smtp} = s) do
     if present?(s.smtp_host) do
       has_credentials? = present?(s.smtp_username) and present?(s.smtp_password)
+      tls = s.smtp_tls || :if_available
 
-      [
-        adapter: Swoosh.Adapters.SMTP,
-        relay: s.smtp_host,
-        port: s.smtp_port || 587,
-        username: s.smtp_username || "",
-        password: s.smtp_password || "",
-        tls: s.smtp_tls || :if_available,
-        auth: if(has_credentials?, do: :always, else: :never)
-      ]
+      put_smtp_tls_options(
+        [
+          adapter: Swoosh.Adapters.SMTP,
+          relay: s.smtp_host,
+          port: s.smtp_port || 587,
+          username: s.smtp_username || "",
+          password: s.smtp_password || "",
+          tls: tls,
+          auth: if(has_credentials?, do: :always, else: :never)
+        ],
+        tls,
+        s.smtp_host
+      )
     end
   end
 
@@ -70,6 +75,21 @@ defmodule Craftplan.Mailer do
     Application.put_env(:swoosh, :api_client, Swoosh.ApiClient.Finch)
     Application.put_env(:swoosh, :finch_name, Craftplan.Finch)
     :ok
+  end
+
+  defp put_smtp_tls_options(config, :never, _host), do: config
+
+  defp put_smtp_tls_options(config, _tls, host) do
+    # gen_smtp defaults to a chain depth of 0, overriding OTP's safer default of 10.
+    Keyword.put(config, :tls_options,
+      verify: :verify_peer,
+      cacerts: :public_key.cacerts_get(),
+      depth: 10,
+      server_name_indication: String.to_charlist(host),
+      customize_hostname_check: [
+        match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+      ]
+    )
   end
 
   defp present?(value), do: value not in [nil, ""]
