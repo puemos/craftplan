@@ -8,6 +8,8 @@ defmodule CraftplanWeb.Router do
   # Plugs
   #
   # Content Security Policy compatible with LiveView and topbar
+  alias Craftplan.Accounts.User
+
   @csp Enum.join(
          [
            "default-src 'self'",
@@ -65,7 +67,17 @@ defmodule CraftplanWeb.Router do
     live "/setup", SetupLive, :index
 
     # Authentication Routes
-    auth_routes AuthController, Craftplan.Accounts.User, path: "/auth"
+    confirm_route User,
+                  :confirm_new_user,
+                  path: "/auth/user/confirm_new_user",
+                  token_as_route_param?: false,
+                  auth_routes_prefix: "/auth",
+                  overrides: [
+                    CraftplanWeb.AuthOverrides,
+                    Default
+                  ]
+
+    auth_routes AuthController, User, path: "/auth"
     sign_out_route AuthController
 
     sign_in_route register_path: "/register",
