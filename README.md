@@ -10,21 +10,6 @@
   <img src="https://img.shields.io/badge/phoenix-%7E%3E%201.8-orange.svg" alt="Phoenix ~> 1.8">
 </p>
 
-
-<div align="center">
-
-[![Live Demo](https://img.shields.io/badge/Live_Demo-craftplan.fly.dev-blue)](https://craftplan.fly.dev)
-
-<details>
-<summary>🔑 Demo Credentials</summary>
-<br>
-
-**Email**: `test@test.com`
-**Password**: `Aa123123123123` 
-
-</details>
-</div>
-
 Craftplan brings all essential business tools into one platform: catalog management, inventory control, order processing, production planning, purchasing, and CRM, so you can get off the ground quickly without paying for multiple separate platforms.
 
 ![Manage overview with schedule, make sheet, and completion snapshot](screenshots/plan.webp)
