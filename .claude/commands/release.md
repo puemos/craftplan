@@ -9,9 +9,9 @@ Follow these steps to create a new release:
 
 ## Step 1: Get current state
 
-1. Get the current version from `mix.exs`:
+1. Get the current version from `VERSION`:
    ```bash
-   grep 'version:' mix.exs | head -1
+   cat VERSION
    ```
 
 2. Get the latest git tag:
@@ -59,11 +59,9 @@ Ask the user what type of release this is:
 
 Calculate the new version number based on the latest tag (not mix.exs, as they may differ).
 
-## Step 5: Update mix.exs
+## Step 5: Update VERSION
 
-Use the Edit tool to update the version in `mix.exs`:
-- Find the line `version: "x.y.z",`
-- Replace with the new version
+Use the Edit tool to replace the version number in `VERSION` with the new version.
 
 ## Step 6: Commit
 

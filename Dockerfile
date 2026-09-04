@@ -29,15 +29,21 @@ RUN mkdir config
 
 COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
+RUN mix assets.setup
+
+RUN mkdir assets
+COPY assets/package.json assets/package-lock.json assets/
+RUN npm ci --prefix assets
 
 COPY priv priv
 COPY lib lib
-COPY assets assets
+COPY VERSION ./
+RUN mix compile
 
-RUN npm install --prefix assets
-RUN mix assets.setup
+COPY assets assets
 RUN mix assets.deploy
 
+# Sync the digested assets into the compiled application.
 RUN mix compile
 
 # Copy runtime config last so earlier layers are cached
