@@ -1,5 +1,5 @@
 defmodule Craftplan.MailerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Craftplan.Mailer
 
@@ -37,6 +37,22 @@ defmodule Craftplan.MailerTest do
       assert config[:adapter] == Swoosh.Adapters.SMTP
       assert config[:relay] == "smtp.example.com"
       assert config[:auth] == :always
+
+      tls_options = config[:tls_options]
+      assert tls_options[:verify] == :verify_peer
+      assert tls_options[:cacerts] != []
+      assert tls_options[:depth] == 10
+      assert tls_options[:server_name_indication] == ~c"smtp.example.com"
+      assert is_function(tls_options[:customize_hostname_check][:match_fun], 2)
+      refute Keyword.has_key?(tls_options, :versions)
+    end
+
+    test "omits TLS options when TLS is disabled" do
+      s = settings(%{smtp_host: "smtp.example.com", smtp_tls: :never})
+      assert :ok = Mailer.apply_settings(s)
+
+      config = Application.get_env(:craftplan, Mailer)
+      refute Keyword.has_key?(config, :tls_options)
     end
 
     test "skips configuration when host is blank" do
