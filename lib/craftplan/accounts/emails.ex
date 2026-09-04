@@ -45,6 +45,32 @@ defmodule Craftplan.Accounts.Emails do
     """)
   end
 
+  def deliver_invitation_email(user, url) do
+    if !url do
+      raise "Cannot deliver invitation instructions without a url"
+    end
+
+    deliver(user.email, "Set up your Craftplan account", """
+    <html>
+      <p>
+        Hi #{user.email},
+      </p>
+
+      <p>
+        You've been invited to join Craftplan.
+      </p>
+
+      <p>
+        <a href="#{url}">Set your password</a> to finish setting up your account.
+      </p>
+
+      <p>
+        This link expires in 3 days. If it expires, request a new password link from the sign-in page.
+      </p>
+    </html>
+    """)
+  end
+
   # For simplicity, this module simply logs messages to the terminal.
   # You should replace it by a proper email or notification tool, such as:
   #

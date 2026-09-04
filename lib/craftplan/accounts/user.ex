@@ -25,6 +25,7 @@ defmodule Craftplan.Accounts.User do
         identity_field :email
 
         resettable do
+          token_lifetime {3, :days}
           sender Craftplan.Accounts.User.Senders.SendPasswordResetEmail
         end
 
@@ -38,7 +39,7 @@ defmodule Craftplan.Accounts.User do
         require_interaction? true
         confirm_on_create? true
         confirm_on_update? false
-        auto_confirm_actions [:sign_in_with_magic_link, :reset_password_with_password]
+        auto_confirm_actions [:sign_in_with_magic_link, :password_reset_with_password]
         sender Craftplan.Accounts.User.Senders.SendNewUserConfirmationEmail
       end
     end
