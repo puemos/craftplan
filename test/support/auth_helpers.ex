@@ -20,7 +20,6 @@ defmodule Craftplan.Test.AuthHelpers do
     User
     |> Ash.Changeset.for_create(:register_with_password, %{
       email: email,
-      role: role,
       password: @default_password,
       password_confirmation: @default_password
     })
@@ -30,6 +29,7 @@ defmodule Craftplan.Test.AuthHelpers do
         private: %{ash_authentication?: true}
       }
     )
+    |> assign_role!(role)
   end
 
   @doc """
@@ -60,4 +60,15 @@ defmodule Craftplan.Test.AuthHelpers do
   end
 
   defp unique_email(role), do: "#{role}+#{System.unique_integer([:positive])}@local"
+
+  defp assign_role!(user, :customer), do: user
+
+  defp assign_role!(user, role) do
+    updated_user =
+      user
+      |> Ash.Changeset.for_update(:update_role, %{role: role})
+      |> Ash.update!(authorize?: false)
+
+    %{updated_user | __metadata__: user.__metadata__}
+  end
 end

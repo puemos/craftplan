@@ -158,12 +158,10 @@ defmodule Craftplan.Accounts.User do
     create :register_with_password do
       description "Register a new user with a email and password."
 
+      skip_unknown_inputs [:role, "role"]
+
       argument :email, :ci_string do
         allow_nil? false
-      end
-
-      argument :role, :atom do
-        default :customer
       end
 
       argument :password, :string do
@@ -182,7 +180,8 @@ defmodule Craftplan.Accounts.User do
       # Sets the email from the argument
       change set_attribute(:email, arg(:email))
 
-      change set_attribute(:role, arg(:role))
+      # Public registration must never grant a privileged role.
+      change set_attribute(:role, :customer)
 
       # Hashes the provided password
       change HashPasswordChange
@@ -197,6 +196,32 @@ defmodule Craftplan.Accounts.User do
         description "A JWT that can be used to authenticate the user."
         allow_nil? false
       end
+    end
+
+    create :create_initial_admin_with_password do
+      description "Create the initial administrator during instance setup."
+
+      argument :email, :ci_string do
+        allow_nil? false
+      end
+
+      argument :password, :string do
+        description "The proposed password for the user, in plain text."
+        allow_nil? false
+        constraints min_length: 8
+        sensitive? true
+      end
+
+      argument :password_confirmation, :string do
+        description "The proposed password for the user (again), in plain text."
+        allow_nil? false
+        sensitive? true
+      end
+
+      change set_attribute(:email, arg(:email))
+      change set_attribute(:role, :admin)
+      change {HashPasswordChange, strategy_name: :password}
+      validate {PasswordConfirmationValidation, strategy_name: :password}
     end
 
     action :request_password_reset_with_password do

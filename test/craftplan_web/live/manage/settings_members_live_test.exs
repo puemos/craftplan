@@ -4,22 +4,10 @@ defmodule CraftplanWeb.SettingsMembersLiveTest do
   import Phoenix.LiveViewTest
 
   alias Ash.Error.Forbidden
-  alias Craftplan.Accounts.User
+  alias Craftplan.Test.AuthHelpers
 
   defp create_staff_member!(email) do
-    User
-    |> Ash.Changeset.for_create(:register_with_password, %{
-      email: email,
-      role: :staff,
-      password: "TestPassword123!",
-      password_confirmation: "TestPassword123!"
-    })
-    |> Ash.create!(
-      context: %{
-        strategy: AshAuthentication.Strategy.Password,
-        private: %{ash_authentication?: true}
-      }
-    )
+    AuthHelpers.register_user!(email: email, role: :staff)
   end
 
   describe "authorization" do

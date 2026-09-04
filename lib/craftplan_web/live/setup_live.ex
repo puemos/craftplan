@@ -13,7 +13,7 @@ defmodule CraftplanWeb.SetupLive do
        |> redirect(to: ~p"/sign-in")}
     else
       form =
-        AshPhoenix.Form.for_create(User, :register_with_password,
+        AshPhoenix.Form.for_create(User, :create_initial_admin_with_password,
           as: "user",
           authorize?: false
         )
@@ -77,8 +77,6 @@ defmodule CraftplanWeb.SetupLive do
        |> put_flash(:error, "Setup already complete.")
        |> redirect(to: ~p"/sign-in")}
     else
-      user_params = Map.put(user_params, "role", "admin")
-
       case AshPhoenix.Form.submit(socket.assigns.form, params: user_params, authorize?: false) do
         {:ok, _user} ->
           {:noreply,

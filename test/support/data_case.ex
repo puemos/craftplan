@@ -16,8 +16,7 @@ defmodule Craftplan.DataCase do
 
   use ExUnit.CaseTemplate
 
-  alias AshAuthentication.Strategy.Password
-  alias Craftplan.Accounts.User
+  alias Craftplan.Test.AuthHelpers
   alias Ecto.Adapters.SQL.Sandbox
 
   using do
@@ -64,41 +63,13 @@ defmodule Craftplan.DataCase do
   Create a staff user for use as an actor in tests that require authorization.
   """
   def staff_actor do
-    email = "staff+#{System.unique_integer([:positive])}@local"
-
-    User
-    |> Ash.Changeset.for_create(:register_with_password, %{
-      email: email,
-      password: "Passw0rd!!",
-      password_confirmation: "Passw0rd!!",
-      role: :staff
-    })
-    |> Ash.create!(
-      context: %{
-        strategy: Password,
-        private: %{ash_authentication?: true}
-      }
-    )
+    AuthHelpers.register_user!(role: :staff)
   end
 
   @doc """
   Create or fetch an admin user for tests requiring elevated privileges.
   """
   def admin_actor do
-    email = "admin+#{System.unique_integer([:positive])}@local"
-
-    User
-    |> Ash.Changeset.for_create(:register_with_password, %{
-      email: email,
-      password: "Passw0rd!!",
-      password_confirmation: "Passw0rd!!",
-      role: :admin
-    })
-    |> Ash.create!(
-      context: %{
-        strategy: Password,
-        private: %{ash_authentication?: true}
-      }
-    )
+    AuthHelpers.register_user!(role: :admin)
   end
 end
