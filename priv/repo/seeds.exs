@@ -96,7 +96,7 @@ seed_nutritional_facts = fn ->
   }
 end
 
-if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.env() == :dev) do
+if Mix.env() == :dev do
   # ------------------------------------------------------------------------------
   # 2. Clear existing data (cleanup for repeated seeds in dev)
   # ------------------------------------------------------------------------------
@@ -669,7 +669,7 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
       )
   }
 
-  # -- 3.13 Seed demo orders for Bread (today) and create an open batch with allocations
+  # -- 3.13 Seed sample orders for Bread (today) and create an open batch with allocations
   bread_order1 =
     Ash.Seed.seed!(Orders.Order, %{
       customer_id: customers.john.id,
@@ -704,12 +704,12 @@ if System.get_env("SEED_DATA") == "true" or (Code.ensure_loaded?(Mix) and Mix.en
       status: :todo
     })
 
-  demo_batch_code =
+  bread_batch_code =
     "B-" <> Calendar.strftime(Date.utc_today(), "%Y%m%d") <> "-" <> products.bread.sku <> "-DEV"
 
   bread_batch =
     Ash.Seed.seed!(Orders.ProductionBatch, %{
-      batch_code: demo_batch_code,
+      batch_code: bread_batch_code,
       product_id: products.bread.id,
       planned_qty: Decimal.new("15"),
       produced_qty: Decimal.new("0"),

@@ -407,16 +407,15 @@ Last updated: 2025-11-09 (Overview nav + planner polish)
 
 **Status:** [ ] Not started [ ] In progress [ ] Done
 
-> ⚠️ **NEEDS FLESHING OUT** - Requires CSV template specs, demo scenario design, calculator wireframes, and onboarding checklist UX
+> ⚠️ **NEEDS FLESHING OUT** - Requires CSV template specs, calculator wireframes, and onboarding checklist UX
 
 ### Goals
 
-- Remove friction during setup with better CSV flows, demo assets, and calculators similar to competitor positioning.
+- Remove friction during setup with better CSV flows and calculators similar to competitor positioning.
 
 ### User Stories
 
 - As a new tenant, I import products, materials, recipes, and customers with dry-run validation and contextual help.
-- As a prospect, I explore a seeded bakery scenario, watch a short primer video, and print sample planner/labels.
 - As a maker, I access calculators (pricing, production planning) from within the app.
 
 ### Requirements
@@ -427,9 +426,8 @@ Last updated: 2025-11-09 (Overview nav + planner polish)
 - [ ] Add recipe importer supporting SKU lookups and BOM version assignment.
 - [ ] Provide exporters for orders/customers/inventory movements.
 
-**Demo & Content**
+**Content**
 
-- [ ] Expand seeds to include multi-location bakery scenario and sample reports.
 - [ ] Add quickstart guide (Markdown/LiveView) with embedded screenshots/video links.
 - [ ] Surface calculators/templates (pricing, production planning) similar to Craftybase resources.
 
@@ -440,7 +438,6 @@ Last updated: 2025-11-09 (Overview nav + planner polish)
 ### Acceptance Criteria
 
 - CSV wizard completes import with granular error reporting and generates summary results.
-- Demo tenant can run through Operate -> Make -> Stock loop including costing and reporting surfaces.
 - Onboarding checklist auto-updates as tasks completed and collapses once done.
 
 ---

@@ -14,7 +14,7 @@
 
 ## Working Locally
 - First setup: `mix setup` (runs deps.get, `ash.setup`, asset install/build, seeds).
-- Start server: `mix phx.server`; demo data seeded from `priv/repo/seeds.exs`.
+- Start server: `mix phx.server`; development data is seeded from `priv/repo/seeds.exs`.
 - Reset data: `mix ash.reset` for extension-aware rebuilds or `mix ash_postgres.drop && mix setup` after major schema changes.
 - Assets: run `npm install --prefix assets` once; `mix assets.deploy` creates production bundles.
 - Environment: `.envrc`/`config/runtime.exs` hold runtime secrets; mirror updates in `docker-compose.yml` when containerizing.
