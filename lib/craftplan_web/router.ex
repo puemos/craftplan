@@ -25,9 +25,18 @@ defmodule CraftplanWeb.Router do
        )
 
   def put_session_timezone(conn, _opts) do
-    timezone = conn.cookies["timezone"]
+    timezone = valid_timezone_or_utc(conn.cookies["timezone"])
     put_session(conn, "timezone", timezone)
   end
+
+  defp valid_timezone_or_utc(timezone) when is_binary(timezone) do
+    case DateTime.now(timezone) do
+      {:ok, _datetime} -> timezone
+      {:error, _reason} -> "Etc/UTC"
+    end
+  end
+
+  defp valid_timezone_or_utc(_timezone), do: "Etc/UTC"
 
   #
   # Pipelines

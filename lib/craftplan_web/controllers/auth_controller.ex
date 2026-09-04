@@ -2,6 +2,26 @@ defmodule CraftplanWeb.AuthController do
   use CraftplanWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
+  alias AshAuthentication.Info
+  alias AshAuthentication.Strategy.Password
+  alias Craftplan.Accounts.User
+
+  def success(conn, {:confirm_new_user, :confirm}, %{role: role} = user, _token) when role in [:staff, :admin] do
+    password_strategy = Info.strategy!(User, :password)
+
+    case Password.reset_token_for(password_strategy, user) do
+      {:ok, reset_token} ->
+        conn
+        |> put_flash(:info, "Your email has been confirmed. Set a password to finish setup.")
+        |> redirect(to: ~p"/password-reset/#{reset_token}")
+
+      :error ->
+        conn
+        |> put_flash(:error, "Your email was confirmed, but password setup could not be started.")
+        |> redirect(to: ~p"/reset")
+    end
+  end
+
   def success(conn, activity, user, _token) do
     return_to = get_session(conn, :return_to) || ~p"/manage/overview"
 
@@ -33,6 +53,11 @@ defmodule CraftplanWeb.AuthController do
           """
           You have already signed in another way, but have not confirmed your account.
           You can confirm your account using the link we sent to you, or by resetting your password.
+          """
+
+        {{:password, :reset}, _reason} ->
+          """
+          Your password could not be changed. The link may be invalid or expired; request a new one and try again.
           """
 
         _ ->

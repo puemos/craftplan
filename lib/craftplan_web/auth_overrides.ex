@@ -55,10 +55,10 @@ defmodule CraftplanWeb.AuthOverrides do
     set :root_class, "w-full flex justify-center py-2"
     set :href_class, nil
     set :href_url, "/"
-    set :image_class, "block dark:hidden"
-    set :dark_image_class, "hidden dark:block"
-    set :image_url, "https://ash-hq.org/images/ash-framework-light.png"
-    set :dark_image_url, "https://ash-hq.org/images/ash-framework-dark.png"
+    set :image_class, "block h-20 w-20 dark:hidden"
+    set :dark_image_class, "hidden h-20 w-20 dark:block"
+    set :image_url, "/images/favicon.svg"
+    set :dark_image_url, "/images/favicon.svg"
     set :text_class, nil
     set :text, nil
   end
