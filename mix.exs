@@ -4,7 +4,7 @@ defmodule Craftplan.MixProject do
   def project do
     [
       app: :craftplan,
-      version: "0.6.1",
+      version: version(),
       elixir: "~> 1.20",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -28,6 +28,13 @@ defmodule Craftplan.MixProject do
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp version do
+    case File.read(Path.join(__DIR__, "VERSION")) do
+      {:ok, version} -> String.trim(version)
+      {:error, :enoent} -> "0.0.0-dev"
+    end
+  end
 
   # Specifies your project dependencies.
   #
