@@ -56,7 +56,11 @@ defmodule Craftplan.Catalog.Product do
         :selling_availability,
         :max_daily_quantity,
         :nutrition_output_quantity,
-        :nutrition_output_unit
+        :nutrition_output_unit,
+        :durability_type,
+        :shelf_life_days,
+        :storage_instructions,
+        :country_of_origin
       ],
       update: [
         :name,
@@ -68,7 +72,11 @@ defmodule Craftplan.Catalog.Product do
         :selling_availability,
         :max_daily_quantity,
         :nutrition_output_quantity,
-        :nutrition_output_unit
+        :nutrition_output_unit,
+        :durability_type,
+        :shelf_life_days,
+        :storage_instructions,
+        :country_of_origin
       ]
     ]
 
@@ -183,6 +191,35 @@ defmodule Craftplan.Catalog.Product do
     attribute :nutrition_output_unit, :unit do
       public? true
       description "Finished product unit used to express nutrition per 100g or 100ml."
+    end
+
+    attribute :shelf_life_days, :integer do
+      public? true
+      allow_nil? true
+      constraints min: 0
+      description "Days after production used to calculate the batch best-before date."
+    end
+
+    attribute :durability_type, :atom do
+      public? true
+      allow_nil? false
+      default :best_before
+      constraints one_of: [:best_before, :use_by]
+      description "Whether the calculated durability date is labelled best-before or use-by."
+    end
+
+    attribute :storage_instructions, :string do
+      public? true
+      allow_nil? true
+      constraints max_length: 500
+      description "Storage conditions printed on finished product labels."
+    end
+
+    attribute :country_of_origin, :string do
+      public? true
+      allow_nil? true
+      constraints max_length: 100
+      description "Country or place of origin printed on labels when applicable."
     end
 
     timestamps()

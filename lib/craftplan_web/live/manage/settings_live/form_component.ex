@@ -72,6 +72,35 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
           </section>
 
           <section
+            id="food-label-settings"
+            aria-labelledby="food-label-settings-title"
+            class="rounded-lg border border-stone-200 bg-stone-50"
+          >
+            <div class="border-b border-stone-200 px-4 py-3">
+              <h3 id="food-label-settings-title" class="text-base font-semibold text-stone-800">
+                Food label operator
+              </h3>
+              <p class="mt-1 text-sm text-stone-600">
+                Printed on production-batch labels as the responsible food business operator.
+              </p>
+            </div>
+            <div class="space-y-4 p-4">
+              <.input
+                field={@form[:food_business_name]}
+                type="text"
+                label="Business name"
+                placeholder="Your bakery or workshop name"
+              />
+              <.input
+                field={@form[:food_business_address]}
+                type="textarea"
+                label="Postal address"
+                placeholder="Street, postal code, city, country"
+              />
+            </div>
+          </section>
+
+          <section
             id="fulfillment-settings"
             aria-labelledby="fulfillment-settings-title"
             class="rounded-lg border border-stone-200 bg-stone-50"

@@ -20,28 +20,49 @@ defmodule Craftplan.Inventory.Receiving do
           :reference,
           :status,
           :received_at,
-          items: [:quantity, :unit_price, :material_id]
+          items: [:quantity, :unit_price, :material_id, lots: [:received_quantity]]
         ],
         actor: actor
       )
 
-    if po.received_at do
+    if po.status == :received or po.received_at do
       {:ok, :already_received}
     else
-      Inventory.receive_purchase_order(po, %{lot_receipts: lot_receipts(po)}, actor: actor)
+      receipts = Keyword.get(opts, :lot_receipts, lot_receipts(po))
+      Inventory.receive_purchase_order(po, %{lot_receipts: receipts}, actor: actor)
     end
   end
 
   defp lot_receipts(po) do
     po.items
     |> Enum.with_index(1)
-    |> Enum.map(fn {item, line_number} ->
-      %{
-        purchase_order_item_id: item.id,
-        material_id: item.material_id,
-        lot_code: "#{po.reference}-L#{line_number}",
-        quantity: item.quantity
-      }
+    |> Enum.flat_map(fn {item, line_number} ->
+      received =
+        Enum.reduce(item.lots || [], Decimal.new(0), fn lot, total ->
+          Decimal.add(total, lot.received_quantity || Decimal.new(0))
+        end)
+
+      remaining = Decimal.sub(item.quantity, received)
+
+      if Decimal.gt?(remaining, Decimal.new(0)) do
+        sequence =
+          item.lots
+          |> length()
+          |> Kernel.+(1)
+          |> Integer.to_string()
+          |> String.pad_leading(2, "0")
+
+        [
+          %{
+            purchase_order_item_id: item.id,
+            material_id: item.material_id,
+            lot_code: "#{po.reference}-L#{line_number}-#{sequence}",
+            quantity: remaining
+          }
+        ]
+      else
+        []
+      end
     end)
   end
 end

@@ -8,6 +8,8 @@ defmodule Craftplan.ProductionBatchingTest do
   alias Craftplan.Test.Factory
   alias Decimal, as: D
 
+  require Ash.Query
+
   defp setup_product_with_material(actor) do
     product =
       Factory.create_product!(
@@ -152,6 +154,45 @@ defmodule Craftplan.ProductionBatchingTest do
 
     assert item1.status in [:in_progress, :done]
     assert item2.status in [:in_progress, :done]
+  end
+
+  test "completion is one-time and does not consume stock twice" do
+    actor = Craftplan.DataCase.staff_actor()
+    {product, flour} = setup_product_with_material(actor)
+    lot = create_lot_with_stock(flour.id, "FLOT-ONCE", "10000", actor)
+    {:ok, batch} = Batching.open_batch(product.id, D.new("10"), actor: actor)
+    {_item1, _item2} = setup_orders_and_allocations(product, batch, actor)
+    {:ok, batch} = Batching.start_batch(batch, actor: actor)
+
+    params = %{produced_qty: D.new("10")}
+    assert {:ok, completed} = Orders.complete_batch(batch, params, actor: actor)
+    assert {:error, _} = Orders.complete_batch(completed, params, actor: actor)
+
+    lot = Ash.reload!(lot, load: [:current_stock], actor: actor)
+    assert D.equal?(lot.current_stock, D.new("5000"))
+
+    usages =
+      Craftplan.Orders.ProductionBatchLot
+      |> Ash.Query.filter(production_batch_id == ^batch.id)
+      |> Ash.read!(actor: actor)
+
+    assert length(usages) == 1
+  end
+
+  test "manual lot plans must match the frozen recipe material and quantity" do
+    actor = Craftplan.DataCase.staff_actor()
+    {product, flour} = setup_product_with_material(actor)
+    lot = create_lot_with_stock(flour.id, "FLOT-VALIDATE", "10000", actor)
+    {:ok, batch} = Batching.open_batch(product.id, D.new("10"), actor: actor)
+
+    short_plan = %{flour.id => [%{lot_id: lot.id, quantity: D.new("4999")}]}
+
+    assert {:error, {:lot_plan_quantity_mismatch, material_id, required, planned}} =
+             Batching.validate_lot_plan(batch, short_plan, D.new("10"), actor)
+
+    assert material_id == flour.id
+    assert D.equal?(required, D.new("5000"))
+    assert D.equal?(planned, D.new("4999"))
   end
 
   describe "auto_select_lots/2" do

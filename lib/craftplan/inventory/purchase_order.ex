@@ -7,9 +7,11 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
+  alias Ash.Changeset
   alias Craftplan.Inventory
   alias Craftplan.Inventory.PurchaseOrder.Types.Status
   alias Craftplan.Inventory.PurchaseOrderItem
+  alias Decimal, as: D
 
   require Ash.Query
 
@@ -69,25 +71,41 @@ defmodule Craftplan.Inventory.PurchaseOrder do
         default []
 
         description """
-        List of %{purchase_order_item_id?, material_id, lot_code, quantity, expiry_date?, unit_cost?}.
+        List of %{purchase_order_item_id?, material_id, lot_code, supplier_lot_code?, quantity,
+        expiry_date?, unit_cost?}.
         If unit_cost is omitted, it falls back to the matching PurchaseOrderItem.unit_price.
         """
       end
 
-      change set_attribute(:status, :received)
-      change set_attribute(:received_at, &DateTime.utc_now/0)
-
-      change after_action(fn changeset, po, _ctx ->
+      change before_action(fn changeset, _context ->
                actor = changeset.context[:private][:actor]
-               receipts = Ash.Changeset.get_argument(changeset, :lot_receipts) || []
+               receipts = Changeset.get_argument(changeset, :lot_receipts) || []
 
                items =
                  PurchaseOrderItem
-                 |> Ash.Query.filter(purchase_order_id == ^po.id)
+                 |> Ash.Query.filter(purchase_order_id == ^changeset.data.id)
+                 |> Ash.Query.load(lots: [:received_quantity])
                  |> Ash.read!(authorize?: false)
 
                with {:ok, receipts} <- prepare_lot_receipts(receipts, items),
-                    :ok <- receive_lots(po, receipts, actor) do
+                    :ok <- validate_receipt_quantities(receipts, items) do
+                 changeset
+                 |> Changeset.force_set_argument(:lot_receipts, receipts)
+                 |> set_receipt_state(items, receipts)
+               else
+                 {:error, reason} ->
+                   Changeset.add_error(changeset,
+                     field: :lot_receipts,
+                     message: to_string(reason)
+                   )
+               end
+             end)
+
+      change after_action(fn changeset, po, _ctx ->
+               actor = changeset.context[:private][:actor]
+               receipts = Changeset.get_argument(changeset, :lot_receipts) || []
+
+               with :ok <- receive_lots(po, receipts, actor) do
                  {:ok, po}
                end
              end)
@@ -180,15 +198,50 @@ defmodule Craftplan.Inventory.PurchaseOrder do
   defp prepare_lot_receipt(receipt, context) do
     material_id = receipt_value(receipt, :material_id)
 
-    with {:ok, unit_cost} <- resolve_unit_cost(receipt, material_id, context) do
+    with {:ok, item_id} <- resolve_item_id(receipt, material_id, context),
+         receipt = Map.put(receipt, :purchase_order_item_id, item_id),
+         {:ok, quantity} <- normalize_positive_quantity(receipt_value(receipt, :quantity)),
+         {:ok, lot_code} <-
+           required_text(receipt_value(receipt, :lot_code), "lot_code is required"),
+         {:ok, unit_cost} <- resolve_unit_cost(receipt, material_id, context) do
       {:ok,
        %{
+         purchase_order_item_id: item_id,
          material_id: material_id,
-         lot_code: receipt_value(receipt, :lot_code),
-         quantity: receipt_value(receipt, :quantity),
-         expiry_date: receipt_value(receipt, :expiry_date),
+         lot_code: lot_code,
+         supplier_lot_code: blank_to_nil(receipt_value(receipt, :supplier_lot_code)),
+         quantity: quantity,
+         expiry_date: blank_to_nil(receipt_value(receipt, :expiry_date)),
          unit_cost: unit_cost
        }}
+    end
+  end
+
+  defp resolve_item_id(receipt, material_id, %{items_by_id: items_by_id}) do
+    case receipt_value(receipt, :purchase_order_item_id) do
+      nil ->
+        matching_ids =
+          items_by_id
+          |> Enum.filter(fn {_id, item} -> item.material_id == material_id end)
+          |> Enum.map(&elem(&1, 0))
+
+        case matching_ids do
+          [item_id] ->
+            {:ok, item_id}
+
+          [] ->
+            {:error, "receipt material does not belong to this purchase order"}
+
+          _ ->
+            {:error, "purchase_order_item_id is required when a material appears more than once"}
+        end
+
+      item_id ->
+        case Map.fetch(items_by_id, item_id) do
+          {:ok, %{material_id: ^material_id}} -> {:ok, item_id}
+          {:ok, _item} -> {:error, "purchase_order_item_id does not match receipt material_id"}
+          :error -> {:error, "purchase_order_item_id does not belong to this purchase order"}
+        end
     end
   end
 
@@ -253,7 +306,7 @@ defmodule Craftplan.Inventory.PurchaseOrder do
     end)
   end
 
-  defp same_unit_price?(%Decimal{} = left, %Decimal{} = right), do: Decimal.equal?(left, right)
+  defp same_unit_price?(%D{} = left, %D{} = right), do: D.equal?(left, right)
   defp same_unit_price?(left, right), do: left == right
 
   defp receive_lots(po, receipts, actor) do
@@ -283,10 +336,13 @@ defmodule Craftplan.Inventory.PurchaseOrder do
 
   defp create_lot(po, receipt, actor) do
     Craftplan.Inventory.Lot
-    |> Ash.Changeset.for_create(:create, %{
+    |> Changeset.for_create(:create, %{
       lot_code: receipt.lot_code,
+      supplier_lot_code: receipt.supplier_lot_code,
+      received_quantity: receipt.quantity,
       material_id: receipt.material_id,
       supplier_id: po.supplier_id,
+      purchase_order_item_id: receipt.purchase_order_item_id,
       received_at: DateTime.utc_now(),
       expiry_date: receipt.expiry_date,
       unit_cost: receipt.unit_cost
@@ -295,4 +351,80 @@ defmodule Craftplan.Inventory.PurchaseOrder do
   end
 
   defp receipt_value(receipt, key), do: Map.get(receipt, key) || Map.get(receipt, Atom.to_string(key))
+
+  defp validate_receipt_quantities([], _items), do: {:error, "Add at least one lot to receive"}
+
+  defp validate_receipt_quantities(receipts, items) do
+    new_by_item =
+      receipts
+      |> Enum.group_by(& &1.purchase_order_item_id, & &1.quantity)
+      |> Map.new(fn {item_id, quantities} ->
+        {item_id, Enum.reduce(quantities, D.new(0), &D.add/2)}
+      end)
+
+    Enum.reduce_while(items, :ok, fn item, :ok ->
+      received = received_quantity(item)
+      incoming = Map.get(new_by_item, item.id, D.new(0))
+      total = D.add(received, incoming)
+
+      if D.gt?(total, item.quantity) do
+        {:halt, {:error, "Received quantity for purchase order item #{item.id} exceeds the ordered quantity"}}
+      else
+        {:cont, :ok}
+      end
+    end)
+  end
+
+  defp set_receipt_state(changeset, items, receipts) do
+    incoming_by_item =
+      receipts
+      |> Enum.group_by(& &1.purchase_order_item_id, & &1.quantity)
+      |> Map.new(fn {item_id, quantities} ->
+        {item_id, Enum.reduce(quantities, D.new(0), &D.add/2)}
+      end)
+
+    complete? =
+      Enum.all?(items, fn item ->
+        total = D.add(received_quantity(item), Map.get(incoming_by_item, item.id, D.new(0)))
+        D.equal?(total, item.quantity)
+      end)
+
+    if complete? do
+      changeset
+      |> Changeset.force_change_attribute(:status, :received)
+      |> Changeset.force_change_attribute(:received_at, DateTime.utc_now())
+    else
+      Changeset.force_change_attribute(changeset, :status, :partially_received)
+    end
+  end
+
+  defp received_quantity(item) do
+    Enum.reduce(item.lots || [], D.new(0), fn lot, total ->
+      D.add(total, lot.received_quantity || D.new(0))
+    end)
+  end
+
+  defp normalize_positive_quantity(%D{} = quantity) do
+    if D.gt?(quantity, D.new(0)), do: {:ok, quantity}, else: {:error, "quantity must be positive"}
+  end
+
+  defp normalize_positive_quantity(quantity) when is_binary(quantity) do
+    normalize_positive_quantity(D.new(quantity))
+  rescue
+    _ -> {:error, "quantity must be a number"}
+  end
+
+  defp normalize_positive_quantity(_quantity), do: {:error, "quantity must be positive"}
+
+  defp required_text(value, error) when is_binary(value) do
+    case String.trim(value) do
+      "" -> {:error, error}
+      value -> {:ok, value}
+    end
+  end
+
+  defp required_text(_value, error), do: {:error, error}
+
+  defp blank_to_nil(""), do: nil
+  defp blank_to_nil(value), do: value
 end

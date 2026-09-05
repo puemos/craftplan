@@ -32,7 +32,7 @@ defmodule Craftplan.Inventory.Movement do
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:read]
 
     create :adjust_stock do
       accept [:quantity, :reason, :material_id, :lot_id]

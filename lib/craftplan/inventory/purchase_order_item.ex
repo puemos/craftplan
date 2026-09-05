@@ -76,5 +76,7 @@ defmodule Craftplan.Inventory.PurchaseOrderItem do
     belongs_to :material, Craftplan.Inventory.Material do
       allow_nil? false
     end
+
+    has_many :lots, Craftplan.Inventory.Lot
   end
 end

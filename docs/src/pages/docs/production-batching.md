@@ -44,9 +44,11 @@ Drag-and-drop on the kanban enforces valid transitions and opens the completion 
 When a batch is completed, the `complete` action automatically handles material consumption:
 
 - The `components_map` frozen at batch creation determines required quantities, scaled by produced quantity.
-- Lots are selected using auto-FIFO ordering (earliest expiry date first) via `Batching.auto_select_lots/2`.
+- Available lots are selected using FIFO/FEFO ordering (earliest expiry date first) via `Batching.auto_select_lots/2`; lots on hold or rejected are excluded.
 - Stock is deducted from selected lots via inventory movements (`Batching.consume_batch/3`).
 - If stock is insufficient, the action returns an error with the material ID, required amount, and shortage.
+
+The exact lot allocation is frozen on completion, so every finished batch can be traced back to its ingredient lots even if the BOM or material record changes later.
 
 ### Manual Lot Selection
 
@@ -75,3 +77,5 @@ The batch locks in the BOM version and components map at creation time. This mea
 ## Batch List & Detail Pages
 
 All batches are browsable at **Manage → Production → Batches** (`/manage/production/batches`). The list supports filtering by status and product name with pagination. Each batch detail page (`/manage/production/batches/:batch_code`) shows the product, BOM, allocated order items, and consumed lots.
+
+Completed batches also provide a printable product label. The A5 and compact formats use the frozen batch snapshot for the product name, ingredients, allergens, nutrition declaration, dates, food business operator, and scannable batch barcode. Use the batch code in the [Trace Center](/craftplan/docs/traceability/) for a backward source trace.

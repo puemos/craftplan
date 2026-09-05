@@ -17,8 +17,8 @@ defmodule CraftplanWeb.ProductLive.Label do
         <div class="text-right text-sm">
           <div class="text-stone-600">Date</div>
           <div class="font-medium">{format_date(@today, format: "%Y-%m-%d")}</div>
-          <div class="mt-2 text-stone-600">Batch</div>
-          <div class="font-medium">{batch_code(@today, @product.sku)}</div>
+          <div class="mt-2 text-stone-600">Preview</div>
+          <div class="font-medium">Not a production lot</div>
         </div>
       </div>
 
@@ -132,10 +132,6 @@ defmodule CraftplanWeb.ProductLive.Label do
             |> Enum.sort_by(& &1.name)) || []
      )
      |> assign(:today, Date.utc_today())}
-  end
-
-  defp batch_code(date, sku) do
-    "B-" <> format_date(date, format: "%Y%m%d") <> "-" <> sku
   end
 
   # no recipe fallback

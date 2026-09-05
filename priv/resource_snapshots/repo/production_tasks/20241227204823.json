@@ -94,6 +94,7 @@
   "check_constraints": [],
   "custom_indexes": [],
   "custom_statements": [],
+  "drop_table_opted_out": true,
   "has_create_action": true,
   "hash": "4F3627FC7A07E76BBDB3D7D3F48C0680D817F309B2F13B8731FDDADCC8803661",
   "identities": [],

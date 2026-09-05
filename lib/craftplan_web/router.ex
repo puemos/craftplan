@@ -141,6 +141,7 @@ defmodule CraftplanWeb.Router do
     # PDF exports (regular controllers, not LiveView)
     get "/manage/production/batches/:batch_code/sheet.pdf", BatchSheetController, :show
     get "/manage/orders/:reference/invoice.pdf", InvoiceController, :show
+    get "/manage/production/traceability/export.csv", TraceabilityExportController, :show
 
     # Staff Routes
     ash_authentication_live_session :manage_routes,
@@ -210,7 +211,9 @@ defmodule CraftplanWeb.Router do
       live "/manage/production/schedule", OverviewLive, :schedule
       live "/manage/production/make_sheet", OverviewLive, :make_sheet
       live "/manage/production/materials", OverviewLive, :materials
+      live "/manage/production/traceability", TraceabilityLive.Index, :index
       live "/manage/production/batches", ProductionBatchLive.Index, :index
+      live "/manage/production/batches/:batch_code/label", ProductionBatchLive.Label, :show
       live "/manage/production/batches/:batch_code", ProductionBatchLive.Show, :show
 
       # in each liveview, add one of the following at the top of the module:

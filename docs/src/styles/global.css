@@ -15,7 +15,7 @@
 
 /* Sharp Table Styles matching App */
 .prose table {
-  @apply min-w-full table-fixed border-collapse border border-stone-200;
+  @apply block min-w-full max-w-full table-fixed overflow-x-auto border-collapse border border-stone-200;
 }
 
 .prose thead {

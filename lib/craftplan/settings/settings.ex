@@ -87,6 +87,20 @@ defmodule Craftplan.Settings.Settings do
       default :USD
     end
 
+    attribute :food_business_name, :string do
+      public? true
+      allow_nil? true
+      constraints max_length: 160
+      description "Food business operator name printed on finished product labels."
+    end
+
+    attribute :food_business_address, :string do
+      public? true
+      allow_nil? true
+      constraints max_length: 500
+      description "Food business operator postal address printed on finished product labels."
+    end
+
     # Tax configuration
     attribute :tax_mode, :atom do
       public? true

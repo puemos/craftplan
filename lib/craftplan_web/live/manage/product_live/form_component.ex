@@ -57,15 +57,51 @@ defmodule CraftplanWeb.ProductLive.FormComponent do
             type="number"
             min="0"
             step="0.01"
-            label="Finished output"
+            label="Net quantity (finished output)"
           />
           <.input
             field={@form[:nutrition_output_unit]}
             type="select"
-            label="Output unit"
+            label="Net quantity unit"
             options={[{"Gram (g)", :gram}, {"Milliliter (ml)", :milliliter}]}
           />
         </div>
+
+        <fieldset class="space-y-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+          <legend class="px-1 text-sm font-semibold text-stone-800">Finished product label</legend>
+          <p class="text-sm text-stone-600">
+            These values are frozen when a production batch is opened, so historical labels remain reproducible.
+          </p>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <.input
+              field={@form[:shelf_life_days]}
+              type="number"
+              min="0"
+              label="Shelf life after production (days)"
+              placeholder="e.g. 14"
+            />
+            <.input
+              field={@form[:durability_type]}
+              type="select"
+              label="Durability date wording"
+              options={[{"Best before", :best_before}, {"Use by", :use_by}]}
+            />
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <.input
+              field={@form[:country_of_origin]}
+              type="text"
+              label="Country or place of origin"
+              placeholder="e.g. Italy"
+            />
+          </div>
+          <.input
+            field={@form[:storage_instructions]}
+            type="textarea"
+            label="Storage instructions"
+            placeholder="Store in a cool, dry place. Refrigerate after opening."
+          />
+        </fieldset>
 
         <:actions>
           <.button variant={:primary} phx-disable-with="Saving...">Save Product</.button>

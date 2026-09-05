@@ -168,12 +168,22 @@ defmodule CraftplanWeb.OrderLive.Show do
           </:action>
           <:col :let={item} label="Batch">
             <%= if item.batch_code do %>
-              <.link
-                navigate={~p"/manage/production/batches/#{item.batch_code}"}
-                class="text-xs text-blue-700 hover:underline"
-              >
-                {item.batch_code}
-              </.link>
+              <div class="flex flex-col items-start gap-1">
+                <.link
+                  navigate={~p"/manage/production/batches/#{item.batch_code}"}
+                  class="text-xs text-blue-700 hover:underline"
+                >
+                  {item.batch_code}
+                </.link>
+                <.link
+                  navigate={
+                    ~p"/manage/production/traceability?#{%{mode: :backward, q: item.batch_code}}"
+                  }
+                  class="text-[11px] inline-flex items-center gap-1 text-stone-500 hover:text-indigo-700"
+                >
+                  <.icon name="hero-share" class="h-3 w-3" /> Trace
+                </.link>
+              </div>
             <% else %>
               <span class="text-xs text-stone-600">-</span>
             <% end %>

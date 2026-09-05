@@ -9,6 +9,7 @@ defmodule CraftplanWeb.CommandPaletteSearch do
     %{label: "Overview", path: "/manage/overview", icon: :manage},
     %{label: "Production Schedule", path: "/manage/production/schedule", icon: :production},
     %{label: "Production Batches", path: "/manage/production/batches", icon: :production},
+    %{label: "Traceability", path: "/manage/production/traceability", icon: :production},
     %{label: "Inventory", path: "/manage/inventory", icon: :inventory},
     %{label: "Forecast", path: "/manage/inventory/forecast", icon: :inventory},
     %{label: "Purchasing", path: "/manage/purchasing", icon: :purchasing},

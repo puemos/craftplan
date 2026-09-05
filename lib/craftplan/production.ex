@@ -13,7 +13,9 @@ defmodule Craftplan.Production do
   alias Craftplan.Orders
   alias Craftplan.Orders.OrderItem
   alias Craftplan.Orders.OrderItemBatchAllocation
+  alias Craftplan.Orders.OrderItemLot
   alias Craftplan.Orders.ProductionBatch
+  alias Craftplan.Orders.ProductionBatchLot
   alias Decimal, as: D
 
   require Ash.Query
@@ -330,7 +332,7 @@ defmodule Craftplan.Production do
         items -> items
       end
 
-    if Enum.empty?(items) do
+    if Enum.empty?(items) and is_nil(production_batch) do
       raise ArgumentError, "no order items found for batch #{batch_code}"
     end
 
@@ -338,7 +340,7 @@ defmodule Craftplan.Production do
     bom = resolve_batch_bom(production_batch, items)
     produced_at = resolve_produced_at(production_batch, items)
     totals = summarize_batch(items)
-    lots = lot_rollup(items)
+    lots = lot_rollup(items, production_batch, actor)
     materials = material_rollup_from_lots(lots)
 
     %{
@@ -367,7 +369,7 @@ defmodule Craftplan.Production do
         },
         fn item, acc ->
           %{
-            quantity: D.add(acc.quantity, item.quantity || D.new(0)),
+            quantity: D.add(acc.quantity, batch_item_quantity(item)),
             material_cost: D.add(acc.material_cost, item.material_cost || D.new(0)),
             labor_cost: D.add(acc.labor_cost, item.labor_cost || D.new(0)),
             overhead_cost: D.add(acc.overhead_cost, item.overhead_cost || D.new(0))
@@ -398,13 +400,13 @@ defmodule Craftplan.Production do
       customer = order.customer
 
       line_total =
-        D.mult(item.quantity || D.new(0), item.unit_price || D.new(0))
+        D.mult(batch_item_quantity(item), item.unit_price || D.new(0))
 
       %{
         id: item.id,
         order: order,
         customer_name: customer && customer.full_name,
-        quantity: item.quantity || D.new(0),
+        quantity: batch_item_quantity(item),
         status: item.status,
         line_total: line_total,
         unit_cost: item.unit_cost || D.new(0),
@@ -417,7 +419,52 @@ defmodule Craftplan.Production do
     |> Enum.sort_by(fn row -> row.order.reference end)
   end
 
-  defp lot_rollup(items) do
+  defp lot_rollup(items, nil, _actor), do: legacy_lot_rollup(items)
+
+  defp lot_rollup(items, production_batch, actor) do
+    allocation_ids =
+      items
+      |> Enum.map(&Map.get(&1, :batch_allocation_id))
+      |> Enum.reject(&is_nil/1)
+
+    usages_by_lot = batch_usage_by_lot(allocation_ids, actor)
+
+    lots =
+      ProductionBatchLot
+      |> Ash.Query.filter(production_batch_id == ^production_batch.id)
+      |> Ash.Query.load(
+        lot: [
+          :lot_code,
+          :supplier_lot_code,
+          :expiry_date,
+          :received_at,
+          :current_stock,
+          material: [:name, :sku, :unit],
+          supplier: [:name]
+        ]
+      )
+      |> Ash.read!(actor: actor)
+      |> Enum.map(fn usage ->
+        lot = usage.lot
+
+        %{
+          lot: lot,
+          lot_code: lot.lot_code,
+          supplier_lot_code: lot.supplier_lot_code,
+          material: lot.material,
+          supplier: lot.supplier,
+          expiry_date: lot.expiry_date,
+          remaining: lot.current_stock || D.new(0),
+          quantity_used: usage.quantity_used || D.new(0),
+          orders: Map.get(usages_by_lot, lot.id, [])
+        }
+      end)
+      |> Enum.sort_by(fn entry -> {entry.material.name, entry.lot_code} end)
+
+    if lots == [], do: legacy_lot_rollup(items), else: lots
+  end
+
+  defp legacy_lot_rollup(items) do
     items
     |> Enum.flat_map(fn item ->
       Enum.map(item.order_item_lots || [], fn usage ->
@@ -428,6 +475,7 @@ defmodule Craftplan.Production do
         %{
           lot: lot,
           lot_code: lot && lot.lot_code,
+          supplier_lot_code: lot && Map.get(lot, :supplier_lot_code),
           material: material,
           supplier: supplier,
           expiry_date: lot && lot.expiry_date,
@@ -458,6 +506,7 @@ defmodule Craftplan.Production do
       %{
         lot: first.lot,
         lot_code: first.lot_code,
+        supplier_lot_code: first.supplier_lot_code,
         material: first.material,
         supplier: first.supplier,
         expiry_date: first.expiry_date,
@@ -471,6 +520,28 @@ defmodule Craftplan.Production do
         (entry.material && entry.material.name) || "",
         entry.lot_code || ""
       }
+    end)
+  end
+
+  defp batch_usage_by_lot([], _actor), do: %{}
+
+  defp batch_usage_by_lot(allocation_ids, actor) do
+    OrderItemLot
+    |> Ash.Query.filter(order_item_batch_allocation_id in ^allocation_ids)
+    |> Ash.Query.load(order_item: [order: [:reference, customer: [:full_name]]])
+    |> Ash.read!(actor: actor)
+    |> Enum.group_by(& &1.lot_id)
+    |> Map.new(fn {lot_id, usages} ->
+      orders =
+        Enum.map(usages, fn usage ->
+          %{
+            reference: usage.order_item.order.reference,
+            quantity: usage.quantity_used || D.new(0),
+            customer_name: usage.order_item.order.customer && usage.order_item.order.customer.full_name
+          }
+        end)
+
+      {lot_id, orders}
     end)
   end
 
@@ -508,23 +579,38 @@ defmodule Craftplan.Production do
   defp batch_order_items_by_allocation(nil, _actor), do: []
 
   defp batch_order_items_by_allocation(production_batch, actor) do
-    allocation_item_ids =
+    allocations =
       OrderItemBatchAllocation
       |> Ash.Query.filter(production_batch_id == ^production_batch.id)
-      |> Ash.Query.select([:order_item_id])
+      |> Ash.Query.select([:id, :order_item_id, :planned_qty, :completed_qty])
       |> Ash.read!(actor: actor)
-      |> Enum.map(& &1.order_item_id)
 
-    case allocation_item_ids do
+    case allocations do
       [] ->
         []
 
-      ids ->
-        OrderItem
-        |> Ash.Query.filter(expr(id in ^ids))
-        |> Ash.Query.load(@batch_item_load)
-        |> Ash.Query.sort(inserted_at: :asc)
-        |> Ash.read!(actor: actor)
+      allocations ->
+        ids = Enum.map(allocations, & &1.order_item_id)
+
+        items_by_id =
+          OrderItem
+          |> Ash.Query.filter(expr(id in ^ids))
+          |> Ash.Query.load(@batch_item_load)
+          |> Ash.Query.sort(inserted_at: :asc)
+          |> Ash.read!(actor: actor)
+          |> Map.new(&{&1.id, &1})
+
+        Enum.map(allocations, fn allocation ->
+          quantity =
+            if D.gt?(allocation.completed_qty || D.new(0), D.new(0)),
+              do: allocation.completed_qty,
+              else: allocation.planned_qty
+
+          items_by_id
+          |> Map.fetch!(allocation.order_item_id)
+          |> Map.put(:batch_quantity, quantity)
+          |> Map.put(:batch_allocation_id, allocation.id)
+        end)
     end
   end
 
@@ -548,6 +634,8 @@ defmodule Craftplan.Production do
   defp resolve_batch_bom(_, _), do: nil
 
   defp resolve_produced_at(%{produced_at: produced_at}, _items) when not is_nil(produced_at), do: produced_at
+
+  defp resolve_produced_at(%{completed_at: completed_at}, _items) when not is_nil(completed_at), do: completed_at
 
   defp resolve_produced_at(_, items) do
     items
@@ -610,4 +698,6 @@ defmodule Craftplan.Production do
   defp total_quantity(items) do
     Enum.reduce(items, D.new(0), fn item, acc -> D.add(acc, item.quantity) end)
   end
+
+  defp batch_item_quantity(item), do: Map.get(item, :batch_quantity, item.quantity || D.new(0))
 end

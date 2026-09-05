@@ -13,8 +13,16 @@ defmodule Craftplan.Orders.Changes.BatchConsume do
       actor = changeset.context[:private][:actor]
       lot_plan = Changeset.get_argument(changeset, :lot_plan) || %{}
 
-      {:ok, _} = Batching.consume_batch(batch, lot_plan, actor: actor)
-      changeset
+      case Batching.consume_batch(batch, lot_plan,
+             actor: actor,
+             expected_output_qty: batch.planned_qty
+           ) do
+        {:ok, _} ->
+          changeset
+
+        {:error, reason} ->
+          Changeset.add_error(changeset, "Unable to consume batch: #{inspect(reason)}")
+      end
     end)
   end
 end

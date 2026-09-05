@@ -23,11 +23,12 @@ Navigate to **Manage → Inventory → Materials** to see all raw materials. Eac
 Materials are organized into lots for traceability. Each lot tracks:
 
 - Quantity on hand
-- Supplier and purchase order reference
+- Supplier, supplier lot code, and purchase order reference
 - Expiry date
 - Receiving date
+- Operational status: available, on hold, or rejected
 
-When consuming materials during production, stock is deducted from lots based on availability.
+When consuming materials during production, stock is deducted only from available lots. Use **Manage → Production → Traceability** to follow a lot into finished batches and customer destinations, or to place affected stock on hold during a recall. See [Traceability & Recalls](/craftplan/docs/traceability/) for the complete workflow.
 
 ## Stock Movements
 
