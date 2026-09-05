@@ -7,6 +7,8 @@ defmodule Craftplan.Inventory.Supplier do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
+  alias Craftplan.CRM.Address
+
   json_api do
     type "supplier"
 
@@ -47,11 +49,11 @@ defmodule Craftplan.Inventory.Supplier do
 
     create :create do
       primary? true
-      accept [:name, :contact_name, :contact_email, :contact_phone, :notes]
+      accept [:name, :contact_name, :contact_email, :contact_phone, :address, :notes]
     end
 
     update :update do
-      accept [:name, :contact_name, :contact_email, :contact_phone, :notes]
+      accept [:name, :contact_name, :contact_email, :contact_phone, :address, :notes]
     end
   end
 
@@ -93,6 +95,10 @@ defmodule Craftplan.Inventory.Supplier do
     attribute :contact_phone, :string do
       public? true
       allow_nil? true
+    end
+
+    attribute :address, Address do
+      public? true
     end
 
     attribute :notes, :string do

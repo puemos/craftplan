@@ -78,7 +78,7 @@ defmodule CraftplanWeb.ManageProductLabelLiveTest do
     assert html =~ "Flour"
     # Allergen badge text
     assert html =~ "Gluten"
-    # Batch code prefix
-    assert html =~ "Batch"
+    # Generic labels are explicitly previews and never invent a production batch code.
+    assert html =~ "Not a production lot"
   end
 end

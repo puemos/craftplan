@@ -5,6 +5,7 @@ defmodule Craftplan.Orders.Changes.BatchOpenInit do
   alias Ash.Changeset
   alias Craftplan.Catalog
   alias Craftplan.Catalog.BOM
+  alias Craftplan.Production.BatchLabel
   alias Decimal, as: D
 
   @impl true
@@ -15,7 +16,10 @@ defmodule Craftplan.Orders.Changes.BatchOpenInit do
     planned_qty = Changeset.get_attribute(changeset, :planned_qty) || D.new(0)
 
     product =
-      Catalog.get_product_by_id!(product_id, actor: actor, load: [active_bom: [:rollup]])
+      Catalog.get_product_by_id!(product_id,
+        actor: actor,
+        load: [:allergens, :nutritional_facts, active_bom: [:rollup]]
+      )
 
     {bom_id, bom_version, components_map} =
       case product.active_bom do
@@ -31,12 +35,14 @@ defmodule Craftplan.Orders.Changes.BatchOpenInit do
       end
 
     code = Craftplan.Production.Batching.generate_batch_code(product.sku, actor)
+    label_snapshot = BatchLabel.snapshot(product, components_map, actor)
 
     changeset
     |> Changeset.force_change_attribute(:batch_code, code)
     |> Changeset.force_change_attribute(:bom_id, bom_id)
     |> Changeset.force_change_attribute(:bom_version, bom_version)
     |> Changeset.force_change_attribute(:components_map, components_map)
+    |> Changeset.force_change_attribute(:label_snapshot, label_snapshot)
     |> Changeset.force_change_attribute(:planned_qty, planned_qty)
     |> Changeset.force_change_attribute(:produced_qty, D.new(0))
     |> Changeset.force_change_attribute(:scrap_qty, D.new(0))

@@ -54,7 +54,6 @@ defmodule Craftplan.Orders do
     resource Craftplan.Orders.ProductionBatchLot do
       define :create_production_batch_lot, action: :create
       define :list_production_batch_lots, action: :read
-      define :destroy_production_batch_lot, action: :destroy
     end
   end
 end

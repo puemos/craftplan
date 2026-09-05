@@ -6,6 +6,8 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
   alias Craftplan.Inventory.Material
   alias Craftplan.Inventory.Supplier
 
+  require Ash.Query
+
   defp create_supplier! do
     Supplier
     |> Ash.Changeset.for_create(:create, %{
@@ -35,13 +37,28 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
     {:ok, view, _} = live(conn, ~p"/manage/purchasing/suppliers/new")
 
     name = "Sup-#{System.unique_integer()}"
-    params = %{"supplier" => %{"name" => name, "contact_email" => "a@b.c"}}
+
+    params = %{
+      "supplier" => %{
+        "name" => name,
+        "contact_email" => "a@b.c",
+        "address" => %{"street" => "1 Supply Road", "city" => "Parma", "country" => "IT"}
+      }
+    }
 
     view
     |> element("#supplier-form")
     |> render_submit(params)
 
     assert render(view) =~ "Supplier saved"
+
+    supplier =
+      Supplier
+      |> Ash.Query.filter(name == ^name)
+      |> Ash.read_one!(actor: Craftplan.DataCase.staff_actor())
+
+    assert supplier.address.street == "1 Supply Road"
+    assert supplier.address.country == "IT"
   end
 
   @tag role: :staff
@@ -82,15 +99,55 @@ defmodule CraftplanWeb.ManagePurchasingInteractionsLiveTest do
 
     assert render(index) =~ "Item added"
 
-    # Navigate to show and mark received
+    # Navigate to show and record supplier lot provenance
     {:ok, show, _} = live(conn, ~p"/manage/purchasing/#{po.reference}")
 
     show
-    |> element("a[phx-click]")
+    |> element("#open-receive-po")
     |> render_click()
 
+    assert has_element?(show, "#receive-po-modal")
+
+    po =
+      Craftplan.Inventory.get_purchase_order_by_reference!(po.reference,
+        actor: Craftplan.DataCase.staff_actor(),
+        load: [:items]
+      )
+
+    item = hd(po.items)
+
+    show
+    |> element("button[phx-click=add_receipt_lot][phx-value-item-id='#{item.id}']")
+    |> render_click()
+
+    assert has_element?(show, "#receipt-lot-#{item.id}-2")
+
+    show
+    |> form("#receive-po-form", %{
+      "receipt" => %{
+        "items" => %{
+          item.id => %{
+            "lines" => %{
+              "1" => %{
+                "supplier_lot_code" => "SUP-LOT-E2E-42-A",
+                "quantity" => "1",
+                "expiry_date" => "2026-12-31"
+              },
+              "2" => %{
+                "supplier_lot_code" => "SUP-LOT-E2E-42-B",
+                "quantity" => "1",
+                "expiry_date" => "2027-01-15"
+              }
+            }
+          }
+        }
+      }
+    })
+    |> render_submit()
+
     # Revisit show to assert status updated
-    {:ok, show2, _} = live(conn, ~p"/manage/purchasing/#{po.reference}")
-    assert render(show2) =~ "received"
+    {:ok, show2, _} = live(conn, ~p"/manage/purchasing/#{po.reference}/items")
+    assert has_element?(show2, "#po-items td", "SUP-LOT-E2E-42-A")
+    assert has_element?(show2, "#po-items td", "SUP-LOT-E2E-42-B")
   end
 end

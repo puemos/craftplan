@@ -1,5 +1,7 @@
 node_modules/
 dist/
 .astro/
-public/screenshots/
+public/screenshots/*
+!public/screenshots/traceability-recall.webp
+!public/screenshots/traceability-recall-mobile.webp
 src/generated/

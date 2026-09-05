@@ -1,5 +1,5 @@
 {
-  "ash_functions_version": 5,
+  "ash_functions_version": 6,
   "installed": [
     "ash-functions",
     "ash_money_v5",

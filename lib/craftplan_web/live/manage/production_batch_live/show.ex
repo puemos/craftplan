@@ -82,6 +82,14 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
           {@product && @product.name}
         </:subtitle>
         <:actions>
+          <.link navigate={~p"/manage/production/traceability?#{%{mode: :backward, q: @batch_code}}"}>
+            <.button id="trace-production-batch" variant={:outline}>
+              <.icon name="hero-share" class="h-4 w-4" /> Trace Batch
+            </.button>
+          </.link>
+          <.link navigate={~p"/manage/production/batches/#{@batch_code}/label"}>
+            <.button id="print-product-label" variant={:outline}>Product Label</.button>
+          </.link>
           <.link href={~p"/manage/production/batches/#{@batch_code}/sheet.pdf"} target="_blank">
             <.button variant={:primary}>Print Batch Sheet</.button>
           </.link>

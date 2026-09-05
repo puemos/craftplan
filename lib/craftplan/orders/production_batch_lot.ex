@@ -17,7 +17,7 @@ defmodule Craftplan.Orders.ProductionBatchLot do
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:read]
 
     create :create do
       accept [:production_batch_id, :lot_id, :quantity_used]
@@ -54,5 +54,9 @@ defmodule Craftplan.Orders.ProductionBatchLot do
     belongs_to :lot, Craftplan.Inventory.Lot do
       allow_nil? false
     end
+  end
+
+  identities do
+    identity :batch_lot, [:production_batch_id, :lot_id]
   end
 end

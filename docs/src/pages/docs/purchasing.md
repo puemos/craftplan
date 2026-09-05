@@ -30,10 +30,15 @@ Purchase orders track their status through the procurement process.
 When a purchase order arrives:
 
 1. Open the purchase order
-2. Confirm received quantities (which may differ from ordered quantities)
-3. Receiving creates inventory lots and stock movements automatically
+2. Select **Receive Stock**
+3. Choose **Receive all** or **Partial delivery**
+4. Enter the supplier lot code, quantity, and optional expiry date for each lot
+5. Split a line when the same material arrives under multiple supplier lot codes
+6. Confirm the receipt
 
-Each received item generates a **Receive** movement in the inventory audit trail, linking the stock back to the supplier and purchase order for full traceability.
+Each supplier lot creates its own Craftplan lot and **Receive** movement. The receipt freezes the supplier, purchase order, quantity, and expiry provenance. Partially received purchase orders stay open with visible received progress until the remaining quantity arrives.
+
+The supplier lot links on the purchase-order item open its forward trace in the [Trace Center](/craftplan/docs/traceability/).
 
 ## Integration with Forecasting
 

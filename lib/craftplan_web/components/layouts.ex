@@ -131,7 +131,7 @@ defmodule CraftplanWeb.Layouts do
               <.nav_icon name={:menu} />
             </button>
 
-            <div class="flex flex-1 items-center justify-between gap-4">
+            <div class="flex min-w-0 flex-1 items-center justify-between gap-4">
               <div class="min-w-0">
                 <.layout_breadcrumbs :if={!Enum.empty?(@breadcrumbs)} breadcrumbs={@breadcrumbs} />
                 <h1
@@ -142,7 +142,7 @@ defmodule CraftplanWeb.Layouts do
                 </h1>
               </div>
 
-              <div class="flex items-center gap-4">
+              <div class="flex flex-none items-center gap-4">
                 <.live_component
                   :if={@current_user && @socket}
                   module={CraftplanWeb.Components.CommandPalette}
@@ -621,7 +621,7 @@ defmodule CraftplanWeb.Layouts do
 
     ~H"""
     <nav class="flex min-w-0 items-center text-sm text-stone-500" aria-label="Breadcrumb">
-      <ol class="flex min-w-0 items-center gap-2 whitespace-nowrap">
+      <ol class="flex min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap">
         <li
           :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}
           class="flex min-w-0 items-center gap-2"

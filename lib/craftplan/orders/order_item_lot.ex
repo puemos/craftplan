@@ -14,8 +14,7 @@ defmodule Craftplan.Orders.OrderItemLot do
   actions do
     defaults [
       :read,
-      :destroy,
-      create: [:order_item_id, :lot_id, :quantity_used]
+      create: [:order_item_id, :order_item_batch_allocation_id, :lot_id, :quantity_used]
     ]
   end
 
@@ -45,8 +44,16 @@ defmodule Craftplan.Orders.OrderItemLot do
       allow_nil? false
     end
 
+    belongs_to :order_item_batch_allocation, Craftplan.Orders.OrderItemBatchAllocation do
+      allow_nil? true
+    end
+
     belongs_to :lot, Craftplan.Inventory.Lot do
       allow_nil? false
     end
+  end
+
+  identities do
+    identity :allocation_lot, [:order_item_batch_allocation_id, :lot_id]
   end
 end

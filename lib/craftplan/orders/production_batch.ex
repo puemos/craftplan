@@ -216,6 +216,12 @@ defmodule Craftplan.Orders.ProductionBatch do
       default %{}
     end
 
+    attribute :label_snapshot, :map do
+      allow_nil? false
+      default %{}
+      description "Frozen ingredient, allergen, and nutrition declaration used for batch labels."
+    end
+
     # Timestamps
     attribute :started_at, :utc_datetime do
       allow_nil? true

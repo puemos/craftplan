@@ -14,6 +14,7 @@ defmodule CraftplanWeb.Navigation do
   alias CraftplanWeb.PurchasingLive.Index
   alias CraftplanWeb.PurchasingLive.Show
   alias CraftplanWeb.PurchasingLive.Suppliers
+  alias CraftplanWeb.TraceabilityLive.Index, as: TraceabilityIndex
   alias Phoenix.Component
   alias Phoenix.LiveView.Socket
 
@@ -77,6 +78,8 @@ defmodule CraftplanWeb.Navigation do
   def production_batches_active?(socket) do
     socket.view in [ProductionBatchIndex, ProductionBatchShow]
   end
+
+  def production_traceability_active?(socket), do: socket.view == TraceabilityIndex
 
   defp live_action(socket), do: Map.get(socket.assigns, :live_action)
   defp schedule_view(socket), do: Map.get(socket.assigns, :schedule_view, :day)
@@ -311,6 +314,7 @@ defmodule CraftplanWeb.Navigation do
           make_sheet: %{label: "Make Sheet", path: "/manage/production/make_sheet"},
           materials: %{label: "Materials", path: "/manage/production/materials"},
           batches: %{label: "Batches", path: "/manage/production/batches"},
+          traceability: %{label: "Traceability", path: "/manage/production/traceability"},
           batch: &__MODULE__.crumb_production_batch/1
         },
         sub_links: [
@@ -331,6 +335,12 @@ defmodule CraftplanWeb.Navigation do
             label: "Batches",
             navigate: "/manage/production/batches",
             active?: &__MODULE__.production_batches_active?/1
+          },
+          %{
+            key: :traceability,
+            label: "Traceability",
+            navigate: "/manage/production/traceability",
+            active?: &__MODULE__.production_traceability_active?/1
           }
         ]
       }
