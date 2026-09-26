@@ -8,6 +8,11 @@ defmodule Craftplan.Catalog.BOMRollup do
   postgres do
     table "catalog_bom_rollups"
     repo Craftplan.Repo
+
+    references do
+      reference :bom, on_delete: :delete
+      reference :product, on_delete: :delete
+    end
   end
 
   actions do

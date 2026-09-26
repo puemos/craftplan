@@ -10,6 +10,10 @@ defmodule Craftplan.Catalog.LaborStep do
   postgres do
     table "catalog_labor_steps"
     repo Craftplan.Repo
+
+    references do
+      reference :bom, on_delete: :delete
+    end
   end
 
   actions do
