@@ -34,6 +34,50 @@ defmodule CraftplanWeb.ManageProductsRecipeSimpleLiveTest do
     |> Ash.create!(actor: staff())
   end
 
+  for suffix <- ["", "-mobile"] do
+    @tag role: :staff
+    test "removing recipe rows via #{if suffix == "", do: "desktop", else: "mobile"} controls persists",
+         %{conn: conn} do
+      m = material!()
+      p = product!()
+
+      original =
+        BOM
+        |> Ash.Changeset.for_create(:create, %{
+          product_id: p.id,
+          status: :active,
+          components: [%{material_id: m.id, quantity: 1}],
+          labor_steps: [%{name: "Mix", duration_minutes: 10}]
+        })
+        |> Ash.create!(actor: staff())
+
+      {:ok, view, _html} = live(conn, ~p"/manage/products/#{p.sku}/recipe")
+
+      view |> element("#remove-component-0#{unquote(suffix)}") |> render_click()
+      refute has_element?(view, "#recipe-form input[name$='[material_id]']")
+      assert has_element?(view, "#recipe-form button[type=submit]:not([disabled])")
+
+      view |> element("#remove-labor-0#{unquote(suffix)}") |> render_click()
+      refute has_element?(view, "#recipe-form input[name$='[duration_minutes]']")
+      view |> element("#recipe-form") |> render_submit()
+
+      {:ok, active} = Catalog.get_active_bom_for_product(%{product_id: p.id}, actor: staff())
+      active = Ash.load!(active, [:components, :labor_steps, :rollup], actor: staff())
+      assert active.id != original.id
+      assert active.components == []
+      assert active.labor_steps == []
+      assert Decimal.equal?(active.rollup.unit_cost, 0)
+
+      original = Ash.load!(original, [:components, :labor_steps], actor: staff())
+      assert length(original.components) == 1
+      assert length(original.labor_steps) == 1
+
+      {:ok, reloaded, _html} = live(conn, ~p"/manage/products/#{p.sku}/recipe")
+      refute has_element?(reloaded, "#remove-component-0")
+      refute has_element?(reloaded, "#remove-labor-0")
+    end
+  end
+
   @tag role: :staff
   test "simple mode: saving creates a new active version", %{conn: conn} do
     m = material!()

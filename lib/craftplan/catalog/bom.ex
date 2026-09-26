@@ -32,6 +32,10 @@ defmodule Craftplan.Catalog.BOM do
     table "catalog_boms"
     repo Craftplan.Repo
 
+    references do
+      reference :product, on_delete: :delete
+    end
+
     custom_indexes do
       index [:product_id],
         unique: true,

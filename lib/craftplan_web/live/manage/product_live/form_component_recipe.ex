@@ -178,16 +178,17 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
                         <!-- Mobile Remove Button -->
                         <%= if latest_version(@boms) == @bom.version do %>
-                          <label class="-mt-1 -mr-2 cursor-pointer p-1 text-stone-400 hover:text-stone-700 md:hidden">
-                            <input
-                              type="checkbox"
-                              phx-click="remove_form"
-                              phx-target={@myself}
-                              phx-value-path={components_form.name}
-                              class="hidden"
-                            />
+                          <button
+                            id={"remove-component-#{components_form.index}-mobile"}
+                            type="button"
+                            phx-click="remove_form"
+                            phx-target={@myself}
+                            phx-value-path={components_form.name}
+                            aria-label="Remove component"
+                            class="-mt-1 -mr-2 cursor-pointer p-1 text-stone-400 hover:text-stone-700 md:hidden"
+                          >
                             <.icon name="hero-x-mark" class="h-5 w-5" />
-                          </label>
+                          </button>
                         <% end %>
                       </div>
                     </div>
@@ -235,18 +236,19 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                       <%= if latest_version(@boms) != @bom.version do %>
                         <span class="text-stone-400">Read-only</span>
                       <% else %>
-                        <label class="cursor-pointer">
-                          <input
-                            type="checkbox"
-                            phx-click="remove_form"
-                            phx-target={@myself}
-                            phx-value-path={components_form.name}
-                            class="hidden"
-                          />
+                        <button
+                          id={"remove-component-#{components_form.index}"}
+                          type="button"
+                          phx-click="remove_form"
+                          phx-target={@myself}
+                          phx-value-path={components_form.name}
+                          aria-label="Remove component"
+                          class="cursor-pointer"
+                        >
                           <span class="font-semibold leading-6 text-stone-900 hover:text-stone-700">
                             Remove
                           </span>
-                        </label>
+                        </button>
                       <% end %>
                     </div>
                   </div>
@@ -455,16 +457,17 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
 
                     <!-- Mobile Remove Button (positioned at top-right of card) -->
                     <%= if latest_version(@boms) == @bom.version do %>
-                      <label class="absolute top-3 right-2 cursor-pointer text-stone-400 hover:text-stone-700 md:hidden">
-                        <input
-                          type="checkbox"
-                          phx-click="remove_form"
-                          phx-target={@myself}
-                          phx-value-path={labor_form.name}
-                          class="hidden"
-                        />
+                      <button
+                        id={"remove-labor-#{labor_form.index}-mobile"}
+                        type="button"
+                        phx-click="remove_form"
+                        phx-target={@myself}
+                        phx-value-path={labor_form.name}
+                        aria-label="Remove labor step"
+                        class="absolute top-3 right-2 cursor-pointer text-stone-400 hover:text-stone-700 md:hidden"
+                      >
                         <.icon name="hero-x-mark" class="h-5 w-5" />
-                      </label>
+                      </button>
                     <% end %>
 
                     <!-- 6. Remove (Desktop: Col 6) -->
@@ -473,18 +476,19 @@ defmodule CraftplanWeb.ProductLive.FormComponentRecipe do
                         <%= if latest_version(@boms) != @bom.version do %>
                           <span class="text-stone-400">Read-only</span>
                         <% else %>
-                          <label class="cursor-pointer">
-                            <input
-                              type="checkbox"
-                              phx-click="remove_form"
-                              phx-target={@myself}
-                              phx-value-path={labor_form.name}
-                              class="hidden"
-                            />
+                          <button
+                            id={"remove-labor-#{labor_form.index}"}
+                            type="button"
+                            phx-click="remove_form"
+                            phx-target={@myself}
+                            phx-value-path={labor_form.name}
+                            aria-label="Remove labor step"
+                            class="cursor-pointer"
+                          >
                             <span class="font-semibold leading-6 text-stone-900 hover:text-stone-700">
                               Remove
                             </span>
-                          </label>
+                          </button>
                         <% end %>
                       </div>
                     </div>
