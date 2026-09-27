@@ -188,6 +188,15 @@ defmodule CraftplanWeb.OrderLive.Index do
             <:col :let={{_id, order}} label="Payment">
               <.badge text={"#{emoji_for_payment(order.payment_status)} #{order.payment_status}"} />
             </:col>
+            <:action :let={{_id, order}}>
+              <.link
+                id={"edit-order-#{order.id}"}
+                navigate={~p"/manage/orders/#{order.reference}/edit"}
+                class="font-semibold text-stone-900 hover:text-stone-700"
+              >
+                Edit order
+              </.link>
+            </:action>
           </.table>
           <div class="mt-4 flex items-center justify-between text-sm text-stone-600">
             <span>{page_label(@page_offset, @page_size, @page_count)}</span>

@@ -72,6 +72,15 @@ defmodule CraftplanWeb.CustomerLive.Show do
             <:col :let={order} label="Total">
               {format_money(@settings.currency, order.total_cost)}
             </:col>
+            <:action :let={order}>
+              <.link
+                id={"edit-customer-order-#{order.id}"}
+                navigate={~p"/manage/orders/#{order.reference}/edit"}
+                class="font-semibold text-stone-900 hover:text-stone-700"
+              >
+                Edit order
+              </.link>
+            </:action>
           </.table>
         </div>
       </.tabs_content>
