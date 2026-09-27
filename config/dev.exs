@@ -80,8 +80,8 @@ config :craftplan, dev_routes: true, token_signing_secret: "1Y4H7uJJNzu5KtTktCIr
 
 config :ex_aws,
   json_codec: Jason,
-  access_key_id: "minio",
-  secret_access_key: "minio123",
+  access_key_id: "minioadmin",
+  secret_access_key: "minioadmin",
   region: "us-east-1",
   s3: [
     scheme: "http://",
@@ -104,7 +104,7 @@ config :phoenix_live_view,
 config :swoosh, :api_client, false
 
 config :waffle,
-  storage: Waffle.Storage.S3,
+  storage: Craftplan.Storage.S3,
   bucket: "craftplan",
   asset_host: "http://localhost:9000/craftplan"
 

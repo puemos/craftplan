@@ -83,6 +83,8 @@ if config_env() == :prod do
 
   # S3 / Waffle (product photo uploads)
   if System.get_env("AWS_ACCESS_KEY_ID") do
+    config :craftplan, :s3_public_url, System.get_env("AWS_S3_PUBLIC_URL")
+
     config :ex_aws,
       json_codec: Jason,
       access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
@@ -91,16 +93,20 @@ if config_env() == :prod do
       s3: [
         scheme: System.get_env("AWS_S3_SCHEME") || "https://",
         host: System.get_env("AWS_S3_HOST") || "s3.amazonaws.com",
+        port:
+          String.to_integer(
+            System.get_env("AWS_S3_PORT") ||
+              if(System.get_env("AWS_S3_SCHEME") == "http://", do: "80", else: "443")
+          ),
         region: System.get_env("AWS_REGION") || "us-east-1"
       ]
 
     config :waffle,
-      storage: Waffle.Storage.S3,
+      storage: Craftplan.Storage.S3,
       bucket: System.get_env("AWS_S3_BUCKET"),
       asset_host: System.get_env("AWS_ASSET_HOST")
   end
 
-  # Cloak encryption vault
   cloak_key =
     System.get_env("CLOAK_KEY") ||
       raise "Missing environment variable CLOAK_KEY (32-byte key, base64-encoded)"

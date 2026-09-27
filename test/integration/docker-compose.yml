@@ -1,0 +1,37 @@
+services:
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.47
+    command: mini -dir=/data -s3.port=9000 -ip=127.0.0.1 -admin.ui=false
+    environment:
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${AWS_S3_BUCKET}"
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9000/readyz"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    ports: !override
+      - "127.0.0.1::9000"
+  minio:
+    image: ${MINIO_TEST_IMAGE:-cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1}
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: migration-user
+      MINIO_ROOT_PASSWORD: migration-secret
+    ports:
+      - "127.0.0.1::9000"
+    volumes:
+      - legacy_data:/data
+  storage-migrate:
+    extends:
+      file: ../../docker-compose.storage-migration.yml
+      service: storage-migrate
+    depends_on: !override
+      seaweedfs:
+        condition: service_healthy
+volumes:
+  seaweedfs_data:
+  legacy_data:
