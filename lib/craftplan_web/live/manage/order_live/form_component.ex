@@ -4,6 +4,8 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
 
   alias AshPhoenix.Form
   alias Craftplan.Orders
+  alias Craftplan.Orders.Order.Types.PaymentStatus
+  alias Craftplan.Orders.Order.Types.Status
 
   @impl true
   def render(assigns) do
@@ -29,6 +31,21 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
           <div class="mb-8">
             <.input field={@form[:delivery_date]} type="datetime-local" label="Delivery date" />
             <.timezone />
+          </div>
+
+          <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <.input
+              field={@form[:status]}
+              type="select"
+              label="Status"
+              options={Enum.map(Status.values(), &{Phoenix.Naming.humanize(&1), &1})}
+            />
+            <.input
+              field={@form[:payment_status]}
+              type="select"
+              label="Payment status"
+              options={Enum.map(PaymentStatus.values(), &{Phoenix.Naming.humanize(&1), &1})}
+            />
           </div>
 
           <.label>Items</.label>
@@ -73,7 +90,7 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
                       />
                       <.input
                         field={items_form[:unit_price]}
-                        value={@products_map[items_form[:product_id].value].price}
+                        value={items_form[:unit_price].value}
                         type="hidden"
                       />
                     </span>
@@ -96,7 +113,7 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
                       {format_money(
                         @settings.currency,
                         Decimal.mult(
-                          @products_map[items_form[:product_id].value].price || 0,
+                          items_form[:unit_price].value || 0,
                           items_form[:quantity].value || 0
                         )
                       )}
@@ -106,7 +123,8 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
 
                 <div class="relative border-r border-b border-stone-200 p-0 pl-4 last:border-r-0">
                   <div class="block py-4 pr-6">
-                    <.link
+                    <button
+                      id={"remove-#{items_form.id}"}
                       class="font-semibold leading-6 text-stone-900 hover:text-stone-700"
                       type="button"
                       phx-click="remove_form"
@@ -114,7 +132,7 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
                       phx-value-path={items_form.name}
                     >
                       Remove
-                    </.link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -201,16 +219,33 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
 
   @impl true
   def handle_event("save", %{"order" => order_params, "timezone" => timezone}, socket) do
-    datetime = extract_and_parse_datetime(order_params["delivery_date"], timezone)
+    order_params =
+      case Map.fetch(order_params, "delivery_date") do
+        {:ok, delivery_date} ->
+          Map.put(
+            order_params,
+            "delivery_date",
+            extract_and_parse_datetime(delivery_date, timezone)
+          )
+
+        :error ->
+          order_params
+      end
 
     order_params =
-      order_params
-      |> Map.put("delivery_date", datetime)
-      |> update_in(["items"], fn items ->
-        Map.new(items, fn {k, v} ->
-          {k, Map.put(v, "unit_price", socket.assigns.products_map[v["product_id"]].price)}
-        end)
-      end)
+      case Map.fetch(order_params, "items") do
+        {:ok, items} when is_map(items) ->
+          Map.put(
+            order_params,
+            "items",
+            Map.new(items, fn {index, item} ->
+              {index, Map.put(item, "unit_price", item_price(item, socket.assigns))}
+            end)
+          )
+
+        _ ->
+          order_params
+      end
 
     case Form.submit(socket.assigns.form, params: order_params) do
       {:ok, order} ->
@@ -234,7 +269,13 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
   @impl true
   def handle_event("add_form", %{"path" => path}, socket) do
     form =
-      Form.add_form(socket.assigns.form, path, params: %{product_id: socket.assigns.selected_product, quantity: 0})
+      Form.add_form(socket.assigns.form, path,
+        params: %{
+          product_id: socket.assigns.selected_product,
+          quantity: 1,
+          unit_price: socket.assigns.products_map[socket.assigns.selected_product].price
+        }
+      )
 
     {available_products, selected_product} =
       recompute_availability(form, socket.assigns.products)
@@ -326,6 +367,16 @@ defmodule CraftplanWeb.OrderLive.FormComponent do
   defp extract_product_id(order_item_form) do
     order_item_form.params[:product_id] ||
       (order_item_form.data && order_item_form.data.product_id)
+  end
+
+  defp item_price(params, assigns) do
+    existing_item =
+      assigns.order && Enum.find(assigns.order.items, &(&1.id == params["id"]))
+
+    case existing_item do
+      nil -> assigns.products_map[params["product_id"]].price
+      item -> item.unit_price
+    end
   end
 
   defp extract_and_parse_datetime(delivery_date, timezone) do

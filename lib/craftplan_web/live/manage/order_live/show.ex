@@ -40,12 +40,24 @@ defmodule CraftplanWeb.OrderLive.Show do
     <.header>
       {@order.reference}
       <:actions>
-        <.link patch={~p"/manage/orders/#{@order.reference}/edit"} phx-click={JS.push_focus()}>
+        <.link
+          id="edit-order"
+          patch={~p"/manage/orders/#{@order.reference}/edit"}
+          phx-click={JS.push_focus()}
+        >
           <.button variant={:primary}>Edit order</.button>
         </.link>
         <.link href={~p"/manage/orders/#{@order.reference}/invoice.pdf"} target="_blank">
           <.button variant={:outline}>View Invoice</.button>
         </.link>
+        <.button
+          id="delete-order"
+          variant={:outline}
+          phx-click="delete_order"
+          data-confirm="Delete this order and all its items? This cannot be undone."
+        >
+          Delete order
+        </.button>
       </:actions>
     </.header>
 
@@ -327,6 +339,25 @@ defmodule CraftplanWeb.OrderLive.Show do
       |> assign(:tabs_links, tabs_links)
 
     {:noreply, Navigation.assign(socket, :orders, order_trail(order, live_action))}
+  end
+
+  @impl true
+  def handle_event("delete_order", _params, socket) do
+    case Orders.destroy_order(socket.assigns.order, actor: socket.assigns.current_user) do
+      :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Order deleted successfully")
+         |> push_navigate(to: ~p"/manage/orders")}
+
+      {:error, _error} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Could not delete this order. Orders linked to production must be cancelled instead."
+         )}
+    end
   end
 
   @impl true

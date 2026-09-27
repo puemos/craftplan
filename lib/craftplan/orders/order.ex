@@ -44,13 +44,20 @@ defmodule Craftplan.Orders.Order do
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:read]
+
+    destroy :destroy do
+      primary? true
+      require_atomic? false
+      change cascade_destroy(:items, after_action?: false)
+    end
 
     create :create do
       primary? true
 
       accept [
         :status,
+        :payment_status,
         :customer_id,
         :delivery_date,
         :invoice_number,
@@ -74,6 +81,7 @@ defmodule Craftplan.Orders.Order do
 
       accept [
         :status,
+        :payment_status,
         :customer_id,
         :delivery_date,
         :invoice_number,
