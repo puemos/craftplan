@@ -1,0 +1,30 @@
+services:
+  storage-migrate:
+    image: rclone/rclone:1.75.1
+    profiles: [migration]
+    entrypoint: /bin/sh
+    command:
+      - -ec
+      - |
+        rclone copy "old:$$BUCKET" "new:$$BUCKET" --ignore-times --metadata --stats-one-line
+        rclone check "old:$$BUCKET" "new:$$BUCKET" --download --one-way
+        echo "Migration verified: every source object matches the destination."
+    environment:
+      BUCKET: "${AWS_S3_BUCKET:-craftplan}"
+      RCLONE_CONFIG_OLD_TYPE: s3
+      RCLONE_CONFIG_OLD_PROVIDER: Minio
+      RCLONE_CONFIG_OLD_ENDPOINT: "${MINIO_ENDPOINT:?Set the external legacy MinIO endpoint}"
+      RCLONE_CONFIG_OLD_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
+      RCLONE_CONFIG_OLD_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      RCLONE_CONFIG_OLD_REGION: us-east-1
+      RCLONE_CONFIG_OLD_FORCE_PATH_STYLE: "true"
+      RCLONE_CONFIG_NEW_TYPE: s3
+      RCLONE_CONFIG_NEW_PROVIDER: SeaweedFS
+      RCLONE_CONFIG_NEW_ENDPOINT: http://seaweedfs:9000
+      RCLONE_CONFIG_NEW_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-${MINIO_ROOT_USER:-minioadmin}}"
+      RCLONE_CONFIG_NEW_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-${MINIO_ROOT_PASSWORD:-minioadmin}}"
+      RCLONE_CONFIG_NEW_REGION: us-east-1
+      RCLONE_CONFIG_NEW_FORCE_PATH_STYLE: "true"
+    depends_on:
+      minio:
+        condition: service_healthy

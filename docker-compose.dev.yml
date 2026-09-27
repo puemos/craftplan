@@ -1,6 +1,3 @@
-# Development services — PostgreSQL, MinIO, and Mailpit for local development.
-# Usage: docker compose -f docker-compose.dev.yml up -d
-
 services:
   postgres:
     container_name: craftplan-postgres
@@ -16,23 +13,29 @@ services:
       - ./.postgres:/var/lib/postgresql/data:Z
   minio:
     container_name: craftplan-minio
-    image: minio/minio:latest
-    entrypoint: sh
-    command: -c 'mkdir -p /data/craftplan && /usr/bin/minio server /data --console-address ":9001"'
-    hostname: minio
+    build:
+      context: .
+      dockerfile: Dockerfile.storage
     ports:
-      - 9000:9000
-      - 9001:9001
+      - "${S3_PORT:-9000}:9000"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-      MINIO_ACCESS_KEY: "minio"
-      MINIO_SECRET_KEY: "minio123"
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      S3_BUCKET: craftplan
     volumes:
-      - .minio:/data:Z
-    deploy:
-      restart_policy:
-        condition: on-failure
+      - .seaweedfs:/data:Z
+      - .minio:/legacy:ro,z
+    networks:
+      default:
+        aliases: [seaweedfs]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9000/readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: "${STORAGE_START_PERIOD:-24h}"
   mailpit:
     container_name: craftplan-mailpit
     image: axllent/mailpit

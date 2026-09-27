@@ -1,16 +1,3 @@
-# =============================================================================
-# Craftplan — Docker Compose (Build from Source)
-# =============================================================================
-# This file builds the Docker image locally from the Dockerfile.
-# Use this if you are contributing to Craftplan or need a custom build.
-#
-# For production deployments with pre-built images, use docker-compose.yml instead:
-#   curl -O https://raw.githubusercontent.com/puemos/craftplan/main/docker-compose.yml
-#
-# Usage:
-#   cp .env.example .env   # fill in secrets
-#   docker compose -f docker-compose.prod.yml up -d
-
 services:
   craftplan:
     build: .
@@ -19,17 +6,19 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: "ecto://postgres:${POSTGRES_PASSWORD}@postgres/craftplan"
-      AWS_S3_SCHEME: "http://"
-      AWS_S3_HOST: minio
-      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
-      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      AWS_S3_SCHEME: "${AWS_S3_SCHEME:-http://}"
+      AWS_S3_HOST: "${AWS_S3_HOST:-seaweedfs}"
+      AWS_S3_PORT: "${AWS_S3_PORT:-9000}"
+      AWS_S3_PUBLIC_URL: "${AWS_S3_PUBLIC_URL:-http://${HOST:-localhost}:9000}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-${MINIO_ROOT_USER:-minioadmin}}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-${MINIO_ROOT_PASSWORD:-minioadmin}}"
       AWS_S3_BUCKET: "${AWS_S3_BUCKET:-craftplan}"
-      AWS_REGION: "us-east-1"
+      AWS_REGION: "${AWS_REGION:-us-east-1}"
     depends_on:
       postgres:
         condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
 
   postgres:
@@ -49,19 +38,32 @@ services:
     restart: unless-stopped
 
   minio:
-    image: minio/minio:latest
-    entrypoint: sh
-    command: -c 'mkdir -p /data/craftplan && /usr/bin/minio server /data --console-address ":9001"'
+    build:
+      context: .
+      dockerfile: Dockerfile.storage
     environment:
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-${MINIO_ROOT_USER:-minioadmin}}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-${MINIO_ROOT_PASSWORD:-minioadmin}}"
       MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
       MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      S3_BUCKET: "${AWS_S3_BUCKET:-craftplan}"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${S3_PORT:-9000}:9000"
     volumes:
-      - minio_data:/data
+      - seaweedfs_data:/data
+      - minio_data:/legacy:ro
+    networks:
+      default:
+        aliases: [seaweedfs]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9000/readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: "${STORAGE_START_PERIOD:-24h}"
     restart: unless-stopped
 
 volumes:
   postgres_data:
+  seaweedfs_data:
   minio_data:

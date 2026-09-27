@@ -45,3 +45,5 @@ npm-debug.log
 .mix_complete.cache
 *.DS_Store
 .claude/worktrees/
+
+.seaweedfs

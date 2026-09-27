@@ -53,3 +53,9 @@ jobs:
 
       - name: Run application checks
         run: mise run ci
+
+      - name: Install image tools for real storage integration
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Test SeaweedFS and MinIO migration
+        run: mise run test:storage

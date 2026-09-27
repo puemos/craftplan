@@ -130,21 +130,26 @@ All configuration is done via environment variables in your `.env` file.
 | `HOST` | `localhost` | Public hostname (used in generated URLs) |
 | `PORT` | `4000` | HTTP port the server listens on |
 
-### File Storage (S3 / MinIO)
+### File Storage (S3 / SeaweedFS)
 
-The bundled MinIO container works out of the box. Override these to use an external S3-compatible provider:
+These defaults apply to the bundled Compose deployment. MinIO installations migrate automatically on the first upgrade; read the
+[storage migration guide](/craftplan/docs/storage-migration/) for capacity and recovery details.
 
-| Variable | Default | Description |
+| Variable | Compose default | Description |
 |---|---|---|
-| `MINIO_ROOT_USER` | `minioadmin` | MinIO access key |
-| `MINIO_ROOT_PASSWORD` | `minioadmin` | MinIO secret key |
-| `AWS_S3_BUCKET` | `craftplan` | S3 bucket name |
-| `AWS_S3_SCHEME` | `https://` | S3 endpoint scheme (`http://` for MinIO) |
-| `AWS_ACCESS_KEY_ID` | - | External S3 access key |
-| `AWS_SECRET_ACCESS_KEY` | - | External S3 secret key |
-| `AWS_S3_HOST` | `s3.amazonaws.com` | S3 endpoint hostname |
-| `AWS_REGION` | `us-east-1` | S3 region |
-| `AWS_ASSET_HOST` | - | Public URL prefix for uploaded assets |
+| `AWS_ACCESS_KEY_ID` | `MINIO_ROOT_USER` or `minioadmin` | Storage access key; change for production |
+| `AWS_SECRET_ACCESS_KEY` | `MINIO_ROOT_PASSWORD` or `minioadmin` | Storage secret; change for production |
+| `AWS_S3_BUCKET` | `craftplan` | Bucket created automatically |
+| `AWS_S3_SCHEME` | `http://` | Internal S3 endpoint scheme |
+| `AWS_S3_HOST` | `seaweedfs` | Internal S3 endpoint hostname |
+| `AWS_S3_PORT` | `9000` | Internal S3 endpoint port |
+| `S3_PORT` | `9000` | Published host port (does not change the internal port) |
+| `AWS_S3_PUBLIC_URL` | `http://${HOST}:9000` | Browser endpoint for signed photos; no bucket or path |
+| `AWS_REGION` | `us-east-1` | Signing region |
+| `AWS_ASSET_HOST` | unset | URL prefix for unsigned assets only |
+
+With standalone `docker run`, specify all storage settings explicitly. The runtime
+port defaults to 443 for HTTPS and 80 for HTTP when `AWS_S3_PORT` is absent.
 
 ### Email (Optional)
 
@@ -166,15 +171,29 @@ Email is primarily configured from the **Settings UI** inside the app. Environme
 
 ## File Storage
 
-### Bundled MinIO
+### Bundled SeaweedFS
 
-The default `docker-compose.yml` includes a MinIO container that provides S3-compatible object storage. It creates a `craftplan` bucket automatically and requires no additional configuration.
+The bundled storage image runs pinned SeaweedFS 4.47 and provides S3 storage on port 9000, creates the
+configured bucket, and persists data in `seaweedfs_data`. Only the S3 port is
+published; there is no MinIO console on port 9001. The service retains the name
+`minio` so Compose replaces the old container during automatic migration.
 
-The MinIO console is available at `http://localhost:9001` with the credentials from your `.env`.
+Set `AWS_S3_PUBLIC_URL` to an endpoint reachable by users' browsers. For an HTTPS
+Craftplan site, use an HTTPS storage hostname behind your reverse proxy, forwarding
+to port 9000 and preserving the original Host header. Otherwise browsers will block
+HTTP photos as mixed content. Changing `AWS_ASSET_HOST` does not affect signed URLs.
+
+Back up the entire SeaweedFS volume while the service is stopped, alongside your
+PostgreSQL backup. MinIO and SeaweedFS use different disk formats: never reuse the
+old MinIO volume for the new service.
 
 ### External S3
 
-To use AWS S3 or another S3-compatible provider, set the `AWS_*` variables in your `.env` and remove or comment out the `minio` service from `docker-compose.yml`.
+Remove the `minio` service **and** its entry under `craftplan.depends_on`. Set
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET`, `AWS_REGION`,
+`AWS_S3_SCHEME`, `AWS_S3_HOST`, `AWS_S3_PORT`, and `AWS_S3_PUBLIC_URL` in `.env`.
+For AWS S3, use your regional endpoint with HTTPS and port 443. The public URL is
+the endpoint without a bucket/path, for example `https://s3.us-east-1.amazonaws.com`.
 
 ---
 

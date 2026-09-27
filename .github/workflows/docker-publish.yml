@@ -15,11 +15,10 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
-    name: Build ${{ matrix.platform }}
+    name: Build ${{ matrix.variant }} ${{ matrix.platform }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     strategy:
@@ -28,9 +27,29 @@ jobs:
           - platform: linux/amd64
             runner: ubuntu-24.04
             arch: amd64
+            variant: app
+            suffix: ""
+            dockerfile: Dockerfile
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
             arch: arm64
+            variant: app
+            suffix: ""
+            dockerfile: Dockerfile
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            arch: amd64
+            variant: storage
+            suffix: -storage
+            dockerfile: Dockerfile.storage
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+            variant: storage
+            suffix: -storage
+            dockerfile: Dockerfile.storage
+    env:
+      IMAGE_NAME: ${{ github.repository }}${{ matrix.suffix }}
 
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +74,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
@@ -71,23 +91,32 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.arch }}
+          name: digests-${{ matrix.variant }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
 
   merge:
-    name: Publish multi-platform image
+    name: Publish multi-platform ${{ matrix.variant }} image
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    strategy:
+      matrix:
+        include:
+          - variant: app
+            suffix: ""
+          - variant: storage
+            suffix: -storage
+    env:
+      IMAGE_NAME: ${{ github.repository }}${{ matrix.suffix }}
 
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/digests
-          pattern: digests-*
+          pattern: digests-${{ matrix.variant }}-*
           merge-multiple: true
 
       - uses: docker/setup-buildx-action@v3

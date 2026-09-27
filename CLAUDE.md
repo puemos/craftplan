@@ -14,7 +14,7 @@ mix format             # Format all code (Styler, Spark, Tailwind, HEEx)
 mix dialyzer           # Static type analysis
 mix ash.setup          # Run migrations + Ash introspection
 mix ash.reset          # Drop, create, migrate, seed
-docker-compose up -d   # Start PostgreSQL 16 + MinIO (S3-compatible storage)
+docker-compose up -d   # Start PostgreSQL 16 + SeaweedFS (S3-compatible storage)
 ```
 
 ## Architecture

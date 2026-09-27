@@ -105,7 +105,9 @@ cp .env.example .env   # Fill in the required secrets (see .env.example)
 docker compose up -d
 ```
 
-This starts Craftplan, PostgreSQL, and MinIO with migrations running automatically.
+This starts Craftplan, PostgreSQL, and SeaweedFS with database migrations running automatically.
+
+**Upgrading from MinIO?** The updated Compose file automatically migrates and verifies existing photos before starting Craftplan. Later SeaweedFS upgrades skip migration. Keep your `.env` and volumes; see the [upgrade guide](docs/src/pages/docs/storage-migration.md) for disk-space requirements and recovery.
 
 See the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hosting/) for single-container mode, Railway deployment, reverse proxy setup, and more.
 
@@ -115,7 +117,7 @@ See the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hostin
 
 ```bash
 mise install            # Install Elixir, Erlang/OTP, and Node.js versions from mise.toml
-mise run services:up    # Start PostgreSQL + MinIO + Mailpit
+mise run services:up    # Start PostgreSQL + SeaweedFS + Mailpit
 mise run setup          # Install deps, migrate, build assets, seed
 mise run dev            # Start at localhost:4000
 ```

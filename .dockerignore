@@ -33,3 +33,5 @@ docs/
 !CLAUDE.md
 screenshots/
 tmp/
+
+.seaweedfs/

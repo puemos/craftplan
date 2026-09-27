@@ -11,11 +11,11 @@ description: Set up a local development environment for contributing to Craftpla
 Before setting up Craftplan, make sure you have the following installed:
 
 - **[mise](https://mise.jdx.dev/)** to install the pinned Elixir, Erlang/OTP, and Node.js versions
-- **Docker** and **Docker Compose** for PostgreSQL, MinIO, and Mailpit
+- **Docker** and **Docker Compose** for PostgreSQL, SeaweedFS, and Mailpit
 
 ## Starting Dependencies
 
-Start PostgreSQL, MinIO (S3-compatible object storage), and Mailpit with the project task:
+Start PostgreSQL, SeaweedFS (S3-compatible object storage), and Mailpit with the project task:
 
 ```bash
 mise run services:up
