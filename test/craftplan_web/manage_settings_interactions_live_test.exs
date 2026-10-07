@@ -4,6 +4,37 @@ defmodule CraftplanWeb.ManageSettingsInteractionsLiveTest do
   import Phoenix.LiveViewTest
 
   @tag role: :admin
+  test "batch sheet notation defaults to ordinary decimals and persists changes", %{
+    conn: conn,
+    user: user
+  } do
+    {:ok, view, _} = live(conn, ~p"/manage/settings/general")
+
+    assert has_element?(
+             view,
+             "#settings-form input[name='settings[batch_sheet_scientific_notation]']:not([checked])"
+           )
+
+    view
+    |> form("#settings-form", settings: %{batch_sheet_scientific_notation: true})
+    |> render_submit()
+
+    assert Craftplan.Settings.get_settings!(actor: user).batch_sheet_scientific_notation
+    {:ok, view, _} = live(conn, ~p"/manage/settings/general")
+
+    assert has_element?(
+             view,
+             "#settings-form input[type=checkbox][name='settings[batch_sheet_scientific_notation]'][checked]"
+           )
+
+    view
+    |> form("#settings-form", settings: %{batch_sheet_scientific_notation: false})
+    |> render_submit()
+
+    refute Craftplan.Settings.get_settings!(actor: user).batch_sheet_scientific_notation
+  end
+
+  @tag role: :admin
   test "general settings can be saved", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/manage/settings/general")
 

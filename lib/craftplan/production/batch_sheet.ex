@@ -4,6 +4,7 @@ defmodule Craftplan.Production.BatchSheet do
   """
 
   alias Craftplan.Production
+  alias Craftplan.Settings
   alias Decimal, as: D
 
   @template_path "priv/typst/batch_sheet.typ"
@@ -20,7 +21,8 @@ defmodule Craftplan.Production.BatchSheet do
     report = Production.batch_report!(batch_code, actor: actor)
     bom = load_bom_details(report.bom, actor)
 
-    data = build_data(report, bom, currency)
+    settings = Settings.get_settings!(actor: actor)
+    data = build_data(report, bom, currency, settings.batch_sheet_scientific_notation)
     template = File.read!(Application.app_dir(:craftplan, @template_path))
 
     config = Imprintor.Config.new(template, data)
@@ -33,7 +35,8 @@ defmodule Craftplan.Production.BatchSheet do
     Ash.load!(bom, [:labor_steps, components: [:material]], actor: actor)
   end
 
-  defp build_data(report, bom, currency) do
+  @doc false
+  def build_data(report, bom, currency, scientific_notation? \\ false) do
     batch = report.production_batch
     product = report.product
     completed? = batch && batch.status == :completed
@@ -43,32 +46,32 @@ defmodule Craftplan.Production.BatchSheet do
       "product_name" => (product && product.name) || "Unknown",
       "product_sku" => (product && product.sku) || "",
       "status" => format_status(batch),
-      "planned_qty" => format_decimal((batch && batch.planned_qty) || D.new(0)),
+      "planned_qty" => format_decimal((batch && batch.planned_qty) || D.new(0), scientific_notation?),
       "produced_at" => format_datetime(report.produced_at),
       "observations" => (bom && bom.notes) || "",
-      "orders" => build_orders(report.orders),
-      "bom_components" => build_bom_components(bom, report.totals),
-      "labor_steps" => build_labor_steps(bom),
-      "lots" => build_lots(report.lots),
+      "orders" => build_orders(report.orders, scientific_notation?),
+      "bom_components" => build_bom_components(bom, report.totals, scientific_notation?),
+      "labor_steps" => build_labor_steps(bom, scientific_notation?),
+      "lots" => build_lots(report.lots, scientific_notation?),
       "show_costs" => if(completed?, do: "yes", else: "no"),
       "costs" => build_costs(report.totals, currency)
     }
   end
 
-  defp build_orders(orders) do
+  defp build_orders(orders, scientific_notation?) do
     Enum.map(orders, fn order ->
       %{
         "reference" => order.order.reference || "",
         "customer_name" => order.customer_name || "—",
-        "quantity" => format_decimal(order.quantity),
+        "quantity" => format_decimal(order.quantity, scientific_notation?),
         "delivery_date" => format_date(order.order.delivery_date)
       }
     end)
   end
 
-  defp build_bom_components(nil, _totals), do: []
+  defp build_bom_components(nil, _totals, _scientific_notation?), do: []
 
-  defp build_bom_components(bom, totals) do
+  defp build_bom_components(bom, totals, scientific_notation?) do
     planned_qty = totals.quantity
 
     bom.components
@@ -81,35 +84,35 @@ defmodule Craftplan.Production.BatchSheet do
 
       %{
         "name" => (material && material.name) || "Unknown",
-        "qty_per_unit" => format_decimal(qty_per),
-        "total_required" => format_decimal(total_req),
+        "qty_per_unit" => format_decimal(qty_per, scientific_notation?),
+        "total_required" => format_decimal(total_req, scientific_notation?),
         "unit" => (material && to_string(material.unit)) || "",
-        "waste_percent" => format_decimal(comp.waste_percent || D.new(0))
+        "waste_percent" => format_decimal(comp.waste_percent || D.new(0), scientific_notation?)
       }
     end)
   end
 
-  defp build_labor_steps(nil), do: []
+  defp build_labor_steps(nil, _scientific_notation?), do: []
 
-  defp build_labor_steps(bom) do
+  defp build_labor_steps(bom, scientific_notation?) do
     bom.labor_steps
     |> Enum.sort_by(& &1.sequence)
     |> Enum.map(fn step ->
       %{
         "sequence" => to_string(step.sequence),
         "name" => step.name,
-        "duration_minutes" => format_decimal(step.duration_minutes),
-        "units_per_run" => format_decimal(step.units_per_run)
+        "duration_minutes" => format_decimal(step.duration_minutes, scientific_notation?),
+        "units_per_run" => format_decimal(step.units_per_run, scientific_notation?)
       }
     end)
   end
 
-  defp build_lots(lots) do
+  defp build_lots(lots, scientific_notation?) do
     Enum.map(lots, fn lot ->
       %{
         "lot_code" => lot.lot_code || "—",
         "material_name" => (lot.material && lot.material.name) || "Unknown",
-        "quantity_used" => format_decimal(lot.quantity_used),
+        "quantity_used" => format_decimal(lot.quantity_used, scientific_notation?),
         "expiry_date" => format_date(lot.expiry_date),
         "supplier" => (lot.supplier && lot.supplier.name) || "—"
       }
@@ -130,8 +133,11 @@ defmodule Craftplan.Production.BatchSheet do
 
   defp format_status(batch), do: batch.status |> to_string() |> String.replace("_", " ") |> String.capitalize()
 
-  defp format_decimal(%D{} = d), do: D.to_string(D.normalize(d))
-  defp format_decimal(_), do: "0"
+  defp format_decimal(%D{} = d, scientific_notation?) do
+    D.to_string(D.normalize(d), if(scientific_notation?, do: :scientific, else: :normal))
+  end
+
+  defp format_decimal(_, _scientific_notation?), do: "0"
 
   defp format_date(nil), do: "—"
   defp format_date(%Date{} = d), do: Calendar.strftime(d, "%b %d, %Y")
