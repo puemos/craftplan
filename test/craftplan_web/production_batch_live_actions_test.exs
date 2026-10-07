@@ -133,6 +133,36 @@ defmodule CraftplanWeb.ProductionBatchLiveActionsTest do
 
   describe "batch lifecycle" do
     @tag role: :staff
+    test "cancel button cancels an open batch and removes lifecycle controls", %{conn: conn} do
+      product = product_with_bom!()
+      {batch, _order, item} = open_batch(product)
+      create_allocation!(batch, item)
+      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
+
+      view |> element("#cancel-batch") |> render_click()
+
+      assert has_element?(view, "#batch-summary", "canceled")
+      refute has_element?(view, "#cancel-batch")
+      refute has_element?(view, "button[phx-click=start_batch]")
+      refute has_element?(view, "#complete-batch-section")
+
+      assert Orders.list_allocations_for_batch!(%{production_batch_id: batch.id}, actor: staff()) ==
+               []
+    end
+
+    @tag role: :staff
+    test "cancel button cancels an in-progress batch", %{conn: conn} do
+      product = product_with_bom!()
+      {batch, _order, _item} = open_batch(product)
+      {:ok, view, _} = live(conn, ~p"/manage/production/batches/#{batch.batch_code}")
+      view |> element("button[phx-click=start_batch]") |> render_click()
+      assert has_element?(view, "#complete-batch-section")
+      view |> element("#cancel-batch") |> render_click()
+      assert has_element?(view, "#batch-summary", "canceled")
+      refute has_element?(view, "#complete-batch-section")
+    end
+
+    @tag role: :staff
     test "start action transitions batch to in_progress", %{conn: conn} do
       prod = product_with_bom!()
       {batch, _order, _item} = open_batch(prod)

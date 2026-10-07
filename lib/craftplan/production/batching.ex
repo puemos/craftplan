@@ -197,10 +197,6 @@ defmodule Craftplan.Production.Batching do
     |> Ash.Query.filter(production_batch_id == ^batch.id)
     |> Ash.Query.limit(1)
     |> Ash.exists?(actor: actor)
-    |> case do
-      {:ok, exists?} -> exists?
-      _ -> false
-    end
   end
 
   def validate_recorded_consumption(%ProductionBatch{} = batch, output_qty, actor) do

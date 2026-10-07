@@ -35,6 +35,7 @@ defmodule Craftplan.Orders do
       define :list_production_batches_for_plan, action: :plan
       define :open_batch_with_allocations, action: :open_with_allocations
       define :start_batch, action: :start
+      define :cancel_batch, action: :cancel
       define :complete_batch, action: :complete
       define :list_open_batches_for_product, action: :open_for_product
     end

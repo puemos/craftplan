@@ -10,6 +10,7 @@ defmodule Craftplan.Orders.ProductionBatch do
   import Ash.Expr
 
   alias Craftplan.Orders.Changes.BatchOpenInit
+  alias Craftplan.Orders.OrderItemBatchAllocation
 
   require Ash.Query
 
@@ -58,13 +59,27 @@ defmodule Craftplan.Orders.ProductionBatch do
 
     update :start do
       accept []
+      validate attribute_in(:status, [:open])
+      change filter(expr(status == :open))
       change set_attribute(:status, :in_progress)
       change set_attribute(:started_at, &DateTime.utc_now/0)
+    end
+
+    update :cancel do
+      accept []
+      require_atomic? false
+      touches_resources [OrderItemBatchAllocation]
+      validate attribute_in(:status, [:open, :in_progress])
+      change filter(expr(status in [:open, :in_progress]))
+      change {Craftplan.Orders.Changes.BatchCancel, []}
+      change set_attribute(:status, :canceled)
     end
 
     update :consume do
       argument :lot_plan, :map, allow_nil?: false
       require_atomic? false
+      validate attribute_in(:status, [:open, :in_progress])
+      change filter(expr(status in [:open, :in_progress]))
       change {Craftplan.Orders.Changes.BatchConsume, []}
     end
 
@@ -245,7 +260,7 @@ defmodule Craftplan.Orders.ProductionBatch do
 
     has_many :order_items, Craftplan.Orders.OrderItem
 
-    has_many :allocations, Craftplan.Orders.OrderItemBatchAllocation
+    has_many :allocations, OrderItemBatchAllocation
     has_many :batch_lots, Craftplan.Orders.ProductionBatchLot
   end
 end
