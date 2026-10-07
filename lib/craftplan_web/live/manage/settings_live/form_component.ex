@@ -34,6 +34,15 @@ defmodule CraftplanWeb.SettingsLive.FormComponent do
                 options={currency_options()}
                 label="Default currency"
               />
+              <.input
+                field={@form[:batch_sheet_scientific_notation]}
+                type="checkbox"
+                label="Use scientific notation on production batch sheets"
+              />
+              <p class="text-sm text-stone-600">
+                Leave unchecked to print quantities as ordinary decimals, such as 1000 instead of 1E+3.
+                Quantities keep their configured units.
+              </p>
             </div>
           </section>
 

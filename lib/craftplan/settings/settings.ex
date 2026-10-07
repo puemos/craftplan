@@ -87,6 +87,13 @@ defmodule Craftplan.Settings.Settings do
       default :USD
     end
 
+    attribute :batch_sheet_scientific_notation, :boolean do
+      public? true
+      allow_nil? false
+      default false
+      description "Use scientific notation for quantities on printable production batch sheets."
+    end
+
     attribute :food_business_name, :string do
       public? true
       allow_nil? true

@@ -13,6 +13,7 @@ The Settings area at **Manage → Settings** controls global configuration for y
 - **Hourly rate** — Default labor rate used in BOM labor step calculations. Individual steps can override this value.
 - **Overhead percentage** — Applied on top of labor costs during BOM rollup calculations.
 - **Default currency** — Sets the currency for all monetary values (prices, costs, invoices).
+- **Use scientific notation on production batch sheets** — Off by default, so printed quantities use ordinary decimals (for example, `1000` instead of `1E+3`). Enable it to use scientific notation when applicable. This affects batch-sheet quantities, including materials, lots, and labor; configured units and stored quantities stay the same.
 
 ## Markup Configuration
 
