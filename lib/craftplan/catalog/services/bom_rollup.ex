@@ -90,7 +90,12 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
   end
 
   @spec flatten_components(BOM.t(), D.t(), keyword()) :: %{any() => D.t()}
-  defp flatten_components(%BOM{} = bom, quantity, opts) do
+  def flatten_components(%BOM{} = bom, quantity, opts \\ []) do
+    do_flatten(bom, quantity, [bom.product_id], opts)
+  end
+
+  @spec do_flatten(BOM.t(), D.t(), [Catalog.product_id()], keyword()) :: %{any() => D.t()}
+  defp do_flatten(%BOM{} = bom, quantity, path, opts) do
     authorize? = Keyword.get(opts, :authorize?, false)
     actor = Keyword.get(opts, :actor)
 
@@ -100,11 +105,6 @@ defmodule Craftplan.Catalog.Services.BOMRollup do
         authorize?: authorize?
       )
 
-    do_flatten(bom, quantity, [], opts)
-  end
-
-  @spec do_flatten(BOM.t(), D.t(), [Catalog.product_id()], keyword()) :: %{any() => D.t()}
-  defp do_flatten(%BOM{} = bom, quantity, path, opts) do
     components =
       case Map.get(bom, :components) do
         %Ash.NotLoaded{} -> []
