@@ -124,6 +124,65 @@ defmodule Craftplan.ProductionBatchingTest do
     assert item2.status in [:in_progress, :done]
   end
 
+  test "cancel releases allocations without consuming stock and permits replanning" do
+    actor = Craftplan.DataCase.staff_actor()
+    {product, flour} = setup_product_with_material(actor)
+    lot = create_lot_with_stock(flour.id, "FLOT-CANCEL", "10000", actor)
+    {:ok, batch} = Batching.open_batch(product.id, D.new("15"), actor: actor)
+    {item1, item2} = setup_orders_and_allocations(product, batch, actor)
+
+    assert {:ok, canceled} = Orders.cancel_batch(batch, %{}, actor: actor)
+    assert canceled.status == :canceled
+
+    assert Orders.list_allocations_for_batch!(%{production_batch_id: batch.id}, actor: actor) ==
+             []
+
+    assert D.equal?(Ash.reload!(lot, load: [:current_stock], actor: actor).current_stock, "10000")
+    refute Batching.batch_consumed?(canceled, actor)
+    assert Ash.reload!(item1, actor: actor).status == :todo
+    assert {:error, _} = Orders.start_batch(canceled, %{}, actor: actor)
+    assert {:error, _} = Orders.start_batch(batch, %{}, actor: actor)
+
+    assert {:error, _} =
+             Orders.complete_batch(canceled, %{produced_qty: D.new("15")}, actor: actor)
+
+    assert {:error, _} = Orders.cancel_batch(canceled, %{}, actor: actor)
+
+    {:ok, replacement} = Batching.open_batch(product.id, D.new("15"), actor: actor)
+
+    for {item, quantity} <- [{item1, "10"}, {item2, "5"}] do
+      assert {:ok, _} =
+               Orders.create_order_item_batch_allocation(
+                 %{
+                   production_batch_id: replacement.id,
+                   order_item_id: item.id,
+                   planned_qty: D.new(quantity)
+                 },
+                 actor: actor
+               )
+    end
+  end
+
+  test "in-progress batches can be canceled until consumption is recorded" do
+    actor = Craftplan.DataCase.staff_actor()
+    {product, flour} = setup_product_with_material(actor)
+    lot = create_lot_with_stock(flour.id, "FLOT-CANCEL-STARTED", "10000", actor)
+    {:ok, batch} = Batching.open_batch(product.id, D.new("1"), actor: actor)
+    {:ok, started} = Orders.start_batch(batch, %{}, actor: actor)
+    assert {:ok, canceled} = Orders.cancel_batch(started, %{}, actor: actor)
+    assert canceled.status == :canceled
+
+    {:ok, batch} = Batching.open_batch(product.id, D.new("1"), actor: actor)
+    {:ok, started} = Orders.start_batch(batch, %{}, actor: actor)
+    plan = %{flour.id => [%{lot_id: lot.id, quantity: D.new("500")}]}
+    assert {:ok, _} = Batching.consume_batch(started, plan, actor: actor)
+    assert Batching.batch_consumed?(started, actor)
+    assert {:error, _} = Orders.cancel_batch(started, %{}, actor: actor)
+    assert Ash.reload!(started, actor: actor).status == :in_progress
+    assert D.equal?(Ash.reload!(lot, load: [:current_stock], actor: actor).current_stock, "9500")
+    assert {:error, _} = Ash.update(canceled, %{lot_plan: plan}, action: :consume, actor: actor)
+  end
+
   test "open, consume manually, and complete batch allocates costs and updates items" do
     actor = Craftplan.DataCase.staff_actor()
 

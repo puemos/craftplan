@@ -36,6 +36,7 @@ From the kanban board or the batch detail modal:
 
 - **Start** — Sets status to `in_progress` and records `started_at`. Can be triggered by clicking the Start button or dragging the card from Open to In Progress.
 - **Mark Done** — Opens an inline form to enter the produced quantity and optional duration in minutes. Submitting triggers the `complete` action.
+- **Cancel Batch** — Open the batch detail page and confirm **Cancel Batch** to abandon an open or in-progress batch. Its order-item allocations are released so those quantities can be planned again. No inventory is deducted. Completed batches and batches with recorded material consumption cannot be canceled; their traceability records remain intact.
 
 Drag-and-drop on the kanban enforces valid transitions and opens the completion form automatically when dragging from In Progress to Done.
 

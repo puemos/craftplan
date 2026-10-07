@@ -150,6 +150,15 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
               >
                 Start Batch
               </.button>
+              <.button
+                :if={@production_batch && @production_batch.status in [:open, :in_progress]}
+                id="cancel-batch"
+                variant={:outline}
+                phx-click="cancel_batch"
+                data-confirm="Cancel this batch? Its order quantities will be available to plan again."
+              >
+                Cancel Batch
+              </.button>
             </div>
           </Page.surface>
         </Page.section>
@@ -417,6 +426,22 @@ defmodule CraftplanWeb.ProductionBatchLive.Show do
     case Orders.start_batch(batch, %{}, actor: actor) do
       {:ok, _} -> refresh_and_flash(socket, "Batch started")
       {:error, err} -> {:noreply, put_flash(socket, :error, "Start failed: #{inspect(err)}")}
+    end
+  end
+
+  @impl true
+  def handle_event("cancel_batch", _params, socket) do
+    case Orders.cancel_batch(socket.assigns.production_batch, %{}, actor: socket.assigns[:current_user]) do
+      {:ok, _} ->
+        refresh_and_flash(socket, "Batch canceled")
+
+      {:error, _} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Could not cancel batch. Only open or in-progress batches without recorded material consumption can be canceled."
+         )}
     end
   end
 
