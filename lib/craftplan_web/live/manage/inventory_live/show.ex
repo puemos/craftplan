@@ -3,18 +3,16 @@ defmodule CraftplanWeb.InventoryLive.Show do
   use CraftplanWeb, :live_view
 
   alias Craftplan.Inventory
+  alias CraftplanWeb.Components.MaterialDetail
   alias CraftplanWeb.Navigation
 
   @impl true
   def render(assigns) do
     assigns =
-      assigns
-      |> assign_new(:tabs_links, fn -> [] end)
-      |> assign_new(:breadcrumbs, fn -> [] end)
+      assign_new(assigns, :breadcrumbs, fn -> [] end)
 
     ~H"""
-    <.header>
-      {@material.name}
+    <MaterialDetail.material_header material={@material} active={@live_action}>
       <:actions>
         <.link patch={~p"/manage/inventory/#{@material.sku}/edit"} phx-click={JS.push_focus()}>
           <.button>Edit</.button>
@@ -23,9 +21,7 @@ defmodule CraftplanWeb.InventoryLive.Show do
           <.button variant={:primary}>Adjust Stock</.button>
         </.link>
       </:actions>
-    </.header>
-
-    <.sub_nav links={@tabs_links} />
+    </MaterialDetail.material_header>
 
     <div class="mt-4 space-y-6">
       <.tabs_content :if={@live_action in [:details, :show]}>
@@ -208,35 +204,11 @@ defmodule CraftplanWeb.InventoryLive.Show do
 
     live_action = socket.assigns.live_action
 
-    tabs_links = [
-      %{
-        label: "Details",
-        navigate: ~p"/manage/inventory/#{material.sku}/details",
-        active: live_action in [:details, :show]
-      },
-      %{
-        label: "Allergens",
-        navigate: ~p"/manage/inventory/#{material.sku}/allergens",
-        active: live_action == :allergens
-      },
-      %{
-        label: "Nutrition",
-        navigate: ~p"/manage/inventory/#{material.sku}/nutritional_facts",
-        active: live_action == :nutritional_facts
-      },
-      %{
-        label: "Stock",
-        navigate: ~p"/manage/inventory/#{material.sku}/stock",
-        active: live_action == :stock
-      }
-    ]
-
     socket =
       socket
       |> assign(:page_title, page_title(live_action))
       |> assign(:material, material)
       |> assign(:open_po_items, open_po_items)
-      |> assign(:tabs_links, tabs_links)
 
     {:noreply, Navigation.assign(socket, :inventory, material_trail(material, live_action))}
   end

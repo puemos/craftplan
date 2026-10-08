@@ -55,7 +55,7 @@ The exact lot allocation is frozen on completion, so every finished batch can be
 
 For cases where auto-FIFO is not appropriate (e.g., specific lot requirements, partial stock), the `complete` action accepts an optional `lot_plan` argument. When provided, the system uses this explicit plan instead of auto-selecting lots.
 
-For blends or other ingredients made in-house and shared by several products, see [Produced & Stocked Intermediates](/craftplan/docs/intermediates/) for the supported models, manual workaround, and traceability limits.
+For blends or other ingredients made in-house and shared by several products, see [Intermediate Production](/craftplan/docs/intermediates/) for producing material stock with actual yield, lot costs, and supplier-to-customer tracing.
 
 ## Cost Snapshots
 

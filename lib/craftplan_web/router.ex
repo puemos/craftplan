@@ -173,6 +173,7 @@ defmodule CraftplanWeb.Router do
       live "/manage/inventory/:sku/allergens", InventoryLive.Show, :allergens
       live "/manage/inventory/:sku/nutritional_facts", InventoryLive.Show, :nutritional_facts
       live "/manage/inventory/:sku/stock", InventoryLive.Show, :stock
+      live "/manage/inventory/:sku/production", InventoryLive.Production, :production
       live "/manage/inventory/:sku/edit", InventoryLive.Show, :edit
       live "/manage/inventory/:sku/adjust", InventoryLive.Show, :adjust
 

@@ -44,6 +44,7 @@ defmodule CraftplanWeb.Navigation do
     :allergens,
     :nutritional_facts,
     :stock,
+    :production,
     :adjust
   ]
 
@@ -107,6 +108,10 @@ defmodule CraftplanWeb.Navigation do
 
   def crumb_material_stock(material) do
     %{label: "Stock", path: ~p"/manage/inventory/#{material.sku}/stock"}
+  end
+
+  def crumb_material_production(material) do
+    %{label: "Production", path: ~p"/manage/inventory/#{material.sku}/production"}
   end
 
   def crumb_production_batch(%{batch_code: batch_code}) do
@@ -184,7 +189,8 @@ defmodule CraftplanWeb.Navigation do
           material: &__MODULE__.crumb_material/1,
           material_allergens: &__MODULE__.crumb_material_allergens/1,
           material_nutrition: &__MODULE__.crumb_material_nutrition/1,
-          material_stock: &__MODULE__.crumb_material_stock/1
+          material_stock: &__MODULE__.crumb_material_stock/1,
+          material_production: &__MODULE__.crumb_material_production/1
         },
         sub_links: [
           %{

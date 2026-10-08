@@ -34,6 +34,25 @@ defmodule CraftplanWeb.NavigationTest do
       refute Enum.any?(socket.assigns.nav_sub_links, fn link ->
                link.label == "Usage Forecast" and link.active
              end)
+
+      material = %{name: "House blend", sku: "HOUSE-BLEND"}
+      socket = %{socket | assigns: Map.put(socket.assigns, :live_action, :production)}
+
+      socket =
+        Navigation.assign(socket, :inventory, [
+          Navigation.root(:inventory),
+          Navigation.resource(:material, material),
+          Navigation.page(:inventory, :material_production, material)
+        ])
+
+      assert [%{label: "Materials", active: true} | _] = socket.assigns.nav_sub_links
+
+      assert %{
+               label: "Production",
+               path: "/manage/inventory/HOUSE-BLEND/production",
+               current?: true
+             } =
+               List.last(socket.assigns.breadcrumbs)
     end
 
     test "production schedule honors schedule view" do

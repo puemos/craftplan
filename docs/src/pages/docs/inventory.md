@@ -30,7 +30,7 @@ Materials are organized into lots for traceability. Each lot tracks:
 
 When consuming materials during production, stock is deducted only from available lots. Use **Manage → Production → Traceability** to follow a lot into finished batches and customer destinations, or to place affected stock on hold during a recall. See [Traceability & Recalls](/craftplan/docs/traceability/) for the complete workflow.
 
-For blends or other ingredients made in-house and shared by several products, see [Produced & Stocked Intermediates](/craftplan/docs/intermediates/) for the supported models, manual workaround, and traceability limits.
+For blends or other ingredients made in-house and shared by several products, see [Intermediate Production](/craftplan/docs/intermediates/) for producing material stock with actual yield, lot costs, and supplier-to-customer tracing.
 
 ## Stock Movements
 

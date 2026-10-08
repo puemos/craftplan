@@ -297,6 +297,41 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
         </div>
 
         <div
+          :if={report.intermediates != []}
+          id={"intermediate-chain-#{report.lot.id}"}
+          class="bg-indigo-50/40 rounded-xl border border-indigo-200 p-5"
+        >
+          <h3 class="text-sm font-semibold text-indigo-950">Intermediate production</h3>
+          <p class="mt-1 text-sm text-stone-500">
+            This ingredient was made into stocked materials before reaching the finished batches below.
+          </p>
+          <div
+            :for={node <- report.intermediates}
+            class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-white p-4"
+          >
+            <div>
+              <p class="text-sm font-semibold text-stone-900">{node.batch.material.name}</p><.link
+                navigate={~p"/manage/inventory/#{node.batch.material.sku}/production"}
+                class="font-mono mt-1 text-xs text-indigo-700"
+              >{node.batch.lot_code}</.link><p class="mt-1 text-xs text-stone-500">
+                Consumed {format_amount(node.input_material.unit, node.input_quantity)} of {node.input_material.name}
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-medium text-stone-700">
+                {format_amount(node.batch.material.unit, node.batch.actual_quantity)} produced
+              </p><p class="mt-1 text-xs text-stone-500">
+                {format_amount(
+                  node.batch.material.unit,
+                  node.batch.output_lot.current_stock || D.new(0)
+                )} on hand
+              </p>
+            </div>
+          </div>
+        </div>
+        <.intermediate_origins origins={report.origins} time_zone={@time_zone} />
+
+        <div
           id="recall-summary"
           class="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-stone-200 bg-stone-200 xl:grid-cols-4"
         >
@@ -339,8 +374,16 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
             <.chain_node
               icon="hero-building-storefront"
               eyebrow="Source"
-              title={supplier_name(report.source.supplier)}
-              detail={report.source.purchase_order_reference || "No purchase order"}
+              title={
+                if report.origins == [],
+                  do: supplier_name(report.source.supplier),
+                  else: "Made in-house"
+              }
+              detail={
+                if report.origins == [],
+                  do: report.source.purchase_order_reference || "No purchase order",
+                  else: "Recipe v#{hd(report.origins).batch.recipe_snapshot["version"]}"
+              }
             />
             <.chain_arrow />
             <.chain_node
@@ -418,7 +461,12 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
                   <span class="ml-2 text-sm text-stone-700">{usage.batch.product.name}</span>
                 </div>
                 <div class="text-sm text-stone-600">
-                  Used {format_amount(report.lot.material.unit, usage.quantity_used)}
+                  <p :for={consumption <- usage.consumptions}>
+                    Used {format_amount(consumption.consumed_material.unit, consumption.quantity_used)} of {consumption.consumed_material.name}
+                  </p>
+                  <p :if={usage.via != []} class="mt-1 text-xs text-indigo-700">
+                    Via {Enum.join(usage.via, " → ")}
+                  </p>
                 </div>
               </div>
               <div :if={usage.orders != []} class="hidden sm:block">
@@ -584,7 +632,9 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
                   </.link>
                 </:col>
                 <:col :let={usage} label="Supplier">
-                  {supplier_name(usage.source.supplier)}
+                  {if usage.origins == [],
+                    do: supplier_name(usage.source.supplier),
+                    else: "Made in-house"}
                 </:col>
                 <:col :let={usage} label="Purchase order" class="hidden lg:table-cell">
                   {usage.source.purchase_order_reference || "—"}
@@ -626,7 +676,11 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
                 <dl class="mt-3 grid gap-3 border-t border-stone-100 pt-3 text-xs sm:grid-cols-2">
                   <div>
                     <dt class="font-medium text-stone-400">Supplier</dt>
-                    <dd class="mt-0.5 text-stone-600">{supplier_name(usage.source.supplier)}</dd>
+                    <dd class="mt-0.5 text-stone-600">
+                      {if usage.origins == [],
+                        do: supplier_name(usage.source.supplier),
+                        else: "Made in-house"}
+                    </dd>
                   </div>
                   <div>
                     <dt class="font-medium text-stone-400">Purchase order</dt>
@@ -637,6 +691,10 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
                 </dl>
               </div>
             </div>
+          </div>
+
+          <div :for={usage <- report.lots} class="mt-5">
+            <.intermediate_origins origins={usage.origins} time_zone={@time_zone} />
           </div>
 
           <div class="mt-7">
@@ -890,6 +948,52 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
   defp status_tone(:rejected), do: :danger
   defp status_tone(_status), do: :success
 
+  attr :origins, :list, required: true
+  attr :time_zone, :string, required: true
+
+  defp intermediate_origins(assigns) do
+    ~H"""
+    <section :if={@origins != []} class="bg-indigo-50/40 rounded-xl border border-indigo-200 p-5">
+      <h3 class="text-sm font-semibold text-indigo-950">Made in-house · original input lots</h3>
+      <p class="mt-1 text-sm text-stone-500">
+        Actual inputs used to make each whole intermediate batch. Finished products consume its output stock.
+      </p>
+      <div :for={origin <- @origins} class="mt-4 rounded-lg border border-indigo-100 bg-white p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p class="text-sm font-semibold text-stone-900">{origin.batch.material.name}</p><.link
+              navigate={~p"/manage/inventory/#{origin.batch.material.sku}/production"}
+              class="font-mono text-xs text-indigo-700"
+            >{origin.batch.lot_code}</.link>
+          </div><p class="text-xs text-stone-500">
+            Recipe v{origin.batch.recipe_snapshot["version"]} · {format_time(
+              origin.batch.completed_at,
+              @time_zone
+            )}
+          </p>
+        </div>
+        <div
+          :for={input <- origin.inputs}
+          class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-stone-100 pt-3 text-sm"
+        >
+          <div>
+            <span class="font-medium text-stone-700">{input.lot.material.name}</span><.link
+              navigate={
+                ~p"/manage/production/traceability?#{%{mode: :forward, q: input.lot.lot_code}}"
+              }
+              class="font-mono mt-1 block text-xs text-indigo-700"
+            >{input.lot.supplier_lot_code || input.lot.lot_code}</.link><p class="mt-1 text-xs text-stone-500">
+              {supplier_name(input.source.supplier)}
+            </p>
+          </div><p class="font-medium text-stone-700">
+            {format_amount(input.lot.material.unit, input.quantity)}
+          </p>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
   defp affected_orders(report), do: Enum.flat_map(report.batches, & &1.orders)
 
   defp affected_order_count(report) do
@@ -913,7 +1017,14 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
 
   defp unique_supplier_count(report) do
     report.lots
-    |> Enum.map(&supplier_name(&1.source.supplier))
+    |> Enum.flat_map(fn usage ->
+      [
+        supplier_name(usage.source.supplier)
+        | Enum.flat_map(usage.origins, fn origin ->
+            Enum.map(origin.inputs, &supplier_name(&1.source.supplier))
+          end)
+      ]
+    end)
     |> Enum.reject(&(&1 == "—"))
     |> Enum.uniq()
     |> length()
@@ -925,6 +1036,8 @@ defmodule CraftplanWeb.TraceabilityLive.Index do
       value -> value
     end
   end
+
+  defp pluralize(count, "finished batch"), do: "#{count} finished #{if count == 1, do: "batch", else: "batches"}"
 
   defp pluralize(count, word), do: "#{count} #{word}#{if count == 1, do: "", else: "s"}"
 
