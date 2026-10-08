@@ -7,6 +7,8 @@ defmodule Craftplan.Traceability do
   """
 
   alias Craftplan.Inventory.Lot
+  alias Craftplan.Inventory.MaterialBatch
+  alias Craftplan.Inventory.MaterialBatchInput
   alias Craftplan.Orders
   alias Craftplan.Orders.ProductionBatchLot
   alias Craftplan.Production
@@ -77,18 +79,18 @@ defmodule Craftplan.Traceability do
       ])
       |> Ash.read!(actor: actor)
 
-    usages_by_lot = lot_usages(lots, actor)
-
     Enum.map(lots, fn lot ->
+      {intermediates, usages} = forward_chain(lot, actor, MapSet.new(), [])
+
       %{
         lot: lot,
         source: source_details(lot),
-        batches: Map.get(usages_by_lot, lot.id, [])
+        intermediates: intermediates,
+        origins: production_origins(lot.id, actor, MapSet.new()),
+        batches: consolidate_usages(usages)
       }
     end)
   end
-
-  defp lot_usages([], _actor), do: %{}
 
   defp lot_usages(lots, actor) do
     lot_ids = Enum.map(lots, & &1.id)
@@ -194,8 +196,100 @@ defmodule Craftplan.Traceability do
 
     Enum.map(lots, fn usage ->
       lot = Map.get(enriched_by_id, usage.lot.id, usage.lot)
-      usage |> Map.put(:lot, lot) |> Map.put(:source, source_details(lot))
+
+      usage
+      |> Map.put(:lot, lot)
+      |> Map.put(:source, source_details(lot))
+      |> Map.put(:origins, production_origins(lot.id, actor, MapSet.new()))
     end)
+  end
+
+  # Follow recorded lot links, never a current recipe. Quantities shown for
+  # descendants refer to their actual consumed material, not an inferred share
+  # of an upstream ingredient.
+  defp forward_chain(lot, actor, visited, via) do
+    if MapSet.member?(visited, lot.id) do
+      {[], []}
+    else
+      visited = MapSet.put(visited, lot.id)
+
+      direct =
+        [lot]
+        |> lot_usages(actor)
+        |> Map.get(lot.id, [])
+        |> Enum.map(&Map.merge(&1, %{consumed_material: lot.material, consumed_lot_id: lot.id, via: via}))
+
+      links =
+        MaterialBatchInput
+        |> Ash.Query.filter(lot_id == ^lot.id)
+        |> Ash.Query.load(material_batch: [:material, output_lot: [:current_stock, :material]])
+        |> Ash.read!(actor: actor)
+
+      Enum.reduce(links, {[], direct}, fn link, {intermediates, usages} ->
+        batch = link.material_batch
+        next_via = via ++ [batch.lot_code]
+        {children, destinations} = forward_chain(batch.output_lot, actor, visited, next_via)
+
+        node = %{
+          batch: batch,
+          input_quantity: link.quantity,
+          input_material: lot.material,
+          depth: length(via)
+        }
+
+        {intermediates ++ [node] ++ children, usages ++ destinations}
+      end)
+    end
+  end
+
+  defp consolidate_usages(usages) do
+    usages
+    |> Enum.group_by(& &1.batch.id)
+    |> Enum.map(fn {_id, rows} ->
+      rows = Enum.uniq_by(rows, & &1.consumed_lot_id)
+      first = hd(rows)
+      # A batch can consume different materials descended from the same lot.
+      # Keep each measured quantity distinct rather than summing unlike units.
+      Map.merge(first, %{
+        via: Enum.uniq(Enum.flat_map(rows, & &1.via)),
+        consumptions: Enum.map(rows, &Map.take(&1, [:quantity_used, :consumed_material]))
+      })
+    end)
+    |> Enum.sort_by(& &1.batch.batch_code)
+  end
+
+  defp production_origins(lot_id, actor, visited) do
+    if MapSet.member?(visited, lot_id) do
+      []
+    else
+      visited = MapSet.put(visited, lot_id)
+
+      batch =
+        MaterialBatch
+        |> Ash.Query.filter(output_lot_id == ^lot_id)
+        |> Ash.Query.load([
+          :material,
+          inputs: [lot: [:material, :supplier, purchase_order_item: [:purchase_order]]]
+        ])
+        |> Ash.read_one!(actor: actor)
+
+      case batch do
+        nil ->
+          []
+
+        batch ->
+          [
+            %{
+              batch: batch,
+              inputs:
+                Enum.map(batch.inputs, fn input ->
+                  %{lot: input.lot, quantity: input.quantity, source: source_details(input.lot)}
+                end)
+            }
+          ] ++
+            Enum.flat_map(batch.inputs, &production_origins(&1.lot_id, actor, visited))
+      end
+    end
   end
 
   defp source_details(lot) do

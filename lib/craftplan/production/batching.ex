@@ -10,6 +10,7 @@ defmodule Craftplan.Production.Batching do
   alias Craftplan.Catalog.Services.BatchCostCalculator
   alias Craftplan.Inventory
   alias Craftplan.Inventory.Lot
+  alias Craftplan.Inventory.MaterialBatch
   alias Craftplan.Orders
   alias Craftplan.Orders.OrderItemBatchAllocation
   alias Craftplan.Orders.OrderItemLot
@@ -105,7 +106,10 @@ defmodule Craftplan.Production.Batching do
 
       lots =
         Lot
-        |> Ash.Query.filter(material_id == ^material_id and current_stock > 0)
+        |> Ash.Query.filter(
+          material_id == ^material_id and current_stock > 0 and status == :available and
+            (is_nil(expiry_date) or expiry_date >= ^Date.utc_today())
+        )
         |> Ash.Query.load([:current_stock])
         |> Ash.Query.sort(expiry_date: :asc)
         |> Ash.read!(authorize?: false)
@@ -303,6 +307,8 @@ defmodule Craftplan.Production.Batching do
         }
       end
 
+    costs = apply_intermediate_lot_costs(costs, batch, produced_qty, actor)
+
     # Update each allocation + order item
     Enum.each(completed_allocs, fn completed ->
       a = completed.allocation
@@ -422,7 +428,9 @@ defmodule Craftplan.Production.Batching do
                    load: [:current_stock]
                  ) do
               {:ok, %{material_id: lot_material_id} = lot} ->
-                if to_string(lot_material_id) == material_id do
+                if to_string(lot_material_id) == material_id and lot.status == :available and
+                     (is_nil(lot.expiry_date) or
+                        Date.compare(lot.expiry_date, Date.utc_today()) != :lt) do
                   {:cont, {:ok, [%{lot: lot, quantity: qty} | loaded]}}
                 else
                   {:halt, {:error, {:lot_material_mismatch, lot_id, material_id}}}
@@ -472,6 +480,59 @@ defmodule Craftplan.Production.Batching do
         {:halt, {:error, {:insufficient_lot_stock, lot_id, requested, available}}}
       end
     end)
+  end
+
+  defp apply_intermediate_lot_costs(costs, batch, produced_qty, actor) do
+    usages =
+      ProductionBatchLot
+      |> Ash.Query.filter(production_batch_id == ^batch.id)
+      |> Ash.Query.load(lot: [:material])
+      |> Ash.read!(actor: actor)
+
+    lot_ids = Enum.map(usages, & &1.lot_id)
+
+    produced_ids =
+      MaterialBatch
+      |> Ash.Query.filter(output_lot_id in ^lot_ids)
+      |> Ash.read!(actor: actor)
+      |> MapSet.new(& &1.output_lot_id)
+
+    delta =
+      Enum.reduce(usages, D.new(0), fn usage, delta ->
+        if MapSet.member?(produced_ids, usage.lot_id) do
+          difference = D.sub(usage.lot.unit_cost, usage.lot.material.price)
+          D.add(delta, D.mult(usage.quantity_used, difference))
+        else
+          delta
+        end
+      end)
+
+    if MapSet.size(produced_ids) == 0 do
+      costs
+    else
+      overhead_rate =
+        case Craftplan.Settings.get_settings(actor: actor) do
+          {:ok, settings} when not is_nil(settings) -> settings.labor_overhead_percent || D.new(0)
+          _ -> D.new(0)
+        end
+
+      material_cost = D.add(costs.material_cost, delta)
+
+      overhead_cost =
+        D.mult(
+          D.add(material_cost, costs.labor_cost),
+          overhead_rate
+        )
+
+      total = material_cost |> D.add(costs.labor_cost) |> D.add(overhead_cost)
+
+      %{
+        costs
+        | material_cost: material_cost,
+          overhead_cost: overhead_cost,
+          unit_cost: D.div(total, produced_qty)
+      }
+    end
   end
 
   defp to_int(str, default) when is_binary(str) do

@@ -18,7 +18,10 @@ defmodule Craftplan.CSV.Exporters.Traceability do
     "customer",
     "email",
     "phone",
-    "delivery_address"
+    "delivery_address",
+    "consumed_material",
+    "via_intermediates",
+    "quantity_basis"
   ]
 
   def export(result) do
@@ -33,37 +36,73 @@ defmodule Craftplan.CSV.Exporters.Traceability do
     base = source_columns(report.lot, report.source)
 
     case report.batches do
-      [] -> [base ++ empty_destination()]
+      [] -> [base ++ empty_destination() ++ ["", "", ""]]
       batches -> Enum.flat_map(batches, &forward_batch_rows(base, &1))
     end
   end
 
   defp forward_batch_rows(base, usage) do
-    batch_columns = [
-      usage.batch.product.name,
-      usage.batch.batch_code,
-      to_string(usage.quantity_used)
-    ]
+    Enum.flat_map(usage.consumptions, fn consumption ->
+      batch_columns = [
+        usage.batch.product.name,
+        usage.batch.batch_code,
+        to_string(consumption.quantity_used)
+      ]
 
-    case usage.orders do
-      [] -> [base ++ batch_columns ++ ["", "", "", "", ""]]
-      orders -> Enum.map(orders, &(base ++ batch_columns ++ order_columns(&1)))
-    end
+      context = [
+        consumption.consumed_material.name,
+        Enum.join(usage.via, " → "),
+        "finished_batch_consumption"
+      ]
+
+      case usage.orders do
+        [] -> [base ++ batch_columns ++ ["", "", "", "", ""] ++ context]
+        orders -> Enum.map(orders, &(base ++ batch_columns ++ order_columns(&1) ++ context))
+      end
+    end)
   end
 
   defp backward_rows(report) do
-    Enum.map(report.lots, fn usage ->
-      source_columns(usage.lot, usage.source, "backward") ++
-        [
-          report.product.name,
-          report.batch.batch_code,
-          to_string(usage.quantity_used),
-          "",
-          "",
-          "",
-          "",
-          ""
-        ]
+    Enum.flat_map(report.lots, fn usage ->
+      origins = Map.get(usage, :origins, [])
+
+      direct =
+        source_columns(usage.lot, usage.source, "backward") ++
+          [
+            report.product.name,
+            report.batch.batch_code,
+            to_string(usage.quantity_used),
+            "",
+            "",
+            "",
+            "",
+            "",
+            usage.lot.material.name,
+            Enum.map_join(origins, " → ", & &1.batch.lot_code),
+            "finished_batch_consumption"
+          ]
+
+      source_rows =
+        Enum.flat_map(origins, fn origin ->
+          Enum.map(origin.inputs, fn input ->
+            source_columns(input.lot, input.source, "intermediate-source") ++
+              [
+                report.product.name,
+                report.batch.batch_code,
+                to_string(input.quantity),
+                "",
+                "",
+                "",
+                "",
+                "",
+                input.lot.material.name,
+                origin.batch.lot_code,
+                "whole_intermediate_batch"
+              ]
+          end)
+        end)
+
+      [direct | source_rows]
     end)
   end
 

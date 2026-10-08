@@ -28,7 +28,7 @@ Craftplan uses a simple versioning model:
 - **Add Material** picks from stocked materials. **Add Sub-assembly** pulls another product's BOM into the current one. Items already added are hidden from the picker to prevent duplicates.
 - The table header displays running totals (`Total Cost`) so you always see the material spend per product run.
 
-For blends or other ingredients made in-house and shared by several products, see [Produced & Stocked Intermediates](/craftplan/docs/intermediates/) for the supported models, manual workaround, and traceability limits.
+For blends or other ingredients made in-house and shared by several products, see [Intermediate Production](/craftplan/docs/intermediates/) for producing material stock with actual yield, lot costs, and supplier-to-customer tracing.
 
 ## Labor Steps & Scaling
 
