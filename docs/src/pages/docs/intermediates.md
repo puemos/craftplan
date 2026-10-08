@@ -6,11 +6,11 @@ description: Make and stock intermediate materials with actual yield, lot costs,
 
 Make a material once, stock it, and use that stock across finished products. Each completed batch preserves its actual yield, costs, input lots, and recipe history.
 
-**New workflow:** requires a build that includes native material production.
+Available in **v0.7.5 and later**.
 
 ## Watch the walkthrough
 
-A 2-minute walkthrough with on-screen explanations and no audio. The recording shows the complete workflow in an earlier layout; screenshots below show the latest interface.
+A 2-minute walkthrough of the current interface, with on-screen explanations and no audio.
 
 <video controls playsinline preload="metadata" poster="/craftplan/native-intermediates/production.webp" aria-label="Native intermediate production walkthrough" class="w-full rounded-xl border border-stone-200 bg-stone-50">
   <source src="/craftplan/native-intermediates/demo.mp4" type="video/mp4" />
@@ -57,7 +57,7 @@ A 2-minute walkthrough with on-screen explanations and no audio. The recording s
 </figure>
 
 <figure class="not-prose my-8">
-  <img src="/craftplan/native-intermediates/production.webp" width="904" height="1192" alt="Daily Flour Blend production page showing 450 g remaining, the current version 3 recipe, and the completed version 2 batch with 950 g yield and its actual input lots" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
+  <img src="/craftplan/native-intermediates/production.webp" width="1280" height="1152" alt="Bakery Flour Blend production page showing 450 g remaining, the current version 2 recipe, and the completed version 1 batch with 950 g yield and its actual input lots" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
   <figcaption class="mt-3 text-center text-sm text-stone-500">A compact stock summary and ingredient table sit above history. Expand a batch for its yield, cost, and input lots.</figcaption>
   <p class="mt-2 text-center text-sm"><a href="/craftplan/native-intermediates/production.webp" download>Download screenshot</a></p>
 </figure>
@@ -68,19 +68,19 @@ A 2-minute walkthrough with on-screen explanations and no audio. The recording s
   <summary class="cursor-pointer font-semibold">Tracing and stock validation screenshots</summary>
 
 <figure class="not-prose my-8">
-  <img src="/craftplan/native-intermediates/forward-trace.webp" width="1328" height="1796" alt="Forward trace from the wheat supplier lot through the produced Daily Flour Blend lot to the loaf and roll batches and their customer orders" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
+  <img src="/craftplan/native-intermediates/forward-trace.webp" width="1369" height="1548" alt="Forward trace from the wheat supplier lot through the produced Bakery Flour Blend lot to the loaf and roll batches and their customer orders" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
   <figcaption class="mt-3 text-center text-sm text-stone-500">A raw supplier lot reaches both finished products through the intermediate production link.</figcaption>
   <p class="mt-2 text-center text-sm"><a href="/craftplan/native-intermediates/forward-trace.webp" download>Download screenshot</a></p>
 </figure>
 
 <figure class="not-prose my-8">
-  <img src="/craftplan/native-intermediates/backward-trace.webp" width="1058" height="1523" alt="Backward trace of the loaf showing its Daily Flour Blend ingredient lot and the wheat and rye supplier lots used to produce that blend" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
+  <img src="/craftplan/native-intermediates/backward-trace.webp" width="1280" height="1353" alt="Backward trace of the loaf showing its Bakery Flour Blend ingredient lot and the wheat and rye supplier lots used to produce that blend" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
   <figcaption class="mt-3 text-center text-sm text-stone-500">The loaf traces back to the blend's actual input lots.</figcaption>
   <p class="mt-2 text-center text-sm"><a href="/craftplan/native-intermediates/backward-trace.webp" download>Download screenshot</a></p>
 </figure>
 
 <figure class="not-prose my-8">
-  <img src="/craftplan/native-intermediates/stock-validation.webp" width="1058" height="914" alt="Make batch form rejecting a request for 1,300 g of wheat from a lot with only 1,200 g available" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
+  <img src="/craftplan/native-intermediates/stock-validation.webp" width="1280" height="720" alt="Make batch form rejecting a request for 1,300 g of wheat from a lot with only 1,200 g available" loading="lazy" decoding="async" class="w-full rounded-xl border border-stone-200 bg-stone-50 shadow-sm" />
   <figcaption class="mt-3 text-center text-sm text-stone-500">The failed attempt preserves the 450 g of existing blend stock.</figcaption>
   <p class="mt-2 text-center text-sm"><a href="/craftplan/native-intermediates/stock-validation.webp" download>Download screenshot</a></p>
 </figure>
