@@ -111,6 +111,14 @@ This starts Craftplan, PostgreSQL, and SeaweedFS with database migrations runnin
 
 See the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hosting/) for single-container mode, Railway deployment, reverse proxy setup, and more.
 
+## One-Click Deploy
+
+<a href="https://repocloud.io/details/Craftplan/"><img src="https://d16t0pc4846x52.cloudfront.net/deploylobe.svg" alt="Deploy on RepoCloud" height="42"></a>
+<a href="https://railway.com/deploy/craftplan"><img src="https://railway.com/button.svg" alt="Deploy on Railway" height="42"></a>
+
+- RepoCloud: One-click template, no other instructions required.
+- Railway: After deploying, set the required secrets and `HOST` as described in the [self-hosting guide](https://puemos.github.io/craftplan/docs/self-hosting/#deploy-on-railway).
+
 ## Development Setup
 
 > For contributors who want to work on the codebase. **Prerequisites:** Docker and [mise](https://mise.jdx.dev/)
