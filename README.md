@@ -10,6 +10,9 @@
   <img src="https://img.shields.io/badge/phoenix-%7E%3E%201.8-orange.svg" alt="Phoenix ~> 1.8">
 </p>
 
+<p align="center">
+  <a href="https://app.railyard.run/deploy?repo=https://github.com/puemos/craftplan"><img src="https://app.railyard.run/deploy/badge" alt="Deploy to Railyard"></a>
+</p>
 
 <div align="center">
 
