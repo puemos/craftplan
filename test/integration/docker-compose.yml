@@ -1,6 +1,7 @@
 services:
   seaweedfs:
-    image: chrislusf/seaweedfs:4.47
+    image: ${CRAFTPLAN_STORAGE_IMAGE:-craftplan-storage:test}
+    entrypoint: [weed]
     command: mini -dir=/data -s3.port=9000 -ip=127.0.0.1 -admin.ui=false
     environment:
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
@@ -16,7 +17,7 @@ services:
     ports: !override
       - "127.0.0.1::9000"
   minio:
-    image: ${MINIO_TEST_IMAGE:-cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1}
+    image: ${MINIO_TEST_IMAGE:-cgr.dev/chainguard/minio@sha256:0dab2f9fee1c1139ae8753b5e35bb4461af2a276cfe0923a2504c75a6170bc64}
     command: server /data
     environment:
       MINIO_ROOT_USER: migration-user

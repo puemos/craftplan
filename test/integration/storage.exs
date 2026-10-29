@@ -1,6 +1,6 @@
 ExUnit.start()
 
-for app <- [:ex_aws, :hackney, :sweet_xml, :waffle], do: Application.ensure_all_started(app)
+for app <- [:ex_aws, :req, :sweet_xml, :waffle], do: Application.ensure_all_started(app)
 
 System.put_env(%{
   "DATABASE_URL" => "ecto://unused:unused@localhost/unused",
@@ -129,12 +129,12 @@ defmodule Craftplan.StorageIntegrationTest do
     for version <- [:original, :thumb] do
       url = Photo.url({filename, product}, version, signed: true)
       assert URI.parse(url).host == "localhost"
-      assert {:ok, 200, _, body} = :hackney.get(url, [], "", [:with_body])
+      assert {:ok, %{status: 200, body: body}} = Req.get(url, decode_body: false)
       assert body == original["uploads/products/#{product.id}/existing photo_#{version}.png"]
     end
 
-    assert {:ok, status, _, _} =
-             :hackney.get("http://localhost:#{port}/#{bucket}/empty", [], "", [:with_body])
+    assert {:ok, %{status: status}} =
+             Req.get("http://localhost:#{port}/#{bucket}/empty", decode_body: false)
 
     assert status in [401, 403]
 
@@ -167,7 +167,7 @@ defmodule Craftplan.StorageIntegrationTest do
     end
 
     url = Photo.url({new_filename, new_product}, :thumb, signed: true)
-    assert {:ok, 200, _, _} = :hackney.get(url, [], "", [:with_body])
+    assert {:ok, %{status: 200}} = Req.get(url, decode_body: false)
     assert :ok = Photo.delete({new_filename, new_product})
 
     for version <- [:original, :thumb] do

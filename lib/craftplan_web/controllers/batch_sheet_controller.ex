@@ -5,6 +5,8 @@ defmodule CraftplanWeb.BatchSheetController do
 
   require Logger
 
+  # The response is a generated PDF with an explicit application/pdf content type.
+  # sobelow_skip ["XSS.SendResp"]
   def show(conn, %{"batch_code" => batch_code}) do
     actor = conn.assigns[:current_user]
 

@@ -24,7 +24,7 @@ docker compose logs -f minio
 ```
 
 The service is still named `minio` deliberately: Compose must replace and stop the
-old container before taking a snapshot. Its new image runs **SeaweedFS 4.47** and
+old container before taking a snapshot. Its new image runs **SeaweedFS 4.51** and
 has the network alias `seaweedfs`. Keep that service name for this transition.
 
 ## What happens once

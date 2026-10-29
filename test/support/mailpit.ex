@@ -6,7 +6,9 @@ defmodule Craftplan.Test.Mailpit do
   Start it via `docker-compose up -d mailpit`.
   """
 
-  @base_url "http://localhost:8025/api/v1"
+  defp base_url, do: System.get_env("MAILPIT_API_URL", "http://localhost:8025") <> "/api/v1"
+
+  def smtp_port, do: String.to_integer(System.get_env("MAILPIT_SMTP_PORT", "1025"))
 
   @doc """
   Configures Swoosh to use the SMTP adapter pointing at Mailpit (localhost:1025).
@@ -16,7 +18,7 @@ defmodule Craftplan.Test.Mailpit do
     Application.put_env(:craftplan, Craftplan.Mailer,
       adapter: Swoosh.Adapters.SMTP,
       relay: "localhost",
-      port: 1025,
+      port: smtp_port(),
       tls: :never,
       auth: :never
     )
@@ -26,7 +28,7 @@ defmodule Craftplan.Test.Mailpit do
   Deletes all messages from Mailpit's inbox.
   """
   def delete_all! do
-    Req.delete!("#{@base_url}/messages")
+    Req.delete!("#{base_url()}/messages")
     :ok
   end
 
@@ -37,7 +39,7 @@ defmodule Craftplan.Test.Mailpit do
   See https://mailpit.axllent.org/docs/api-v1/view.html#search-messages
   """
   def search_messages(query) do
-    resp = Req.get!("#{@base_url}/search", params: [query: query])
+    resp = Req.get!("#{base_url()}/search", params: [query: query])
     resp.body
   end
 
@@ -78,7 +80,7 @@ defmodule Craftplan.Test.Mailpit do
   Returns the full message (with HTML body) for a given message ID.
   """
   def get_message(id) do
-    resp = Req.get!("#{@base_url}/message/#{id}")
+    resp = Req.get!("#{base_url()}/message/#{id}")
     resp.body
   end
 end

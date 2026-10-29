@@ -327,7 +327,7 @@ if Mix.env() == :dev do
   seed_order = fn customer, delivery_in_days, status, payment_status ->
     Ash.Seed.seed!(Orders.Order, %{
       customer_id: customer.id,
-      delivery_date: DateTime.add(DateTime.utc_now(), delivery_in_days, :day),
+      delivery_date: DateTime.shift(DateTime.utc_now(), day: delivery_in_days),
       status: status,
       payment_status: payment_status
     })
@@ -742,7 +742,7 @@ if Mix.env() == :dev do
   adjust_stock = fn material, quantity, reason, days_from_now ->
     Ash.Seed.seed!(Inventory.Movement, %{
       material_id: material.id,
-      occurred_at: DateTime.add(DateTime.utc_now(), days_from_now, :day),
+      occurred_at: DateTime.shift(DateTime.utc_now(), day: days_from_now),
       quantity: Decimal.new(quantity),
       reason: reason
     })

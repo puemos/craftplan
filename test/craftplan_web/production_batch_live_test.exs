@@ -66,7 +66,10 @@ defmodule CraftplanWeb.ProductionBatchLiveTest do
       )
 
     material =
-      Factory.create_material!(%{name: "Flour", unit: :gram, price: D.new("3.00")}, actor)
+      Factory.create_material!(
+        %{name: "Batch Summary Flour", unit: :gram, price: D.new("3.00")},
+        actor
+      )
 
     Factory.create_recipe!(product, [%{material_id: material.id, quantity: D.new("1.0")}], actor)
 

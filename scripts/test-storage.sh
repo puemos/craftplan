@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+export CRAFTPLAN_STORAGE_IMAGE=craftplan-storage:test
 export COMPOSE_PROJECT_NAME="craftplan-storage-test-$$"
 export MINIO_ROOT_USER=migration-user MINIO_ROOT_PASSWORD=migration-secret
 export AWS_ACCESS_KEY_ID=replacement-user AWS_SECRET_ACCESS_KEY="replacement-secret\$literal"

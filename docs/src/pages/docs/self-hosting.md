@@ -173,7 +173,7 @@ Email is primarily configured from the **Settings UI** inside the app. Environme
 
 ### Bundled SeaweedFS
 
-The bundled storage image runs pinned SeaweedFS 4.47 and provides S3 storage on port 9000, creates the
+The bundled storage image runs pinned SeaweedFS 4.51 and provides S3 storage on port 9000, creates the
 configured bucket, and persists data in `seaweedfs_data`. Only the S3 port is
 published; there is no MinIO console on port 9001. The service retains the name
 `minio` so Compose replaces the old container during automatic migration.

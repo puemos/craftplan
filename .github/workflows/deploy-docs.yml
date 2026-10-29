@@ -20,20 +20,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Copy screenshots into docs
         run: |
           mkdir -p docs/public/screenshots
           cp -r screenshots/. docs/public/screenshots/
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
-          version: 10
+          version: 12.16.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          node-version: 24.22.2
           cache: pnpm
           cache-dependency-path: docs/pnpm-lock.yaml
 
@@ -41,11 +41,15 @@ jobs:
         working-directory: docs
         run: pnpm install --frozen-lockfile
 
+      - name: Audit dependencies
+        working-directory: docs
+        run: pnpm audit
+
       - name: Build site
         working-directory: docs
         run: pnpm run build
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: docs/dist
 
@@ -57,4 +61,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

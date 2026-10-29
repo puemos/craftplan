@@ -13,6 +13,8 @@ defmodule Craftplan.Orders.InvoicePdf do
 
   Returns `{:ok, pdf_binary}` or `{:error, reason}`.
   """
+  # The template path is a compile-time constant under the application directory.
+  # sobelow_skip ["Traversal.FileModule"]
   def generate_pdf(reference, opts \\ []) do
     actor = Keyword.get(opts, :actor)
     currency = Keyword.get(opts, :currency, :USD)

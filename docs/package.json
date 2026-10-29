@@ -2,13 +2,7 @@
   "name": "craftplan-docs",
   "type": "module",
   "version": "0.0.1",
-  "packageManager": "pnpm@10.28.2",
-  "pnpm": {
-    "overrides": {
-      "minimatch@<3.1.5": "3.1.5",
-      "lodash@<=4.17.23": "4.18.1"
-    }
-  },
+  "packageManager": "pnpm@12.16.1",
   "scripts": {
     "dev": "astro dev",
     "build": "pnpm run generate-graphql-docs && astro build",
@@ -20,17 +14,20 @@
     "audit:fix": "pnpm audit --fix"
   },
   "dependencies": {
-    "@astrojs/react": "4.4.2",
-    "@scalar/astro": "0.1.24",
-    "@tailwindcss/typography": "0.5.19",
-    "@tailwindcss/vite": "4.2.2",
-    "astro": "5.18.1",
+    "@astrojs/react": "7.1.2",
+    "@scalar/astro": "0.4.33",
+    "@tailwindcss/typography": "0.5.20",
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.4.4",
     "graphql": "16.13.2",
-    "react": "19.2.5",
-    "react-dom": "19.2.5",
-    "tailwindcss": "4.2.2"
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "tailwindcss": "4.3.3"
   },
   "devDependencies": {
     "spectaql": "3.0.9"
+  },
+  "engines": {
+    "node": ">=24 <25"
   }
 }

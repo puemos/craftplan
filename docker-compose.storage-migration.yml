@@ -1,6 +1,6 @@
 services:
   storage-migrate:
-    image: rclone/rclone:1.75.1
+    image: ${CRAFTPLAN_STORAGE_IMAGE:-ghcr.io/puemos/craftplan-storage:latest}
     profiles: [migration]
     entrypoint: /bin/sh
     command:

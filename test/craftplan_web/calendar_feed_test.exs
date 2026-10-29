@@ -94,7 +94,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
         Factory.create_order_with_items!(
           customer,
           [%{product_id: product.id, quantity: 3, unit_price: Decimal.new("12.00")}],
-          delivery_date: DateTime.add(DateTime.utc_now(), 7, :day)
+          delivery_date: DateTime.shift(DateTime.utc_now(), week: 1)
         )
 
       conn = get(conn, "/api/calendar/feed.ics?key=#{raw_key}")
@@ -119,7 +119,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
         Factory.create_order_with_items!(
           customer,
           [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
-          delivery_date: DateTime.add(DateTime.utc_now(), -60, :day)
+          delivery_date: DateTime.shift(DateTime.utc_now(), day: -60)
         )
 
       conn = get(conn, "/api/calendar/feed.ics?key=#{raw_key}")
@@ -141,7 +141,7 @@ defmodule CraftplanWeb.CalendarFeedTest do
         Factory.create_order_with_items!(
           customer,
           [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
-          delivery_date: DateTime.add(DateTime.utc_now(), 120, :day)
+          delivery_date: DateTime.shift(DateTime.utc_now(), day: 120)
         )
 
       conn = get(conn, "/api/calendar/feed.ics?key=#{raw_key}")
@@ -161,14 +161,14 @@ defmodule CraftplanWeb.CalendarFeedTest do
         Factory.create_order_with_items!(
           customer,
           [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
-          delivery_date: DateTime.add(DateTime.utc_now(), -10, :day)
+          delivery_date: DateTime.shift(DateTime.utc_now(), day: -10)
         )
 
       old_order =
         Factory.create_order_with_items!(
           customer,
           [%{product_id: product.id, quantity: 1, unit_price: Decimal.new("5.00")}],
-          delivery_date: DateTime.add(DateTime.utc_now(), -45, :day)
+          delivery_date: DateTime.shift(DateTime.utc_now(), day: -45)
         )
 
       conn = get(conn, "/api/calendar/feed.ics?key=#{raw_key}")

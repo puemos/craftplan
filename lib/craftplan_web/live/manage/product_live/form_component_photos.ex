@@ -388,6 +388,8 @@ defmodule CraftplanWeb.ProductLive.FormComponentPhotos do
     assign(socket, :has_changes, has_changes)
   end
 
+  # LiveView supplies the source path; the destination uses a slug and a random suffix.
+  # sobelow_skip ["Traversal.FileModule"]
   defp process_uploaded_files(socket) do
     consume_uploaded_entries(socket, :photos, fn %{path: path}, entry ->
       filename = entry.client_name

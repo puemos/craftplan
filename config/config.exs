@@ -8,6 +8,7 @@
 import Config
 
 config :ash,
+  default_string_length_count: :codepoints,
   include_embedded_source_by_default?: false,
   show_keysets_for_all_actions?: false,
   default_page_type: :keyset,
@@ -55,14 +56,18 @@ config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.25.0",
+  version: "0.28.2",
   craftplan: [
     args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
-config :ex_cldr, default_backend: Craftplan.Cldr
+config :ex_aws, http_client: ExAws.Request.Req
+
+config :ex_money, auto_start_exchange_rate_service: false
+
+config :localize, default_locale: "en", supported_locales: ["en"]
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -112,7 +117,7 @@ config :spark,
   ]
 
 config :tailwind,
-  version: "4.1.3",
+  version: "4.3.3",
   craftplan: [
     args: ~w(
         --input=assets/css/app.css
@@ -120,5 +125,7 @@ config :tailwind,
       ),
     cd: Path.expand("..", __DIR__)
   ]
+
+config :waffle, http_client: Waffle.HTTPClient.Req
 
 import_config "#{config_env()}.exs"
