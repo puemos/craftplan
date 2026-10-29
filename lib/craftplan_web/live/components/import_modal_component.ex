@@ -449,6 +449,8 @@ defmodule CraftplanWeb.ImportModalComponent do
     end
   end
 
+  # The path comes from LiveView consume_uploaded_entries, not client parameters.
+  # sobelow_skip ["Traversal.FileModule"]
   defp consume_uploaded_csv(socket) do
     entries = (socket.assigns.uploads[:csv] && socket.assigns.uploads.csv.entries) || []
 

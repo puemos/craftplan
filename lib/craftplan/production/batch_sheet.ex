@@ -14,6 +14,8 @@ defmodule Craftplan.Production.BatchSheet do
 
   Returns `{:ok, pdf_binary}` or `{:error, reason}`.
   """
+  # The template path is a compile-time constant under the application directory.
+  # sobelow_skip ["Traversal.FileModule"]
   def generate_pdf(batch_code, opts \\ []) do
     actor = Keyword.get(opts, :actor)
     currency = Keyword.get(opts, :currency, :USD)

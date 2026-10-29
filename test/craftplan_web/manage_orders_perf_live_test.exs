@@ -22,7 +22,7 @@ defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
     )
   end
 
-  defp days_from_now(days), do: DateTime.add(DateTime.utc_now(), days * 86_400, :second)
+  defp days_from_now(days), do: DateTime.shift(DateTime.utc_now(), day: days)
 
   describe "table pagination" do
     @tag role: :staff
@@ -34,7 +34,7 @@ defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
         Factory.create_order_with_items!(
           customer,
           [%{product_id: product.id, quantity: 1, unit_price: product.price}],
-          delivery_date: DateTime.add(DateTime.utc_now(), 86_400, :second)
+          delivery_date: DateTime.shift(DateTime.utc_now(), day: 1)
         )
       end
 
@@ -138,7 +138,7 @@ defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
         Factory.create_order_with_items!(
           customer,
           [%{product_id: product.id, quantity: 1, unit_price: product.price}],
-          delivery_date: DateTime.add(DateTime.utc_now(), 86_400, :second)
+          delivery_date: DateTime.shift(DateTime.utc_now(), day: 1)
         )
 
       {:ok, view, html} = live(conn, ~p"/manage/orders")
@@ -151,7 +151,7 @@ defmodule CraftplanWeb.ManageOrdersPerfLiveTest do
           Factory.create_order_with_items!(
             customer,
             [%{product_id: product.id, quantity: 1, unit_price: product.price}],
-            delivery_date: DateTime.add(DateTime.utc_now(), 2 * 86_400, :second)
+            delivery_date: DateTime.shift(DateTime.utc_now(), day: 2)
           )}}
       )
 

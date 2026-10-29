@@ -36,7 +36,7 @@ defmodule CraftplanWeb.OrderLive.Helpers do
         start: DateTime.to_iso8601(order.delivery_date),
         end:
           order.delivery_date
-          |> DateTime.add(event_duration, :second)
+          |> DateTime.shift(second: event_duration)
           |> DateTime.to_iso8601(),
         color: get_status_color_hex(order.status),
         textColor: "#000",

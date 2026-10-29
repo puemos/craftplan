@@ -127,7 +127,7 @@ defmodule Craftplan.Emails.SmtpE2eTest do
         settings
         |> Ash.Changeset.for_update(:update, %{
           smtp_host: "localhost",
-          smtp_port: 1025,
+          smtp_port: Mailpit.smtp_port(),
           smtp_username: nil,
           smtp_password: nil,
           smtp_tls: :never
@@ -141,7 +141,7 @@ defmodule Craftplan.Emails.SmtpE2eTest do
       mailer_config = Application.get_env(:craftplan, Craftplan.Mailer)
       assert mailer_config[:adapter] == Swoosh.Adapters.SMTP
       assert mailer_config[:relay] == "localhost"
-      assert mailer_config[:port] == 1025
+      assert mailer_config[:port] == Mailpit.smtp_port()
 
       Mailpit.delete_all!()
 

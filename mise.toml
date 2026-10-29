@@ -1,7 +1,7 @@
 [tools]
-erlang = "28.1"
-elixir = "1.20.2-otp-28"
-node = "20"
+erlang = "28.5.0.8"
+elixir = "1.20.4-otp-28"
+node = "24.22.2"
 
 [tasks."services:up"]
 description = "Start local PostgreSQL, SeaweedFS, and Mailpit services"
@@ -72,6 +72,15 @@ run = "mix test"
 description = "Re-run tests that failed in the previous test run"
 run = "mix test --failed"
 
+[tasks.security]
+description = "Audit dependencies and scan Phoenix code"
+run = """
+mix hex.audit
+mix deps.audit
+npm audit --prefix assets
+mix sobelow --config
+"""
+
 [tasks.dialyzer]
 description = "Run static type analysis"
 run = "mix dialyzer"
@@ -81,8 +90,13 @@ description = "Run the full application CI suite"
 run = """
 mix deps.get
 mix format --check-formatted
+mix hex.audit
+mix deps.audit
+mix sobelow --config
 mix compile
 MIX_ENV=test mix compile
+npm ci --prefix assets
+npm audit --prefix assets
 mix assets.setup
 mix assets.build
 mix test

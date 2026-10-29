@@ -1,8 +1,26 @@
-FROM cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1 AS legacy
-FROM rclone/rclone:1.75.1 AS transfer
-FROM chrislusf/seaweedfs:4.47
+FROM cgr.dev/chainguard/minio@sha256:0dab2f9fee1c1139ae8753b5e35bb4461af2a276cfe0923a2504c75a6170bc64 AS legacy
+# Rebuild the released tools with patched Go and dependency versions until
+# upstream images include CVE-2026-111943 and CVE-2026-116587 fixes.
+FROM golang:1.27.3-alpine AS toolchain
+RUN apk add --no-cache git
+
+FROM toolchain AS seaweed
+RUN git clone --depth 1 --branch 4.51 https://github.com/seaweedfs/seaweedfs.git /src
+WORKDIR /src
+RUN go get github.com/go-jose/go-jose/v4@v4.1.6 golang.org/x/net@v0.62.0
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/weed ./weed
+
+FROM toolchain AS transfer
+RUN git clone --depth 1 --branch v1.75.2 https://github.com/rclone/rclone.git /src
+WORKDIR /src
+RUN go get github.com/go-chi/chi/v5@v5.4.0 golang.org/x/net@v0.62.0
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/rclone .
+FROM chrislusf/seaweedfs:4.51
 COPY --from=legacy /usr/bin/minio /usr/local/bin/legacy-minio
-COPY --from=transfer /usr/local/bin/rclone /usr/local/bin/rclone
+COPY --from=seaweed /out/weed /usr/bin/weed
+COPY --from=transfer /out/rclone /usr/local/bin/rclone
 COPY docker/storage/start.sh /usr/local/bin/craftplan-storage
 ENTRYPOINT ["/bin/sh", "/usr/local/bin/craftplan-storage"]
 CMD []

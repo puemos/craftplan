@@ -14,8 +14,8 @@ defmodule Craftplan.Calendar.FeedGenerator do
   """
   def generate(actor) do
     now = DateTime.utc_now()
-    date_start = DateTime.add(now, -@past_days, :day)
-    date_end = DateTime.add(now, @future_days, :day)
+    date_start = DateTime.shift(now, day: -@past_days)
+    date_end = DateTime.shift(now, day: @future_days)
 
     order_events = build_order_events(actor, date_start, date_end)
     batch_events = build_batch_events(actor, date_start, date_end)

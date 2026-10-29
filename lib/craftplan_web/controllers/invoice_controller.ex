@@ -5,6 +5,8 @@ defmodule CraftplanWeb.InvoiceController do
 
   require Logger
 
+  # The response is a generated PDF with an explicit application/pdf content type.
+  # sobelow_skip ["XSS.SendResp"]
   def show(conn, %{"reference" => reference}) do
     actor = conn.assigns[:current_user]
 

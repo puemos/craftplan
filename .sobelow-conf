@@ -1,0 +1,7 @@
+[
+  # TLS terminates at the reverse proxy documented in the self-hosting guide.
+  # CSP is set by the router's put_csp/2 plug; Sobelow only sees the generic plug.
+  ignore: ["Config.HTTPS", "Config.CSP"],
+  skip: true,
+  exit: :low
+]

@@ -54,7 +54,7 @@ def object_command(*args, input=None):
         command += ["-e", name]
     return docker(
         *command,
-        "rclone/rclone:1.75.1",
+        "--entrypoint", "rclone", IMAGE,
         "--retries", "1", "--low-level-retries", "1",
         "--timeout", "10s", "--contimeout", "5s", *args,
         input=input,
@@ -83,7 +83,7 @@ with tempfile.TemporaryDirectory(prefix="craftplan-auto-storage-") as directory:
         "services": {
             "minio": {"extends": {"file": str(ROOT / "docker-compose.yml"), "service": "minio"},
                       "image": IMAGE, "restart": "no"},
-            "craftplan": {"image": "rclone/rclone:1.75.1", "entrypoint": ["/bin/sh", "-c"],
+            "craftplan": {"image": IMAGE, "entrypoint": ["/bin/sh", "-c"],
                           "command": ["exec sleep 86400"],
                           "depends_on": {"minio": {"condition": "service_healthy"}}},
         },
