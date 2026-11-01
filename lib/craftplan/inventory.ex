@@ -19,6 +19,7 @@ defmodule Craftplan.Inventory do
       define :get_lot_by_id, action: :read, get_by: [:id]
       define :list_lots, action: :read
       define :list_available_lots_for_material, action: :available_for_material
+      define :list_consumable_lots_for_material, action: :consumable_for_material
     end
 
     resource Craftplan.Inventory.Material do
