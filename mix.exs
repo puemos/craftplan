@@ -55,6 +55,9 @@ defmodule Craftplan.MixProject do
       {:ash_money, "~> 0.2.7"},
       {:ash_phoenix, "~> 2.0"},
       {:ash_postgres, "~> 2.15"},
+      # AshAuthentication 4.15 restricts Assent to 0.2. Craftplan's only configured
+      # strategy is password, so Assent 0.3's OAuth userinfo changes do not apply.
+      {:assent, "~> 0.3.2", override: true},
       {:absinthe_plug, "~> 1.5"},
       {:bandit, "~> 1.5"},
       {:bcrypt_elixir, "~> 3.0"},
@@ -76,7 +79,7 @@ defmodule Craftplan.MixProject do
       {:jason, "~> 1.2"},
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.6"},
-      {:phoenix_html, "~> 4.3"},
+      {:phoenix_html, "~> 4.4"},
       {:phoenix_live_dashboard, "~> 0.9"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1"},
