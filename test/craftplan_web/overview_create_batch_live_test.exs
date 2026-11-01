@@ -119,6 +119,62 @@ defmodule CraftplanWeb.OverviewCreateBatchLiveTest do
   end
 
   @tag role: :staff
+  test "daily planner: Batch All can replan after multiple canceled batches", %{
+    conn: conn,
+    user: actor
+  } do
+    material = create_material!()
+    product = create_product_with_bom!(material)
+    order = create_order_with_items_for_today!(product, [1, 2])
+    prefix = "B-#{Calendar.strftime(Date.utc_today(), "%Y%m%d")}-#{product.sku}"
+
+    for suffix <- ["001", "002", "003"] do
+      {:ok, view, _html} = live(conn, ~p"/manage/production/schedule?view=day")
+
+      view
+      |> element(~s([phx-click="open_unbatched_modal"][phx-value-product-id="#{product.id}"]))
+      |> render_click()
+
+      view
+      |> element("#unbatched-detail-modal button", "Batch All")
+      |> render_click()
+
+      code = "#{prefix}-#{suffix}"
+      batch = Orders.get_production_batch_by_code!(%{batch_code: code}, actor: actor)
+      assert batch.status == :open
+      assert Decimal.equal?(batch.planned_qty, "3")
+      assert has_element?(view, "#flash-info", "Batch #{code} created")
+
+      assert has_element?(
+               view,
+               ~s(.kanban-column[data-status="open"] .kanban-card[data-batch-code="#{code}"])
+             )
+
+      refute has_element?(view, "#unbatched-detail-modal")
+
+      allocations =
+        Orders.list_allocations_for_batch!(%{production_batch_id: batch.id}, actor: actor)
+
+      assert Enum.sort(Enum.map(allocations, & &1.order_item_id)) ==
+               Enum.sort(Enum.map(order.items, & &1.id))
+
+      for item <- order.items do
+        allocation = Enum.find(allocations, &(&1.order_item_id == item.id))
+        assert Decimal.equal?(allocation.planned_qty, item.quantity)
+      end
+
+      if suffix != "003" do
+        {:ok, batch_view, _html} = live(conn, ~p"/manage/production/batches/#{code}")
+        batch_view |> element("#cancel-batch") |> render_click()
+        assert has_element?(batch_view, "#batch-summary", "canceled")
+
+        assert Orders.list_allocations_for_batch!(%{production_batch_id: batch.id}, actor: actor) ==
+                 []
+      end
+    end
+  end
+
+  @tag role: :staff
   test "daily planner: no remaining shows info flash, no redirect", %{conn: conn} do
     mat = create_material!()
     prod = create_product_with_bom!(mat)
