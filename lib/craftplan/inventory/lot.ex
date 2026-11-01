@@ -7,6 +7,8 @@ defmodule Craftplan.Inventory.Lot do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshJsonApi.Resource, AshGraphql.Resource]
 
+  require Ash.Query
+
   json_api do
     type "lot"
 
@@ -61,6 +63,19 @@ defmodule Craftplan.Inventory.Lot do
       filter expr(material_id == ^arg(:material_id) and status == :available and current_stock > 0)
 
       prepare build(load: [:current_stock], sort: [expiry_date: :asc])
+    end
+
+    read :consumable_for_material do
+      argument :material_id, :uuid, allow_nil?: false
+
+      filter expr(material_id == ^arg(:material_id) and status == :available and current_stock > 0)
+
+      prepare fn query, _context ->
+        query
+        |> Ash.Query.filter(is_nil(expiry_date) or expiry_date >= ^Date.utc_today())
+        |> Ash.Query.load(:current_stock)
+        |> Ash.Query.sort(expiry_date: :asc, received_at: :asc, id: :asc)
+      end
     end
 
     update :place_on_hold do

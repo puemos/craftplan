@@ -79,11 +79,9 @@ defmodule Craftplan.Orders.Changes.BatchComplete do
     Changeset.add_error(changeset,
       field: :lot_plan,
       message: "Insufficient stock for material %{material_id}. Need %{required}, short by %{short}.",
-      vars: %{
-        material_id: material_id,
-        required: D.to_string(required),
-        short: D.to_string(short)
-      }
+      material_id: material_id,
+      required: D.to_string(required),
+      short: D.to_string(short)
     )
   end
 
@@ -91,11 +89,9 @@ defmodule Craftplan.Orders.Changes.BatchComplete do
     Changeset.add_error(changeset,
       field: :lot_plan,
       message: "Lot quantities for material %{material_id} must total %{required}; received %{planned}.",
-      vars: %{
-        material_id: material_id,
-        required: D.to_string(required),
-        planned: D.to_string(planned)
-      }
+      material_id: material_id,
+      required: D.to_string(required),
+      planned: D.to_string(planned)
     )
   end
 
@@ -103,11 +99,9 @@ defmodule Craftplan.Orders.Changes.BatchComplete do
     Changeset.add_error(changeset,
       field: :lot_plan,
       message: "Lot %{lot_id} has %{available} available; %{requested} was requested.",
-      vars: %{
-        lot_id: lot_id,
-        requested: D.to_string(requested),
-        available: D.to_string(available)
-      }
+      lot_id: lot_id,
+      requested: D.to_string(requested),
+      available: D.to_string(available)
     )
   end
 
@@ -115,7 +109,7 @@ defmodule Craftplan.Orders.Changes.BatchComplete do
     Changeset.add_error(changeset,
       field: :lot_plan,
       message: "Lot %{lot_id} does not belong to the selected material.",
-      vars: %{lot_id: lot_id}
+      lot_id: lot_id
     )
   end
 
@@ -130,7 +124,7 @@ defmodule Craftplan.Orders.Changes.BatchComplete do
     Changeset.add_error(changeset,
       field: :lot_plan,
       message: "Invalid lot plan: %{reason}",
-      vars: %{reason: inspect(reason)}
+      reason: inspect(reason)
     )
   end
 end
