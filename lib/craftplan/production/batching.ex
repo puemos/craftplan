@@ -68,7 +68,7 @@ defmodule Craftplan.Production.Batching do
       |> Ash.Query.new()
       |> Ash.Query.filter(expr(fragment("? LIKE ?", batch_code, ^"#{prefix}-%")))
       |> Ash.Query.sort(batch_code: :desc)
-      |> Ash.read_one(actor: actor, authorize?: false)
+      |> Ash.read_first(actor: actor, authorize?: false)
 
     next =
       case latest do

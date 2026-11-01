@@ -163,6 +163,34 @@ defmodule Craftplan.ProductionBatchingTest do
     end
   end
 
+  test "batch codes advance past canceled and completed batches for the same product" do
+    actor = Craftplan.DataCase.staff_actor()
+    {product, flour} = setup_product_with_material(actor)
+    create_lot_with_stock(flour.id, "FLOT-CODES", "10000", actor)
+    prefix = "B-#{Calendar.strftime(Date.utc_today(), "%Y%m%d")}-#{product.sku}"
+
+    assert {:ok, first} = Batching.open_batch(product.id, D.new("15"), actor: actor)
+    assert first.batch_code == "#{prefix}-001"
+    assert {:ok, canceled} = Orders.cancel_batch(first, %{}, actor: actor)
+    assert canceled.status == :canceled
+
+    assert {:ok, second} = Batching.open_batch(product.id, D.new("15"), actor: actor)
+    assert second.batch_code == "#{prefix}-002"
+    setup_orders_and_allocations(product, second, actor)
+    assert {:ok, started} = Orders.start_batch(second, %{}, actor: actor)
+
+    assert {:ok, completed} =
+             Orders.complete_batch(started, %{produced_qty: D.new("15")}, actor: actor)
+
+    assert completed.status == :completed
+
+    assert {:ok, third} = Batching.open_batch(product.id, D.new("15"), actor: actor)
+    assert third.batch_code == "#{prefix}-003"
+
+    assert Orders.get_production_batch_by_code!(%{batch_code: third.batch_code}, actor: actor).id ==
+             third.id
+  end
+
   test "in-progress batches can be canceled until consumption is recorded" do
     actor = Craftplan.DataCase.staff_actor()
     {product, flour} = setup_product_with_material(actor)
